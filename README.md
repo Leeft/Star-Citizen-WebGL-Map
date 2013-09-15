@@ -9,11 +9,18 @@ the [Star Map WIP video](https://robertsspaceindustries.com/comm-link/engineerin
 that was released of the in-game map feature earlier this year. It uses the
 awesome [three.js](http://threejs.org/) library to do the heavy lifting.
 
-You *need* a webbrower with WebGL support (Firefox or Chrome) to use this map, and
+A live demo is available at http://tdaguild.net/ until 16th October 2013.
+
+![Screenshot 1](http://imageshack.us/a/img706/2391/1x42.png)
+
+![Screenshot 2](http://imageshack.us/a/img833/4552/6vpv.png)
+
+
+You *need* a webbrowser with WebGL support (Firefox or Chrome) to use this map, and
 a graphics card which can handle WebGL. It has been verified to work on the
-Nexus 7 tablet (using Firefox for Android, other browsers not tested) and should
-work in any working WebGL environement. If you can run the Hangar on your PC, you
-can probably run this as well.
+Nexus 7 tablet (using Firefox for Android, other browsers not tested) but should
+work in any working WebGL environment. If you can run the Hangar module on your
+PC, you can probably run this as well.
 
 Several primary features are still missing;
 
@@ -42,4 +49,5 @@ so far to be added, and the known system info is basically empty (except for
 a single system to test with, Nul). I've been focusing on the code rather than
 the data, which is why the data isn't there.
 
-September 2013 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari)
+Initial release, September 2013 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari)
+
