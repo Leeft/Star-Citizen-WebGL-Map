@@ -5,6 +5,8 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
       <style>
+         @import url(http://fonts.googleapis.com/css?family=Electrolize);
+
          body {
             background-color: #000000;
             margin: 0px;
@@ -34,7 +36,7 @@
             color: #ffffff;
             padding: 5px;
             background-color: #00000;
-            /* font-family: Monospace; */
+            font-family: 'Electrolize', sans-serif;
             font-size: 13px;
             text-align: left;
             z-index: 500;
@@ -89,14 +91,15 @@
 
       <div id="appinfo">
          <a href="http://threejs.org" target="_blank">three.js</a> -
-         <em>Pre-pre-pre-pre Alpha</em> <a href="https://www.robertsspaceindustries.com/" target="_blank">Star Citizen</a> WebGL 3D Interactive Star Map<br>
-<!-- -->
+         <em>Pre-pre-pre-pre Alpha</em> <a href="https://www.robertsspaceindustries.com/" target="_blank">Star Citizen</a> WebGL 3D Interactive Star Map
+         <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">on GitHub</a><br>
+<!--
          <div id="debugstuff" style="visibility: hidden;">
             rotation: <span id="rotation"></span>&deg;
             value1: <span id="value1"></span>
             value2: <span id="value2"></span>
          </div>
-<!-- -->
+-->
       </div>
 
       <div id="systeminfo">
@@ -106,8 +109,9 @@
 
       <script src="js/sc_map.js"></script>
       <script src="js/sc_systems.js"></script>
+
       <script src="js/three.min.js"></script>
-      <script src="js/jquery.min.js"></script>
+      <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
       <!-- <script _src="three.js/examples/js/shaders/ConvolutionShader.js"></script> -->
       <script src="js/shaders/FXAAShader.js"></script>

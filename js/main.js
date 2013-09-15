@@ -122,7 +122,7 @@ function buildStarCitizenSystems ()
          systemNameWidth = systemNameContext.measureText( system_name ).width;
          systemNameCanvas.height = 36;
          systemNameCanvas.width = 200;
-         systemNameContext.font = "28pt Arial";
+         systemNameContext.font = "28pt Electrolize";
          systemNameContext.textAlign = 'center';
          systemNameContext.fillStyle = "rgba(255,255,255,0.95)";
          systemNameContext.fillText( system_name, systemNameCanvas.width / 2, 30 );
