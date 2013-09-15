@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <title>three.js starmap</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+      <style>
+         body {
+            background-color: #000000;
+            margin: 0px;
+            overflow: hidden;
+         }
+
+         a {
+            color:#0078ff;
+         }
+
+         #appinfo {
+            position: absolute;
+            top: 10px; width: 100%;
+            color: #ffffff;
+            padding: 5px;
+            font-family: Monospace;
+            font-size: 13px;
+            text-align: center;
+            z-index:100;
+         }
+
+         #systeminfo {
+            position: absolute;
+            top: 40px;
+            left: 10px;
+            width: 15%;
+            color: #ffffff;
+            padding: 5px;
+            background-color: #00000;
+            /* font-family: Monospace; */
+            font-size: 13px;
+            text-align: left;
+            z-index: 500;
+         }
+
+         #systeminfo h1 {
+            font-size: 20px;
+            padding: 0px;
+            maring: 0px;
+         }
+
+         #systeminfo p {
+            clear: both;
+            padding-top: 0.5em;
+         }
+         #systeminfo p a {
+            font-style: oblique;
+         }
+
+         a {
+            color: #6ABBCF;
+            text-decoration: none;
+         }
+
+         a:hover {
+            color: #0080ff;
+         }
+
+         dl {
+            border: none;
+            padding: 0;
+         }
+         dt {
+            float: left;
+            clear: left;
+            width: 100px;
+            text-align: right;
+            font-weight: bold;
+            color: #6ABBCF;
+         }
+         dt:after {
+            content: ":";
+         }
+         dd {
+            margin: 0 0 0 110px;
+            padding: 0 0 0.3em 0;
+         }
+
+      </style>
+   </head>
+   <body>
+
+      <div id="appinfo">
+         <a href="http://threejs.org" target="_blank">three.js</a> -
+         <em>Pre-pre-pre-pre Alpha</em> <a href="https://www.robertsspaceindustries.com/" target="_blank">Star Citizen</a> WebGL 3D Interactive Star Map<br>
+<!-- -->
+         <div id="debugstuff" style="visibility: hidden;">
+            rotation: <span id="rotation"></span>&deg;
+            value1: <span id="value1"></span>
+            value2: <span id="value2"></span>
+         </div>
+<!-- -->
+      </div>
+
+      <div id="systeminfo">
+         <h1 id="systemname"></h1>
+         <div id="systemblurb"></div>
+      </div>
+
+      <script src="js/sc_map.js"></script>
+      <script src="js/sc_systems.js"></script>
+      <script src="js/three.min.js"></script>
+      <script src="js/jquery.min.js"></script>
+
+      <!-- <script _src="three.js/examples/js/shaders/ConvolutionShader.js"></script> -->
+      <script src="js/shaders/FXAAShader.js"></script>
+      <script src="js/shaders/CopyShader.js"></script>
+
+      <script src="js/postprocessing/EffectComposer.js"></script>
+      <script src="js/postprocessing/MaskPass.js"></script>
+      <script src="js/postprocessing/RenderPass.js"></script>
+      <script src="js/postprocessing/ShaderPass.js"></script>
+      <!-- <script src="three.js/examples/js/postprocessing/BloomPass.js"></script> -->
+
+      <script src="js/controls/TrackballControlsSCMap.js"></script>
+
+      <script src="js/Detector.js"></script>
+      <script src="js/libs/stats.min.js"></script>
+
+      <script src="js/main.js"></script>
+   </body>
+</html>
+
