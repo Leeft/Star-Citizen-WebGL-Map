@@ -22,10 +22,19 @@
             top: 10px; width: 100%;
             color: #ffffff;
             padding: 5px;
-            font-family: Monospace;
+            /* font-family: Monospace; */
+            font-family: 'Electrolize', sans-serif;
             font-size: 13px;
             text-align: center;
             z-index:100;
+         }
+
+         #sclogo {
+            position: absolute;
+            top: 10px; right: 10px;
+         }
+         #sclogo img {
+            border: none;
          }
 
          #systeminfo {
@@ -88,18 +97,17 @@
       </style>
    </head>
    <body>
-
       <div id="appinfo">
          <a href="http://threejs.org" target="_blank">three.js</a> -
-         <em>Pre-pre-pre-pre Alpha</em> <a href="https://www.robertsspaceindustries.com/" target="_blank">Star Citizen</a> WebGL 3D Interactive Star Map
-         <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">on GitHub</a><br>
+         <em>Pre-pre-pre-pre Alpha</em> <a href="https://robertsspaceindustries.com/about-the-game" target="_blank" title="Robersspaceindustries.com: About the game">Star Citizen</a> WebGL 3D Interactive Star Map
+         <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">I'm on GitHub!</a><br>
 <!--
-         <div id="debugstuff" style="visibility: hidden;">
-            rotation: <span id="rotation"></span>&deg;
-            value1: <span id="value1"></span>
-            value2: <span id="value2"></span>
-         </div>
--->
+            <div id="debugstuff" style="visibility: hidden;">
+               rotation: <span id="rotation"></span>&deg;
+               value1: <span id="value1"></span>
+               value2: <span id="value2"></span>
+            </div>
+ -->
       </div>
 
       <div id="systeminfo">
@@ -107,11 +115,16 @@
          <div id="systemblurb"></div>
       </div>
 
+      <div id="sclogo"><a href="https://robertsspaceindustries.com/about-the-game" target="_blank" title="Robersspaceindustries.com: About the game"><img src="images/sclogo.png" width="72" height="72" alt=""></a></div>
+
+      <!-- star citizen data -->
       <script src="js/sc_map.js"></script>
       <script src="js/sc_systems.js"></script>
 
+      <!-- three.js and jQuery -->
       <script src="js/three.min.js"></script>
-      <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+      <!-- script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script -->
+      <script src="js/jquery.min.js"></script>
 
       <!-- <script _src="three.js/examples/js/shaders/ConvolutionShader.js"></script> -->
       <script src="js/shaders/FXAAShader.js"></script>
