@@ -15,11 +15,12 @@ Nexus 7 tablet (using Firefox for Android, other browsers not tested) but should
 work in any working WebGL environment. If you can run the Hangar module on your
 PC, you can probably run this as well.
 
-A live demo is currently available at http://tdaguild.net/ (only until 16th October 2013).
+It is entirely data driven, so when the data changes, so will the map. It is
+quite flexible already.
 
-![Screenshot 1](http://imageshack.us/a/img833/4552/6vpv.png)
+A live demo is available at http://leeft.eu/starcitizen/
 
-![Screenshot 2](http://imageshack.us/a/img706/2391/1x42.png)
+![Screenshot](http://imageshack.us/a/img42/5995/gppm.png)
 
 Several primary features are still missing;
 
@@ -27,17 +28,30 @@ Several primary features are still missing;
 * A "flat" map mode like in the video
 * Camera movement around the map (is entirely disabled for now)
 * Camera angle limits (to prevent gimbal lock problems at some angles)
+* Filling in the missing data
+* Linking to e.g. the Wiki and other maps
 
-Things which will probably be implemented:
+Things which will likely be implemented:
 
-* Route-planner, with alternative routes and the known dangers on these routes
+* Route-planner, showing alternative routes, relative distances (which may
+get more accurate as we get more info) and the known dangers on these routes
 * Graphics (or other) settings panel
+* ...
+
+Other things I may do in the future, largely dependant on what information
+will be available through any API's Cloud Imperium Games might be creating for us:
+
+* News tracker for (selected) systems
+* Seeing where your friends are
+* Highlighting big events on the map
+* Revealing new jump points as they've been explored and published widely
 * ...
 
 Known issues:
 
 * Chrome doesn't like loading from a file:// URL, so Firefox is currently
-recommended for executing it from the filesystem (without a webserver).
+recommended for executing it locally from the filesystem (without a webserver).
+
 
 I will probably *not* implement anything like the planets view in the video, the
 amount of work involved with that would be tremendous. And leaving it out here
