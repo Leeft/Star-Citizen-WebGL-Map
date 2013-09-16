@@ -40,7 +40,7 @@ function init()
    controls.zoomSpeed = 1.2;
    controls.panSpeed = 0.8;
    controls.noZoom = false;
-   controls.noPan = true;
+   controls.noPan = false;
    controls.staticMoving = true;
    controls.dynamicDampingFactor = 0.3;
    controls.keys = [ 65, 83, 68 ];
@@ -56,7 +56,7 @@ function init()
 
    buildStarCitizenSystems();
    buildReferencePlane();
-   buildOrientationNull()
+   //buildOrientationNull()
    loadSelectedSystemObject();
 
    // Stats
@@ -94,8 +94,11 @@ function buildStarCitizenSystems ()
    var starMesh = new THREE.SphereGeometry( 5, 12, 12 ),
       territory, starMaterial, routeMaterial, system, coords, starObject,
       systemNameCanvas, systemNameContext, systemNameWidth,
-      systemNameTexture, systemNameMaterial, systemNameMesh,
-      destinations, destination, geometry, route;
+      systemNameTexture, systemNameMesh,
+      destinations, destination, geometry,
+      route, nameGroup;
+
+   var nameGroup = new THREE.Object3D();
 
    for ( territory_name in sc_map )
    {
@@ -113,38 +116,36 @@ function buildStarCitizenSystems ()
             "name": system_name,
             "location": coords
          };
+         starObject.position = coords;
          scene.add( starObject );
          starSystems[ system_name ] = starObject;
          interactableObjects.push( starObject );
 
          systemNameCanvas = document.createElement('canvas');
+         systemNameCanvas.width = 300;//systemNameWidth + 16;
+         systemNameCanvas.height = 64;
          systemNameContext = systemNameCanvas.getContext('2d');
-         systemNameWidth = systemNameContext.measureText( system_name ).width;
-         systemNameCanvas.height = 36;
-         systemNameCanvas.width = 200;
-         systemNameContext.font = "28pt Electrolize";
+         systemNameContext.font = "36pt Electrolize";
          systemNameContext.textAlign = 'center';
          systemNameContext.fillStyle = "rgba(255,255,255,0.95)";
-         systemNameContext.fillText( system_name, systemNameCanvas.width / 2, 30 );
+         systemNameWidth = systemNameContext.measureText( system_name ).width;
+         systemNameContext.fillText( system_name, systemNameCanvas.width / 2, 38 );
           
          systemNameTexture = new THREE.Texture( systemNameCanvas ) ;
          systemNameTexture.needsUpdate = true;
             
-         systemNameMaterial = new THREE.MeshBasicMaterial({ map: systemNameTexture });
-         systemNameMaterial.transparent = true;
-
-         systemNameMesh = new THREE.Mesh(
-           new THREE.PlaneGeometry( systemNameCanvas.width / 6, systemNameCanvas.height / 6 ),
-           systemNameMaterial
-         );
-         systemNameMesh.position.set( system.coords[0], system.coords[1] + 20, system.coords[2] );
-         systemNameMesh.is_billboard = true;
-         systemNameMesh.starInfo = starObject.starInfo;
-         systemNameMesh.starObject = starObject;
-         scene.add( systemNameMesh );
-         interactableObjects.push( systemNameMesh );
+         var systemNameSpriteMaterial = new THREE.SpriteMaterial({ map: systemNameTexture, useScreenCoordinates: false, fog: true });
+         var systemNameSprite = new THREE.Sprite( systemNameSpriteMaterial );
+         systemNameSprite.position.set( coords.x, coords.y + 12, coords.z );
+         systemNameSprite.scale.set( 0.22 * systemNameCanvas.width, 0.22 * systemNameCanvas.height, 1 );
+         systemNameSprite.starInfo = starObject.starInfo;
+         systemNameSprite.starObject = starObject;
+         nameGroup.add( systemNameSprite );
+         interactableObjects.push( systemNameSprite );
       }
    }
+
+   scene.add( nameGroup );
 
    for ( territory_name in sc_map )
    {
@@ -201,15 +202,14 @@ function buildReferencePlane()
 
 function buildOrientationNull()
 {
-    var orientationNullMaterial = new THREE.LineBasicMaterial( { color: 0xffff00, opacity: 1, linewidth: 1 } ),
+    var orientationNullMaterial = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 1, linewidth: 1 } ),
       orientationNullGeometry;
 
    orientationNullGeometry = new THREE.Geometry();
-   //orientationNullGeometry.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
-
    orientationNullGeometry.vertices.push( new THREE.Vector3( -10, 10, 0 ) );
    orientationNullGeometry.vertices.push( new THREE.Vector3( -10, -10, 0 ) );
    orientationNullGeometry.vertices.push( new THREE.Vector3( 10, -10, 0 ) );
+   //orientationNullGeometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
    orientationNullGeometry.computeBoundingSphere();
 
    orientationNull = new THREE.Mesh( orientationNullGeometry, orientationNullMaterial );
@@ -359,61 +359,19 @@ function displaySystemInfo( system )
 function animate() {
    requestAnimationFrame( animate );
    controls.update();
-
-   orientationNull.position.y = camera.position.y;
-   orientationNull.lookAt( camera.position );
-
    stats.update();
    render();
 }
 
 function render()
 {
-   $('#rotation').text( ( ( camera.rotation.y * ( 180 / Math.PI ) ) % 360 ).toFixed(0) );
+   //$('#rotation1').text( ( ( camera.rotation.y * ( 180 / Math.PI ) ) % 360 ).toFixed(0) );
+   //$('#rotation2').text( ( THREE.Math.radToDeg( orientationNull.rotation.y ) % 360 ).toFixed(0) );
 
-   var axis = new THREE.Vector3( 0, 1, 0 );
-   var rotationMatrix = new THREE.Matrix4().makeRotationAxis( axis, 0 );
-
-   // To make the billboards follow the vector of the orientationNull
-   var angle = orientationNull.rotation.y;
-   var orientationVector;
-   // Todo: this may need work when the camera can move
-   if ( camera.position.z >= 0 ) {
-      orientationVector = axis;
-   } else {
-      orientationVector = new THREE.Vector3( 0, -1, 0 );
-      angle += Math.PI;
-   }
-   var matrix = new THREE.Matrix4().makeRotationAxis( axis, angle );
-
-   for ( var i = 0; i < scene.children.length; i ++ )
-   {
-      var object = scene.children[ i ];
-
-      if ( object instanceof THREE.Mesh || object instanceof THREE.Line )
-      {
-         var objectMatrix = object.matrix;
-         objectMatrix.identity();
-
-         if ( object.starInfo !== undefined )
-         {
-            if ( object.is_billboard ) {
-               var labelLocation = object.starInfo.location.clone().add( new THREE.Vector3( 0, 12, 0 ) ); 
-               objectMatrix.setPosition( labelLocation );
-            } else {
-               objectMatrix.setPosition( object.starInfo.location );
-            }
-            object.applyMatrix( rotationMatrix );
-         }
-
-         if ( object.is_billboard ) {
-            object.rotateOnAxis( orientationVector, angle );
-         }
-      }
-   }
-
-   //if ( selectedSystemObject !== undefined && selectedSystemObject.visible ) {
-   //   selectedSystemObject.rotation.y = angle;
+   //for ( var i = 0; i < scene.children.length; i ++ )
+   //{
+   // var object = scene.children[ i ];
+      //if ( object instanceof THREE.Mesh || object instanceof THREE.Line )
    //}
 
 	var timer = Date.now() * 0.00025;

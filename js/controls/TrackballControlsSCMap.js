@@ -23,7 +23,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 	this.noBank = true;
 	this.noRotate = false;
 	this.noZoom = false;
-	this.noPan = true;
+	this.noPan = false;
 	this.noRoll = true;
 
 	this.staticMoving = false;
@@ -279,11 +279,11 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 		}
 
-		//if ( !_this.noPan ) {
+		if ( !_this.noPan ) {
 
-		//	_this.panCamera();
+			_this.panCamera();
 
-		//}
+		}
 
 		_this.object.position.addVectors( _this.target, _eye );
 
