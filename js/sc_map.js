@@ -1,3 +1,4 @@
+var sc_map_scaling = 0.5; // every coordinate is multiplied by this amount
 var sc_map = {
    "UUE": {
       color: 0x8080f0,

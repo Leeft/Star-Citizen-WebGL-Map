@@ -32,8 +32,10 @@ function init()
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
 
-   camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+   camera.position.y = 400;
    camera.position.z = 600;
+   camera.setViewOffset( width, height, 0, - ( height / 8 ), width, height );
 
    controls = new THREE.TrackballControls( camera );
    controls.rotateSpeed = 1.0;
@@ -47,7 +49,6 @@ function init()
    controls.addEventListener( 'change', render );
 
    scene = new THREE.Scene();
-   scene.fog = new THREE.FogExp2( 0x000000, 0.0010 );
 
    renderer = new THREE.WebGLRenderer( { clearColor: 0x000000, clearAlpha: 1, antialias: true } );
    renderer.setSize( window.innerWidth, window.innerHeight );
@@ -55,8 +56,6 @@ function init()
    container.appendChild( renderer.domElement );
 
    buildStarCitizenSystems();
-   buildReferencePlane();
-   //buildOrientationNull()
    loadSelectedSystemObject();
 
    // Stats
@@ -96,7 +95,8 @@ function buildStarCitizenSystems ()
       systemNameCanvas, systemNameContext, systemNameWidth,
       systemNameTexture, systemNameMesh,
       destinations, destination, geometry,
-      route, nameGroup;
+      route, nameGroup,
+      nameSpriteScaling = 0.24;
 
    var nameGroup = new THREE.Object3D();
 
@@ -109,7 +109,10 @@ function buildStarCitizenSystems ()
       {
          system = territory.systems[system_name];
          coords = new THREE.Vector3( system.coords[0], system.coords[1], system.coords[2] );
-         coords.multiplyScalar( 0.5 ); // starsystem coordinate scaling
+         if ( typeof( sc_map_scaling ) !== 'number' ) {
+            sc_map_scaling = 0.5;
+         }
+         coords.multiplyScalar( sc_map_scaling ); // starsystem coordinate scaling
          starObject = new THREE.Mesh( starMesh, starMaterial );
          starObject.scale.set( system.scale, system.scale, system.scale );
          starObject.starInfo = {
@@ -137,7 +140,7 @@ function buildStarCitizenSystems ()
          var systemNameSpriteMaterial = new THREE.SpriteMaterial({ map: systemNameTexture, useScreenCoordinates: false, fog: true });
          var systemNameSprite = new THREE.Sprite( systemNameSpriteMaterial );
          systemNameSprite.position.set( coords.x, coords.y + 12, coords.z );
-         systemNameSprite.scale.set( 0.22 * systemNameCanvas.width, 0.22 * systemNameCanvas.height, 1 );
+         systemNameSprite.scale.set( nameSpriteScaling * systemNameCanvas.width, nameSpriteScaling * systemNameCanvas.height, 1 );
          systemNameSprite.starInfo = starObject.starInfo;
          systemNameSprite.starObject = starObject;
          nameGroup.add( systemNameSprite );
@@ -177,43 +180,46 @@ function buildStarCitizenSystems ()
          }
       }
    }
+
+   buildReferencePlane( starSystems );
 }
 
-function buildReferencePlane()
+function buildReferencePlane( systems )
 {
-    var radius = 1200, quantity = 16 * 3, referencePlaneMaterial,
-      referencePlane, referencePlaneGeometry, step = 2 * Math.PI / 36;
+   var ringWidth = 52.5, // plane circle scaling to match the map
+      rings = 18, // number of circles we'll create
+      segments = 36, // radial segments
+      radius = rings * ringWidth,
+      material, referencePlane, geometry,
+      step = 2 * Math.PI / segments,
+      theta, x, z, i, point, color, distance, strength;
 
-   referencePlaneMaterial = new THREE.LineBasicMaterial( { color: 0x0CB01E, opacity: 0.8, linewidth: 1 } ),
-   referencePlaneGeometry = new THREE.CylinderGeometry( radius, 0, 0, 36, quantity, false );
+   material = new THREE.LineBasicMaterial( { color: 0xFFFFFF, linewidth: 1, vertexColors: true, opacity: 0.6 } ),
+   geometry = new THREE.CylinderGeometry( radius, 0, 0, segments, rings, false );
 
-   for ( var theta = 0; theta < 2 * Math.PI; theta += step )
+   // create the lines from the center to the outside
+   for ( theta = 0; theta < 2 * Math.PI; theta += step )
    {
-      var x = radius * Math.cos( theta );
-      var z = 0 - radius * Math.sin( theta );
-      referencePlaneGeometry.vertices.push( new THREE.Vector3( x, 0, z ) );
-      referencePlaneGeometry.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
+      x = radius * Math.cos( theta );
+      z = 0 - radius * Math.sin( theta );
+      geometry.vertices.push( new THREE.Vector3( x, 0, z ) );
+      geometry.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
    }
 
-   referencePlane = new THREE.Line( referencePlaneGeometry, referencePlaneMaterial ),
+   // assign colors to vertices based on their distance
+   for ( var i = 0; i < geometry.vertices.length; i++ ) 
+   {
+      point = geometry.vertices[ i ];
+      color = new THREE.Color( 0x000000 );
+      strength = ( radius - point.length() ) / ( radius );
+      color.setRGB( 0, strength * 0.8, 0 );
+      geometry.colors[i] = color;
+   }
+
+   // and create the ground reference plane
+   referencePlane = new THREE.Line( geometry, material ),
    referencePlane.overdraw = false;
    scene.add( referencePlane );
-}
-
-function buildOrientationNull()
-{
-    var orientationNullMaterial = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 1, linewidth: 1 } ),
-      orientationNullGeometry;
-
-   orientationNullGeometry = new THREE.Geometry();
-   orientationNullGeometry.vertices.push( new THREE.Vector3( -10, 10, 0 ) );
-   orientationNullGeometry.vertices.push( new THREE.Vector3( -10, -10, 0 ) );
-   orientationNullGeometry.vertices.push( new THREE.Vector3( 10, -10, 0 ) );
-   //orientationNullGeometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
-   orientationNullGeometry.computeBoundingSphere();
-
-   orientationNull = new THREE.Mesh( orientationNullGeometry, orientationNullMaterial );
-   scene.add( orientationNull );
 }
 
 function loadSelectedSystemObject()
@@ -365,15 +371,6 @@ function animate() {
 
 function render()
 {
-   //$('#rotation1').text( ( ( camera.rotation.y * ( 180 / Math.PI ) ) % 360 ).toFixed(0) );
-   //$('#rotation2').text( ( THREE.Math.radToDeg( orientationNull.rotation.y ) % 360 ).toFixed(0) );
-
-   //for ( var i = 0; i < scene.children.length; i ++ )
-   //{
-   // var object = scene.children[ i ];
-      //if ( object instanceof THREE.Mesh || object instanceof THREE.Line )
-   //}
-
 	var timer = Date.now() * 0.00025;
    if ( selectedSystemObject !== undefined ) {
       selectedSystemObject.rotation.y = THREE.Math.degToRad( timer ) * 200;
