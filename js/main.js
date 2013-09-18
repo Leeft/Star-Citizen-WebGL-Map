@@ -3,12 +3,10 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 var effectFXAA,
     yRotation = 0,
     camera, scene, renderer, composer,
-    starSystems = {},
     selectedSystemObject,
     orientationNull, 
 
     // raycasting helper vars
-    interactableObjects = [],
     clickedOn,
 
    // some flavor text, not got the proper content yet
@@ -90,65 +88,33 @@ function init()
 
 function buildStarCitizenSystems ()
 {
-   var starMesh = new THREE.SphereGeometry( 5, 12, 12 ),
-      territory, starMaterial, routeMaterial, system, coords, starObject,
-      systemNameCanvas, systemNameContext, systemNameWidth,
-      systemNameTexture, systemNameMesh,
+   var territory, starMaterial, routeMaterial, system,
       destinations, destination, geometry,
-      route, nameGroup,
-      nameSpriteScaling = 0.24;
+      route, labelGroup, data, position;
 
-   var nameGroup = new THREE.Object3D();
+   var labelGroup = new THREE.Object3D();
+
+   if ( typeof( sc_map_scaling ) !== 'number' ) {
+      sc_map_scaling = 0.5;
+   }
 
    for ( territory_name in sc_map )
    {
-      territory = sc_map[territory_name];
-      starMaterial = new THREE.MeshBasicMaterial( { color: territory.color, fog: true } );
+      territory = sc_map[ territory_name ];
+      starMaterial = new THREE.MeshBasicMaterial( { color: territory.color } );
 
       for ( system_name in territory.systems )
       {
-         system = territory.systems[system_name];
-         coords = new THREE.Vector3( system.coords[0], system.coords[1], system.coords[2] );
-         if ( typeof( sc_map_scaling ) !== 'number' ) {
-            sc_map_scaling = 0.5;
-         }
-         coords.multiplyScalar( sc_map_scaling ); // starsystem coordinate scaling
-         starObject = new THREE.Mesh( starMesh, starMaterial );
-         starObject.scale.set( system.scale, system.scale, system.scale );
-         starObject.starInfo = {
-            "name": system_name,
-            "location": coords
-         };
-         starObject.position = coords;
-         scene.add( starObject );
-         starSystems[ system_name ] = starObject;
-         interactableObjects.push( starObject );
+         data = territory.systems[system_name];
 
-         systemNameCanvas = document.createElement('canvas');
-         systemNameCanvas.width = 300;//systemNameWidth + 16;
-         systemNameCanvas.height = 64;
-         systemNameContext = systemNameCanvas.getContext('2d');
-         systemNameContext.font = "36pt Electrolize";
-         systemNameContext.textAlign = 'center';
-         systemNameContext.fillStyle = "rgba(255,255,255,0.95)";
-         systemNameWidth = systemNameContext.measureText( system_name ).width;
-         systemNameContext.fillText( system_name, systemNameCanvas.width / 2, 38 );
-          
-         systemNameTexture = new THREE.Texture( systemNameCanvas ) ;
-         systemNameTexture.needsUpdate = true;
-            
-         var systemNameSpriteMaterial = new THREE.SpriteMaterial({ map: systemNameTexture, useScreenCoordinates: false, fog: true });
-         var systemNameSprite = new THREE.Sprite( systemNameSpriteMaterial );
-         systemNameSprite.position.set( coords.x, coords.y + 12, coords.z );
-         systemNameSprite.scale.set( nameSpriteScaling * systemNameCanvas.width, nameSpriteScaling * systemNameCanvas.height, 1 );
-         systemNameSprite.starInfo = starObject.starInfo;
-         systemNameSprite.starObject = starObject;
-         nameGroup.add( systemNameSprite );
-         interactableObjects.push( systemNameSprite );
+         position = new THREE.Vector3( data.coords[0], data.coords[1], data.coords[2] )
+         system = new SCMAP.System( system_name, position, territory, data.scale );
+         scene.add( system.createObject( starMaterial ) );
+         labelGroup.add( system.createLabel() );
       }
    }
 
-   scene.add( nameGroup );
+   scene.add( labelGroup );
 
    for ( territory_name in sc_map )
    {
@@ -157,7 +123,7 @@ function buildStarCitizenSystems ()
 
       for ( system_name in territory.known_routes )
       {
-         if ( starSystems[ system_name ] === undefined ) {
+         if ( SCMAP.system( system_name ) === undefined ) {
             console.log( territory_name+" space route: can't find the system '"+system_name+"'" );
             continue;
          }
@@ -166,14 +132,14 @@ function buildStarCitizenSystems ()
          for ( i = 0; i < destinations.length; i++ )
          {
             destination = destinations[i];
-            if ( starSystems[ destination ] === undefined ) {
+            if ( SCMAP.system( destination ) === undefined ) {
                console.log( territory_name+" space route from "+system_name+" can't find the destination system '"+destination+"'" );
                continue;
             }
 
             geometry = new THREE.Geometry();
-            geometry.vertices.push( starSystems[ system_name ].starInfo.location );
-            geometry.vertices.push( starSystems[ destination ].starInfo.location );
+            geometry.vertices.push( SCMAP.system( system_name ).position );
+            geometry.vertices.push( SCMAP.system( destination ).position );
             geometry.computeBoundingSphere();
             route = new THREE.Line( geometry, routeMaterial );
             scene.add( route );
@@ -181,10 +147,10 @@ function buildStarCitizenSystems ()
       }
    }
 
-   buildReferencePlane( starSystems );
+   buildReferencePlane();
 }
 
-function buildReferencePlane( systems )
+function buildReferencePlane()
 {
    var ringWidth = 52.5, // plane circle scaling to match the map
       rings = 18, // number of circles we'll create
@@ -256,13 +222,13 @@ function onDocumentMouseDown( event )
    projector.unprojectVector(vector, camera);
    
    var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-   var intersects = raycaster.intersectObjects( interactableObjects );
+   var intersects = raycaster.intersectObjects( SCMAP.interactableObjects );
    
    if ( intersects.length > 0 ) {
       var intersect = intersects[0];
       if ( intersect.object.starObject ) {
          clickedOn = intersect.object.starObject;
-      } else if ( intersect.object.starInfo ) {
+      } else if ( intersect.object.system ) {
          clickedOn = intersect.object;
       }
    }
@@ -277,13 +243,13 @@ function onDocumentMouseUp( event )
    projector.unprojectVector(vector, camera);
 
    raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-   intersects = raycaster.intersectObjects( interactableObjects );
+   intersects = raycaster.intersectObjects( SCMAP.interactableObjects );
    
    if ( intersects.length > 0 )
    {
       var intersect = intersects[0];
 
-      if ( intersect.object.starInfo )
+      if ( intersect.object.system )
       {
          if ( intersect.object.starObject ) {
             clickedOut = intersect.object.starObject;
@@ -292,8 +258,8 @@ function onDocumentMouseUp( event )
          }
 
          if ( intersect.object === clickedOn ) {
-            if ( $('#systemname').text() != clickedOut.starInfo.name ) {
-               displaySystemInfo( clickedOut.starInfo.name );
+            if ( $('#systemname').text() != clickedOut.system.name ) {
+               displaySystemInfo( clickedOut.system.name );
                selectedSystemObject.visible = true;
                selectedSystemObject.position = clickedOn.position;
             }
