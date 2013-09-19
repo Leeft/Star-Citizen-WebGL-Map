@@ -1,17 +1,9 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-var effectFXAA,
-    yRotation = 0,
-    camera, scene, renderer, composer,
-    selectedSystemObject,
-    orientationNull, 
-
-    // raycasting helper vars
-    clickedOn,
+var effectFXAA, camera, scene, renderer, composer, map,
 
    // some flavor text, not got the proper content yet
-    rikerIndex = 0,
-    rikerIpsum = [
+    rikerIndex = 0, rikerIpsum = [
    "What? We're not at all alike! For an android with no feelings, he sure managed to evoke them in others. I've had twelve years to think about it. And if I had it to do over again, I would have grabbed the phaser and pointed it at you instead of them. Did you come here for something in particular or just general Riker-bashing? Flair is what marks the difference between artistry and mere competence. I guess it's better to be lucky than good. When has justice ever been as simple as a rule book? Worf, It's better than music. It's jazz. We have a saboteur aboard.",
    "They were just sucked into space. Fear is the true enemy, the only enemy. I've had twelve years to think about it. And if I had it to do over again, I would have grabbed the phaser and pointed it at you instead of them. Maybe if we felt any human loss as keenly as we feel one of those close to us, human history would be far less bloody. Yesterday I did not know how to eat gagh. Mr. Worf, you sound like a man who's asking his friend if he can start dating his sister. Wait a minute - you've been declared dead. You can't give orders around here.",
    "I think you've let your personal feelings cloud your judgement. The look in your eyes, I recognize it. You used to have it for me. Commander William Riker of the Starship Enterprise. I guess it's better to be lucky than good. Our neural pathways have become accustomed to your sensory input patterns.",
@@ -23,7 +15,7 @@ animate();
 
 function init()
 {
-   var i, container, renderModel, effectCopy, effectBloom, width, height;
+   var container, renderModel, effectCopy, effectBloom, width, height;
 
    container = document.createElement( 'div' );
    document.body.appendChild( container );
@@ -53,8 +45,8 @@ function init()
    renderer.autoClear = false;
    container.appendChild( renderer.domElement );
 
-   buildStarCitizenSystems();
-   loadSelectedSystemObject();
+   map = new SCMAP.Map( scene, sc_map );
+   buildReferencePlane();
 
    // Stats
 
@@ -66,8 +58,8 @@ function init()
    // Event handlers
 
    window.addEventListener( 'resize', onWindowResize, false );
-   renderer.domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
-   renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUp, false );
+   renderer.domElement.addEventListener( 'mousedown', onDocumentMouseUpAndDown, false );
+   renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUpAndDown, false );
 
    // Rendering
 
@@ -84,70 +76,6 @@ function init()
    //composer.addPass( effectFXAA );
    //composer.addPass( effectBloom );
    composer.addPass( effectCopy );
-}
-
-function buildStarCitizenSystems ()
-{
-   var territory, starMaterial, routeMaterial, system,
-      destinations, destination, geometry,
-      route, labelGroup, data, position;
-
-   var labelGroup = new THREE.Object3D();
-
-   if ( typeof( sc_map_scaling ) !== 'number' ) {
-      sc_map_scaling = 0.5;
-   }
-
-   for ( territory_name in sc_map )
-   {
-      territory = sc_map[ territory_name ];
-      starMaterial = new THREE.MeshBasicMaterial( { color: territory.color } );
-
-      for ( system_name in territory.systems )
-      {
-         data = territory.systems[system_name];
-
-         position = new THREE.Vector3( data.coords[0], data.coords[1], data.coords[2] )
-         system = new SCMAP.System( system_name, position, territory, data.scale );
-         scene.add( system.createObject( starMaterial ) );
-         labelGroup.add( system.createLabel() );
-      }
-   }
-
-   scene.add( labelGroup );
-
-   for ( territory_name in sc_map )
-   {
-      territory = sc_map[territory_name];
-      routeMaterial = new THREE.LineBasicMaterial( { color: territory.color, linewidth: 1, fog: true } );
-
-      for ( system_name in territory.known_routes )
-      {
-         if ( SCMAP.system( system_name ) === undefined ) {
-            console.log( territory_name+" space route: can't find the system '"+system_name+"'" );
-            continue;
-         }
-
-         destinations = territory.known_routes[system_name];
-         for ( i = 0; i < destinations.length; i++ )
-         {
-            destination = destinations[i];
-            if ( SCMAP.system( destination ) === undefined ) {
-               console.log( territory_name+" space route from "+system_name+" can't find the destination system '"+destination+"'" );
-               continue;
-            }
-
-            geometry = new THREE.Geometry();
-            geometry.vertices.push( SCMAP.system( system_name ).position );
-            geometry.vertices.push( SCMAP.system( destination ).position );
-            geometry.computeBoundingSphere();
-            route = new THREE.Line( geometry, routeMaterial );
-            scene.add( route );
-         }
-      }
-   }
-
-   buildReferencePlane();
 }
 
 function buildReferencePlane()
@@ -188,21 +116,6 @@ function buildReferencePlane()
    scene.add( referencePlane );
 }
 
-function loadSelectedSystemObject()
-{
-   var jsonLoader = new THREE.JSONLoader();
-   jsonLoader.load( "js/objects/selected_system.js", function( geometry, materials ) {
-      var material = new THREE.MeshBasicMaterial( { color: 0xCCCCCC, fog: false } );
-      material.transparent = true;
-      material.blending = THREE.AdditiveBlending; 
-      var mesh = new THREE.Mesh( geometry, material );
-      mesh.scale.set( 15, 15, 15 );
-      mesh.visible = false;
-      selectedSystemObject = mesh;
-      scene.add( mesh );
-   } );
-}
-
 function onWindowResize()
 {
    camera.aspect = window.innerWidth / window.innerHeight;
@@ -215,66 +128,23 @@ function onWindowResize()
    composer.reset();
 }
 
-function onDocumentMouseDown( event )
-{
-   var vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
-   var projector = new THREE.Projector();
-   projector.unprojectVector(vector, camera);
-   
-   var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-   var intersects = raycaster.intersectObjects( SCMAP.interactableObjects );
-   
-   if ( intersects.length > 0 ) {
-      var intersect = intersects[0];
-      if ( intersect.object.starObject ) {
-         clickedOn = intersect.object.starObject;
-      } else if ( intersect.object.system ) {
-         clickedOn = intersect.object;
-      }
-   }
-}
-
-function onDocumentMouseUp( event )
+function onDocumentMouseUpAndDown( event )
 {
    var vector, projector, raycaster, intersects, clickedOut;
-
-   vector = new THREE.Vector3((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+   vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
    projector = new THREE.Projector();
-   projector.unprojectVector(vector, camera);
-
+   projector.unprojectVector( vector, camera );
    raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-   intersects = raycaster.intersectObjects( SCMAP.interactableObjects );
-   
-   if ( intersects.length > 0 )
-   {
-      var intersect = intersects[0];
-
-      if ( intersect.object.system )
-      {
-         if ( intersect.object.starObject ) {
-            clickedOut = intersect.object.starObject;
-         } else {
-            clickedOut = intersect.object;
-         }
-
-         if ( intersect.object === clickedOn ) {
-            if ( $('#systemname').text() != clickedOut.system.name ) {
-               displaySystemInfo( clickedOut.system.name );
-               selectedSystemObject.visible = true;
-               selectedSystemObject.position = clickedOn.position;
-            }
-            clickedOn = undefined;
-         }
-      }
-   }
+   intersects = raycaster.intersectObjects( map.interactables );
+   map.handleSelection( event, intersects[0] );
 }
 
 function displaySystemInfo( system )
 {
    $('#systemname').text( system + ' System' );
-   if ( sc_system_info[ system ] )
+   var systemInfo = sc_system_info[ system ];
+   if ( systemInfo === ' object' )
    {
-      var systemInfo = sc_system_info[ system ];
       var blurb = $('<div class="sc_system_info '+system+'"></div>');
       blurb.append( '<dl></dl>' );
       var worlds = 'No inhabitable worlds';
@@ -335,14 +205,11 @@ function animate() {
    render();
 }
 
-function render()
-{
-	var timer = Date.now() * 0.00025;
-   if ( selectedSystemObject !== undefined ) {
-      selectedSystemObject.rotation.y = THREE.Math.degToRad( timer ) * 200;
-   }
-
+function render() {
+   map.animateSelector();
    renderer.clear();
    composer.render();
 }
+
+// End of file
 

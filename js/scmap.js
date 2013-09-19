@@ -12,16 +12,6 @@ self.console = self.console || {
    error: function () {}
 };
 
-SCMAP.interactableObjects = SCMAP.interactableObjects || [];
-SCMAP.systems = SCMAP.systems || {};
-
-SCMAP.system = function ( name ) {
-   if ( this.systems[name] === undefined ) {
-      console.log( "SCMAP.system: Can't find the system '"+name+"'" );
-   }
-   return this.systems[ name ];
-};
-
 // constants here
 // SCMAP.Foo = 'bar'
 

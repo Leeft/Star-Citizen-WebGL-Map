@@ -2,26 +2,27 @@
 * @author LiannaEeftinck / https://github.com/Leeft
 */
 
-SCMAP.System = function ( name, location, ownership, scale ) {
-   this.name = name;
-   this.mapCoordinates = location instanceof THREE.Vector3 ? location : new THREE.Vector3();
-   this.ownership = typeof ownership === 'string' ? ownership : undefined;
-   this.scale = typeof scale === 'number' ? scale : 1.0;
-
+SCMAP.System = function ( data ) {
+   this.name = '';
+   this.position = new THREE.Vector3();
+   this.ownership = '';
+   this.scale = 1.0;
    this.routesFrom = [];
    this.routesTo = [];
-   this.planets = [];
+
+   this.source = undefined;
+   this.planets = 0;
+   this.planetary_rotation = [];
    this.import = [];
    this.export = [];
-   this.crimeStatus = [];
-   this.blackMarket = [];
-   this.uueStrategicValue = undefined;
+   this.crime_status = [];
+   this.black_market = [];
    this.description = [];
-   this.source = undefined;
+   this.uue_strategic_value = undefined;
+   this.blob = [];
 
    this.sceneObject = undefined;
-
-   SCMAP.systems[ name ] = this;
+   this.setValues( data );
 };
 
 SCMAP.System.prototype = {
@@ -29,63 +30,68 @@ SCMAP.System.prototype = {
 
    createObject: function ( material ) {
       var object = new THREE.Mesh( SCMAP.System.mesh, material );
-      this.position = this.mapCoordinates.clone();
-      this.position.multiplyScalar( sc_map_scaling ); // starsystem coordinate scaling
       object.scale.set( this.scale, this.scale, this.scale );
       object.position = this.position;
       object.system = this;
-      SCMAP.interactableObjects.push( object );
+      this.sceneObject = object;
       return object;
    },
 
    createLabel: function ( groupObject ) {
-      var systemNameCanvas, systemNameContext, //systemNameWidth,
-          systemNameTexture, systemNameMesh, nameSpriteScaling = 0.24, 
-          systemNameSpriteMaterial, systemNameSprite;
+      var canvas, context, texture, scaling = 0.24, material, sprite; //systemNameWidth,
 
-      systemNameCanvas = document.createElement('canvas');
-      systemNameCanvas.width = 300;
-      systemNameCanvas.height = 64;
-      systemNameContext = systemNameCanvas.getContext('2d');
-      systemNameContext.font = "36pt Electrolize";
-      systemNameContext.textAlign = 'center';
-      systemNameContext.fillStyle = "rgba(255,255,255,0.95)";
-      //systemNameWidth = systemNameContext.measureText( this.name ).width;
-      systemNameContext.fillText( this.name, systemNameCanvas.width / 2, 38 );
+      canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 64;
+      context = canvas.getContext('2d');
+      context.font = "36pt Electrolize";
+      context.textAlign = 'center';
+      context.fillStyle = "rgba(255,255,255,0.95)";
+      //systemNameWidth = context.measureText( this.name ).width;
+      context.fillText( this.name, canvas.width / 2, 38 );
 
-      systemNameTexture = new THREE.Texture( systemNameCanvas ) ;
-      systemNameTexture.needsUpdate = true;
+      texture = new THREE.Texture( canvas ) ;
+      texture.needsUpdate = true;
+      material = new THREE.SpriteMaterial({ map: texture, useScreenCoordinates: false });
 
-      systemNameSpriteMaterial = new THREE.SpriteMaterial({ map: systemNameTexture, useScreenCoordinates: false });
-
-      systemNameSprite = new THREE.Sprite( systemNameSpriteMaterial );
-      systemNameSprite.position.set( this.position.x, this.position.y + 12, this.position.z );
-      systemNameSprite.scale.set( nameSpriteScaling * systemNameCanvas.width, nameSpriteScaling * systemNameCanvas.height, 1 );
-      systemNameSprite.system = this;
-
-      SCMAP.interactableObjects.push( systemNameSprite );
-      return systemNameSprite;
+      sprite = new THREE.Sprite( material );
+      sprite.position.set( this.position.x, this.position.y + 12, this.position.z );
+      sprite.scale.set( scaling * canvas.width, scaling * canvas.height, 1 );
+      sprite.system = this;
+      return sprite;
    },
 
-   populateInfo: function ( data ) {
-      //var blurb = $('<div class="sc_system_info '+system+'"></div>');
-      //blurb.append( '<dl></dl>' );
-      //var worlds = 'No inhabitable worlds';
-      //var _import = 'None';
-      //var _export = 'None';
-      //var black_market = 'None';
-      //if ( systemInfo.planetary_rotation.length ) {
-      //   worlds = systemInfo.planetary_rotation.join( ', ' );
-      //}
-      //if ( systemInfo.import.length ) {
-      //   _import = systemInfo.import.join( ', ' );
-      //}
-      //if ( systemInfo.export.length ) {
-      //   _export = systemInfo.export.join( ', ' );
-      //}
-      //if ( systemInfo.black_market.length ) {
-      //   black_market = systemInfo.black_market.join( ', ' );
-      //}
+   getValue: function ( key ) {
+      if ( key === undefined ) {
+         return;
+      }
+      var value = this[ key ];
+      return value;
+   },
+
+   setValues: function ( values ) {
+      if ( values === undefined ) {
+         return;
+      }
+
+      for ( var key in values ) {
+         var newValue = values[ key ];
+         if ( newValue === undefined ) {
+            console.warn( 'SCMAP.System: \'' + key + '\' parameter is undefined.' );
+            continue;
+         }
+
+         if ( key in this ) {
+            var currentValue = this[ key ];
+            if ( currentValue instanceof THREE.Color ) {
+               currentValue.set( newValue );
+            } else if ( currentValue instanceof THREE.Vector3 && newValue instanceof THREE.Vector3 ) {
+               currentValue.copy( newValue );
+            } else {
+               this[ key ] = newValue;
+            }
+         }
+      }
    }
 };
 
