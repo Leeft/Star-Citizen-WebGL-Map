@@ -7,10 +7,13 @@ SCMAP.Map = function ( scene, mapdata ) {
    this.scene = scene;
    this.mapdata = typeof mapdata === 'object' ? mapdata : {};
 
-   this.systems = {};
+   this.systemsByName = {};
+   this.systems = [];
    this.territories = {};
    this.selector = this.createSelector();
    this.selected = undefined;
+   this.targetSelected = undefined;
+   this.target = undefined;
    this.scene.add( this.selector );
    this.group = undefined;
    this.interactables = [];
@@ -34,12 +37,12 @@ SCMAP.Map.prototype = {
    },
 
    system: function ( name ) {
-      return this.systems[ name ];
+      return this.systemsByName[ name ];
    },
 
    select: function ( name ) {
-      if ( typeof this.systems[ name ] === 'object' ) {
-         this.selector.position = this.systems[ name ].position;
+      if ( typeof this.systemsByName[ name ] === 'object' ) {
+         this.selector.position = this.systemsByName[ name ].position;
          this.selector.visible = true;
       } else {
          this.selector.visible = false;
@@ -56,37 +59,57 @@ SCMAP.Map.prototype = {
       }
    },
 
+   locked: function ( ) {
+      return ( $('input#locked:checked').length ) ? true : false;
+   },
+
    handleSelection: function ( event, intersect ) {
       if ( typeof intersect !== 'object' ) {
          return;
       }
 
-      if ( event.type === 'mouseup' ) {
-         if ( typeof this.selected === 'object' && typeof this.selected.object.system === 'object' && typeof intersect.object.system === 'object' ) {
-            if ( intersect.object.system === this.selected.object.system ) {
-               if ( $('#systemname').text() != intersect.object.system.name ) {
-                  displaySystemInfo( intersect.object.system.name );
-                  this.select( intersect.object.system.name );
+      var modifierPressed = ( event.shiftKey || event.ctrlKey ) ? true : false;
+
+      if ( event.type === 'mouseup' )
+      {
+         if ( ! this.locked() && ! modifierPressed )
+         {
+            if ( typeof this.selected === 'object' && typeof this.selected.object.system === 'object' && typeof intersect.object.system === 'object' ) {
+               if ( intersect.object.system === this.selected.object.system ) {
+                  if ( $('#systemname').text() != intersect.object.system.name ) {
+                     this.select( intersect.object.system.name );
+                     displaySystemInfo( intersect.object.system );
+                  }
                }
             }
          }
+         else
+         {
+            var dijkstra = new SCMAP.Dijkstra( this, this.selected.object.system, intersect.object.system );
+         }
       }
-      else if ( event.type === 'mousedown' ) {
-         this.selected = intersect;
+      else if ( event.type === 'mousedown' )
+      {
+         if ( this.locked() || modifierPressed ) {
+            this.targetSelected = intersect;
+         } else {
+            this.selected = intersect;
+         }
       }
    },
 
    populateScene: function ( mapdata ) {
       var territory, territoryName, starMaterial, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
-         route, data, systemObject, systemLabel;
+         data, systemObject, systemLabel, jumpPoint;
 
       // TODO: clean up the existing scene and mapdata when populating with
       // new dataa
 
       this.mapdata = typeof mapdata === 'object' ? mapdata : this.mapdata;
       this.territories = {};
-      this.systems = {};
+      this.systems = [];
+      this.systemsByName = {};
       this.group = new THREE.Object3D(); // all the labels are together in a single geometry group
 
       // First we go through the data to build the basic systems so
@@ -113,6 +136,7 @@ SCMAP.Map.prototype = {
             systemInfo = window.sc_system_info[ systemName ];
             if ( typeof systemInfo === 'object' ) {
                system.setValues({
+                  'have_info': true,
                   'source': systemInfo['source'],
                   'ownership': systemInfo['ownership'],
                   'planets': systemInfo['planets'],
@@ -126,7 +150,8 @@ SCMAP.Map.prototype = {
                });
             }
 
-            this.systems[ systemName ] = system;
+            this.systemsByName[ systemName ] = system;
+            this.systems.push( system );
             this.territories[ territoryName ].push( system );
 
             systemObject = system.createObject( starMaterial );
@@ -167,15 +192,12 @@ SCMAP.Map.prototype = {
                   continue;
                }
 
-               geometry = new THREE.Geometry();
-               geometry.vertices.push( source.position );
-               geometry.vertices.push( destination.position );
-               geometry.computeBoundingSphere();
-               route = new THREE.Line( geometry, routeMaterial );
-               this.scene.add( route );
-
-               source.routesTo.push( destination );
-               destination.routesFrom.push( source );
+               jumpPoint = new SCMAP.JumpPoint( source, destination );
+               this.scene.add( new THREE.Line( jumpPoint.geometry(), routeMaterial ) );
+               source.jumppoints.push( jumpPoint );
+               // for now, add another route the other way as well (we're making
+               // the crude assumption that jumppoints are bi-directional
+               destination.jumppoints.push( new SCMAP.JumpPoint( destination, source ) );
             }
          }
       }

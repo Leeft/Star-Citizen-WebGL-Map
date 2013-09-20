@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
    <head>
-      <title>three.js starmap</title>
+      <title>Star Citizen 3D Persistent Universe Map</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
       <style>
@@ -14,7 +14,12 @@
          }
 
          a {
-            color:#0078ff;
+            color: #6ABBCF;
+            text-decoration: none;
+         }
+
+         a:hover {
+            color: #0080ff;
          }
 
          #appinfo {
@@ -22,11 +27,9 @@
             top: 10px; width: 100%;
             color: #ffffff;
             padding: 5px;
-            /* font-family: Monospace; */
             font-family: 'Electrolize', sans-serif;
             font-size: 13px;
             text-align: center;
-            z-index:100;
          }
 
          #sclogo {
@@ -38,24 +41,26 @@
          }
 
          #systeminfo {
+            overflow: auto;
             position: absolute;
             top: 40px;
             left: 10px;
             width: 15%;
             color: #ffffff;
             padding: 5px;
-            background-color: #00000;
+            background-color: #000000;
             font-family: 'Electrolize', sans-serif;
             font-size: 13px;
             text-align: left;
-            z-index: 500;
+            /* z-index: 100; */
          }
-
          #systeminfo h1 {
+            color: #6ABBCF;
             font-size: 20px;
             padding: 0px;
-            maring: 0px;
+            margin: 0px;
          }
+
 
          #systeminfo p {
             clear: both;
@@ -64,14 +69,8 @@
          #systeminfo p a {
             font-style: oblique;
          }
-
-         a {
-            color: #6ABBCF;
-            text-decoration: none;
-         }
-
-         a:hover {
-            color: #0080ff;
+         #systeminfo .blurb_hidden {
+            display: none;
          }
 
          dl {
@@ -99,7 +98,7 @@
    <body>
       <div id="appinfo">
          <a href="http://threejs.org" target="_blank">three.js</a> -
-         <em>Pre-pre-pre-pre Alpha</em> <a href="https://robertsspaceindustries.com/about-the-game" target="_blank" title="Robersspaceindustries.com: About the game">Star Citizen</a> WebGL 3D Interactive Star Map
+         <em>Pre-pre Alpha</em> <a href="https://robertsspaceindustries.com/about-the-game" target="_blank" title="Robersspaceindustries.com: About the game">Star Citizen</a> WebGL 3D Interactive Star Map
          <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">I'm on GitHub!</a><br>
 <!--
             <div id="debugstuff" style="visibility: visible;">
@@ -122,6 +121,7 @@
       <!-- script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script -->
       <script src="js/jquery.min.js"></script>
       <script src="js/three.min.js"></script>
+      <!-- <script src="js/libs/dat.gui.min.js"></script> -->
       <!-- <script src="three.js/examples/js/shaders/ConvolutionShader.js"></script> -->
       <script src="js/shaders/FXAAShader.js"></script>
       <script src="js/shaders/CopyShader.js"></script>
@@ -135,12 +135,14 @@
       <script src="js/libs/stats.min.js"></script>
 
       <!-- my own star citizen map and system data -->
-      <script src="js/data/map.js"></script>
-      <script src="js/data/systems.js"></script>
+      <script src="js/data/map.js"></script><!-- the PU -->
+      <script src="js/data/systems.js"></script><!-- the systems in the PU -->
       <!-- my own code -->
       <script src="js/SCMAP.js"></script>
       <script src="js/SCMAP/SelectedSystemGeometry.js"></script>
+      <script src="js/SCMAP/JumpPoint.js"></script>
       <script src="js/SCMAP/System.js"></script>
+      <script src="js/SCMAP/Dijkstra.js"></script>
       <script src="js/SCMAP/Map.js"></script>
       <script src="js/main.js"></script>
    </body>

@@ -1,6 +1,7 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var effectFXAA, camera, scene, renderer, composer, map,
+   shift, ctrl, alt,
 
    // some flavor text, not got the proper content yet
     rikerIndex = 0, rikerIpsum = [
@@ -139,62 +140,101 @@ function onDocumentMouseUpAndDown( event )
    map.handleSelection( event, intersects[0] );
 }
 
+function makeSafeForCSS( name ) {
+   return name.replace( /[^a-z0-9]/g, function(s) {
+      var c = s.charCodeAt(0);
+      if (c == 32) return '-';
+      if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
+      return (c.toString(16)).slice(-4);
+   });
+}
+
 function displaySystemInfo( system )
 {
-   $('#systemname').text( system + ' System' );
-   var systemInfo = sc_system_info[ system ];
-   if ( systemInfo === ' object' )
+   if ( ! ( system instanceof SCMAP.System ) ) {
+      return;
+   }
+
+   $('#systemname').text( system.name + ' System' );
+
+   var blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
+
+   if ( ! system.have_info )
    {
-      var blurb = $('<div class="sc_system_info '+system+'"></div>');
-      blurb.append( '<dl></dl>' );
+      blurb.append( "<p><strong>No data available yet for this system</strong></p>" );
+   }
+   else
+   {
       var worlds = 'No inhabitable worlds';
       var _import = 'None';
       var _export = 'None';
       var black_market = 'None';
-      if ( systemInfo.planetary_rotation.length ) {
-         worlds = systemInfo.planetary_rotation.join( ', ' );
+      var strategic_value = 'Unknown';
+
+      if ( system.planetary_rotation.length ) {
+         worlds = system.planetary_rotation.join( ', ' );
       }
-      if ( systemInfo.import.length ) {
-         _import = systemInfo.import.join( ', ' );
+
+      if ( system.import.length ) {
+         _import = system.import.join( ', ' );
       }
-      if ( systemInfo.export.length ) {
-         _export = systemInfo.export.join( ', ' );
+
+      if ( system.export.length ) {
+         _export = system.export.join( ', ' );
       }
-      if ( systemInfo.black_market.length ) {
-         black_market = systemInfo.black_market.join( ', ' );
+
+      if ( system.black_market.length ) {
+         black_market = system.black_market.join( ', ' );
       }
-      blurb.find('dl').append(
-         '<dt class="ownership">Ownership</dt><dd class="ownership">'+systemInfo.ownership+'</dd>' +
-         '<dt class="planets">Planets</dt><dd class="planets">'+systemInfo.planets+'</dd>' +
+
+      if ( typeof system.uee_strategic_value === 'string' && system.uee_strategic_value.length ) {
+         strategic_value = system.uee_strategic_value;
+      }
+
+      blurb.append( '<dl>' +
+         '<dt class="ownership">Ownership</dt><dd class="ownership">'+system.ownership+'</dd>' +
+         '<dt class="planets">Planets</dt><dd class="planets">'+system.planets+'</dd>' +
          '<dt class="rotation">Planetary rotation</dt><dd class="rotation">'+worlds+'</dd>' +
          '<dt class="import">Import</dt><dd class="import">'+_import+'</dd>' +
          '<dt class="export">Export</dt><dd class="export">'+_export+'</dd>' +
-         '<dt class="crime_'+systemInfo.crime_status.toLowerCase()+'">Crime status</dt><dd class="crime">'+systemInfo.crime_status+'</dd>' +
+         '<dt class="crime_'+system.crime_status.toLowerCase()+'">Crime status</dt><dd class="crime">'+system.crime_status+'</dd>' +
          '<dt class="black_market">Black market</dt><dd class="crime">'+black_market+'</dd>' +
-         '<dt class="strategic_'+systemInfo.uue_strategic_value.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+systemInfo.uue_strategic_value+'</dd>'
-      );
+         '<dt class="strategic_value_'+strategic_value.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+strategic_value+'</dd>' +
+      '</dl>' );
 
-      for ( var i = 0; i < systemInfo.blob.length; i++ ) {
-         var blob = systemInfo.blob[i];
-         blurb.append( '<p>' + blob + '</p>' );
+      for ( var i = 0; i < system.blob.length; i++ ) {
+         var blob = system.blob[i];
+         blurb.append( '<p class="blurb_hidden">' + blob + '</p>' );
       }
 
-      if ( systemInfo.source ) {
-         blurb.append( '<p><a href="' + systemInfo.source + '" target="_blank">(source)</a></p>' );
-      }
-
-      $('#systemblurb').empty();
-      $('#systemblurb').append( blurb );
-   }
-   else
-   {
-      $('#systemblurb').html( "<strong>No data available yet</strong><br>Placeholder RikerIpsum text "
-         + ( rikerIndex + 1 ) + "/" + rikerIpsum.length + ":<br>" + rikerIpsum[ rikerIndex++ ] );
-      if ( rikerIndex >= rikerIpsum.length ) {
-         rikerIndex = 0;
+      if ( system.source ) {
+         blurb.append( '<p class=""><a href="' + system.source + '" target="_blank">(source)</a></p>' );
       }
    }
+
+   blurb.append( '<div id="destinations">' );
+
+   $('#systemblurb').empty();
+   $('#systemblurb').append( blurb );
+
+//   var text = new destinationSystem();
+//   var gui = new dat.GUI({ autoPlace: false });
+//   var customContainer = document.getElementById('destinations');
+//   customContainer.appendChild( gui.domElement );
+//// Choose from accepted values
+//gui.add(text, 'name', [ 'pizza', 'chrome', 'hooray' ] );
+
+//   var select = $('<select>').attr('id','destination').appendTo('#destinations');
+//   $( system.jumppoints ).each( function() {
+//      select.append( $('<option>').attr( 'value', this.destination.name ).text( this.destination.name ) );
+//   } );
+//
+//   $('<input>').attr( 'type', 'checkbox' ).attr( 'id', 'locked' ).appendTo('#destinations');
 }
+
+var destinationSystem = function() {
+   this.name = '';
+};
 
 //
 

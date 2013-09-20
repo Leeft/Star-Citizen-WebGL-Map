@@ -7,9 +7,12 @@ SCMAP.System = function ( data ) {
    this.position = new THREE.Vector3();
    this.ownership = '';
    this.scale = 1.0;
-   this.routesFrom = [];
-   this.routesTo = [];
+   this.jumppoints = [];
 
+   this.distance = Number.MAX_VALUE *2;
+   this.visited = false;
+
+   this.have_info = false;
    this.source = undefined;
    this.planets = 0;
    this.planetary_rotation = [];
@@ -77,7 +80,7 @@ SCMAP.System.prototype = {
       for ( var key in values ) {
          var newValue = values[ key ];
          if ( newValue === undefined ) {
-            console.warn( 'SCMAP.System: \'' + key + '\' parameter is undefined.' );
+            console.log( 'SCMAP.System: \'' + key + '\' parameter is undefined.' );
             continue;
          }
 
