@@ -61,11 +61,13 @@ function init()
    stats.domElement.style.position = 'absolute';
    stats.domElement.style.top = '0px';
    stats.domElement.style.right = '0px';
+   stats.domElement.style.display = 'none';
    container.appendChild( stats.domElement );
 
    // Event handlers
 
    window.addEventListener( 'resize', onWindowResize, false );
+
    renderer.domElement.addEventListener( 'mousedown', onDocumentMouseUpAndDown, false );
    renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUpAndDown, false );
 
@@ -126,7 +128,10 @@ function buildReferencePlane()
 
 function onWindowResize()
 {
-   camera.aspect = window.innerWidth / window.innerHeight;
+   var width = window.innerWidth || 2;
+   var height = window.innerHeight || 2;
+   camera.aspect = width / height;
+   camera.setViewOffset( width, height, 0, - ( height / 8 ), width, height );
    camera.updateProjectionMatrix();
 
    renderer.setSize( window.innerWidth, window.innerHeight );

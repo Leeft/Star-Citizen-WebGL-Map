@@ -7,36 +7,42 @@
       <link href="css/sc.css" rel="stylesheet" type="text/css">
    </head>
    <body>
-      <div id="appinfo">
-         <a href="http://threejs.org" target="_blank">three.js</a> -
-         <em>Pre-pre Alpha</em> <a href="https://robertsspaceindustries.com/about-the-game" target="_blank" title="Robersspaceindustries.com: About the game">Star Citizen</a> WebGL 3D Interactive Star Map
-         <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">I'm on GitHub!</a><br>
-         <div id="debugstuff" class="debug" style="visibility: hidden;"></div>
-      </div>
-
       <div id="map_ui">
          <ul class="menubar">
             <li class="info"><a title="Selected Item Information" href="#info"><i class="sprite-circle-question-mark"></i></a></li>
             <li class="route"><a title="Route Planner" href="#route"><i class="sprite-map-marker2"></i></a></li>
-            <li class="config"><a title="Configuration" href="#config"><i class="sprite-setting"></i></a></li>
             <li class="editor"><a title="Map Editor" href="#editor"><i class="sprite-pencil"></i></a></li>
-            <li class="debug"><a title="Debug Information" href="#debug"><i class="sprite-bullet-list"></i></a></li>
+            <li class="config"><a title="Configuration" href="#config"><i class="sprite-setting"></i></a></li>
+            <li class="debug" style="display: none;"><a title="Debug Information" href="#debug"><i class="sprite-bullet-list"></i></a></li>
             <li class="about"><a title="About this map" href="#about"><i class="sprite-circle-info"></i></a></li>
          </ul>
          <div class="info" id="info">
             <h1 id="systemname"></h1>
             <div id="systemblurb"><strong>No system selected</strong></div>
          </div>
-         <div class="route" id="route"></div>
-         <div class="config" id="config"></div>
-         <div class="editor" id="editor"></div>
-         <div class="debug" id="debug"></div>
+         <div class="route" id="route">
+            <h1>Route Planner Mode</h1>
+            <p><strong>Not yet properly implemented</strong></p>
+            <p>For now: just target a system then shift click to generate the shortest route to another.</p>
+         </div>
+         <div class="editor" id="editor">
+            <h1>Editor Mode</h1>
+            <p>The map editor is a feature for the future, when I get around to it.</p>
+         </div>
+         <div class="config" id="config">
+            <h1>Configuration</h1>
+            <p><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
+         </div>
+         <div class="debug" id="debug" style="display: none;">
+            <h1>Debug Info</h1>
+            <div id="debugstuff" class="debug"></div>
+         </div>
          <div class="about" id="about">
             <h1>About this 3D map</h1>
             <p>
                A 3D interactive galaxy map of the crowd-funded and currently being developed game
                <a href="https://robertsspaceindustries.com/about-the-game">Star Citizen</a>.
-               <strong>Still in early alpha stage!</strong>
+               <strong>The map and its data are still in early alpha stage!</strong>
             </p>
             <p>
                Created by <a href="https://forums.robertsspaceindustries.com/profile/51803/Shiari"
@@ -46,9 +52,9 @@
                target="_blank">this forum thread</a>.
             </p>
             <p>
-               The sourcecode and data that drives this map is available with
-               the MIT license on my <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">GitHub project page</a>,
-               and aside from my own code uses
+               The sourcecode and data that drives this map is available under the MIT license on its
+               <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">GitHub project page</a>,
+               and aside from my own code uses the also freely available
                <a href="http://threejs.org/" target="_blank">three.js</a>,
                <a href="http://jquery.com/" target="_blank">jQuery</a> and
                <a href="http://jqueryui.com/" target="_blank">jQuery UI</a>.
