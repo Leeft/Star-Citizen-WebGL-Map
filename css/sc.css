@@ -1,0 +1,127 @@
+@import url(http://fonts.googleapis.com/css?family=Electrolize);
+
+body {
+   background-color: #000000;
+   margin: 0px;
+   overflow: hidden;
+   color: #ffffff;
+   font-family: 'Electrolize', sans-serif;
+}
+
+a {
+   color: #6ABBCF;
+   text-decoration: none;
+}
+
+a:hover {
+   color: #0080ff;
+}
+
+#appinfo {
+   position: absolute;
+   top: 10px; width: 100%;
+   color: #ffffff;
+   padding: 5px;
+   font-size: 13px;
+   text-align: center;
+}
+
+#sclogo {
+   position: absolute;
+   top: 10px; right: 10px;
+}
+#sclogo img {
+   border: none;
+}
+
+#map_ui {
+   overflow: auto;
+   position: absolute;
+   top: 5px;
+   left: 5px;
+   width: 220px;
+   height: 95%;
+   padding: 5px;
+   /* background-color: #000000; */
+   font-family: 'Electrolize', sans-serif;
+   font-size: 13px;
+   text-align: left;
+   /* z-index: 100; */
+}
+#map_ui ul.menubar {
+   width: 95%;
+   background: transparent;
+   list-style: none;
+   margin: 0;
+   padding: 0;
+   text-indent: 0em;
+   display: inline-block;
+   height: 32px;
+}
+#map_ui ul.menubar li {
+   display: inline-block;
+   vertical-align: middle;
+   border: 1px transparent;
+   /* background: #6ABBCF; */
+   margin: 0;
+   padding: 0;
+}
+#map_ui ul.menubar li a {
+   margin: 0;
+   padding: 0;
+}
+#map_ui ul.menubar i {
+   display: block;
+}
+
+/* Icons from http://www.autreplanete.com/web-icons/our-offer.php
+ * Generated with http://spritegen.website-performance.org/ */
+i { background: url(../images/csg-523da0cddce45.png) no-repeat top left; opacity: 0.5; }
+li.ui-state-active i { opacity: 1; }
+i.sprite-bullet-list{ background-position: 0 0; width: 32px; height: 32px; } 
+i.sprite-circle-info { background-position: -64px 0; width: 32px; height: 32px; } 
+i.sprite-circle-question-mark { background-position: -128px 0; width: 32px; height: 32px; } 
+i.sprite-map-marker2 { background-position: -192px 0; width: 32px; height: 32px; } 
+i.sprite-node-link { background-position: -256px 0; width: 32px; height: 32px; } 
+i.sprite-pencil { background-position: -320px 0; width: 32px; height: 32px; } 
+i.sprite-setting { background-position: -384px 0; width: 32px; height: 32px; } 
+i.sprite-target { background-position: -448px 0; width: 32px; height: 32px; } 
+
+#map_ui h1 {
+   color: #6ABBCF;
+   font-size: 20px;
+   padding: 0px;
+   margin: 0px;
+   margin-top: 10px;
+}
+
+#map_ui p {
+   clear: both;
+   padding-top: 0.5em;
+}
+#map_ui p a {
+}
+#map_ui .blurb_hidden {
+   display: none;
+}
+
+dl {
+   border: none;
+   padding: 0;
+}
+dt {
+   float: left;
+   clear: left;
+   width: 100px;
+   text-align: right;
+   font-weight: bold;
+   color: #6ABBCF;
+}
+dt:after {
+   content: ":";
+}
+dd {
+   margin: 0 0 0 110px;
+   padding: 0 0 0.3em 0;
+}
+

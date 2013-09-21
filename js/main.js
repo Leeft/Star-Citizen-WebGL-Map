@@ -11,6 +11,10 @@ var effectFXAA, camera, scene, renderer, composer, map,
    "We know you're dealing in stolen ore. But I wanna talk about the assassination attempt on Lieutenant Worf. Could someone survive inside a transporter buffer for 75 years? Why don't we just give everybody a promotion and call it a night - 'Commander'? Damage report! I can't. As much as I care about you, my first duty is to the ship. What? We're not at all alike! This should be interesting. Your head is not an artifact! Worf, It's better than music. It's jazz. Congratulations - you just destroyed the Enterprise. Our neural pathways have become accustomed to your sensory input patterns. What's a knock-out like you doing in a computer-generated gin joint like this? Captain, why are we out here chasing comets?"
 ];
 
+$(function() {
+   $( "#map_ui" ).tabs({ active: 0 });
+});
+
 init();
 animate();
 
@@ -56,6 +60,7 @@ function init()
    stats = new Stats();
    stats.domElement.style.position = 'absolute';
    stats.domElement.style.top = '0px';
+   stats.domElement.style.right = '0px';
    container.appendChild( stats.domElement );
 
    // Event handlers

@@ -4,115 +4,61 @@
       <title>Star Citizen 3D Persistent Universe Map</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-      <style>
-         @import url(http://fonts.googleapis.com/css?family=Electrolize);
-
-         body {
-            background-color: #000000;
-            margin: 0px;
-            overflow: hidden;
-         }
-
-         a {
-            color: #6ABBCF;
-            text-decoration: none;
-         }
-
-         a:hover {
-            color: #0080ff;
-         }
-
-         #appinfo {
-            position: absolute;
-            top: 10px; width: 100%;
-            color: #ffffff;
-            padding: 5px;
-            font-family: 'Electrolize', sans-serif;
-            font-size: 13px;
-            text-align: center;
-         }
-
-         #sclogo {
-            position: absolute;
-            top: 10px; right: 10px;
-         }
-         #sclogo img {
-            border: none;
-         }
-
-         #systeminfo {
-            overflow: auto;
-            position: absolute;
-            top: 40px;
-            left: 10px;
-            width: 15%;
-            color: #ffffff;
-            padding: 5px;
-            background-color: #000000;
-            font-family: 'Electrolize', sans-serif;
-            font-size: 13px;
-            text-align: left;
-            /* z-index: 100; */
-         }
-         #systeminfo h1 {
-            color: #6ABBCF;
-            font-size: 20px;
-            padding: 0px;
-            margin: 0px;
-         }
-
-
-         #systeminfo p {
-            clear: both;
-            padding-top: 0.5em;
-         }
-         #systeminfo p a {
-            font-style: oblique;
-         }
-         #systeminfo .blurb_hidden {
-            display: none;
-         }
-
-         dl {
-            border: none;
-            padding: 0;
-         }
-         dt {
-            float: left;
-            clear: left;
-            width: 100px;
-            text-align: right;
-            font-weight: bold;
-            color: #6ABBCF;
-         }
-         dt:after {
-            content: ":";
-         }
-         dd {
-            margin: 0 0 0 110px;
-            padding: 0 0 0.3em 0;
-         }
-
-      </style>
+      <link href="css/sc.css" rel="stylesheet" type="text/css">
    </head>
    <body>
       <div id="appinfo">
          <a href="http://threejs.org" target="_blank">three.js</a> -
          <em>Pre-pre Alpha</em> <a href="https://robertsspaceindustries.com/about-the-game" target="_blank" title="Robersspaceindustries.com: About the game">Star Citizen</a> WebGL 3D Interactive Star Map
          <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">I'm on GitHub!</a><br>
-<!--
-            <div id="debugstuff" style="visibility: visible;">
-               rotation1: <span id="rotation1"></span>&deg;
-               rotation2: <span id="rotation2"></span>&deg;
-               value1: <span id="value1"></span>
-               value2: <span id="value2"></span>
-            </div>
--->
+         <div id="debugstuff" class="debug" style="visibility: hidden;"></div>
       </div>
 
-      <div id="systeminfo">
-         <h1 id="systemname"></h1>
-         <div id="systemblurb"></div>
+      <div id="map_ui">
+         <ul class="menubar">
+            <li class="info"><a title="Selected Item Information" href="#info"><i class="sprite-circle-question-mark"></i></a></li>
+            <li class="route"><a title="Route Planner" href="#route"><i class="sprite-map-marker2"></i></a></li>
+            <li class="config"><a title="Configuration" href="#config"><i class="sprite-setting"></i></a></li>
+            <li class="editor"><a title="Map Editor" href="#editor"><i class="sprite-pencil"></i></a></li>
+            <li class="debug"><a title="Debug Information" href="#debug"><i class="sprite-bullet-list"></i></a></li>
+            <li class="about"><a title="About this map" href="#about"><i class="sprite-circle-info"></i></a></li>
+         </ul>
+         <div class="info" id="info">
+            <h1 id="systemname"></h1>
+            <div id="systemblurb"><strong>No system selected</strong></div>
+         </div>
+         <div class="route" id="route"></div>
+         <div class="config" id="config"></div>
+         <div class="editor" id="editor"></div>
+         <div class="debug" id="debug"></div>
+         <div class="about" id="about">
+            <h1>About this 3D map</h1>
+            <p>
+               A 3D interactive galaxy map of the crowd-funded and currently being developed game
+               <a href="https://robertsspaceindustries.com/about-the-game">Star Citizen</a>.
+               <strong>Still in early alpha stage!</strong>
+            </p>
+            <p>
+               Created by <a href="https://forums.robertsspaceindustries.com/profile/51803/Shiari"
+               title="My profile on the Roberts Space Industries forums" target="_blank">Daughter of Sol [Shiari]</a>
+               on the RSI forums using <a href="http://get.webgl.org/">WebGL</a>. This map was announced in
+               <a href="https://forums.robertsspaceindustries.com/discussion/54931/browser-based-3d-system-map-early-wip/p1"
+               target="_blank">this forum thread</a>.
+            </p>
+            <p>
+               The sourcecode and data that drives this map is available with
+               the MIT license on my <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">GitHub project page</a>,
+               and aside from my own code uses
+               <a href="http://threejs.org/" target="_blank">three.js</a>,
+               <a href="http://jquery.com/" target="_blank">jQuery</a> and
+               <a href="http://jqueryui.com/" target="_blank">jQuery UI</a>.
+            </p>
+            <p>
+               Icons above from <a href="http://www.autreplanete.com/web-icons/our-offer.php"
+               target="_blank">Autre planète</a> and compiled into a sprite map with
+               <a href="http://spritegen.website-performance.org/" target="_blank">spritegen</a>.
+            </p>
+         </div>
       </div>
 
       <div id="sclogo"><a href="https://robertsspaceindustries.com/about-the-game" target="_blank" title="robersspaceindustries.com: About the game"><img src="images/sclogo.png" width="72" height="72" alt=""></a></div>
@@ -120,6 +66,7 @@
       <!-- three.js and jQuery -->
       <!-- script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script -->
       <script src="js/jquery.min.js"></script>
+      <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
       <script src="js/three.min.js"></script>
       <!-- <script src="js/libs/dat.gui.min.js"></script> -->
       <!-- <script src="three.js/examples/js/shaders/ConvolutionShader.js"></script> -->
@@ -136,7 +83,7 @@
 
       <!-- my own star citizen map and system data -->
       <script src="js/data/map.js"></script><!-- the PU -->
-      <script src="js/data/systems.js"></script><!-- the systems in the PU -->
+      <script src="js/data/systems.js"></script><!-- info about the systems in the PU -->
       <!-- my own code -->
       <script src="js/SCMAP.js"></script>
       <script src="js/SCMAP/SelectedSystemGeometry.js"></script>
