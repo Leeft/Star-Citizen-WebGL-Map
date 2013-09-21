@@ -1,7 +1,7 @@
 Star-Citizen-WebGL-Map
 ======================
 
-*Pre-pre-pre-pre alpha release.*
+*Pre-pre alpha release.*
 
 A early release WebGL version of the universe map for the upcoming game
 [Star Citizen](https://robertsspaceindustries.com/about-the-game), inspired by
@@ -20,13 +20,12 @@ quite flexible already.
 
 A live demo is available at http://leeft.eu/starcitizen/
 
-![Screenshot](http://imageshack.us/a/img42/5995/gppm.png)
+![Screenshot](http://img801.imageshack.us/img801/544/53iu.png)
 
 Several primary features are still missing;
 
 * Graphics improvements to make it more similar to the map in that video
 * A "flat" map mode like in the video
-* Camera movement around the map (is entirely disabled for now)
 * Camera angle limits (to prevent gimbal lock problems at some angles)
 * Filling in the missing data
 * Linking to e.g. the Wiki and other maps
@@ -36,6 +35,8 @@ Things which will likely be implemented:
 * Route-planner, showing alternative routes, relative distances (which may
 get more accurate as we get more info) and the known dangers on these routes
 * Graphics (or other) settings panel
+* Map editor, saving locally in the browser (which can be saved as a map
+with the program)
 * ...
 
 Other things I may do in the future, largely dependant on what information
@@ -46,12 +47,6 @@ will be available through any API's Cloud Imperium Games might be creating for u
 * Highlighting big events on the map
 * Revealing new jump points as they've been explored and published widely
 * ...
-
-Known issues:
-
-* Chrome doesn't like loading from a file:// URL, so Firefox is currently
-recommended for executing it locally from the filesystem (without a webserver).
-
 
 I will probably *not* implement anything like the planets view in the video, the
 amount of work involved with that would be tremendous. And leaving it out here
