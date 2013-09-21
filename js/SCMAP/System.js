@@ -11,6 +11,7 @@ SCMAP.System = function ( data ) {
 
    this.distance = Number.MAX_VALUE *2;
    this.visited = false;
+   this.parent = undefined;
 
    this.have_info = false;
    this.source = undefined;

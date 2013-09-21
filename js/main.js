@@ -89,7 +89,7 @@ function buildReferencePlane()
       step = 2 * Math.PI / segments,
       theta, x, z, i, point, color, distance, strength;
 
-   material = new THREE.LineBasicMaterial( { color: 0xFFFFFF, linewidth: 1, vertexColors: true, opacity: 0.6 } ),
+   material = new THREE.LineBasicMaterial( { color: 0xA0A0A0, linewidth: 1, vertexColors: true, opacity: 0.6 } ),
    geometry = new THREE.CylinderGeometry( radius, 0, 0, segments, rings, false );
 
    // create the lines from the center to the outside

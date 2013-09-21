@@ -12,6 +12,9 @@ SCMAP.JumpPoint = function ( source, destination, name ) {
       console.error( "Invalid route created" );
    } else {
       this.is_valid = true;
+      if ( this.name === undefined ) {
+         this.name = "[" + this.source.name + " to " + this.destination.name + "]";
+      }
    }
 };
 

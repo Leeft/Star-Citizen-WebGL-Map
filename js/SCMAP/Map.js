@@ -6,6 +6,8 @@ SCMAP.Map = function ( scene, mapdata ) {
    this.name = "Star Citizen 'Verse";
    this.scene = scene;
    this.mapdata = typeof mapdata === 'object' ? mapdata : {};
+   this.route = undefined;
+   this.graph = new SCMAP.Dijkstra( this );
 
    this.systemsByName = {};
    this.systems = [];
@@ -85,7 +87,7 @@ SCMAP.Map.prototype = {
          }
          else
          {
-            var dijkstra = new SCMAP.Dijkstra( this, this.selected.object.system, intersect.object.system );
+            this.updateRoute( intersect.object.system );
          }
       }
       else if ( event.type === 'mousedown' )
@@ -96,6 +98,44 @@ SCMAP.Map.prototype = {
             this.selected = intersect;
          }
       }
+   },
+
+   updateRoute: function ( destination ) {
+      this.graph.destroyRoute;
+      this.graph.buildGraph( this.selected.object.system );
+      var route = this.graph.routeArray( destination );
+
+      var material = new THREE.LineBasicMaterial( { color: 0xFFCC33, linewidth: 1 } );
+      var group = this.graph.createRouteObject(); // all the parts of the route together in a single geometry group
+      for ( var i = 0; i < route.length - 1; i++ ) {
+         var mesh = this.createRouteMesh( route[i+0], route[i+1] );
+         var line = new THREE.Line( mesh, material );
+         line.position = route[i+0].position;
+         line.lookAt( route[i+1].position );
+         group.add( line );
+      }
+
+      this.scene.add( group );
+   },
+
+   createRouteMesh: function ( source, destination ) {
+      var step = 2 * Math.PI / 8;
+      var zstep = 5;
+      var radius = 3;
+      // create the lines from the center to the outside
+      var geometry = new THREE.Geometry();
+      var z = 0;
+      var distance = new THREE.Vector3();
+      distance.subVectors( source.position, destination.position );
+      distance = distance.length();
+      for ( var theta = 0; z < distance; theta += step )
+      {
+         var x = radius * Math.cos( theta );
+         var y = 0 - radius * Math.sin( theta );
+         geometry.vertices.push( new THREE.Vector3( x, y, z ) );
+         z += zstep;
+      }
+      return geometry;
    },
 
    populateScene: function ( mapdata ) {
