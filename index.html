@@ -13,7 +13,7 @@
             <li class="route"><a title="Route Planner" href="#route"><i class="sprite-map-marker2"></i></a></li>
             <li class="editor"><a title="Map Editor" href="#editor"><i class="sprite-pencil"></i></a></li>
             <li class="config"><a title="Configuration" href="#config"><i class="sprite-setting"></i></a></li>
-            <li class="debug" style="display: none;"><a title="Debug Information" href="#debug"><i class="sprite-bullet-list"></i></a></li>
+            <li class="debug" style="display: inline-block;"><a title="Debug Information" href="#debug"><i class="sprite-bullet-list"></i></a></li>
             <li class="about"><a title="About this map" href="#about"><i class="sprite-circle-info"></i></a></li>
          </ul>
          <div class="info" id="info">
@@ -33,9 +33,14 @@
             <h1>Configuration</h1>
             <p><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
          </div>
-         <div class="debug" id="debug" style="display: none;">
+         <div class="debug" id="debug">
             <h1>Debug Info</h1>
-            <div id="debugstuff" class="debug"></div>
+            <div id="debugstuff" class="debug">
+               <p id="debug-angle"></p>
+               <p id="debug-target"></p>
+               <p id="debug-axis"></p>
+               <p id="debug-state"></p>
+            </div>
          </div>
          <div class="about" id="about">
             <h1>About this 3D map</h1>
@@ -83,7 +88,7 @@
       <script src="js/postprocessing/RenderPass.js"></script>
       <script src="js/postprocessing/ShaderPass.js"></script>
       <!-- <script src="three.js/examples/js/postprocessing/BloomPass.js"></script> -->
-      <script src="js/controls/TrackballControls.js"></script>
+      <script src="js/controls/MapExplorer.js"></script>
       <script src="js/Detector.js"></script>
       <script src="js/libs/stats.min.js"></script>
 

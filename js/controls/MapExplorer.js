@@ -2,7 +2,7 @@
  * @author Eberhard Graether / http://egraether.com/
  */
 
-THREE.TrackballControls = function ( object, domElement ) {
+THREE.MapExplorer = function ( object, domElement ) {
 
 	var _this = this;
 	var STATE = { NONE: -1, ROTATE: 0, ZOOM: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_ZOOM: 4, TOUCH_PAN: 5 };
@@ -16,15 +16,14 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 	this.screen = { left: 0, top: 0, width: 0, height: 0 };
 
-	this.rotateSpeed = 0.8;
+	this.rotateSpeed = 1.0;
 	this.zoomSpeed = 1.2;
 	this.panSpeed = 0.3;
 
-	this.noBank = true;
 	this.noRotate = false;
 	this.noZoom = false;
 	this.noPan = false;
-	this.noRoll = true;
+	this.noRoll = false;
 
 	this.staticMoving = false;
 	this.dynamicDampingFactor = 0.2;
@@ -162,9 +161,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 			quaternion.setFromAxisAngle( axis, -angle );
 
 			_eye.applyQuaternion( quaternion );
-         if ( ! this.noBank ) {
-			   _this.object.up.applyQuaternion( quaternion );
-         }
+			_this.object.up.applyQuaternion( quaternion );
 
 			_rotateEnd.applyQuaternion( quaternion );
 
@@ -298,6 +295,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 			lastPosition.copy( _this.object.position );
 
 		}
+
 	};
 
 	this.reset = function () {
@@ -446,7 +444,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 		} else if ( event.detail ) { // Firefox
 
-			delta = - event.detail * 1.2; // / 3;
+			delta = - event.detail / 3;
 
 		}
 
@@ -556,4 +554,4 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 };
 
-THREE.TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+THREE.MapExplorer.prototype = Object.create( THREE.EventDispatcher.prototype );
