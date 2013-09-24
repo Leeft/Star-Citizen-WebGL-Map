@@ -24,6 +24,7 @@ THREE.TrackballControls = function ( object, domElement ) {
 	this.noZoom = false;
 	this.noPan = false;
 	this.noRoll = false;
+	this.mapMode = false; // map mode pans on x,z and doesn't allow camera banking
 
 	this.staticMoving = false;
 	this.dynamicDampingFactor = 0.2;
@@ -220,8 +221,20 @@ THREE.TrackballControls = function ( object, domElement ) {
 
 			mouseChange.multiplyScalar( _eye.length() * _this.panSpeed );
 
-			var pan = _eye.clone().cross( _this.object.up ).setLength( mouseChange.x );
-			pan.add( _this.object.up.clone().setLength( mouseChange.y ) );
+			var pan;
+
+			if ( _this.mapMode ) {
+
+				var sameLevelTarget = _this.target.clone().setY( _this.object.position.y );
+				pan = _this.object.position.clone().cross( sameLevelTarget ).setY( 0 ).setLength( mouseChange.x );
+				pan.add( _this.object.position.clone().sub( sameLevelTarget ).setLength( -mouseChange.y ) );
+
+			} else {
+
+				pan = _eye.clone().cross( _this.object.up ).setLength( mouseChange.x );
+				pan.add( _this.object.up.clone().setLength( mouseChange.y ) );
+
+			}
 
 			_this.object.position.add( pan );
 			_this.target.add( pan );
