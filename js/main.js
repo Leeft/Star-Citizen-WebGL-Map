@@ -27,22 +27,26 @@ function init()
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
 
-   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-   camera.position.y = 400;
-   camera.position.z = 600;
+   camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+
+   camera.position.y = 300;
+   camera.position.z = 500;
    camera.setViewOffset( width, height, 0, - ( height / 8 ), width, height );
 
-   controls = new THREE.TrackballControls( camera );
-   controls.rotateSpeed = 1.0;
+   //controls = new THREE.MapExplorer( camera );
+   controls = new THREE.OrbitControls( camera );
+   controls.rotateSpeed = 0.6;
    controls.zoomSpeed = 1.2;
    controls.panSpeed = 0.8;
    controls.noZoom = false;
    controls.noPan = false;
-   controls.noRoll = true;
-   controls.noRotate = false;
-   controls.staticMoving = false;
-   controls.dynamicDampingFactor = 0.3;
-   controls.keys = [ 65, 83, 68 ];
+   controls.noRoll = false;
+   //controls.staticMoving = true;
+
+   controls.minPolarAngle = 0;
+   controls.maxPolarAngle = THREE.Math.degToRad( 85 );
+
+   controls.dynamicDampingFactor = 0.5;
    controls.addEventListener( 'change', render );
 
    scene = new THREE.Scene();
@@ -86,6 +90,29 @@ function init()
    //composer.addPass( effectFXAA );
    //composer.addPass( effectBloom );
    composer.addPass( effectCopy );
+}
+
+function buildCross () {
+   var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0xFF0000, linewidth: 1 } );
+   var group = new THREE.Object3D();
+   var geo = new THREE.Geometry();
+   geo.vertices.push( new THREE.Vector3( -50, 1, 0 ) );
+   geo.vertices.push( new THREE.Vector3( 50, 1, 0 ) );
+   var cross = new THREE.Line( geo, material );
+   group.add( cross );
+   var geo = new THREE.Geometry();
+   var material2 = new THREE.MeshBasicMaterial( { wireframe: true, color: 0xF0F000, linewidth: 1 } );
+   geo.vertices.push( new THREE.Vector3( 0, 1, -50 ) );
+   geo.vertices.push( new THREE.Vector3( 0, 1, 50 ) );
+   var cross = new THREE.Line( geo, material2 );
+   group.add( cross );
+   var material3 = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x0000F0, linewidth: 1 } );
+   var geo = new THREE.Geometry();
+   geo.vertices.push( new THREE.Vector3( 0, -50, 0 ) );
+   geo.vertices.push( new THREE.Vector3( 0, 50, 0 ) );
+   var cross = new THREE.Line( geo, material3 );
+   group.add( cross );
+   return group;
 }
 
 function buildReferencePlane()
@@ -252,13 +279,30 @@ var destinationSystem = function() {
 
 function animate() {
    requestAnimationFrame( animate );
-   controls.update();
+   if ( controls !== undefined ) {
+      controls.update();
+   }
    stats.update();
    render();
 }
 
 function render() {
    map.animateSelector();
+
+//var m = new THREE.Matrix4();
+//m.extractRotation( camera.matrixWorldInverse );
+//var v = new THREE.Vector3( 1, 0, 0 );
+//v.applyMatrix4( m );
+//var angle = Math.atan2( v.z, v.x );
+//$('#debug-angle').html( 'Camera heading: ' + THREE.Math.radToDeg( angle ).toFixed(2) + '&deg; ' + angle.toFixed(3) );
+
+//var m = new THREE.Matrix4();
+//m.extractRotation( camera.matrixWorldInverse );
+//var v = new THREE.Vector3( 0, 0, 1 );
+//v.applyMatrix4( m );
+//var angle = Math.atan2( v.z, v.y ) - 1.57079633;
+//$('#debug-angle').html( 'Camera banking: ' + THREE.Math.radToDeg( angle ).toFixed(2) + '&deg; ' + angle.toFixed(3) );
+
    renderer.clear();
    composer.render();
 }
