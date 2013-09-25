@@ -3,6 +3,8 @@ if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 var effectFXAA, camera, scene, renderer, composer, map,
    shift, ctrl, alt,
 
+targetCross, fooCross,
+
    // some flavor text, not got the proper content yet
     rikerIndex = 0, rikerIpsum = [
    "What? We're not at all alike! For an android with no feelings, he sure managed to evoke them in others. I've had twelve years to think about it. And if I had it to do over again, I would have grabbed the phaser and pointed it at you instead of them. Did you come here for something in particular or just general Riker-bashing? Flair is what marks the difference between artistry and mere competence. I guess it's better to be lucky than good. When has justice ever been as simple as a rule book? Worf, It's better than music. It's jazz. We have a saboteur aboard.",
@@ -23,6 +25,7 @@ function init()
    var container, renderModel, effectCopy, effectBloom, width, height;
 
    container = document.createElement( 'div' );
+   container.className = 'webgl-container';
    document.body.appendChild( container );
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
@@ -33,14 +36,17 @@ function init()
    camera.position.z = 500;
    camera.setViewOffset( width, height, 0, - ( height / 8 ), width, height );
 
-   //controls = new THREE.MapExplorer( camera );
    controls = new THREE.OrbitControls( camera );
-   controls.rotateSpeed = 0.6;
-   controls.zoomSpeed = 1.2;
-   controls.panSpeed = 0.8;
+   controls.rotateSpeed = 0.4;
+   controls.zoomSpeed = 1.0;
+   controls.panSpeed = 0.6;
    controls.noZoom = false;
    controls.noPan = false;
    controls.noRoll = false;
+   controls.mapMode = true;
+   controls.minDistance = 200;
+   controls.maxDistance = 1500;
+   controls.keyPanSpeed = 25;
    //controls.staticMoving = true;
 
    controls.minPolarAngle = 0;
@@ -58,6 +64,15 @@ function init()
 
    map = new SCMAP.Map( scene, sc_map );
    buildReferencePlane();
+
+//targetCross = buildCross();
+//window.scene.add( targetCross );
+//objectCross = buildCross();
+//window.scene.add( objectCross );
+//ref1Cross = buildCross();
+//window.scene.add( ref1Cross );
+//ref2Cross = buildCross();
+//window.scene.add( ref2Cross );
 
    // Stats
 

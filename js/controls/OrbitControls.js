@@ -4,6 +4,7 @@
  * @author alteredq / http://alteredqualia.com/
  * @author WestLangley / http://github.com/WestLangley
  * @author erich666 / http://erichaines.com
+ * @author Leeft / https://github.com/Leeft
  */
 /*global THREE, console */
 
@@ -52,6 +53,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	// Set to true to disable this control
 	this.noPan = false;
 	this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
+	this.mapMode = false; // map mode pans on x,z
 
 	// Set to true to automatically rotate around the target
 	this.autoRotate = false;
@@ -100,7 +102,6 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	var changeEvent = { type: 'change' };
 
-
 	this.rotateLeft = function ( angle ) {
 
 		if ( angle === undefined ) {
@@ -133,9 +134,8 @@ THREE.OrbitControls = function ( object, domElement ) {
 		// get X column of matrix
 		panOffset.set( te[0], te[1], te[2] );
 		panOffset.multiplyScalar(-distance);
-		
-		pan.add( panOffset );
 
+		pan.add( panOffset );
 	};
 
 	// pass in distance in world space to move up
@@ -146,10 +146,19 @@ THREE.OrbitControls = function ( object, domElement ) {
 		// get Y column of matrix
 		panOffset.set( te[4], te[5], te[6] );
 		panOffset.multiplyScalar(distance);
-		
+
 		pan.add( panOffset );
 	};
-	
+
+	// pass in distance in world space to move forward
+	this.panBack = function ( distance ) {
+
+		var sameLevelTarget = this.target.clone().setY( this.object.position.y );
+		var vectorBack = this.object.position.clone().sub( sameLevelTarget ).negate().setLength( distance );
+
+		pan.add( vectorBack );
+	};
+
 	// main entry point; pass in Vector2 of change desired in pixel space,
 	// right and down are positive
 	this.pan = function ( delta ) {
@@ -167,13 +176,21 @@ THREE.OrbitControls = function ( object, domElement ) {
 			targetDistance *= Math.tan( (scope.object.fov/2) * Math.PI / 180.0 );
 			// we actually don't use screenWidth, since perspective camera is fixed to screen height
 			scope.panLeft( 2 * delta.x * targetDistance / element.clientHeight );
-			scope.panUp( 2 * delta.y * targetDistance / element.clientHeight );
+			if ( this.mapMode ) {
+				scope.panBack( 2 * delta.y * targetDistance / element.clientHeight );
+			} else {
+				scope.panUp( 2 * delta.y * targetDistance / element.clientHeight );
+			}
 
 		} else if ( scope.object.top !== undefined ) {
 
 			// orthographic
 			scope.panLeft( delta.x * (scope.object.right - scope.object.left) / element.clientWidth );
-			scope.panUp( delta.y * (scope.object.top - scope.object.bottom) / element.clientHeight );
+			if ( this.mapMode ) {
+				scope.panBack( delta.y * (scope.object.top - scope.object.bottom) / element.clientHeight );
+			} else {
+				scope.panUp( delta.y * (scope.object.top - scope.object.bottom) / element.clientHeight );
+			}
 
 		} else {
 
@@ -240,7 +257,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		// restrict radius to be between desired limits
 		radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );
-		
+
 		// move target to panned location
 		this.target.add( pan );
 
@@ -361,7 +378,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			panEnd.set( event.clientX, event.clientY );
 			panDelta.subVectors( panEnd, panStart );
-			
+
 			scope.pan( panDelta );
 
 			panStart.copy( panEnd );
@@ -422,7 +439,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		// pan a pixel - I guess for precise positioning?
 		// Greggman fix: https://github.com/greggman/three.js/commit/fde9f9917d6d8381f06bf22cdff766029d1761be
 		var needUpdate = false;
-		
+
 		switch ( event.keyCode ) {
 
 			case scope.keys.UP:
@@ -451,7 +468,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		}
 
 	}
-	
+
 	function touchstart( event ) {
 
 		if ( scope.enabled === false ) { return; }
@@ -547,7 +564,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 				panEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
 				panDelta.subVectors( panEnd, panStart );
-				
+
 				scope.pan( panDelta );
 
 				panStart.copy( panEnd );

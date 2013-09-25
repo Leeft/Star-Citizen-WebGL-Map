@@ -8,6 +8,10 @@ body {
    font-family: 'Electrolize', sans-serif;
 }
 
+div.webgl-container {
+   cursor: move;
+}
+
 a {
    color: #6ABBCF;
    text-decoration: none;
