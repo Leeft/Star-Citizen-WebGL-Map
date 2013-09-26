@@ -262,6 +262,45 @@ SCMAP.Map.prototype = {
             }
          }
       }
+
+      this.buildReferencePlane();
+   },
+
+   buildReferencePlane: function() {
+      var ringWidth = 52.5, // plane circle scaling to match the map
+         rings = 18, // number of circles we'll create
+         segments = 36, // radial segments
+         radius = rings * ringWidth,
+         material, referencePlane, geometry,
+         step = 2 * Math.PI / segments,
+         theta, x, z, i, point, color, distance, strength;
+
+      material = new THREE.LineBasicMaterial( { color: 0xA0A0A0, linewidth: 1, vertexColors: true, opacity: 0.6 } ),
+      geometry = new THREE.CylinderGeometry( radius, 0, 0, segments, rings, false );
+
+      // create the lines from the center to the outside
+      for ( theta = 0; theta < 2 * Math.PI; theta += step )
+      {
+         x = radius * Math.cos( theta );
+         z = 0 - radius * Math.sin( theta );
+         geometry.vertices.push( new THREE.Vector3( x, 0, z ) );
+         geometry.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
+      }
+
+      // assign colors to vertices based on their distance
+      for ( var i = 0; i < geometry.vertices.length; i++ ) 
+      {
+         point = geometry.vertices[ i ];
+         color = new THREE.Color( 0x000000 );
+         strength = ( radius - point.length() ) / ( radius );
+         color.setRGB( 0, strength * 0.8, 0 );
+         geometry.colors[i] = color;
+      }
+
+      // and create the ground reference plane
+      referencePlane = new THREE.Line( geometry, material ),
+      referencePlane.overdraw = false;
+      scene.add( referencePlane );
    }
 };
 
