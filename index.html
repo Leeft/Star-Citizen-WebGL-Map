@@ -10,7 +10,7 @@
       <div id="map_ui">
          <ul class="menubar">
             <li class="info"><a title="Selected Item Information" href="#info"><i class="sprite-circle-question-mark"></i></a></li>
-            <li class="route"><a title="Route Planner" href="#route"><i class="sprite-map-marker2"></i></a></li>
+            <li class="route"><a title="Route Mode" href="#route"><i class="sprite-map-marker2"></i></a></li>
             <li class="editor"><a title="Map Editor" href="#editor"><i class="sprite-pencil"></i></a></li>
             <li class="config"><a title="Configuration" href="#config"><i class="sprite-setting"></i></a></li>
             <li class="debug" style="display: inline-block;"><a title="Debug Information" href="#debug"><i class="sprite-bullet-list"></i></a></li>
@@ -20,20 +20,21 @@
             <h1 id="systemname"></h1>
             <div id="systemblurb"><strong>No system selected</strong></div>
          </div>
-         <div class="route" id="route">
-            <h1>Route Planner Mode</h1>
-            <p><strong>Not yet properly implemented</strong></p>
-            <p>For now: just target a system then shift click to generate the shortest route to another.</p>
+         <div class="route" id="route" style="display: none;">
+            <h1>Route Mode</h1>
+            <p><em>Not yet fully implemented. For now just click a
+               system, then shift click to show the shortest route to another.</em></p>
+            <p id="routelist"></p>
          </div>
-         <div class="editor" id="editor">
+         <div class="editor" id="editor" style="display: none;">
             <h1>Editor Mode</h1>
-            <p>The map editor is a feature for the future, when I get around to it.</p>
+            <p>The map editor is a feature for the future, when I get around to it :)</p>
          </div>
-         <div class="config" id="config">
+         <div class="config" id="config" style="display: none;">
             <h1>Configuration</h1>
             <p><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
          </div>
-         <div class="debug" id="debug">
+         <div class="debug" id="debug" style="display: none;">
             <h1>Debug Info</h1>
             <div id="debugstuff" class="debug">
                <!-- doesn't work, TODO <p><a href="#" onclick="window.centerCross.visible = ( window.centerCross.visible ) ? false : true;">Toggle center crosshair</a></p> -->
@@ -43,7 +44,7 @@
                <p id="debug-state"></p>
             </div>
          </div>
-         <div class="about" id="about">
+         <div class="about" id="about" style="display: none;">
             <h1>About this 3D map</h1>
             <p>
                A 3D interactive galaxy map of the crowd-funded and currently being developed game

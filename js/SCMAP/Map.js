@@ -49,6 +49,7 @@ SCMAP.Map.prototype = {
       } else {
          this.selector.visible = false;
       }
+      $('#routelist').empty();
    },
 
    deselect: function ( ) {
@@ -80,7 +81,7 @@ SCMAP.Map.prototype = {
                if ( intersect.object.system === this.selected.object.system ) {
                   if ( $('#systemname').text() != intersect.object.system.name ) {
                      this.select( intersect.object.system.name );
-                     displaySystemInfo( intersect.object.system );
+                     intersect.object.system.displayInfo();
                   }
                }
             }
@@ -100,9 +101,17 @@ SCMAP.Map.prototype = {
       }
    },
 
+   currentRoute: function () {
+      if ( this.targetSelected instanceof SCMAP.System ) {
+         return this.graph.routeArray( this.targetSelected );
+      }
+      return [];
+   },
+
    updateRoute: function ( destination ) {
       this.graph.destroyRoute;
       this.graph.buildGraph( this.selected.object.system );
+      this.targetSelected = destination;
       var route = this.graph.routeArray( destination );
 
       var material = new THREE.LineBasicMaterial( { color: 0xFFCC33, linewidth: 1 } );
@@ -116,6 +125,18 @@ SCMAP.Map.prototype = {
       }
 
       this.scene.add( group );
+
+      $('#routelist').empty();
+      $('#routelist').append('<p>The shortest route from '+route[0].name+' to '
+         +route[route.length-1].name+' along <strong>' + (route.length - 1)
+         + '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
+
+      for ( var i = 0; i < route.length; i++ ) {
+         var from_system = route[i+0];
+         var $entry = $( '<li></li>' ).append( from_system.createLink() );
+         $('#routelist ol').append( $entry );
+         $('#map_ui').tabs( 'option', 'active', 1 );
+      }
    },
 
    createRouteMesh: function ( source, destination ) {

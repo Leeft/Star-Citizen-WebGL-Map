@@ -65,6 +65,135 @@ SCMAP.System.prototype = {
       return sprite;
    },
 
+   createLink: function () {
+      var _this = this,
+          $line = $( '<a></a>' );
+      $line.attr( 'href', '#system='+encodeURI(_this.name) );
+      $line.attr( 'title', 'Show information on '+_this.name );
+      $line.text( _this.name );
+      $line.bind( 'click', function() {
+         _this.displayInfo( _this );
+      } );
+      return $line;
+   },
+
+   displayInfo: function ( system ) {
+      if ( typeof system === 'undefined' ) {
+         system = this;
+      }
+
+      var blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
+
+      $('#systemname').text( 'System: ' + system.name );
+
+      var currentRoute = window.map.currentRoute();
+      if ( currentRoute.length )
+      {
+         var partOfRoute = false;
+         var currentStep = 0;
+
+         for ( var i = 0; i < currentRoute.length; i++ ) {
+            if ( currentRoute[i] == system ) {
+               partOfRoute = true;
+               currentStep = i;
+               break;
+            }
+         }
+
+         if ( partOfRoute ) {
+            var $steps = $( '<p class="steps">On selected route: ' + (currentStep+1) + '/' + currentRoute.length + '</p>' );
+
+            if ( currentStep > 0 ) {
+               var $prev = currentRoute[currentStep-1].createLink();
+               $prev.empty().append( '<i class="sprite-arrow-left"></i>' );
+               $steps.append( $prev );
+            }
+
+            if ( currentStep < ( currentRoute.length - 1 ) ) {
+               var $next = currentRoute[currentStep+1].createLink();
+               $next.empty().append( '<i class="sprite-arrow-right"></i>' );
+               $steps.append( $next );
+            }
+
+            blurb.append( $steps );
+         }
+      }
+
+      if ( ! system.have_info )
+      {
+         blurb.append( "<p><strong>No data available yet for '"+system.name+"'</strong></p>" );
+      }
+      else
+      {
+         var worlds = 'No inhabitable worlds';
+         var _import = 'None';
+         var _export = 'None';
+         var black_market = 'None';
+         var strategic_value = 'Unknown';
+
+         if ( system.planetary_rotation.length ) {
+            worlds = system.planetary_rotation.join( ', ' );
+         }
+
+         if ( system.import.length ) {
+            _import = system.import.join( ', ' );
+         }
+
+         if ( system.export.length ) {
+            _export = system.export.join( ', ' );
+         }
+
+         if ( system.black_market.length ) {
+            black_market = system.black_market.join( ', ' );
+         }
+
+         if ( typeof system.uee_strategic_value === 'string' && system.uee_strategic_value.length ) {
+            strategic_value = system.uee_strategic_value;
+         }
+
+         blurb.append( '<dl>' +
+            '<dt class="ownership">Ownership</dt><dd class="ownership">'+system.ownership+'</dd>' +
+            '<dt class="planets">Planets</dt><dd class="planets">'+system.planets+'</dd>' +
+            '<dt class="rotation">Planetary rotation</dt><dd class="rotation">'+worlds+'</dd>' +
+            '<dt class="import">Import</dt><dd class="import">'+_import+'</dd>' +
+            '<dt class="export">Export</dt><dd class="export">'+_export+'</dd>' +
+            '<dt class="crime_'+system.crime_status.toLowerCase()+'">Crime status</dt><dd class="crime">'+system.crime_status+'</dd>' +
+            '<dt class="black_market">Black market</dt><dd class="crime">'+black_market+'</dd>' +
+            '<dt class="strategic_value_'+strategic_value.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+strategic_value+'</dd>' +
+         '</dl>' );
+
+         for ( var i = 0; i < system.blob.length; i++ ) {
+            var blob = system.blob[i];
+            blurb.append( '<p class="blurb_hidden">' + blob + '</p>' );
+         }
+
+         if ( system.source ) {
+            blurb.append( '<p class=""><a href="' + system.source + '" target="_blank">(source)</a></p>' );
+         }
+      }
+
+      blurb.append( '<div id="destinations">' );
+
+      $('#systemblurb').empty();
+      $('#systemblurb').append( blurb );
+
+      $('#map_ui').tabs( 'option', 'active', 0 );
+
+   //   var text = new destinationSystem();
+   //   var gui = new dat.GUI({ autoPlace: false });
+   //   var customContainer = document.getElementById('destinations');
+   //   customContainer.appendChild( gui.domElement );
+   //// Choose from accepted values
+   //gui.add(text, 'name', [ 'pizza', 'chrome', 'hooray' ] );
+
+   //   var select = $('<select>').attr('id','destination').appendTo('#destinations');
+   //   $( system.jumppoints ).each( function() {
+   //      select.append( $('<option>').attr( 'value', system.destination.name ).text( system.destination.name ) );
+   //   } );
+   //
+   //   $('<input>').attr( 'type', 'checkbox' ).attr( 'id', 'locked' ).appendTo('#destinations');
+   },
+
    getValue: function ( key ) {
       if ( key === undefined ) {
          return;

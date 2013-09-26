@@ -43,8 +43,8 @@ a:hover {
    position: absolute;
    top: 5px;
    left: 5px;
-   width: 220px;
-   height: 95%;
+   width: 280px;
+   max-height: 95%;
    padding: 5px;
    /* background-color: #000000; */
    font-family: 'Electrolize', sans-serif;
@@ -74,22 +74,28 @@ a:hover {
    margin: 0;
    padding: 0;
 }
-#map_ui ul.menubar i {
-   display: block;
+#map_ui ul.menubar i, #map_ui a i {
+   display: inline-block;
 }
 
 /* Icons from http://www.autreplanete.com/web-icons/our-offer.php
  * Generated with http://spritegen.website-performance.org/ */
 i { background: url(../images/csg-523da0cddce45.png) no-repeat top left; opacity: 0.5; }
 li.ui-state-active i { opacity: 1; }
-i.sprite-bullet-list{ background-position: 0 0; width: 32px; height: 32px; } 
-i.sprite-circle-info { background-position: -64px 0; width: 32px; height: 32px; } 
-i.sprite-circle-question-mark { background-position: -128px 0; width: 32px; height: 32px; } 
-i.sprite-map-marker2 { background-position: -192px 0; width: 32px; height: 32px; } 
-i.sprite-node-link { background-position: -256px 0; width: 32px; height: 32px; } 
-i.sprite-pencil { background-position: -320px 0; width: 32px; height: 32px; } 
-i.sprite-setting { background-position: -384px 0; width: 32px; height: 32px; } 
-i.sprite-target { background-position: -448px 0; width: 32px; height: 32px; } 
+i.sprite-arrow-circle2{ background-position: 0 0; width: 32px; height: 32px; } 
+i.sprite-arrow-down{ background-position: -64px 0; width: 32px; height: 32px; } 
+i.sprite-arrow-left{ background-position: -128px 0; width: 32px; height: 32px; } 
+i.sprite-arrow-right{ background-position: -192px 0; width: 32px; height: 32px; } 
+i.sprite-arrow-up{ background-position: -256px 0; width: 32px; height: 32px; } 
+i.sprite-bullet-list{ background-position: -320px 0; width: 32px; height: 32px; } 
+i.sprite-circle-info{ background-position: -384px 0; width: 32px; height: 32px; } 
+i.sprite-circle-question-mark{ background-position: -448px 0; width: 32px; height: 32px; } 
+i.sprite-map-marker2{ background-position: -512px 0; width: 32px; height: 32px; } 
+i.sprite-node-link{ background-position: -576px 0; width: 32px; height: 32px; } 
+i.sprite-pencil{ background-position: -640px 0; width: 32px; height: 32px; } 
+i.sprite-setting{ background-position: -704px 0; width: 32px; height: 32px; } 
+i.sprite-target{ background-position: -768px 0; width: 32px; height: 32px; } 
+
 
 #map_ui h1 {
    color: #6ABBCF;
