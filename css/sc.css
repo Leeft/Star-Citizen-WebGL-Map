@@ -74,28 +74,44 @@ a:hover {
    margin: 0;
    padding: 0;
 }
-#map_ui ul.menubar i, #map_ui a i {
+#map_ui ul.menubar i, #map_ui i {
    display: inline-block;
 }
 
 /* Icons from http://www.autreplanete.com/web-icons/our-offer.php
  * Generated with http://spritegen.website-performance.org/ */
-i { background: url(../images/csg-523da0cddce45.png) no-repeat top left; opacity: 0.5; }
-li.ui-state-active i { opacity: 1; }
-i.sprite-arrow-circle2{ background-position: 0 0; width: 32px; height: 32px; } 
-i.sprite-arrow-down{ background-position: -64px 0; width: 32px; height: 32px; } 
-i.sprite-arrow-left{ background-position: -128px 0; width: 32px; height: 32px; } 
-i.sprite-arrow-right{ background-position: -192px 0; width: 32px; height: 32px; } 
-i.sprite-arrow-up{ background-position: -256px 0; width: 32px; height: 32px; } 
-i.sprite-bullet-list{ background-position: -320px 0; width: 32px; height: 32px; } 
-i.sprite-circle-info{ background-position: -384px 0; width: 32px; height: 32px; } 
-i.sprite-circle-question-mark{ background-position: -448px 0; width: 32px; height: 32px; } 
-i.sprite-map-marker2{ background-position: -512px 0; width: 32px; height: 32px; } 
-i.sprite-node-link{ background-position: -576px 0; width: 32px; height: 32px; } 
-i.sprite-pencil{ background-position: -640px 0; width: 32px; height: 32px; } 
-i.sprite-setting{ background-position: -704px 0; width: 32px; height: 32px; } 
-i.sprite-target{ background-position: -768px 0; width: 32px; height: 32px; } 
+i { background: url(../images/csg-52448474439ce) no-repeat top left; }
+ul.menubar i { opacity: 0.5; }
+ul.menubar .ui-state-active i { opacity: 1; }
 
+.sprite-arrow-circle2-24{ background-position: 0 0; width: 24px; height: 24px; } 
+.sprite-arrow-circle2{ background-position: 0 -56px; width: 32px; height: 32px; } 
+.sprite-arrow-down-24{ background-position: 0 -120px; width: 24px; height: 24px; } 
+.sprite-arrow-down{ background-position: 0 -176px; width: 32px; height: 32px; } 
+.sprite-arrow-left-24{ background-position: 0 -240px; width: 24px; height: 24px; } 
+.sprite-arrow-left{ background-position: 0 -296px; width: 32px; height: 32px; } 
+.sprite-arrow-right-24{ background-position: 0 -360px; width: 24px; height: 24px; } 
+.sprite-arrow-right{ background-position: 0 -416px; width: 32px; height: 32px; } 
+.sprite-arrow-up-24{ background-position: 0 -480px; width: 24px; height: 24px; } 
+.sprite-arrow-up{ background-position: 0 -536px; width: 32px; height: 32px; } 
+.sprite-blank-24{ background-position: 0 -600px; width: 24px; height: 24px; } 
+.sprite-blank{ background-position: 0 -656px; width: 32px; height: 32px; } 
+.sprite-bullet-list-24{ background-position: 0 -720px; width: 24px; height: 24px; } 
+.sprite-bullet-list{ background-position: 0 -776px; width: 32px; height: 32px; } 
+.sprite-circle-info-24{ background-position: 0 -840px; width: 24px; height: 24px; } 
+.sprite-circle-info{ background-position: 0 -896px; width: 32px; height: 32px; } 
+.sprite-circle-question-mark-24{ background-position: 0 -960px; width: 24px; height: 24px; } 
+.sprite-circle-question-mark{ background-position: 0 -1016px; width: 32px; height: 32px; } 
+.sprite-map-marker2-24{ background-position: 0 -1080px; width: 24px; height: 24px; } 
+.sprite-map-marker2{ background-position: 0 -1136px; width: 32px; height: 32px; } 
+.sprite-node-link-24{ background-position: 0 -1200px; width: 24px; height: 24px; } 
+.sprite-node-link{ background-position: 0 -1256px; width: 32px; height: 32px; } 
+.sprite-pencil-24{ background-position: 0 -1320px; width: 24px; height: 24px; } 
+.sprite-pencil{ background-position: 0 -1376px; width: 32px; height: 32px; } 
+.sprite-setting-24{ background-position: 0 -1440px; width: 24px; height: 24px; } 
+.sprite-setting{ background-position: 0 -1496px; width: 32px; height: 32px; } 
+.sprite-target-24{ background-position: 0 -1560px; width: 24px; height: 24px; } 
+.sprite-target{ background-position: 0 -1616px; width: 32px; height: 32px; } 
 
 #map_ui h1 {
    color: #6ABBCF;
@@ -103,6 +119,13 @@ i.sprite-target{ background-position: -768px 0; width: 32px; height: 32px; }
    padding: 0px;
    margin: 0px;
    margin-top: 10px;
+   width: 99%;
+}
+#map_ui h1 i {
+   height: 20px;
+}
+#map_ui h1 a.right {
+   float: right;
 }
 
 #map_ui p {

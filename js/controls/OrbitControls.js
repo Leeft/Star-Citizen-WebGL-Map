@@ -159,6 +159,15 @@ THREE.OrbitControls = function ( object, domElement ) {
 		pan.add( vectorBack );
 	};
 
+	// assumes mapMode for now
+	this.goTo = function ( vector ) {
+
+      // make sure the given vector is at the same xz plane
+      vector = vector.clone().setY( this.target.y );
+      vector.sub( this.target );
+      pan.add( vector );
+	};
+
 	// main entry point; pass in Vector2 of change desired in pixel space,
 	// right and down are positive
 	this.pan = function ( delta ) {

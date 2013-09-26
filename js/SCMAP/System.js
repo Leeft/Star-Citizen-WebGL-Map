@@ -73,6 +73,8 @@ SCMAP.System.prototype = {
       $line.text( _this.name );
       $line.bind( 'click', function() {
          _this.displayInfo( _this );
+         window.controls.goTo( _this.position );
+         window.map.select( _this.name );
       } );
       return $line;
    },
@@ -100,22 +102,33 @@ SCMAP.System.prototype = {
             }
          }
 
-         if ( partOfRoute ) {
-            var $steps = $( '<p class="steps">On selected route: ' + (currentStep+1) + '/' + currentRoute.length + '</p>' );
+         if ( partOfRoute )
+         {
+            var header = [];
 
             if ( currentStep > 0 ) {
                var $prev = currentRoute[currentStep-1].createLink();
-               $prev.empty().append( '<i class="sprite-arrow-left"></i>' );
-               $steps.append( $prev );
+               $prev.addClass( 'left' );
+               $prev.attr( 'title', 'Jump to ' + currentRoute[currentStep-1].name );
+               $prev.empty().append( '<i class="left sprite-arrow-left-24"></i>' );
+               header.push( $prev );
+            } else {
+               header.push( $('<i class="left sprite-blank-24"></i>') );
             }
+
+            header.push( system.name );
 
             if ( currentStep < ( currentRoute.length - 1 ) ) {
                var $next = currentRoute[currentStep+1].createLink();
-               $next.empty().append( '<i class="sprite-arrow-right"></i>' );
-               $steps.append( $next );
+               $next.addClass( 'right' );
+               $next.attr( 'title', 'Jump to ' + currentRoute[currentStep+1].name );
+               $next.empty().append( '<i class="right sprite-arrow-right-24"></i>' );
+               header.push( $next );
+            } else {
+               header.push( $('<i class="right sprite-blank-24"></i>') );
             }
 
-            blurb.append( $steps );
+            $('#systemname').empty().append( header );
          }
       }
 
