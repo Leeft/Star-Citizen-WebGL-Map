@@ -192,7 +192,8 @@ SCMAP.Map.prototype = {
                name: systemName,
                position: new THREE.Vector3( data.coords[0], data.coords[1], data.coords[2] ),
                territory: territory,
-               scale: data.scale
+               scale: data.scale,
+               color: territory.color
             });
             systemInfo = window.sc_system_info[ systemName ];
             if ( typeof systemInfo === 'object' ) {
@@ -266,41 +267,116 @@ SCMAP.Map.prototype = {
       this.buildReferencePlane();
    },
 
+   closestPOI: function ( vector ) {
+      var closest = Infinity, closestPOI,
+          copy = vector.clone().setY( 0 );
+      for ( var systemname in this.systemsByName ) {
+         var system = this.systemsByName[ systemname ];
+         var length = system.position.clone().setY( 0 ).sub( copy ).length();
+         if ( length < closest ) {
+            closest = length;
+            closestPOI = system;
+         }
+      }
+      return [ closest, closestPOI ];
+   },
+
+   furthestPOI: function ( vector ) {
+      var furthest = 0, furthestPOI,
+          copy = vector.clone().setY( 0 );
+      for ( var systemname in this.systemsByName ) {
+         var system = this.systemsByName[ systemname ];
+         var length = system.position.clone().setY( 0 ).sub( copy ).length();
+         if ( length > furthest ) {
+            furthest = length;
+            furthestPOI = system;
+         }
+      }
+      return [ furthest, furthestPOI ];
+   },
+
    buildReferencePlane: function() {
       var ringWidth = 52.5, // plane circle scaling to match the map
-         rings = 18, // number of circles we'll create
+         rings, // number of circles we'll create
          segments = 36, // radial segments
-         radius = rings * ringWidth,
-         material, referencePlane, geometry,
+         radius, material, referencePlane, geometry,
          step = 2 * Math.PI / segments,
-         theta, x, z, i, point, color, distance, strength;
+         theta, xIn, zIn, xOut, zOut, xIn2, zIn2, xOut2, zOut2,
+         i, point, color, distance, strength,
+         ringInsideRadius, ringOutsideRadius,
+         distance, furthestPOI, closestPOI, minDistance = 250, arr;
+
+      var endTime, startTime = new Date();
+
+      var arr = this.furthestPOI( new THREE.Vector3() );
+      var distance = arr[0], furthestPOI = arr[1];
+
+      radius = distance * 1.3;
+      rings = ( ( radius / ringWidth ) % ringWidth ).toFixed(0);
 
       material = new THREE.LineBasicMaterial( { color: 0xA0A0A0, linewidth: 1, vertexColors: true, opacity: 0.6 } ),
-      geometry = new THREE.CylinderGeometry( radius, 0, 0, segments, rings, false );
+      geometry = new THREE.Geometry();
 
       // create the lines from the center to the outside
       for ( theta = 0; theta < 2 * Math.PI; theta += step )
       {
-         x = radius * Math.cos( theta );
-         z = 0 - radius * Math.sin( theta );
-         geometry.vertices.push( new THREE.Vector3( x, 0, z ) );
-         geometry.vertices.push( new THREE.Vector3( 0, 0, 0 ) );
+         for ( var ring = 0; ring < rings; ring += 1 )
+         {
+            ringInsideRadius = ringWidth * ring;
+            ringOutsideRadius = ringWidth * ( ring + 1 );
+
+            xIn = ringInsideRadius * Math.cos( theta );
+            zIn = -ringInsideRadius * Math.sin( theta );
+            arr = this.closestPOI( new THREE.Vector3( xIn, 0, zIn ) );
+            distance = arr[0], closest = arr[1];
+
+            if ( distance < 350 )
+            {
+               xOut = ringOutsideRadius * Math.cos( theta );
+               zOut = -ringOutsideRadius * Math.sin( theta );
+               geometry.vertices.push( new THREE.Vector3( xIn, 0, zIn ) );
+               geometry.vertices.push( new THREE.Vector3( xOut, 0, zOut ) );
+
+               if ( theta + step < 2 * Math.PI ) {
+                  var xIn2 = ringInsideRadius * Math.cos( theta + step );
+                  var zIn2 = -ringInsideRadius * Math.sin( theta + step );
+                  geometry.vertices.push( new THREE.Vector3( xIn, 0, zIn ) );
+                  geometry.vertices.push( new THREE.Vector3( xIn2, 0, zIn2 ) );
+               }
+            }
+         }
       }
 
-      // assign colors to vertices based on their distance
       for ( var i = 0; i < geometry.vertices.length; i++ ) 
       {
          point = geometry.vertices[ i ];
-         color = new THREE.Color( 0x000000 );
-         strength = ( radius - point.length() ) / ( radius );
-         color.setRGB( 0, strength * 0.8, 0 );
+         var arr = this.closestPOI( point );
+         var distance = arr[0], closest = arr[1];
+         if ( distance > minDistance ) { distance = minDistance; }
+         color = new THREE.Color( closest.color );
+         strength = ( minDistance - distance ) / minDistance;
+         color.setRGB( strength * color.r * 0.8, strength * color.g * 0.8, strength * color.b * 0.8 );
          geometry.colors[i] = color;
       }
 
+      // the old green colour ... meh
+      // assign colors to vertices based on their distance
+      //for ( var i = 0; i < geometry.vertices.length; i++ ) 
+      //{
+      //   point = geometry.vertices[ i ];
+      //   color = new THREE.Color( 0x000000 );
+      //   strength = ( radius - point.length() ) / ( radius );
+      //   color.setRGB( 0, strength * 0.8, 0 );
+      //   geometry.colors[i] = color;
+      //}
+
       // and create the ground reference plane
-      referencePlane = new THREE.Line( geometry, material ),
+      referencePlane = new THREE.Line( geometry, material, THREE.LinePieces ),
       referencePlane.overdraw = false;
       scene.add( referencePlane );
+
+      endTime = new Date();
+      console.log( "Building the reference plane took " + (endTime.getTime() - startTime.getTime()) + " msec" );
    }
 };
 

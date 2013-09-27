@@ -13,6 +13,8 @@ SCMAP.System = function ( data ) {
    this.visited = false;
    this.parent = undefined;
 
+   this.color = 0xFFFFFF,
+
    this.have_info = false;
    this.source = undefined;
    this.planets = 0;
