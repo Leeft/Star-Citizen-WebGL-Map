@@ -8,6 +8,7 @@ SCMAP.System = function ( data ) {
    this.ownership = '';
    this.scale = 1.0;
    this.jumppoints = [];
+   this.territory = '';
 
    this.distance = Number.MAX_VALUE *2;
    this.visited = false;
@@ -67,10 +68,25 @@ SCMAP.System.prototype = {
       return sprite;
    },
 
+   createGlow: function ( groupObject ) {
+      // SUPER SIMPLE GLOW EFFECT
+      // use sprite because it appears the same from all angles
+      var spriteMaterial = new THREE.SpriteMaterial( { 
+         map: new THREE.ImageUtils.loadTexture( 'images/glow.png' ), 
+         useScreenCoordinates: false, alignment: THREE.SpriteAlignment.center,
+         color: this.color, transparent: false, blending: THREE.AdditiveBlending
+      } );
+      var sprite = new THREE.Sprite( spriteMaterial );
+      sprite.scale.set( 30, 30, 1.0 );
+      sprite.system = this;
+      return sprite;
+   },
+
    createLink: function () {
       var _this = this,
           $line = $( '<a></a>' );
-      $line.attr( 'href', '#system='+encodeURI(_this.name) );
+      $line.css( 'color', new THREE.Color( _this.color ).getStyle() );
+      $line.attr( 'href', '#system='+encodeURI( _this.name ) );
       $line.attr( 'title', 'Show information on '+_this.name );
       $line.text( _this.name );
       $line.bind( 'click', function() {
@@ -88,7 +104,7 @@ SCMAP.System.prototype = {
 
       var blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
 
-      $('#systemname').text( 'System: ' + system.name );
+      $('#systemname').attr( 'class', makeSafeForCSS( system.territory ) ).css( 'color', new THREE.Color( system.color ).getStyle() ).text( 'System: ' + system.name );
 
       var currentRoute = window.map.currentRoute();
       if ( currentRoute.length )
@@ -130,7 +146,7 @@ SCMAP.System.prototype = {
                header.push( $('<i class="right sprite-blank-24"></i>') );
             }
 
-            $('#systemname').empty().append( header );
+            $('#systemname').empty().attr( 'class', makeSafeForCSS( system.territory ) ).append( header );
          }
       }
 

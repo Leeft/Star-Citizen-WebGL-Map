@@ -12,6 +12,7 @@ SCMAP.Map = function ( scene, mapdata ) {
    this.systemsByName = {};
    this.systems = [];
    this.territories = {};
+   this.territoryColors = {};
    this.selector = this.createSelector();
    this.selected = undefined;
    this.targetSelected = undefined;
@@ -175,14 +176,16 @@ SCMAP.Map.prototype = {
 
       // First we go through the data to build the basic systems so
       // the routes can be built as well
+      starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
 
       for ( territoryName in this.mapdata )
       {
          territory = this.mapdata[ territoryName ];
 
          this.territories[ territoryName ] = [];
+         this.territoryColors[ makeSafeForCSS( territoryName ) ] = new THREE.Color( territory.color ).getStyle();
 
-         starMaterial = new THREE.MeshBasicMaterial({ color: territory.color });
+         //starMaterial = new THREE.MeshBasicMaterial({ color: territory.color });
 
          for ( systemName in territory.systems )
          {
@@ -191,7 +194,7 @@ SCMAP.Map.prototype = {
             system = new SCMAP.System({
                name: systemName,
                position: new THREE.Vector3( data.coords[0], data.coords[1], data.coords[2] ),
-               territory: territory,
+               territory: territoryName,
                scale: data.scale,
                color: territory.color
             });
@@ -218,6 +221,8 @@ SCMAP.Map.prototype = {
 
             systemObject = system.createObject( starMaterial );
             systemLabel = system.createLabel();
+            var systemGlow = system.createGlow();
+            systemObject.add( systemGlow );
             this.scene.add( systemObject );
             this.group.add( systemLabel );
             this.interactables.push( systemObject );
@@ -232,8 +237,6 @@ SCMAP.Map.prototype = {
       for ( territoryName in this.mapdata )
       {
          territory = this.mapdata[ territoryName ];
-
-         routeMaterial = new THREE.LineBasicMaterial({ color: territory.color, linewidth: 1 });
 
          for ( systemName in territory.known_routes )
          {
@@ -255,7 +258,10 @@ SCMAP.Map.prototype = {
                }
 
                jumpPoint = new SCMAP.JumpPoint( source, destination );
-               this.scene.add( new THREE.Line( jumpPoint.geometry(), routeMaterial ) );
+               var jumpObject = jumpPoint.sceneObject();
+               if ( jumpObject instanceof THREE.Object3D ) {
+                  this.scene.add( jumpObject );
+               }
                source.jumppoints.push( jumpPoint );
                // for now, add another route the other way as well (we're making
                // the crude assumption that jumppoints are bi-directional
@@ -372,7 +378,9 @@ SCMAP.Map.prototype = {
 
       // and create the ground reference plane
       referencePlane = new THREE.Line( geometry, material, THREE.LinePieces ),
-      referencePlane.overdraw = false;
+      referencePlane.transparent = true;
+      referencePlane.opacity = 0.3;
+      referencePlane.blending = THREE.MultiplyBlending;
       scene.add( referencePlane );
 
       endTime = new Date();

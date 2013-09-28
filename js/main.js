@@ -156,6 +156,9 @@ function onDocumentMouseUpAndDown( event )
 }
 
 function makeSafeForCSS( name ) {
+   if ( typeof name !== 'string' ) {
+      return;
+   }
    return name.replace( /[^a-z0-9]/g, function(s) {
       var c = s.charCodeAt(0);
       if (c == 32) return '-';
