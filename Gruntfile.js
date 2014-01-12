@@ -8,6 +8,17 @@ module.exports = function(grunt) {
               ' * https://github.com/Leeft/Star-Citizen-WebGL-Map\n' +
               ' * Licensed under <%= _.pluck(pkg.licenses, "url").join(", ") %>\n' +
               ' */\n',
+    databanner: '/*!\n' +
+                ' * Sample map data (made up from a slightly randomised and limited data set\n' +
+                ' * of only known systems); to be replaced by online live data in the future.\n' +
+                ' * This data is thus not entirely accurate and incomplete.\n' +
+                ' *\n' +
+                ' * Copyright 2013-<%= grunt.template.today("yyyy") %> Lianna Eeftinck & Aaron Robinson. All Rights Reserved.\n' +
+                ' *\n' +
+                ' * This sample map data (everything in SCMAP.data.map to be specific) is\n' +
+                ' * provided as an example only and is free to be used with this application\n' +
+                ' * in any form but may not be used elsewhere without explicit permission.\n' +
+                ' */\n',
     jqueryCheck: 'if (typeof jQuery === "undefined") { throw new Error("<%= pkg.name %> requires jQuery"); }\n',
     threejsCheck: 'if (typeof THREE === "undefined") { throw new Error("<%= pkg.name %> requires THREE.js"); }\n',
 
@@ -62,6 +73,19 @@ module.exports = function(grunt) {
         dest: 'build/<%= pkg.name %>.js'
       },
 
+      scdata: {
+        options: {
+          //banner: '<%= databanner %>',
+          stripBanners: false
+        },
+        src: [
+          'js/data/map.js',
+          'js/data/lists.js',
+          'js/data/systems.js',
+        ],
+        dest: 'build/<%= pkg.name %>-data.js'
+      },
+
       extlibs: {
         src: [
           'js/three.js/examples/js/shaders/ConvolutionShader.js',
@@ -94,6 +118,14 @@ module.exports = function(grunt) {
         dest: 'build/<%= pkg.name %>.min.js'
       },
 
+      scdata: {
+        options: {
+          banner: '<%= databanner %>'
+        },
+        src: ['<%= concat.scdata.dest %>'],
+        dest: 'build/<%= pkg.name %>-data.min.js'
+      },
+
       extlibs: {
         src: ['<%= concat.extlibs.dest %>'],
         dest: 'build/<%= pkg.name %>-libs.min.js'
@@ -111,6 +143,10 @@ module.exports = function(grunt) {
         files: ['<%= concat.scmap.src %>'],
         tasks: ['dist-scmap']
       },
+      scdata: {
+        files: ['<%= concat.scdata.src %>'],
+        tasks: ['dist-scdata']
+      },
       extlibs: {
         files: ['<%= concat.extlibs.src %>'],
         tasks: ['dist-extlibs']
@@ -127,9 +163,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks( 'grunt-contrib-jshint' );
 
   grunt.registerTask( 'copy-extlibs', [ 'copy' ] );
+  grunt.registerTask( 'dist-scdata', [ 'concat:scdata', 'uglify:scdata' ] );
   grunt.registerTask( 'dist-scmap', [ 'jshint:beforeconcat', 'concat:scmap', 'jshint:afterconcat','uglify:scmap' ] );
   grunt.registerTask( 'dist-extlibs', [ 'concat:extlibs', 'uglify:extlibs' ] );
 
   // Default task(s).
-  grunt.registerTask( 'default', [ 'copy-extlibs', 'dist-extlibs', 'dist-scmap' ] );
+  grunt.registerTask( 'default', [ 'copy-extlibs', 'dist-extlibs', 'dist-scdata', 'dist-scmap' ] );
 };

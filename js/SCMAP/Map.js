@@ -210,6 +210,9 @@ SCMAP.Map.prototype = {
          for ( systemName in territory.systems )
          {
             data = territory.systems[ systemName ];
+            if (typeof data.scale !== 'number' ) {
+               data.scale = 1.0;
+            }
 
             system = new SCMAP.System({
                name: systemName,
@@ -219,27 +222,27 @@ SCMAP.Map.prototype = {
                ownership: faction
             });
 
-            systemInfo = window.sc_system_info[ systemName ];
+            systemInfo = SCMAP.data.systems[ systemName ];
             if ( typeof systemInfo === 'object' ) {
                imports = [];
                exports = [];
                black_markets = [];
                for ( i = 0; i < systemInfo['import'].length; i++ ) {
-                  imports.push( window.sc_goods[ systemInfo.import[i] ] );
+                  imports.push( SCMAP.data.goods[ systemInfo.import[i] ] );
                }
                for ( i = 0; i < systemInfo['export'].length; i++ ) {
-                  exports.push( window.sc_goods[ systemInfo.export[i] ] );
+                  exports.push( SCMAP.data.goods[ systemInfo.export[i] ] );
                }
                for ( i = 0; i < systemInfo.black_market.length; i++ ) {
-                  black_markets.push( window.sc_goods[ systemInfo.black_market[i] ] );
+                  black_markets.push( SCMAP.data.goods[ systemInfo.black_market[i] ] );
                }
                system.setValues({
                   'nickname': systemInfo.nick,
                   'star_color': systemInfo.color,
                   'size': systemInfo.size,
                   'source': systemInfo.source,
-                  'crime_status': window.sc_crime_levels[ systemInfo.crime ].name,
-                  'uee_strategic_value': window.sc_uee_strategic_values[ systemInfo.uee_sv ].color,
+                  'crime_status': SCMAP.data.crime_levels[ systemInfo.crime ].name,
+                  'uee_strategic_value': SCMAP.data.uee_strategic_values[ systemInfo.uee_sv ].color,
                   'import': imports,
                   'export': exports,
                   'black_market': black_markets,

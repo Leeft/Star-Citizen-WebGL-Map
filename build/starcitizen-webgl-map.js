@@ -20,7 +20,14 @@ self.console = self.console || {
    error: function () {}
 };
 
-self.settings = undefined;
+SCMAP.data = {
+   factions: [],
+   crime_levels: [],
+   uee_strategic_values: [],
+   goods: [],
+   map: {},
+   systems: []
+};
 
 // constants here
 // SCMAP.Foo = 'bar'
@@ -1161,6 +1168,9 @@ SCMAP.Map.prototype = {
          for ( systemName in territory.systems )
          {
             data = territory.systems[ systemName ];
+            if (typeof data.scale !== 'number' ) {
+               data.scale = 1.0;
+            }
 
             system = new SCMAP.System({
                name: systemName,
@@ -1170,27 +1180,27 @@ SCMAP.Map.prototype = {
                ownership: faction
             });
 
-            systemInfo = window.sc_system_info[ systemName ];
+            systemInfo = SCMAP.data.systems[ systemName ];
             if ( typeof systemInfo === 'object' ) {
                imports = [];
                exports = [];
                black_markets = [];
                for ( i = 0; i < systemInfo['import'].length; i++ ) {
-                  imports.push( window.sc_goods[ systemInfo.import[i] ] );
+                  imports.push( SCMAP.data.goods[ systemInfo.import[i] ] );
                }
                for ( i = 0; i < systemInfo['export'].length; i++ ) {
-                  exports.push( window.sc_goods[ systemInfo.export[i] ] );
+                  exports.push( SCMAP.data.goods[ systemInfo.export[i] ] );
                }
                for ( i = 0; i < systemInfo.black_market.length; i++ ) {
-                  black_markets.push( window.sc_goods[ systemInfo.black_market[i] ] );
+                  black_markets.push( SCMAP.data.goods[ systemInfo.black_market[i] ] );
                }
                system.setValues({
                   'nickname': systemInfo.nick,
                   'star_color': systemInfo.color,
                   'size': systemInfo.size,
                   'source': systemInfo.source,
-                  'crime_status': window.sc_crime_levels[ systemInfo.crime ].name,
-                  'uee_strategic_value': window.sc_uee_strategic_values[ systemInfo.uee_sv ].color,
+                  'crime_status': SCMAP.data.crime_levels[ systemInfo.crime ].name,
+                  'uee_strategic_value': SCMAP.data.uee_strategic_values[ systemInfo.uee_sv ].color,
                   'import': imports,
                   'export': exports,
                   'black_market': black_markets,
@@ -1448,18 +1458,8 @@ scene.add( tmpObject );
 };
 
 
-if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
 var effectFXAA, camera, scene, renderer, composer, map,
-   shift, ctrl, alt, controls, editor,
-
-   // some flavor text, not got the proper content yet
-    rikerIndex = 0, rikerIpsum = [
-   "What? We're not at all alike! For an android with no feelings, he sure managed to evoke them in others. I've had twelve years to think about it. And if I had it to do over again, I would have grabbed the phaser and pointed it at you instead of them. Did you come here for something in particular or just general Riker-bashing? Flair is what marks the difference between artistry and mere competence. I guess it's better to be lucky than good. When has justice ever been as simple as a rule book? Worf, It's better than music. It's jazz. We have a saboteur aboard.",
-   "They were just sucked into space. Fear is the true enemy, the only enemy. I've had twelve years to think about it. And if I had it to do over again, I would have grabbed the phaser and pointed it at you instead of them. Maybe if we felt any human loss as keenly as we feel one of those close to us, human history would be far less bloody. Yesterday I did not know how to eat gagh. Mr. Worf, you sound like a man who's asking his friend if he can start dating his sister. Wait a minute - you've been declared dead. You can't give orders around here.",
-   "I think you've let your personal feelings cloud your judgement. The look in your eyes, I recognize it. You used to have it for me. Commander William Riker of the Starship Enterprise. I guess it's better to be lucky than good. Our neural pathways have become accustomed to your sensory input patterns.",
-   "We know you're dealing in stolen ore. But I wanna talk about the assassination attempt on Lieutenant Worf. Could someone survive inside a transporter buffer for 75 years? Why don't we just give everybody a promotion and call it a night - 'Commander'? Damage report! I can't. As much as I care about you, my first duty is to the ship. What? We're not at all alike! This should be interesting. Your head is not an artifact! Worf, It's better than music. It's jazz. Congratulations - you just destroyed the Enterprise. Our neural pathways have become accustomed to your sensory input patterns. What's a knock-out like you doing in a computer-generated gin joint like this? Captain, why are we out here chasing comets?"
-];
+   shift, ctrl, alt, controls, editor;
 
 $(function() {
    $( "#map_ui" ).tabs({
@@ -1485,10 +1485,12 @@ $(function() {
 
    /* jScrollPane */
    $('#map_ui').jScrollPane({ showArrows: true });
-});
 
-init();
-animate();
+   if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+   init();
+   animate();
+});
 
 function init()
 {
@@ -1529,7 +1531,7 @@ function init()
    renderer.autoClear = false;
    container.appendChild( renderer.domElement );
 
-   map = new SCMAP.Map( scene, sc_map );
+   map = new SCMAP.Map( scene, SCMAP.data.map );
 
    editor = new SCMAP.Editor( map, camera );
    editor.panSpeed = 0.6;

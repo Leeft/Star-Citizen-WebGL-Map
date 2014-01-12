@@ -1,4 +1,4 @@
-var sc_factions = {
+SCMAP.data.factions = {
    "6" : {
       "color" : "0x666666",
       "short_name" : "UNC",
@@ -50,7 +50,7 @@ var sc_factions = {
    }
 }
 
-var sc_crime_levels = {
+SCMAP.data.crime_levels = {
    "6" : {
       "name" : "High",
       "id" : 6
@@ -93,7 +93,7 @@ var sc_crime_levels = {
    }
 }
 
-var sc_uee_strategic_values = {
+SCMAP.data.uee_strategic_values = {
    "6" : {
       "color" : "Purple",
       "id" : 6,
@@ -141,7 +141,7 @@ var sc_uee_strategic_values = {
    }
 }
 
-var sc_goods = {
+SCMAP.data.goods = {
    "33" : {
       "black_market" : 0,
       "name" : "Criminals",

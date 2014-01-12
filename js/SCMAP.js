@@ -12,7 +12,14 @@ self.console = self.console || {
    error: function () {}
 };
 
-self.settings = undefined;
+SCMAP.data = {
+   factions: [],
+   crime_levels: [],
+   uee_strategic_values: [],
+   goods: [],
+   map: {},
+   systems: []
+};
 
 // constants here
 // SCMAP.Foo = 'bar'
