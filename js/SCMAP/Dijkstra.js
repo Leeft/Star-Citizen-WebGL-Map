@@ -106,7 +106,7 @@ SCMAP.Dijkstra.prototype = {
          var visited = [];
          var x = currentNode;
          var seen = {};
-         while ( x != null ) {
+         while ( x !== null ) {
             seen[ x.name ] = true;
             visited.push( x );
             x = x.parent;
@@ -121,11 +121,11 @@ SCMAP.Dijkstra.quickSort = function ( systems ) {
    var array = systems.slice(0); // makes a copy, prevents overwriting
 
    if ( array.length <= 1 ) {
-      return array
+      return array;
    }
 
-   var lhs = new Array();
-   var rhs = new Array();
+   var lhs = [];
+   var rhs = [];
    var pivot = Math.ceil( array.length / 2 ) - 1;
 
    pivot = array.splice( pivot, 1 )[0];

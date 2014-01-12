@@ -11,15 +11,17 @@ SCMAP.Map = function ( scene, mapdata ) {
 
    this.systemsByName = {};
    this.systems = [];
-   this.territories = {};
-   this.territoryColors = {};
    this.selector = this.createSelector();
    this.selected = undefined;
-   this.targetSelected = undefined;
-   this.target = undefined;
+   this.selectedTarget = undefined;
    this.scene.add( this.selector );
    this.group = undefined;
    this.interactables = [];
+   this.referencePlane = undefined;
+
+   // No editing available for the moment (doesn't work yet)
+   this.canEdit = false;
+   $('#map_ui li.editor').hide();
 
    if ( Object.keys( mapdata ).length ) {
       this.populateScene();
@@ -34,7 +36,7 @@ SCMAP.Map.prototype = {
       material.transparent = true;
       material.blending = THREE.AdditiveBlending;
       var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, material );
-      mesh.scale.set( 15, 15, 15 );
+      mesh.scale.set( 4, 4, 4 );
       mesh.visible = false;
       return mesh;
    },
@@ -43,9 +45,9 @@ SCMAP.Map.prototype = {
       return this.systemsByName[ name ];
    },
 
-   select: function ( name ) {
-      if ( typeof this.systemsByName[ name ] === 'object' ) {
-         this.selector.position = this.systemsByName[ name ].position;
+   select: function ( system ) {
+      if ( system instanceof SCMAP.System ) {
+         this.selector.position = system.position;
          this.selector.visible = true;
       } else {
          this.selector.visible = false;
@@ -63,11 +65,8 @@ SCMAP.Map.prototype = {
       }
    },
 
-   locked: function ( ) {
-      return ( $('input#locked:checked').length ) ? true : false;
-   },
-
    handleSelection: function ( event, intersect ) {
+
       if ( typeof intersect !== 'object' ) {
          return;
       }
@@ -76,50 +75,76 @@ SCMAP.Map.prototype = {
 
       if ( event.type === 'mouseup' )
       {
-         if ( ! this.locked() && ! modifierPressed )
+         if ( ! window.editor.enabled )
          {
-            if ( typeof this.selected === 'object' && typeof this.selected.object.system === 'object' && typeof intersect.object.system === 'object' ) {
-               if ( intersect.object.system === this.selected.object.system ) {
-                  if ( $('#systemname').text() != intersect.object.system.name ) {
-                     this.select( intersect.object.system.name );
-                     intersect.object.system.displayInfo();
+            if ( ! modifierPressed )
+            {
+               if ( this.selected instanceof SCMAP.System && intersect.object.system instanceof SCMAP.System ) {
+                  if ( intersect.object.system === this.selected ) {
+                     //if ( $('#systemname').text() != intersect.object.system.name ) {
+                        this.select( intersect.object.system );
+                        intersect.object.system.displayInfo();
+                     //}
                   }
+               }
+            }
+            else
+            {
+               this.updateRoute( intersect.object.system );
+            }
+         }
+      }
+      else if ( event.type === 'mousedown' )
+      {
+         if ( window.editor.enabled )
+         {
+            if ( ! event.altKey && typeof intersect.object.system === 'object' ) {
+
+               // if in edit mode, and the targeted object is already selected, start dragging
+               // otherwise, select it
+               if ( this.selected instanceof SCMAP.System &&
+                    intersect.object.system instanceof SCMAP.System &&
+                    this.selected == intersect.object.system
+               ) {
+                  window.controls.editDrag = true;
+               } else {
+                  this.selected = intersect.object.system;
+                  this.select( intersect.object.system );
+                  window.controls.editDrag = false;
                }
             }
          }
          else
          {
-            this.updateRoute( intersect.object.system );
-         }
-      }
-      else if ( event.type === 'mousedown' )
-      {
-         if ( this.locked() || modifierPressed ) {
-            this.targetSelected = intersect;
-         } else {
-            this.selected = intersect;
+            if ( modifierPressed ) {
+               this.selectedTarget = intersect.object.system;
+            } else {
+               this.selected = intersect.object.system;
+            }
          }
       }
    },
 
    currentRoute: function () {
-      if ( this.targetSelected instanceof SCMAP.System ) {
-         return this.graph.routeArray( this.targetSelected );
+      if ( this.selectedTarget instanceof SCMAP.System ) {
+         return this.graph.routeArray( this.selectedTarget );
       }
       return [];
    },
 
    updateRoute: function ( destination ) {
-      this.graph.destroyRoute;
-      this.graph.buildGraph( this.selected.object.system );
-      this.targetSelected = destination;
-      var route = this.graph.routeArray( destination );
+      var i, route, mesh, line, material, group, from_system, $entry;
 
-      var material = new THREE.LineBasicMaterial( { color: 0xFFCC33, linewidth: 1 } );
-      var group = this.graph.createRouteObject(); // all the parts of the route together in a single geometry group
-      for ( var i = 0; i < route.length - 1; i++ ) {
-         var mesh = this.createRouteMesh( route[i+0], route[i+1] );
-         var line = new THREE.Line( mesh, material );
+      this.graph.destroyRoute();
+      this.graph.buildGraph( this.selected );
+      this.selectedTarget = destination;
+      route = this.graph.routeArray( destination );
+
+      material = new THREE.LineBasicMaterial( { color: 0xFF00FF, linewidth: 1 } );
+      group = this.graph.createRouteObject(); // all the parts of the route together in a single geometry group
+      for ( i = 0; i < route.length - 1; i++ ) {
+         mesh = this.createRouteMesh( route[i+0], route[i+1] );
+         line = new THREE.Line( mesh, material );
          line.position = route[i+0].position;
          line.lookAt( route[i+1].position );
          group.add( line );
@@ -128,32 +153,32 @@ SCMAP.Map.prototype = {
       this.scene.add( group );
 
       $('#routelist').empty();
-      $('#routelist').append('<p>The shortest route from '+route[0].name+' to '
-         +route[route.length-1].name+' along <strong>' + (route.length - 1)
-         + '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
+      $('#routelist').append('<p>The shortest route from '+route[0].name+' to ' +
+         route[route.length-1].name+' along <strong>' + (route.length - 1) +
+         '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
 
-      for ( var i = 0; i < route.length; i++ ) {
-         var from_system = route[i+0];
-         var $entry = $( '<li></li>' ).append( from_system.createLink() );
+      for ( i = 0; i < route.length; i++ ) {
+         from_system = route[i+0];
+         $entry = $( '<li></li>' ).append( from_system.createLink() );
          $('#routelist ol').append( $entry );
          $('#map_ui').tabs( 'option', 'active', 1 );
       }
    },
 
    createRouteMesh: function ( source, destination ) {
-      var step = 2 * Math.PI / 8;
-      var zstep = 5;
-      var radius = 3;
-      // create the lines from the center to the outside
-      var geometry = new THREE.Geometry();
-      var z = 0;
-      var distance = new THREE.Vector3();
+      var step = 2 * Math.PI / 16,
+          zstep = 0.5,
+          radius = 0.5,
+          geometry = new THREE.Geometry(),
+          z = 0,
+          distance = new THREE.Vector3(),
+          theta, x, y;
       distance.subVectors( source.position, destination.position );
       distance = distance.length();
-      for ( var theta = 0; z < distance; theta += step )
+      for ( theta = 0; z < distance; theta += step )
       {
-         var x = radius * Math.cos( theta );
-         var y = 0 - radius * Math.sin( theta );
+         x = radius * Math.cos( theta );
+         y = 0 - radius * Math.sin( theta );
          geometry.vertices.push( new THREE.Vector3( x, y, z ) );
          z += zstep;
       }
@@ -161,31 +186,26 @@ SCMAP.Map.prototype = {
    },
 
    populateScene: function ( mapdata ) {
-      var territory, territoryName, starMaterial, routeMaterial, system, systemName,
+      var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
-         data, systemObject, systemLabel, jumpPoint;
+         data, starSystemObject, jumpPoint, faction,
+         i, systems, exports, black_markets;
 
       // TODO: clean up the existing scene and mapdata when populating with
-      // new dataa
+      // new data
 
       this.mapdata = typeof mapdata === 'object' ? mapdata : this.mapdata;
-      this.territories = {};
       this.systems = [];
       this.systemsByName = {};
-      this.group = new THREE.Object3D(); // all the labels are together in a single geometry group
 
       // First we go through the data to build the basic systems so
       // the routes can be built as well
-      starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
 
       for ( territoryName in this.mapdata )
       {
          territory = this.mapdata[ territoryName ];
 
-         this.territories[ territoryName ] = [];
-         this.territoryColors[ makeSafeForCSS( territoryName ) ] = new THREE.Color( territory.color ).getStyle();
-
-         //starMaterial = new THREE.MeshBasicMaterial({ color: territory.color });
+         faction = SCMAP.Faction.getByName( territoryName );
 
          for ( systemName in territory.systems )
          {
@@ -194,43 +214,52 @@ SCMAP.Map.prototype = {
             system = new SCMAP.System({
                name: systemName,
                position: new THREE.Vector3( data.coords[0], data.coords[1], data.coords[2] ),
-               territory: territoryName,
                scale: data.scale,
-               color: territory.color
+               color: territory.color,
+               ownership: faction
             });
+
             systemInfo = window.sc_system_info[ systemName ];
             if ( typeof systemInfo === 'object' ) {
+               imports = [];
+               exports = [];
+               black_markets = [];
+               for ( i = 0; i < systemInfo['import'].length; i++ ) {
+                  imports.push( window.sc_goods[ systemInfo.import[i] ] );
+               }
+               for ( i = 0; i < systemInfo['export'].length; i++ ) {
+                  exports.push( window.sc_goods[ systemInfo.export[i] ] );
+               }
+               for ( i = 0; i < systemInfo.black_market.length; i++ ) {
+                  black_markets.push( window.sc_goods[ systemInfo.black_market[i] ] );
+               }
                system.setValues({
-                  'have_info': true,
-                  'source': systemInfo['source'],
-                  'ownership': systemInfo['ownership'],
-                  'planets': systemInfo['planets'],
-                  'import': systemInfo['import'],
-                  'export': systemInfo['export'],
-                  'crime_status': systemInfo['crime_status'],
-                  'black_market': systemInfo['black_market'],
-                  'blob': systemInfo['blob'],
-                  'planetary_rotation': systemInfo['planetary_rotation'],
-                  'uee_strategic_value': systemInfo['uee_strategic_value']
+                  'nickname': systemInfo.nick,
+                  'star_color': systemInfo.color,
+                  'size': systemInfo.size,
+                  'source': systemInfo.source,
+                  'crime_status': window.sc_crime_levels[ systemInfo.crime ].name,
+                  'uee_strategic_value': window.sc_uee_strategic_values[ systemInfo.uee_sv ].color,
+                  'import': imports,
+                  'export': exports,
+                  'black_market': black_markets,
+                  'blob': systemInfo.blob,
+                  'planets': 0,
+                  'planetary_rotation': [],
+                  'have_info': true
                });
             }
 
+            faction.claim( system ); // assign ownership to this faction
+
             this.systemsByName[ systemName ] = system;
             this.systems.push( system );
-            this.territories[ territoryName ].push( system );
 
-            systemObject = system.createObject( starMaterial );
-            systemLabel = system.createLabel();
-            var systemGlow = system.createGlow();
-            systemObject.add( systemGlow );
-            this.scene.add( systemObject );
-            this.group.add( systemLabel );
-            this.interactables.push( systemObject );
-            //this.interactables.push( systemLabel );
+            starSystemObject = system.buildObject();
+            this.scene.add( starSystemObject );
+            this.interactables.push( system.sceneObjects.mesh );
          }
       }
-
-      this.scene.add( this.group );
 
       // Then we go through again and add the routes
 
@@ -271,6 +300,8 @@ SCMAP.Map.prototype = {
       }
 
       this.buildReferencePlane();
+//this.referencePlaneSolidColor( new THREE.Color( 0x000000 ) );
+this.referencePlaneTerritoryColor();
    },
 
    closestPOI: function ( vector ) {
@@ -301,87 +332,164 @@ SCMAP.Map.prototype = {
       return [ furthest, furthestPOI ];
    },
 
+   referencePlaneTerritoryColor: function() {
+      if ( ! this.referencePlane instanceof THREE.Object3D ) {
+         return;
+      }
+      var geometry = this.referencePlane.geometry,
+         minDistance = 35;
+      for ( var i = 0; i < geometry.vertices.length; i++ ) 
+      {
+         var point = geometry.vertices[ i ];
+         var arr = this.closestPOI( point );
+         var distance = arr[0], closest = arr[1];
+         if ( distance > minDistance ) { distance = minDistance; }
+         //color = closest.ownership.color.clone();
+         var color = closest.ownership.color.clone();
+         var strength = ( minDistance - distance ) / minDistance;
+         color.setRGB( strength * color.r * 0.8, strength * color.g * 0.8, strength * color.b * 0.8 );
+         //color.setRGB( strength * color.r, strength * color.g, strength * color.b );
+         //color.setRGB( strength * color.r * 1.2, strength * color.g * 1.2, strength * color.b * 1.2 );
+         geometry.colors[i] = color;
+      }
+   },
+
+   referencePlaneSolidColor: function( color ) {
+      if ( ! this.referencePlane instanceof THREE.Object3D ) {
+         return;
+      }
+      var geometry = this.referencePlane.geometry;
+      for ( var i = 0; i < geometry.vertices.length; i++ ) {
+         var point = geometry.vertices[ i ];
+         geometry.colors[i] = color;
+      }
+   },
+
+   pointAtPlane: function( theta, radius, y ) {
+      return new THREE.Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
+   },
+
    buildReferencePlane: function() {
-      var ringWidth = 52.5, // plane circle scaling to match the map
-         rings, // number of circles we'll create
-         segments = 36, // radial segments
+      var ringWidth = 10.0, // plane circle scaling to match the map
+         step = 2 * Math.PI / 36, // 36 radial segments
          radius, material, referencePlane, geometry,
-         step = 2 * Math.PI / segments,
          theta, xIn, zIn, xOut, zOut, xIn2, zIn2, xOut2, zOut2,
-         i, point, color, distance, strength,
-         ringInsideRadius, ringOutsideRadius,
-         distance, furthestPOI, closestPOI, minDistance = 250, arr;
+         distance, maxRadius, lastRadius = 0, arr,
+         cos_theta, sin_theta, cos_theta_half, sin_theta_half,
+         closestPointArray = {}, degrees,
+         endTime, startTime,
+         radiusStr, innerRadius, outerRadius, geo, tmpMesh, point,
+         tmpMaterial, tmpObject, leftTheta, rightTheta;
 
-      var endTime, startTime = new Date();
+      endTime = startTime = new Date();
 
-      var arr = this.furthestPOI( new THREE.Vector3() );
-      var distance = arr[0], furthestPOI = arr[1];
+      arr = this.furthestPOI( new THREE.Vector3() );
+      maxRadius = arr[0] + 50;
 
-      radius = distance * 1.3;
-      rings = ( ( radius / ringWidth ) % ringWidth ).toFixed(0);
-
-      material = new THREE.LineBasicMaterial( { color: 0xA0A0A0, linewidth: 1, vertexColors: true, opacity: 0.6 } ),
+      material = new THREE.LineBasicMaterial( { color: 0xA0A0A0, linewidth: 1, vertexColors: true, opacity: 0.6 } );
       geometry = new THREE.Geometry();
 
-      // create the lines from the center to the outside
+      tmpMaterial = new THREE.MeshBasicMaterial( { color: 0xA00000, vertexColors: false, opacity: 0.6 } );
+      tmpObject = new THREE.Object3D();
+
+      // around in a circle
+      for ( theta = step / 2; theta < 2 * Math.PI; theta += step )
+      {
+         leftTheta = theta - step / 2;
+         rightTheta = theta + step / 2;
+         degrees = ''+THREE.Math.radToDeg( theta ).toFixed(0);
+         cos_theta_half = Math.cos( theta );
+         sin_theta_half = Math.sin( theta );
+         closestPointArray[degrees] = {};
+
+         // inside to out
+         for ( radius = ringWidth / 2; radius < maxRadius; radius += ringWidth )
+         {
+            radiusStr = ''+radius.toFixed(0);
+
+            arr = this.closestPOI( new THREE.Vector3( radius * cos_theta_half, 0, -radius * sin_theta_half ) );
+
+            if ( arr[0] <= 35 ) {
+               closestPointArray[degrees][radiusStr] = arr;
+
+innerRadius = radius - ringWidth / 2;
+outerRadius = radius + ringWidth / 2;
+geo = new THREE.Geometry();
+geo.vertices.push( this.pointAtPlane( leftTheta, innerRadius, -0.04 ) );
+geo.vertices.push( this.pointAtPlane( rightTheta, innerRadius, -0.04 ) );
+geo.vertices.push( this.pointAtPlane( rightTheta, outerRadius, -0.04 ) );
+geo.vertices.push( this.pointAtPlane( leftTheta, outerRadius, -0.04 ) );
+geo.faces.push( new THREE.Face3( 2, 1, 0 ) );
+geo.faces.push( new THREE.Face3( 3, 2, 0 ) );
+      //var minDistance = 35;
+      //for ( var i = 0; i < geo.vertices.length; i++ ) 
+      //{
+      //   var distance = arr[0];
+      //   if ( distance > minDistance ) { distance = minDistance; }
+      //   var color = arr[1].ownership.material.color.clone();
+      //   var strength = ( minDistance - distance ) / minDistance;
+      //   color.setRGB( strength * color.r * 0.8, strength * color.g * 0.8, strength * color.b * 0.8 );
+      //   //color.setRGB( strength * color.r, strength * color.g, strength * color.b );
+      //   geo.colors[i] = color;
+      //}
+
+tmpMesh = new THREE.Mesh( geo, arr[1].ownership.material );
+tmpObject.add( tmpMesh );
+
+            } else {
+               closestPointArray[degrees][radiusStr] = '-';
+            }
+         }
+      }
+//console.log( closestPointArray ); 
+
+      // around in a circle
       for ( theta = 0; theta < 2 * Math.PI; theta += step )
       {
-         for ( var ring = 0; ring < rings; ring += 1 )
+         cos_theta = Math.cos( theta );
+         sin_theta = Math.sin( theta );
+         cos_theta_half = Math.cos( theta + step / 2 );
+         sin_theta_half = Math.sin( theta + step / 2 );
+
+         // inside to out
+         for ( radius = 0; radius < maxRadius; radius += ringWidth )
          {
-            ringInsideRadius = ringWidth * ring;
-            ringOutsideRadius = ringWidth * ( ring + 1 );
-
-            xIn = ringInsideRadius * Math.cos( theta );
-            zIn = -ringInsideRadius * Math.sin( theta );
+            xIn = lastRadius * cos_theta;
+            zIn = -lastRadius * sin_theta;
             arr = this.closestPOI( new THREE.Vector3( xIn, 0, zIn ) );
-            distance = arr[0], closest = arr[1];
+            distance = arr[0];
 
-            if ( distance < 350 )
+            if ( distance < 55 )
             {
-               xOut = ringOutsideRadius * Math.cos( theta );
-               zOut = -ringOutsideRadius * Math.sin( theta );
+               xOut = radius * cos_theta;
+               zOut = -radius * sin_theta;
                geometry.vertices.push( new THREE.Vector3( xIn, 0, zIn ) );
                geometry.vertices.push( new THREE.Vector3( xOut, 0, zOut ) );
 
                if ( theta + step < 2 * Math.PI ) {
-                  var xIn2 = ringInsideRadius * Math.cos( theta + step );
-                  var zIn2 = -ringInsideRadius * Math.sin( theta + step );
+                  xIn2 = lastRadius * Math.cos( theta + step );
+                  zIn2 = -lastRadius * Math.sin( theta + step );
                   geometry.vertices.push( new THREE.Vector3( xIn, 0, zIn ) );
                   geometry.vertices.push( new THREE.Vector3( xIn2, 0, zIn2 ) );
                }
             }
+
+            lastRadius = radius;
          }
       }
 
-      for ( var i = 0; i < geometry.vertices.length; i++ ) 
-      {
+      // set basic color
+      for ( i = 0; i < geometry.vertices.length; i++ ) {
          point = geometry.vertices[ i ];
-         var arr = this.closestPOI( point );
-         var distance = arr[0], closest = arr[1];
-         if ( distance > minDistance ) { distance = minDistance; }
-         color = new THREE.Color( closest.color );
-         strength = ( minDistance - distance ) / minDistance;
-         color.setRGB( strength * color.r * 0.8, strength * color.g * 0.8, strength * color.b * 0.8 );
-         geometry.colors[i] = color;
+         geometry.colors[i] = material.color;
       }
 
-      // the old green colour ... meh
-      // assign colors to vertices based on their distance
-      //for ( var i = 0; i < geometry.vertices.length; i++ ) 
-      //{
-      //   point = geometry.vertices[ i ];
-      //   color = new THREE.Color( 0x000000 );
-      //   strength = ( radius - point.length() ) / ( radius );
-      //   color.setRGB( 0, strength * 0.8, 0 );
-      //   geometry.colors[i] = color;
-      //}
-
       // and create the ground reference plane
-      referencePlane = new THREE.Line( geometry, material, THREE.LinePieces ),
-      referencePlane.transparent = true;
-      referencePlane.opacity = 0.3;
-      referencePlane.blending = THREE.MultiplyBlending;
+      referencePlane = new THREE.Line( geometry, material, THREE.LinePieces );
+      this.referencePlane = referencePlane;
       scene.add( referencePlane );
+
+scene.add( tmpObject );
 
       endTime = new Date();
       console.log( "Building the reference plane took " + (endTime.getTime() - startTime.getTime()) + " msec" );

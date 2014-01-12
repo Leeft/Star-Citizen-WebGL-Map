@@ -1,0 +1,9 @@
+[submodule "jquery-mousewheel"]
+	path = js/jquery-mousewheel
+	url = https://github.com/brandonaaron/jquery-mousewheel.git
+[submodule "jScrollPane"]
+	path = js/jScrollPane
+	url = https://github.com/vitch/jScrollPane.git
+[submodule "markdown-js"]
+	path = js/markdown-js
+	url = https://github.com/evilstreak/markdown-js.git

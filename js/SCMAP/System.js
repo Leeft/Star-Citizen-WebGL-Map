@@ -3,88 +3,127 @@
 */
 
 SCMAP.System = function ( data ) {
+   // Filled in from the config
+   this.iid = undefined;
+   this.uuid = undefined;
    this.name = '';
+   this.nickname = undefined;
    this.position = new THREE.Vector3();
-   this.ownership = '';
-   this.scale = 1.0;
+   this.ownership = new SCMAP.Faction();
+   this.size = 'medium';
    this.jumppoints = [];
-   this.territory = '';
-
-   this.distance = Number.MAX_VALUE *2;
-   this.visited = false;
-   this.parent = undefined;
-
-   this.color = 0xFFFFFF,
-
-   this.have_info = false;
+   this.star_color = 'unknown';
    this.source = undefined;
    this.planets = 0;
    this.planetary_rotation = [];
    this.import = [];
    this.export = [];
-   this.crime_status = [];
+   this.crime_status = '';
    this.black_market = [];
    this.description = [];
    this.uue_strategic_value = undefined;
    this.blob = [];
 
-   this.sceneObject = undefined;
    this.setValues( data );
+
+   // Internals -- For Dijkstra routing code
+   this.distance = Number.MAX_VALUE *2;
+   this.visited = false;
+   this.parent = undefined;
+
+   // Generated
+   this.color = new THREE.Color( SCMAP.System.COLORS.UNKNOWN );
+   this.sceneObjects = {};
+   this.routeVertices = [];
+   this.routeObjects = [];
+   this.have_info = false;
+   this.scale = 1.0;
+   this.binary = false;
 };
 
 SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
-   createObject: function ( material ) {
-      var object = new THREE.Mesh( SCMAP.System.mesh, material );
-      object.scale.set( this.scale, this.scale, this.scale );
+   buildObject: function () {
+      var star, label, glow, object;
+
+      star = new THREE.Mesh( SCMAP.System.MESH, this.starMaterial() );
+      star.scale.set( this.scale, this.scale, this.scale );
+      star.system = this;
+      this.sceneObjects.mesh = star;
+
+      object = new THREE.Object3D();
+
+      if ( SCMAP.settings.glow ) {
+         glow = new THREE.Sprite( this.glowMaterial() );
+         glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
+         glow.system = this;
+         this.sceneObjects.glow = glow;
+         object.add( this.sceneObjects.glow );
+      }
+
+      if ( SCMAP.settings.labels ) {
+         label = new THREE.Sprite( this.labelMaterial() );
+         label.position.set( 0, 3, 0 );
+         label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
+         label.system = this;
+         this.sceneObjects.label = label;
+         object.add( this.sceneObjects.label );
+      }
+
+      object.add( this.sceneObjects.mesh );
       object.position = this.position;
       object.system = this;
-      this.sceneObject = object;
       return object;
    },
 
-   createLabel: function ( groupObject ) {
-      var canvas, context, texture, scaling = 0.24, material, sprite; //systemNameWidth,
+   getColorByName: function ( color ) {
+      color = color.toUpperCase();
+      if ( typeof SCMAP.System.COLORS[ color ] !== 'undefined' ) {
+         return SCMAP.System.COLORS[ color ];
+      } else {
+         return SCMAP.System.COLORS.UNKNOWN;
+      }
+   },
 
+   starMaterial: function () {
+      return SCMAP.System.STAR_MATERIAL_WHITE;
+      //var color = this.star_color.toUpperCase();
+      //if ( SCMAP.System[ 'STAR_MATERIAL_'+color ] instanceof THREE.MeshBasicMaterial ) {
+      //   return SCMAP.System[ 'STAR_MATERIAL_'+color ];
+      //} else {
+      //   return SCMAP.System[ SCMAP.System.STAR_MATERIAL_UNKNOWN ];
+      //}
+   },
+
+   glowMaterial: function () {
+      var color = this.star_color.toUpperCase();
+      if ( SCMAP.System[ 'GLOW_MATERIAL_'+color ] instanceof THREE.SpriteMaterial ) {
+         return SCMAP.System[ 'GLOW_MATERIAL_'+color ];
+      } else {
+         return SCMAP.System[ SCMAP.System.GLOW_MATERIAL_UNKNOWN ];
+      }
+   },
+
+   labelMaterial: function () {
+      var canvas, context, texture, material;
       canvas = document.createElement('canvas');
       canvas.width = 300;
       canvas.height = 64;
       context = canvas.getContext('2d');
-      context.font = "36pt Electrolize";
+      context.font = "36pt Electrolize, sans-serif";
       context.textAlign = 'center';
       context.fillStyle = "rgba(255,255,255,0.95)";
-      //systemNameWidth = context.measureText( this.name ).width;
+      //systemNameWidth = context.measureText( this.name ).width; // didn't get this to work yet
       context.fillText( this.name, canvas.width / 2, 38 );
-
       texture = new THREE.Texture( canvas ) ;
       texture.needsUpdate = true;
       material = new THREE.SpriteMaterial({ map: texture, useScreenCoordinates: false });
-
-      sprite = new THREE.Sprite( material );
-      sprite.position.set( this.position.x, this.position.y + 12, this.position.z );
-      sprite.scale.set( scaling * canvas.width, scaling * canvas.height, 1 );
-      sprite.system = this;
-      return sprite;
-   },
-
-   createGlow: function ( groupObject ) {
-      // SUPER SIMPLE GLOW EFFECT
-      // use sprite because it appears the same from all angles
-      var spriteMaterial = new THREE.SpriteMaterial( { 
-         map: new THREE.ImageUtils.loadTexture( 'images/glow.png' ), 
-         useScreenCoordinates: false, alignment: THREE.SpriteAlignment.center,
-         color: this.color, transparent: false, blending: THREE.AdditiveBlending
-      } );
-      var sprite = new THREE.Sprite( spriteMaterial );
-      sprite.scale.set( 30, 30, 1.0 );
-      sprite.system = this;
-      return sprite;
+      return material;
    },
 
    createLink: function () {
-      var _this = this,
-          $line = $( '<a></a>' );
+      var _this = this, $line = $( '<a></a>' );
       $line.css( 'color', new THREE.Color( _this.color ).getStyle() );
       $line.attr( 'href', '#system='+encodeURI( _this.name ) );
       $line.attr( 'title', 'Show information on '+_this.name );
@@ -98,13 +137,12 @@ SCMAP.System.prototype = {
    },
 
    displayInfo: function ( system ) {
-      if ( typeof system === 'undefined' ) {
-         system = this;
-      }
+      if ( typeof system === 'undefined' ) { system = this; }
 
       var blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
+      var i;
 
-      $('#systemname').attr( 'class', makeSafeForCSS( system.territory ) ).css( 'color', new THREE.Color( system.color ).getStyle() ).text( 'System: ' + system.name );
+      $('#systemname').attr( 'class', makeSafeForCSS( system.ownership.name ) ).css( 'color', new THREE.Color( system.ownership.color ).getStyle() ).text( 'System: ' + system.name );
 
       var currentRoute = window.map.currentRoute();
       if ( currentRoute.length )
@@ -112,7 +150,7 @@ SCMAP.System.prototype = {
          var partOfRoute = false;
          var currentStep = 0;
 
-         for ( var i = 0; i < currentRoute.length; i++ ) {
+         for ( i = 0; i < currentRoute.length; i++ ) {
             if ( currentRoute[i] == system ) {
                partOfRoute = true;
                currentStep = i;
@@ -146,7 +184,7 @@ SCMAP.System.prototype = {
                header.push( $('<i class="right sprite-blank-24"></i>') );
             }
 
-            $('#systemname').empty().attr( 'class', makeSafeForCSS( system.territory ) ).append( header );
+            $('#systemname').empty().attr( 'class', makeSafeForCSS( system.ownership.name ) ).append( header );
          }
       }
 
@@ -156,26 +194,50 @@ SCMAP.System.prototype = {
       }
       else
       {
-         var worlds = 'No inhabitable worlds';
-         var _import = 'None';
-         var _export = 'None';
-         var black_market = 'None';
-         var strategic_value = 'Unknown';
+         var worlds = 'No inhabitable worlds',
+             _import = '&mdash;',
+             _export = '&mdash;',
+             black_market = '&mdash;',
+             strategic_value = 'Unknown',
+             crime_status = 'Unknown',
+             planets = 'Unknown',
+             nickname,
+             tmp = [];
 
          if ( system.planetary_rotation.length ) {
             worlds = system.planetary_rotation.join( ', ' );
          }
 
          if ( system.import.length ) {
-            _import = system.import.join( ', ' );
+            tmp = [];
+            for ( i = 0; i < system.import.length; i++ ) {
+               tmp.push( system.import[i].name );
+            }
+            _import = tmp.join( ', ' );
          }
 
          if ( system.export.length ) {
-            _export = system.export.join( ', ' );
+            tmp = [];
+            for ( i = 0; i < system.export.length; i++ ) {
+               tmp.push( system.export[i].name );
+            }
+            _export = tmp.join( ', ' );
          }
 
          if ( system.black_market.length ) {
-            black_market = system.black_market.join( ', ' );
+            tmp = [];
+            for ( i = 0; i < system.black_market.length; i++ ) {
+               tmp.push( system.black_market[i].name );
+            }
+            black_market = tmp.join( ', ' );
+         }
+
+         if ( typeof system.planets === 'string' || typeof system.planets === 'number' ) {
+            planets = system.planets;
+         }
+
+         if ( typeof system.crime_status === 'string' && system.crime_status.length ) {
+            crime_status = system.crime_status;
          }
 
          if ( typeof system.uee_strategic_value === 'string' && system.uee_strategic_value.length ) {
@@ -183,20 +245,18 @@ SCMAP.System.prototype = {
          }
 
          blurb.append( '<dl>' +
-            '<dt class="ownership">Ownership</dt><dd class="ownership">'+system.ownership+'</dd>' +
-            '<dt class="planets">Planets</dt><dd class="planets">'+system.planets+'</dd>' +
+            ( ( typeof nickname === 'string' ) ? '<dt class="nickname">Nickname</dt><dd class="nickname">'+nickname+'</dd>' : '' ) +
+            '<dt class="ownership">Ownership</dt><dd class="ownership">'+system.ownership.name+'</dd>' +
+            '<dt class="planets">Planets</dt><dd class="planets">'+planets+'</dd>' +
             '<dt class="rotation">Planetary rotation</dt><dd class="rotation">'+worlds+'</dd>' +
             '<dt class="import">Import</dt><dd class="import">'+_import+'</dd>' +
             '<dt class="export">Export</dt><dd class="export">'+_export+'</dd>' +
-            '<dt class="crime_'+system.crime_status.toLowerCase()+'">Crime status</dt><dd class="crime">'+system.crime_status+'</dd>' +
             '<dt class="black_market">Black market</dt><dd class="crime">'+black_market+'</dd>' +
+            '<dt class="crime_'+crime_status.toLowerCase()+'">Crime status</dt><dd class="crime">'+crime_status+'</dd>' +
             '<dt class="strategic_value_'+strategic_value.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+strategic_value+'</dd>' +
          '</dl>' );
 
-         for ( var i = 0; i < system.blob.length; i++ ) {
-            var blob = system.blob[i];
-            blurb.append( '<p class="blurb_hidden">' + blob + '</p>' );
-         }
+         blurb.append( markdown.toHTML( system.blob ) );
 
          if ( system.source ) {
             blurb.append( '<p class=""><a href="' + system.source + '" target="_blank">(source)</a></p>' );
@@ -209,6 +269,7 @@ SCMAP.System.prototype = {
       $('#systemblurb').append( blurb );
 
       $('#map_ui').tabs( 'option', 'active', 0 );
+      $('#map_ui').data( 'jsp' ).reinitialise();
 
    //   var text = new destinationSystem();
    //   var gui = new dat.GUI({ autoPlace: false });
@@ -241,22 +302,70 @@ SCMAP.System.prototype = {
       for ( var key in values ) {
          var newValue = values[ key ];
          if ( newValue === undefined ) {
-            console.log( 'SCMAP.System: \'' + key + '\' parameter is undefined.' );
+            console.log( 'SCMAP.System: "' + key + '" parameter is undefined for "'+this.name+'"' );
             continue;
          }
 
-         if ( key in this ) {
+         if ( key in this )
+         {
             var currentValue = this[ key ];
+
+            if ( key == 'size' ) {
+               switch ( newValue ) {
+                  case 'dwarf': this.scale = 0.6; break;
+                  case 'medium': this.scale = 1.0; break;
+                  case 'large': this.scale = 1.25; break;
+                  case 'giant': this.scale = 1.6; break;
+                  case 'binary': this.scale = 1.6; this.binary = true; break;
+               }
+               this[ key ] = newValue;
+            }
             if ( currentValue instanceof THREE.Color ) {
-               currentValue.set( newValue );
+               if ( newValue instanceof THREE.Color ) {
+                  this[ key ] = newValue;
+               } else {
+                  this[ key ] = new THREE.Color( this.getColorByName( newValue ) );
+               }
+            } else if ( currentValue instanceof SCMAP.Faction ) {
+               this[ key ] = SCMAP.Faction.getByName( newValue );
             } else if ( currentValue instanceof THREE.Vector3 && newValue instanceof THREE.Vector3 ) {
                currentValue.copy( newValue );
             } else {
                this[ key ] = newValue;
+            }
+
+            if ( key == 'star_color' && typeof this.star_color == 'string' ) {
+               this.color = new THREE.Color( this.getColorByName( this.star_color ) );
             }
          }
       }
    }
 };
 
-SCMAP.System.mesh = new THREE.SphereGeometry( 5, 12, 12 );
+SCMAP.System.COLORS = {
+   RED: 0xFF6060,
+   BLUE: 0x6060FF,
+   WHITE: 0xFFFFFF,
+   YELLOW: 0xFFFF60,
+   ORANGE: 0xF0F080,
+   UNKNOWN: 0xC0FFC0
+};
+SCMAP.System.LABEL_SCALE = 0.04;
+SCMAP.System.GLOW_SCALE = 6;
+SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
+//
+SCMAP.System.STAR_MATERIAL_RED = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.RED, name: 'STAR_MATERIAL_RED' });
+SCMAP.System.STAR_MATERIAL_BLUE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.BLUE, name: 'STAR_MATERIAL_BLUE' });
+SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
+SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.YELLOW, name: 'STAR_MATERIAL_YELLOW' });
+SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
+SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
+//
+SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( 'images/glow.png' );
+SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
+SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
+SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
+SCMAP.System.GLOW_MATERIAL_YELLOW =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.YELLOW  });
+SCMAP.System.GLOW_MATERIAL_ORANGE =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.ORANGE  });
+SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.UNKNOWN });
+// EOF

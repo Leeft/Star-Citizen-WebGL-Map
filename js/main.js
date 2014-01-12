@@ -1,9 +1,7 @@
 if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 var effectFXAA, camera, scene, renderer, composer, map,
-   shift, ctrl, alt,
-
-targetCross, fooCross,
+   shift, ctrl, alt, controls, editor,
 
    // some flavor text, not got the proper content yet
     rikerIndex = 0, rikerIpsum = [
@@ -14,7 +12,29 @@ targetCross, fooCross,
 ];
 
 $(function() {
-   $( "#map_ui" ).tabs({ active: 0 });
+   $( "#map_ui" ).tabs({
+      active: 0,
+      activate: function( event, ui ) {
+         event.preventDefault();
+         var clicked_on = ui.newTab.find('a').attr('href');
+         if ( clicked_on === '#editor' && map.canEdit ) {
+            $('#webgl-container').removeClass().addClass( 'noselect webgl-container-edit' );
+            window.editor.enabled = true;
+            window.controls.requireAlt = true;
+         } else {
+            $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
+            window.editor.enabled = false;
+            window.controls.requireAlt = false;
+            if ( clicked_on === '#info' && typeof map.selected !== 'undefined' ) {
+               map.selected.object.system.displayInfo();
+            }
+         }
+         $('#map_ui').data( 'jsp' ).reinitialise();
+      }
+   });
+
+   /* jScrollPane */
+   $('#map_ui').jScrollPane({ showArrows: true });
 });
 
 init();
@@ -25,34 +45,31 @@ function init()
    var container, renderModel, effectCopy, effectBloom, width, height;
 
    container = document.createElement( 'div' );
-   container.className = 'webgl-container';
+   container.id = 'webgl-container';
+   container.className = 'noselect webgl-container-noedit';
    document.body.appendChild( container );
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
 
    camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
 
-   camera.position.y = 300;
-   camera.position.z = 500;
-   camera.setViewOffset( width, height, 0, - ( height / 8 ), width, height );
+   camera.position.y = 80;
+   camera.position.z = 100;
+   camera.setViewOffset( width, height, 0, - ( height / 6 ), width, height );
 
    controls = new THREE.OrbitControls( camera );
    controls.rotateSpeed = 0.4;
-   controls.zoomSpeed = 1.0;
+   controls.zoomSpeed = 2.0;
    controls.panSpeed = 0.6;
    controls.noZoom = false;
    controls.noPan = false;
-   controls.noRoll = false;
    controls.mapMode = true;
-   controls.minDistance = 200;
-   controls.maxDistance = 1500;
+   controls.minDistance = 20;
+   controls.maxDistance = 500;
    controls.keyPanSpeed = 25;
-   //controls.staticMoving = true;
-
    controls.minPolarAngle = 0;
    controls.maxPolarAngle = THREE.Math.degToRad( 85 );
-
-   controls.dynamicDampingFactor = 0.5;
+	controls.target = new THREE.Vector3( 0, 10, 0 );
    controls.addEventListener( 'change', render );
 
    scene = new THREE.Scene();
@@ -64,14 +81,9 @@ function init()
 
    map = new SCMAP.Map( scene, sc_map );
 
-//targetCross = buildCross();
-//window.scene.add( targetCross );
-//objectCross = buildCross();
-//window.scene.add( objectCross );
-//ref1Cross = buildCross();
-//window.scene.add( ref1Cross );
-//ref2Cross = buildCross();
-//window.scene.add( ref2Cross );
+   editor = new SCMAP.Editor( map, camera );
+   editor.panSpeed = 0.6;
+   document.addEventListener( 'change', render );
 
    // Stats
 
@@ -114,17 +126,17 @@ function buildCross () {
    geo.vertices.push( new THREE.Vector3( 50, 1, 0 ) );
    var cross = new THREE.Line( geo, material );
    group.add( cross );
-   var geo = new THREE.Geometry();
+   geo = new THREE.Geometry();
    var material2 = new THREE.MeshBasicMaterial( { wireframe: true, color: 0xF0F000, linewidth: 1 } );
    geo.vertices.push( new THREE.Vector3( 0, 1, -50 ) );
    geo.vertices.push( new THREE.Vector3( 0, 1, 50 ) );
-   var cross = new THREE.Line( geo, material2 );
+   cross = new THREE.Line( geo, material2 );
    group.add( cross );
    var material3 = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x0000F0, linewidth: 1 } );
-   var geo = new THREE.Geometry();
+   geo = new THREE.Geometry();
    geo.vertices.push( new THREE.Vector3( 0, -50, 0 ) );
    geo.vertices.push( new THREE.Vector3( 0, 50, 0 ) );
-   var cross = new THREE.Line( geo, material3 );
+   cross = new THREE.Line( geo, material3 );
    group.add( cross );
    return group;
 }
@@ -173,6 +185,9 @@ function animate() {
    requestAnimationFrame( animate );
    if ( controls !== undefined ) {
       controls.update();
+   }
+   if ( editor !== undefined ) {
+      editor.update();
    }
    stats.update();
    render();

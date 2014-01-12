@@ -30,11 +30,12 @@ SCMAP.JumpPoint.prototype = {
    },
 
    sceneObject: function() {
+      var i, jumppoint, startColour, endColour, factor, length, geometry, midColour, routeObject;
       if ( this.drawn ) {
          return;
       }
-      for ( var i = 0; i < this.destination.jumppoints.length; i++ ) {
-         var jumppoint = this.destination.jumppoints[i];
+      for ( i = 0; i < this.destination.jumppoints.length; i++ ) {
+         jumppoint = this.destination.jumppoints[i];
          if ( jumppoint.destination == this.source ) {
             if ( jumppoint.drawn ) {
                return;
@@ -42,29 +43,33 @@ SCMAP.JumpPoint.prototype = {
          }
       }
 
-      var startColour = new THREE.Color( this.source.color );
-      var endColour = new THREE.Color( this.destination.color );
-      var factor = 1.0;
+      startColour = new THREE.Color( this.source.color );
+      endColour = new THREE.Color( this.destination.color );
+      factor = 1.0;
 
-      var length = this.source.position.clone().sub( this.destination.position ).length();
+      length = this.source.position.clone().sub( this.destination.position ).length();
 
-      var geometry = new THREE.Geometry();
+      geometry = new THREE.Geometry();
       geometry.vertices.push( this.source.position );
       geometry.vertices.push( this.destination.position );
-      startColour.setRGB( startColour.r * factor, startColour.g * factor, startColour.b * factor )
-      endColour.setRGB( endColour.r * factor, endColour.g * factor, endColour.b * factor )
-      var midColour = startColour.clone().lerp( endColour, 0.5 );
+      startColour.setRGB( startColour.r * factor, startColour.g * factor, startColour.b * factor );
+      endColour.setRGB( endColour.r * factor, endColour.g * factor, endColour.b * factor );
+      midColour = startColour.clone().lerp( endColour, 0.5 );
 
       geometry.colors[0] = midColour; //startColour;
       geometry.colors[1] = midColour; //endColour;
       this.setDrawn();
-      for ( var i = 0; i < this.destination.jumppoints.length; i++ ) {
-         var jumppoint = this.destination.jumppoints[i];
+
+      for ( i = 0; i < this.destination.jumppoints.length; i++ ) {
+         jumppoint = this.destination.jumppoints[i];
          if ( jumppoint.destination == this.source ) {
             jumppoint.setDrawn();
          }
       }
-      return new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
+
+      routeObject = new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
+      this.source.routeObjects.push( routeObject );
+      return routeObject;
    },
 
    setDrawn: function() {
