@@ -882,6 +882,37 @@ THREE.OrbitControls = function ( object, domElement ) {
 
    };
 
+   this.showState = function () {
+      if ( window.jQuery && window.jQuery('#debug-state') ) {
+         switch ( state ) {
+            case STATE.NONE:
+               window.jQuery('#debug-state').text( 'state: (Idle)' );
+               break;
+            case STATE.ROTATE:
+               window.jQuery('#debug-state').text( 'state: Rotating' );
+               break;
+            case STATE.DOLLY:
+               window.jQuery('#debug-state').text( 'state: Dolly' );
+               break;
+            case STATE.PAN:
+               window.jQuery('#debug-state').text( 'state: Panning' );
+               break;
+            case STATE.TOUCH_ROTATE:
+               window.jQuery('#debug-state').text( 'state: Rotating (touch)' );
+               break;
+            case STATE.TOUCH_DOLLY:
+               window.jQuery('#debug-state').text( 'state: Dolly (touch)' );
+               break;
+            case STATE.TOUCH_PAN:
+               window.jQuery('#debug-state').text( 'state: Panning (touch)' );
+               break;
+            default:
+               window.jQuery('#debug-state').text( 'state: (Unknown state)' );
+               break;
+         }
+      }
+   };
+
    this.rotateUp = function ( angle ) {
 
       if ( angle === undefined ) {
@@ -1084,6 +1115,7 @@ THREE.OrbitControls = function ( object, domElement ) {
          if ( scope.noRotate === true ) { return; }
 
          state = STATE.ROTATE;
+         scope.showState();
 
          rotateStart.set( event.clientX, event.clientY );
 
@@ -1091,6 +1123,7 @@ THREE.OrbitControls = function ( object, domElement ) {
          if ( scope.noZoom === true ) { return; }
 
          state = STATE.DOLLY;
+         scope.showState();
 
          dollyStart.set( event.clientX, event.clientY );
 
@@ -1098,6 +1131,7 @@ THREE.OrbitControls = function ( object, domElement ) {
          if ( scope.noPan === true ) { return; }
 
          state = STATE.PAN;
+         scope.showState();
 
          panStart.set( event.clientX, event.clientY );
 
@@ -1107,6 +1141,9 @@ THREE.OrbitControls = function ( object, domElement ) {
       scope.domElement.addEventListener( 'mousemove', onMouseMove, false );
       scope.domElement.addEventListener( 'mouseup', onMouseUp, false );
 
+      //if ( window.jQuery ) {
+      //   window.jQuery( .on( 'mouseleave', onMouseUp );
+      //}
    }
 
    function onMouseMove( event ) {
@@ -1179,6 +1216,7 @@ THREE.OrbitControls = function ( object, domElement ) {
       scope.domElement.removeEventListener( 'mouseup', onMouseUp, false );
 
       state = STATE.NONE;
+      scope.showState();
 
    }
 
@@ -1266,6 +1304,7 @@ THREE.OrbitControls = function ( object, domElement ) {
             if ( scope.noRotate === true ) { return; }
 
             state = STATE.TOUCH_ROTATE;
+            scope.showState();
 
             rotateStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
             break;
@@ -1274,6 +1313,7 @@ THREE.OrbitControls = function ( object, domElement ) {
             if ( scope.noZoom === true ) { return; }
 
             state = STATE.TOUCH_DOLLY;
+            scope.showState();
 
             var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
             var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
@@ -1285,13 +1325,14 @@ THREE.OrbitControls = function ( object, domElement ) {
             if ( scope.noPan === true ) { return; }
 
             state = STATE.TOUCH_PAN;
+            scope.showState();
 
             panStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
             break;
 
          default:
             state = STATE.NONE;
-
+            scope.showState();
       }
    }
 
@@ -1360,6 +1401,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
          default:
             state = STATE.NONE;
+            scope.showState();
 
       }
 
@@ -1370,6 +1412,7 @@ THREE.OrbitControls = function ( object, domElement ) {
       if ( scope.enabled === false ) { return; }
 
       state = STATE.NONE;
+      scope.showState();
    }
 
    this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
@@ -1379,7 +1422,9 @@ THREE.OrbitControls = function ( object, domElement ) {
 
    // And we need to trigger jquery-mousewheel explicitly, or the WebGL view doesn't
    // get any mousewheel events
-   $( this.domElement ).on( 'mousewheel', onMouseWheel );
+   if ( window.jQuery ) {
+      window.jQuery( this.domElement ).on( 'mousewheel', onMouseWheel );
+   }
 
    this.domElement.addEventListener( 'keydown', onKeyDown, false );
 
@@ -1387,6 +1432,7 @@ THREE.OrbitControls = function ( object, domElement ) {
    this.domElement.addEventListener( 'touchend', touchend, false );
    this.domElement.addEventListener( 'touchmove', touchmove, false );
 
+   this.showState();
 };
 
 THREE.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );

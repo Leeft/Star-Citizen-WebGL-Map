@@ -50,9 +50,9 @@ function init()
    camera.setViewOffset( width, height, 0, - ( height / 6 ), width, height );
 
    controls = new THREE.OrbitControls( camera, $('#webgl-container')[0] );
-   controls.rotateSpeed = $('#gl-info').data('rotate-speed');
-   controls.zoomSpeed = $('#gl-info').data('zoom-speed');
-   controls.panSpeed = $('#gl-info').data('pan-speed');
+   controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
+   controls.zoomSpeed = $('#gl-info').data('zoomSpeed');
+   controls.panSpeed = $('#gl-info').data('panSpeed');
    controls.noZoom = false;
    controls.noPan = false;
    controls.mapMode = true;
@@ -84,6 +84,7 @@ function init()
    stats.domElement.style.top = '0px';
    stats.domElement.style.right = '0px';
    stats.domElement.style.display = 'none';
+   stats.domElement.style.zIndex = '100';
    container.appendChild( stats.domElement );
 
    // Event handlers

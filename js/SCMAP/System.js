@@ -124,7 +124,9 @@ SCMAP.System.prototype = {
 
    createLink: function () {
       var _this = this, $line = $( '<a></a>' );
-      $line.css( 'color', new THREE.Color( _this.color ).getStyle() );
+      if ( typeof _this.ownership !== 'undefined' && typeof _this.ownership !== 'undefined' ) {
+         $line.css( 'color', new THREE.Color( _this.ownership.color ).getStyle() );
+      }
       $line.attr( 'href', '#system='+encodeURI( _this.name ) );
       $line.attr( 'title', 'Show information on '+_this.name );
       $line.text( _this.name );
@@ -142,7 +144,10 @@ SCMAP.System.prototype = {
       var blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
       var i;
 
-      $('#systemname').attr( 'class', makeSafeForCSS( system.ownership.name ) ).css( 'color', new THREE.Color( system.ownership.color ).getStyle() ).text( 'System: ' + system.name );
+      $('#systemname')
+         .attr( 'class', makeSafeForCSS( system.ownership.name ) )
+         .css( 'color', new THREE.Color( system.ownership.color ).getStyle() )
+         .text( 'System: ' + system.name );
 
       var currentRoute = window.map.currentRoute();
       if ( currentRoute.length )
@@ -164,25 +169,27 @@ SCMAP.System.prototype = {
 
             if ( currentStep > 0 ) {
                var $prev = currentRoute[currentStep-1].createLink();
-               $prev.addClass( 'left' );
-               $prev.attr( 'title', 'Jump to ' + currentRoute[currentStep-1].name );
-               $prev.empty().append( '<i class="left sprite sprite-arrow-left-24"></i>' );
+               //$prev.addClass( 'left' );
+               $prev.attr( 'title', 'Previous jump to ' + currentRoute[currentStep-1].name +
+                  ' (' + currentRoute[currentStep-1].ownership.name + ' territory)' );
+               $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
                header.push( $prev );
             } else {
-               header.push( $('<i class="left sprite sprite-blank-24"></i>') );
+               header.push( $('<i class="left fa fa-fw"></i>') );
             }
-
-            header.push( system.name );
 
             if ( currentStep < ( currentRoute.length - 1 ) ) {
                var $next = currentRoute[currentStep+1].createLink();
-               $next.addClass( 'right' );
-               $next.attr( 'title', 'Jump to ' + currentRoute[currentStep+1].name );
-               $next.empty().append( '<i class="right sprite sprite-arrow-right-24"></i>' );
+               //$next.addClass( 'right' );
+               $next.attr( 'title', 'Next jump to ' + currentRoute[currentStep+1].name +
+                  ' (' + currentRoute[currentStep+1].ownership.name + ' territory)'  );
+               $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
                header.push( $next );
             } else {
-               header.push( $('<i class="right sprite sprite-blank-24"></i>') );
+               header.push( $('<i class="right fa fa-fw"></i>') );
             }
+
+            header.push( system.name );
 
             $('#systemname').empty().attr( 'class', makeSafeForCSS( system.ownership.name ) ).append( header );
          }
