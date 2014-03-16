@@ -166,10 +166,10 @@ SCMAP.System.prototype = {
                var $prev = currentRoute[currentStep-1].createLink();
                $prev.addClass( 'left' );
                $prev.attr( 'title', 'Jump to ' + currentRoute[currentStep-1].name );
-               $prev.empty().append( '<i class="left sprite-arrow-left-24"></i>' );
+               $prev.empty().append( '<i class="left sprite sprite-arrow-left-24"></i>' );
                header.push( $prev );
             } else {
-               header.push( $('<i class="left sprite-blank-24"></i>') );
+               header.push( $('<i class="left sprite sprite-blank-24"></i>') );
             }
 
             header.push( system.name );
@@ -178,10 +178,10 @@ SCMAP.System.prototype = {
                var $next = currentRoute[currentStep+1].createLink();
                $next.addClass( 'right' );
                $next.attr( 'title', 'Jump to ' + currentRoute[currentStep+1].name );
-               $next.empty().append( '<i class="right sprite-arrow-right-24"></i>' );
+               $next.empty().append( '<i class="right sprite sprite-arrow-right-24"></i>' );
                header.push( $next );
             } else {
-               header.push( $('<i class="right sprite-blank-24"></i>') );
+               header.push( $('<i class="right sprite sprite-blank-24"></i>') );
             }
 
             $('#systemname').empty().attr( 'class', makeSafeForCSS( system.ownership.name ) ).append( header );
@@ -361,7 +361,7 @@ SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.S
 SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
 SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
 //
-SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( 'images/glow.png' );
+SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
 SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
 SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
 SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });

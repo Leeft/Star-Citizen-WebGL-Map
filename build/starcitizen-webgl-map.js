@@ -602,10 +602,10 @@ SCMAP.System.prototype = {
                var $prev = currentRoute[currentStep-1].createLink();
                $prev.addClass( 'left' );
                $prev.attr( 'title', 'Jump to ' + currentRoute[currentStep-1].name );
-               $prev.empty().append( '<i class="left sprite-arrow-left-24"></i>' );
+               $prev.empty().append( '<i class="left sprite sprite-arrow-left-24"></i>' );
                header.push( $prev );
             } else {
-               header.push( $('<i class="left sprite-blank-24"></i>') );
+               header.push( $('<i class="left sprite sprite-blank-24"></i>') );
             }
 
             header.push( system.name );
@@ -614,10 +614,10 @@ SCMAP.System.prototype = {
                var $next = currentRoute[currentStep+1].createLink();
                $next.addClass( 'right' );
                $next.attr( 'title', 'Jump to ' + currentRoute[currentStep+1].name );
-               $next.empty().append( '<i class="right sprite-arrow-right-24"></i>' );
+               $next.empty().append( '<i class="right sprite sprite-arrow-right-24"></i>' );
                header.push( $next );
             } else {
-               header.push( $('<i class="right sprite-blank-24"></i>') );
+               header.push( $('<i class="right sprite sprite-blank-24"></i>') );
             }
 
             $('#systemname').empty().attr( 'class', makeSafeForCSS( system.ownership.name ) ).append( header );
@@ -797,7 +797,7 @@ SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.S
 SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
 SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
 //
-SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( 'images/glow.png' );
+SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
 SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
 SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
 SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
@@ -1147,7 +1147,7 @@ SCMAP.Map.prototype = {
       var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
          data, starSystemObject, jumpPoint, faction,
-         i, systems, exports, black_markets;
+         i, systems, exports, black_markets, systemInfo, imports;
 
       // TODO: clean up the existing scene and mapdata when populating with
       // new data
@@ -1340,7 +1340,7 @@ this.referencePlaneTerritoryColor();
          closestPointArray = {}, degrees,
          endTime, startTime,
          radiusStr, innerRadius, outerRadius, geo, tmpMesh, point,
-         tmpMaterial, tmpObject, leftTheta, rightTheta;
+         tmpMaterial, tmpObject, leftTheta, rightTheta, i;
 
       endTime = startTime = new Date();
 
@@ -1459,7 +1459,7 @@ scene.add( tmpObject );
 
 
 var effectFXAA, camera, scene, renderer, composer, map,
-   shift, ctrl, alt, controls, editor;
+   shift, ctrl, alt, controls, editor, stats;
 
 $(function() {
    $( "#map_ui" ).tabs({
@@ -1475,7 +1475,7 @@ $(function() {
             $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
             window.editor.enabled = false;
             window.controls.requireAlt = false;
-            if ( clicked_on === '#info' && typeof map.selected !== 'undefined' ) {
+            if ( clicked_on === '#info' && typeof map.selected !== 'undefined' && typeof map.selected.object !== 'undefined' ) {
                map.selected.object.system.displayInfo();
             }
          }
@@ -1509,10 +1509,10 @@ function init()
    camera.position.z = 100;
    camera.setViewOffset( width, height, 0, - ( height / 6 ), width, height );
 
-   controls = new THREE.OrbitControls( camera );
-   controls.rotateSpeed = 0.4;
-   controls.zoomSpeed = 2.0;
-   controls.panSpeed = 0.6;
+   controls = new THREE.OrbitControls( camera, $('#webgl-container')[0] );
+   controls.rotateSpeed = $('#gl-info').data('rotate-speed');
+   controls.zoomSpeed = $('#gl-info').data('zoom-speed');
+   controls.panSpeed = $('#gl-info').data('pan-speed');
    controls.noZoom = false;
    controls.noPan = false;
    controls.mapMode = true;

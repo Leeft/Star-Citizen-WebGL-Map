@@ -189,7 +189,7 @@ SCMAP.Map.prototype = {
       var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
          data, starSystemObject, jumpPoint, faction,
-         i, systems, exports, black_markets;
+         i, systems, exports, black_markets, systemInfo, imports;
 
       // TODO: clean up the existing scene and mapdata when populating with
       // new data
@@ -382,7 +382,7 @@ this.referencePlaneTerritoryColor();
          closestPointArray = {}, degrees,
          endTime, startTime,
          radiusStr, innerRadius, outerRadius, geo, tmpMesh, point,
-         tmpMaterial, tmpObject, leftTheta, rightTheta;
+         tmpMaterial, tmpObject, leftTheta, rightTheta, i;
 
       endTime = startTime = new Date();
 

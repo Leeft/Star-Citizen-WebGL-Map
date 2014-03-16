@@ -1,5 +1,5 @@
 var effectFXAA, camera, scene, renderer, composer, map,
-   shift, ctrl, alt, controls, editor;
+   shift, ctrl, alt, controls, editor, stats;
 
 $(function() {
    $( "#map_ui" ).tabs({
@@ -15,7 +15,7 @@ $(function() {
             $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
             window.editor.enabled = false;
             window.controls.requireAlt = false;
-            if ( clicked_on === '#info' && typeof map.selected !== 'undefined' ) {
+            if ( clicked_on === '#info' && typeof map.selected !== 'undefined' && typeof map.selected.object !== 'undefined' ) {
                map.selected.object.system.displayInfo();
             }
          }
@@ -49,10 +49,10 @@ function init()
    camera.position.z = 100;
    camera.setViewOffset( width, height, 0, - ( height / 6 ), width, height );
 
-   controls = new THREE.OrbitControls( camera );
-   controls.rotateSpeed = 0.4;
-   controls.zoomSpeed = 2.0;
-   controls.panSpeed = 0.6;
+   controls = new THREE.OrbitControls( camera, $('#webgl-container')[0] );
+   controls.rotateSpeed = $('#gl-info').data('rotate-speed');
+   controls.zoomSpeed = $('#gl-info').data('zoom-speed');
+   controls.panSpeed = $('#gl-info').data('pan-speed');
    controls.noZoom = false;
    controls.noPan = false;
    controls.mapMode = true;

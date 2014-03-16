@@ -8,6 +8,12 @@ body {
    font-family: 'Electrolize', sans-serif;
 }
 
+#webgl-container {
+   position: absolute;
+   top: 0px;
+   right: 0px;
+}
+
 .noselect {
    -webkit-touch-callout: none;
    -webkit-user-select: none;
@@ -55,7 +61,7 @@ a:hover {
 #map_ui {
    overflow: auto;
    position: absolute;
-   top: 5px;
+   top: 50px;
    left: 5px;
    width: 320px;
    height: 100%;
@@ -65,7 +71,7 @@ a:hover {
    font-size: 13px;
    text-align: left;
    background: rgba( 0, 0, 0, 0.5 );
-   /* z-index: 100; */
+   z-index: 100;
 }
 #map_ui ul.menubar {
    width: 95%;
@@ -95,9 +101,9 @@ a:hover {
 
 /* Icons from http://www.autreplanete.com/web-icons/our-offer.php
  * Generated with http://spritegen.website-performance.org/ */
-i { background: url(../images/csg-52448474439ce) no-repeat top left; }
-ul.menubar i { opacity: 0.5; }
-ul.menubar .ui-state-active i { opacity: 1; }
+i.sprite { background: url(/static/images/csg-52448474439ce.png) no-repeat top left; }
+ul.menubar i.sprite { opacity: 0.5; }
+ul.menubar .ui-state-active i.sprite { opacity: 1; }
 
 .sprite-arrow-circle2-24{ background-position: 0 0; width: 24px; height: 24px; } 
 .sprite-arrow-circle2{ background-position: 0 -56px; width: 32px; height: 32px; } 
