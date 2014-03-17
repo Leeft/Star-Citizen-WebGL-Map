@@ -41,11 +41,17 @@ module.exports = function(grunt) {
         ]
       },
 
+      tweenjs: {
+        files: [
+          { expand: false, src: 'js/tween.js/build/tween.min.js', dest: 'build/tween.min.js' },
+        ]
+      },
+
       jqueryplugins: {
         files: [
-          { expand: false, src: 'js/jScrollPane/script/jquery.jscrollpane.min.js',           dest: 'build/jquery.jscrollpane.min.js' },
-          { expand: false, src: 'js/jquery-mousewheel/build/jquery.mousewheel.min.js',       dest: 'build/jquery.mousewheel.min.js' },
-          { expand: false, src: 'js/markdown-js/dist/markdown.min.js',                       dest: 'build/markdown.min.js' }
+          { expand: false, src: 'js/jScrollPane/script/jquery.jscrollpane.min.js',     dest: 'build/jquery.jscrollpane.min.js' },
+          { expand: false, src: 'js/jquery-mousewheel/build/jquery.mousewheel.min.js', dest: 'build/jquery.mousewheel.min.js' },
+          { expand: false, src: 'js/markdown-js/dist/markdown.min.js',                 dest: 'build/markdown.min.js' }
         ]
       }
 
@@ -102,6 +108,7 @@ module.exports = function(grunt) {
           'build/jquery.jscrollpane.min.js',
           'build/jquery.mousewheel.min.js',
           'build/markdown.min.js',
+          'build/tween.min.js',
         ],
         dest: 'build/<%= pkg.name %>-libs.js'
       }

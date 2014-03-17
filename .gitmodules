@@ -10,3 +10,6 @@
 [submodule "three.js"]
 	path = js/three.js
 	url = git@github.com:Leeft/three.js.git
+[submodule "js/tween.js"]
+	path = js/tween.js
+	url = git@github.com:sole/tween.js.git
