@@ -13,3 +13,6 @@
 [submodule "js/tween.js"]
 	path = js/tween.js
 	url = git@github.com:sole/tween.js.git
+[submodule "js/javascript-state-machine"]
+	path = js/javascript-state-machine
+	url = git@github.com:jakesgordon/javascript-state-machine

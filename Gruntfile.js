@@ -47,6 +47,12 @@ module.exports = function(grunt) {
         ]
       },
 
+      fsmjs: {
+        files: [
+          { expand: false, src: 'js/javascript-state-machine/state-machine.min.js', dest: 'build/state-machine.min.js' },
+        ]
+      },
+
       jqueryplugins: {
         files: [
           { expand: false, src: 'js/jScrollPane/script/jquery.jscrollpane.min.js',     dest: 'build/jquery.jscrollpane.min.js' },
@@ -109,6 +115,7 @@ module.exports = function(grunt) {
           'build/jquery.mousewheel.min.js',
           'build/markdown.min.js',
           'build/tween.min.js',
+          'build/state-machine.min.js',
         ],
         dest: 'build/<%= pkg.name %>-libs.js'
       }
