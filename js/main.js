@@ -1,5 +1,5 @@
 var effectFXAA, camera, scene, renderer, composer, map,
-   shift, ctrl, alt, controls, editor, stats;
+   shift, ctrl, alt, controls, editor, stats, displayState;
 
 $(function() {
    $( "#map_ui" ).tabs({
@@ -26,7 +26,9 @@ $(function() {
    /* jScrollPane */
    $('#map_ui').jScrollPane({ showArrows: true });
 
-   if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+   if ( ! Detector.webgl ) {
+      Detector.addGetWebGLMessage();
+   }
 
    init();
    animate();
@@ -109,6 +111,20 @@ function init()
    //composer.addPass( effectFXAA );
    //composer.addPass( effectBloom );
    composer.addPass( effectCopy );
+
+   displayState = buildDisplayModeFSM( '3d' ); // TODO get current state for user on load
+
+   $('#3d-mode').on( 'change', function() {
+      if ( this.checked ) {
+         displayState.thick();
+      } else {
+         displayState.thin();
+      }
+   });
+
+   $('#lock-heading').on( 'change', function() {
+      controls.lockHeading = this.checked;
+   });
 }
 
 function buildCross () {
@@ -172,6 +188,91 @@ function makeSafeForCSS( name ) {
    });
 }
 
+function buildDisplayModeFSM ( initialState )
+{
+   var tweenTo2d, tweenTo3d, position, fsm;
+
+   position = { x: 100 };
+
+   tweenTo2d = new TWEEN.Tween( position )
+      .to( { x: 0.5, rotate: 0 }, 2000 )
+      .easing( TWEEN.Easing.Cubic.InOut )
+      .onUpdate( function () {
+            for ( var i = 0; i < scene.children.length; i++ ) {
+               var child = scene.children[i];
+               if ( child.system ) {
+//child.system.rotateAroundAxis( new THREE.Vector3( 0, 1, 0 ), THREE.Math.degToRad( 45 ) );
+                  var wantedY = child.system.position.y * ( this.x / 100 );
+                  child.translateY( wantedY - child.position.y );
+                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
+                     var routeObject = child.system.routeObjects[j];
+                     routeObject.geometry.verticesNeedUpdate = true;
+                  }
+               }
+            }
+      } );
+
+   tweenTo3d = new TWEEN.Tween( position )
+      .to( { x: 100, rotate: 90 }, 2000 )
+      .easing( TWEEN.Easing.Cubic.InOut )
+      .onUpdate( function () {
+            for ( var i = 0; i < scene.children.length; i++ ) {
+               var child = scene.children[i];
+               if ( child.system ) {
+                  var wantedY = child.system.position.y * ( this.x / 100 );
+                  child.translateY( wantedY - child.position.y );
+                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
+                     var routeObject = child.system.routeObjects[j];
+                     routeObject.geometry.verticesNeedUpdate = true;
+                  }
+               }
+            }
+      } );
+
+   fsm = StateMachine.create({
+      initial: initialState || '3d',
+
+      events: [
+         { name: 'thin',  from: '3d', to: '2d' },
+         { name: 'thick', from: '2d', to: '3d' }
+      ],
+
+      callbacks: {
+         onenter2d: function() {
+            //tween.start();
+            $('#3d-mode').prop( 'checked', false );
+         },
+
+         onenter3d: function() {
+            //tweenBack.start();
+            $('#3d-mode').prop( 'checked', true );
+         },
+
+         onleave2d: function() {
+            tweenTo3d.onComplete( function() {
+               fsm.transition();
+            });
+            tweenTo3d.start();
+            return StateMachine.ASYNC; // tell StateMachine to defer next state until we call transition (in fadeOut callback above)
+         },
+
+         onleave3d: function() {
+            tweenTo2d.onComplete( function() {
+               fsm.transition();
+            });
+            tweenTo2d.start();
+            return StateMachine.ASYNC; // tell StateMachine to defer next state until we call transition (in slideDown callback above)
+         },
+
+         error: function( eventName, from, to, args, errorCode, errorMessage ) {
+            console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
+         }
+      }
+   });
+
+   return fsm;
+}
+
 //
 
 function animate() {
@@ -183,6 +284,7 @@ function animate() {
       editor.update();
    }
    stats.update();
+   TWEEN.update();
    render();
 }
 

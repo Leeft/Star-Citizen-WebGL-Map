@@ -50,8 +50,9 @@ SCMAP.JumpPoint.prototype = {
       length = this.source.position.clone().sub( this.destination.position ).length();
 
       geometry = new THREE.Geometry();
-      geometry.vertices.push( this.source.position );
-      geometry.vertices.push( this.destination.position );
+      geometry.dynamic = true;
+      geometry.vertices.push( this.source.scenePosition );
+      geometry.vertices.push( this.destination.scenePosition );
       startColour.setRGB( startColour.r * factor, startColour.g * factor, startColour.b * factor );
       endColour.setRGB( endColour.r * factor, endColour.g * factor, endColour.b * factor );
       midColour = startColour.clone().lerp( endColour, 0.5 );

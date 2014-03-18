@@ -815,6 +815,7 @@ THREE.OrbitControls = function ( object, domElement ) {
    // Set to true to disable this control
    this.noRotate = false;
    this.rotateSpeed = 1.0;
+   this.lockHeading = false;
 
    // Set to true to disable this control
    this.noPan = false;
@@ -824,7 +825,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
    // Set to true to automatically rotate around the target
    this.autoRotate = false;
-   this.autoRotateSpeed = 2.0; // 30 seconds per round when fps is 60
+   this.autoRotateSpeed = 1.5; // 30 seconds per round when fps is 60
 
    // How far you can orbit vertically, upper and lower limits.
    // Range is 0 to Math.PI radians.
@@ -1117,7 +1118,7 @@ THREE.OrbitControls = function ( object, domElement ) {
          state = STATE.ROTATE;
          scope.showState();
 
-         rotateStart.set( event.clientX, event.clientY );
+         rotateStart.set( ( scope.lockHeading ) ? 0 : event.clientX, event.clientY );
 
       } else if ( event.button === 1 ) {
          if ( scope.noZoom === true ) { return; }
@@ -1159,7 +1160,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
          if ( scope.noRotate === true ) return;
 
-         rotateEnd.set( event.clientX, event.clientY );
+         rotateEnd.set( ( scope.lockHeading ) ? 0 : event.clientX, event.clientY );
          rotateDelta.subVectors( rotateEnd, rotateStart );
 
          // rotating across whole screen goes 360 degrees around
@@ -1306,7 +1307,7 @@ THREE.OrbitControls = function ( object, domElement ) {
             state = STATE.TOUCH_ROTATE;
             scope.showState();
 
-            rotateStart.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+            rotateStart.set( ( scope.lockHeading ) ? 0 : event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
             break;
 
          case 2:  // two-fingered touch: dolly
@@ -1352,7 +1353,7 @@ THREE.OrbitControls = function ( object, domElement ) {
             if ( scope.noRotate === true ) { return; }
             if ( state !== STATE.TOUCH_ROTATE ) { return; }
 
-            rotateEnd.set( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
+            rotateEnd.set( ( scope.lockHeading ) ? 0 : event.touches[ 0 ].pageX, event.touches[ 0 ].pageY );
             rotateDelta.subVectors( rotateEnd, rotateStart );
 
             // rotating across whole screen goes 360 degrees around

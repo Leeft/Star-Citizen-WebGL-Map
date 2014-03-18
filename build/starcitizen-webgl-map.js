@@ -290,8 +290,9 @@ SCMAP.JumpPoint.prototype = {
       length = this.source.position.clone().sub( this.destination.position ).length();
 
       geometry = new THREE.Geometry();
-      geometry.vertices.push( this.source.position );
-      geometry.vertices.push( this.destination.position );
+      geometry.dynamic = true;
+      geometry.vertices.push( this.source.scenePosition );
+      geometry.vertices.push( this.destination.scenePosition );
       startColour.setRGB( startColour.r * factor, startColour.g * factor, startColour.b * factor );
       endColour.setRGB( endColour.r * factor, endColour.g * factor, endColour.b * factor );
       midColour = startColour.clone().lerp( endColour, 0.5 );
@@ -486,7 +487,7 @@ SCMAP.System.prototype = {
       star = new THREE.Mesh( SCMAP.System.MESH, this.starMaterial() );
       star.scale.set( this.scale, this.scale, this.scale );
       star.system = this;
-      this.sceneObjects.mesh = star;
+      this.sceneObjects.mesh = star; // TODO Remove/replace
 
       object = new THREE.Object3D();
 
@@ -494,7 +495,8 @@ SCMAP.System.prototype = {
          glow = new THREE.Sprite( this.glowMaterial() );
          glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
          glow.system = this;
-         this.sceneObjects.glow = glow;
+         glow.isGlow = true;
+         this.sceneObjects.glow = glow; // TODO Remove/replace
          object.add( this.sceneObjects.glow );
       }
 
@@ -503,14 +505,35 @@ SCMAP.System.prototype = {
          label.position.set( 0, 3, 0 );
          label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
          label.system = this;
-         this.sceneObjects.label = label;
+         label.isLabel = true;
+         this.sceneObjects.label = label; // TODO Remove/replace
          object.add( this.sceneObjects.label );
       }
 
       object.add( this.sceneObjects.mesh );
-      object.position = this.position;
+      object.position = this.position.clone();
       object.system = this;
+      this.sceneObject = object;
+      this.scenePosition = object.position; // TODO Remove/replace
       return object;
+   },
+
+   rotateAroundAxis: function ( axis, radians ) {
+      var rotObjectMatrix = new THREE.Matrix4();
+      rotObjectMatrix.makeRotationAxis( axis.normalize(), radians );
+      this.sceneObject.matrix.multiply( rotObjectMatrix );
+      this.sceneObject.rotation.setFromRotationMatrix( this.sceneObject.matrix );
+//var euler = new THREE.Euler( axis.x, axis.y, axis.z, 'XYZ' );
+//this.sceneObjects.rotation = euler;
+
+      //for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
+      //   var obj = this.sceneObject.children[i];
+      //   if ( obj.isGlow || obj.isLabel ) {
+      //      obj.rotation.setFromRotationMatrix( rotObjectMatrix );
+      //   }
+      //}
+      //this.sceneObjects.glow.rotation.setFromRotationMatrix( rotObjectMatrix );
+      //this.sceneObjects.label.rotation.setFromRotationMatrix( rotObjectMatrix );
    },
 
    getColorByName: function ( color ) {
@@ -549,6 +572,9 @@ SCMAP.System.prototype = {
       context = canvas.getContext('2d');
       context.font = "36pt Electrolize, sans-serif";
       context.textAlign = 'center';
+      context.strokeStyle = 'rgba(0,0,0,0.95)';
+      context.lineWidth = 5;
+      context.strokeText( this.name, canvas.width / 2, 38 );
       context.fillStyle = "rgba(255,255,255,0.95)";
       //systemNameWidth = context.measureText( this.name ).width; // didn't get this to work yet
       context.fillText( this.name, canvas.width / 2, 38 );
@@ -793,7 +819,7 @@ SCMAP.System.COLORS = {
    ORANGE: 0xF0F080,
    UNKNOWN: 0xC0FFC0
 };
-SCMAP.System.LABEL_SCALE = 0.04;
+SCMAP.System.LABEL_SCALE = 0.06;
 SCMAP.System.GLOW_SCALE = 6;
 SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
 //
@@ -1456,7 +1482,7 @@ SCMAP.Map.prototype = {
 
 
 var effectFXAA, camera, scene, renderer, composer, map,
-   shift, ctrl, alt, controls, editor, stats;
+   shift, ctrl, alt, controls, editor, stats, displayState;
 
 $(function() {
    $( "#map_ui" ).tabs({
@@ -1483,7 +1509,9 @@ $(function() {
    /* jScrollPane */
    $('#map_ui').jScrollPane({ showArrows: true });
 
-   if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+   if ( ! Detector.webgl ) {
+      Detector.addGetWebGLMessage();
+   }
 
    init();
    animate();
@@ -1566,6 +1594,20 @@ function init()
    //composer.addPass( effectFXAA );
    //composer.addPass( effectBloom );
    composer.addPass( effectCopy );
+
+   displayState = buildDisplayModeFSM( '3d' ); // TODO get current state for user on load
+
+   $('#3d-mode').on( 'change', function() {
+      if ( this.checked ) {
+         displayState.thick();
+      } else {
+         displayState.thin();
+      }
+   });
+
+   $('#lock-heading').on( 'change', function() {
+      controls.lockHeading = this.checked;
+   });
 }
 
 function buildCross () {
@@ -1629,6 +1671,91 @@ function makeSafeForCSS( name ) {
    });
 }
 
+function buildDisplayModeFSM ( initialState )
+{
+   var tweenTo2d, tweenTo3d, position, fsm;
+
+   position = { x: 100 };
+
+   tweenTo2d = new TWEEN.Tween( position )
+      .to( { x: 0.5, rotate: 0 }, 2000 )
+      .easing( TWEEN.Easing.Cubic.InOut )
+      .onUpdate( function () {
+            for ( var i = 0; i < scene.children.length; i++ ) {
+               var child = scene.children[i];
+               if ( child.system ) {
+//child.system.rotateAroundAxis( new THREE.Vector3( 0, 1, 0 ), THREE.Math.degToRad( 45 ) );
+                  var wantedY = child.system.position.y * ( this.x / 100 );
+                  child.translateY( wantedY - child.position.y );
+                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
+                     var routeObject = child.system.routeObjects[j];
+                     routeObject.geometry.verticesNeedUpdate = true;
+                  }
+               }
+            }
+      } );
+
+   tweenTo3d = new TWEEN.Tween( position )
+      .to( { x: 100, rotate: 90 }, 2000 )
+      .easing( TWEEN.Easing.Cubic.InOut )
+      .onUpdate( function () {
+            for ( var i = 0; i < scene.children.length; i++ ) {
+               var child = scene.children[i];
+               if ( child.system ) {
+                  var wantedY = child.system.position.y * ( this.x / 100 );
+                  child.translateY( wantedY - child.position.y );
+                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
+                     var routeObject = child.system.routeObjects[j];
+                     routeObject.geometry.verticesNeedUpdate = true;
+                  }
+               }
+            }
+      } );
+
+   fsm = StateMachine.create({
+      initial: initialState || '3d',
+
+      events: [
+         { name: 'thin',  from: '3d', to: '2d' },
+         { name: 'thick', from: '2d', to: '3d' }
+      ],
+
+      callbacks: {
+         onenter2d: function() {
+            //tween.start();
+            $('#3d-mode').prop( 'checked', false );
+         },
+
+         onenter3d: function() {
+            //tweenBack.start();
+            $('#3d-mode').prop( 'checked', true );
+         },
+
+         onleave2d: function() {
+            tweenTo3d.onComplete( function() {
+               fsm.transition();
+            });
+            tweenTo3d.start();
+            return StateMachine.ASYNC; // tell StateMachine to defer next state until we call transition (in fadeOut callback above)
+         },
+
+         onleave3d: function() {
+            tweenTo2d.onComplete( function() {
+               fsm.transition();
+            });
+            tweenTo2d.start();
+            return StateMachine.ASYNC; // tell StateMachine to defer next state until we call transition (in slideDown callback above)
+         },
+
+         error: function( eventName, from, to, args, errorCode, errorMessage ) {
+            console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
+         }
+      }
+   });
+
+   return fsm;
+}
+
 //
 
 function animate() {
@@ -1640,6 +1767,7 @@ function animate() {
       editor.update();
    }
    stats.update();
+   TWEEN.update();
    render();
 }
 

@@ -50,7 +50,7 @@ SCMAP.System.prototype = {
       star = new THREE.Mesh( SCMAP.System.MESH, this.starMaterial() );
       star.scale.set( this.scale, this.scale, this.scale );
       star.system = this;
-      this.sceneObjects.mesh = star;
+      this.sceneObjects.mesh = star; // TODO Remove/replace
 
       object = new THREE.Object3D();
 
@@ -58,7 +58,8 @@ SCMAP.System.prototype = {
          glow = new THREE.Sprite( this.glowMaterial() );
          glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
          glow.system = this;
-         this.sceneObjects.glow = glow;
+         glow.isGlow = true;
+         this.sceneObjects.glow = glow; // TODO Remove/replace
          object.add( this.sceneObjects.glow );
       }
 
@@ -67,14 +68,35 @@ SCMAP.System.prototype = {
          label.position.set( 0, 3, 0 );
          label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
          label.system = this;
-         this.sceneObjects.label = label;
+         label.isLabel = true;
+         this.sceneObjects.label = label; // TODO Remove/replace
          object.add( this.sceneObjects.label );
       }
 
       object.add( this.sceneObjects.mesh );
-      object.position = this.position;
+      object.position = this.position.clone();
       object.system = this;
+      this.sceneObject = object;
+      this.scenePosition = object.position; // TODO Remove/replace
       return object;
+   },
+
+   rotateAroundAxis: function ( axis, radians ) {
+      var rotObjectMatrix = new THREE.Matrix4();
+      rotObjectMatrix.makeRotationAxis( axis.normalize(), radians );
+      this.sceneObject.matrix.multiply( rotObjectMatrix );
+      this.sceneObject.rotation.setFromRotationMatrix( this.sceneObject.matrix );
+//var euler = new THREE.Euler( axis.x, axis.y, axis.z, 'XYZ' );
+//this.sceneObjects.rotation = euler;
+
+      //for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
+      //   var obj = this.sceneObject.children[i];
+      //   if ( obj.isGlow || obj.isLabel ) {
+      //      obj.rotation.setFromRotationMatrix( rotObjectMatrix );
+      //   }
+      //}
+      //this.sceneObjects.glow.rotation.setFromRotationMatrix( rotObjectMatrix );
+      //this.sceneObjects.label.rotation.setFromRotationMatrix( rotObjectMatrix );
    },
 
    getColorByName: function ( color ) {
@@ -113,6 +135,9 @@ SCMAP.System.prototype = {
       context = canvas.getContext('2d');
       context.font = "36pt Electrolize, sans-serif";
       context.textAlign = 'center';
+      context.strokeStyle = 'rgba(0,0,0,0.95)';
+      context.lineWidth = 5;
+      context.strokeText( this.name, canvas.width / 2, 38 );
       context.fillStyle = "rgba(255,255,255,0.95)";
       //systemNameWidth = context.measureText( this.name ).width; // didn't get this to work yet
       context.fillText( this.name, canvas.width / 2, 38 );
@@ -357,7 +382,7 @@ SCMAP.System.COLORS = {
    ORANGE: 0xF0F080,
    UNKNOWN: 0xC0FFC0
 };
-SCMAP.System.LABEL_SCALE = 0.04;
+SCMAP.System.LABEL_SCALE = 0.06;
 SCMAP.System.GLOW_SCALE = 6;
 SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
 //
