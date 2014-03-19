@@ -47,16 +47,19 @@ SCMAP.Map.prototype = {
 
    select: function ( system ) {
       if ( system instanceof SCMAP.System ) {
-         this.selector.position = system.position;
+         this.selector.position = system.sceneObject.position;
          this.selector.visible = true;
+         this.selected = system;
       } else {
          this.selector.visible = false;
+         this.selected = undefined;
       }
       $('#routelist').empty();
    },
 
    deselect: function ( ) {
       this.selector.visible = false;
+      this.selected = undefined;
    },
 
    animateSelector: function ( ) {
@@ -108,7 +111,6 @@ SCMAP.Map.prototype = {
                ) {
                   window.controls.editDrag = true;
                } else {
-                  this.selected = intersect.object.system;
                   this.select( intersect.object.system );
                   window.controls.editDrag = false;
                }
@@ -140,13 +142,13 @@ SCMAP.Map.prototype = {
       this.selectedTarget = destination;
       route = this.graph.routeArray( destination );
 
-      material = new THREE.LineBasicMaterial( { color: 0xFF00FF, linewidth: 1 } );
+      material = new THREE.LineBasicMaterial( { color: 0xFF00FF, linewidth: 2.5 } );
       group = this.graph.createRouteObject(); // all the parts of the route together in a single geometry group
       for ( i = 0; i < route.length - 1; i++ ) {
          mesh = this.createRouteMesh( route[i+0], route[i+1] );
          line = new THREE.Line( mesh, material );
-         line.position = route[i+0].position;
-         line.lookAt( route[i+1].position );
+         line.position = route[i+0].sceneObject.position;
+         line.lookAt( route[i+1].sceneObject.position );
          group.add( line );
       }
 
@@ -170,7 +172,7 @@ SCMAP.Map.prototype = {
           zstep = 0.5,
           radius = 0.5,
           geometry = new THREE.Geometry(),
-          distance = source.position.distanceTo( destination.position ),
+          distance = source.position.distanceTo( destination.sceneObject.position ),
           z = 0, theta, x, y;
 
       for ( theta = 0; z < distance; theta += step )
@@ -286,7 +288,8 @@ SCMAP.Map.prototype = {
             {
                destination = this.system( destinations[i] );
                if ( destination === undefined ) {
-                  console.log( territoryName+" space route from "+systemName+" can't find the destination system '"+destinations[i]+"'" );
+                  console.log( territoryName+" space route from "+systemName+
+                     " can't find the destination system '"+destinations[i]+"'" );
                   continue;
                }
 
@@ -317,8 +320,8 @@ SCMAP.Map.prototype = {
 
       for ( systemname in this.systemsByName ) {
          system = this.systemsByName[ systemname ];
-         xd = vector.x - system.position.x;
-         zd = vector.z - system.position.z;
+         xd = vector.x - system.sceneObject.position.x;
+         zd = vector.z - system.sceneObject.position.z;
          length = Math.sqrt( xd * xd + zd * zd );
          if ( length < closest ) {
             closest = length;
@@ -334,8 +337,8 @@ SCMAP.Map.prototype = {
 
       for ( systemname in this.systemsByName ) {
          system = this.systemsByName[ systemname ];
-         xd = vector.x - system.position.x;
-         zd = vector.z - system.position.z;
+         xd = vector.x - system.sceneObject.position.x;
+         zd = vector.z - system.sceneObject.position.z;
          length = Math.sqrt( xd * xd + zd * zd );
          if ( length > furthest ) {
             furthest = length;
@@ -412,14 +415,14 @@ SCMAP.Map.prototype = {
       endTime = startTime = new Date();
 
       // Work out how far away the furtest system is
-      // so that we can stop drawing just beyound that
+      // so that we can stop drawing just beyond that
       // point
       arr = this.furthestPOI( new THREE.Vector3() );
       maxRadius = arr[0] + 50;
 
       lineMaterial = new THREE.LineBasicMaterial({
          color: 0xA0A0A0,
-         linewidth: 1,
+         linewidth: 1.5,
          vertexColors: true,
          opacity: 0.6
       } );

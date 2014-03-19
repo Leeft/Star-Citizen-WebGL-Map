@@ -1,60 +1,66 @@
 Star-Citizen-WebGL-Map
 ======================
 
-*Pre-pre alpha release.*
+*Early alpha release.*
 
-A early release WebGL version of the universe map for the upcoming game
+An early release WebGL version of the universe map for the upcoming game
 [Star Citizen](https://robertsspaceindustries.com/about-the-game), inspired by
 the [Star Map WIP video](https://robertsspaceindustries.com/comm-link/engineering/13109-Star-Map-Demo)
-that was released of the in-game map feature earlier this year. It uses the
-awesome [three.js](http://threejs.org/) library to do the heavy lifting.
+that was released of the in-game map feature earlier last year. It uses the
+awesome [three.js](http://threejs.org/) library to do much of the heavy lifting.
 
-You *need* a webbrowser with WebGL support (Firefox or Chrome) to use
-this map, and a graphics card which can handle WebGL. It has been
-verified to work on the Nexus 7 tablet (using Firefox for Android,
-Chrome didn't work, other browsers not tested) and should work in any
-working WebGL environment. If you can run the Hangar module on your PC,
-you can probably run this as well.
+You *need* a webbrowser with WebGL support to use this map (any recent Firefox
+or Chrome, or Internet Explorer 11+ will do), and your graphics card must
+be supported. It has been verified to work on the first Nexus 7 tablet (with
+Firefox for Android, Chrome didn't work; other browsers not tested) but should
+work in any functional WebGL environment. Performance may vary however.
 
-The latest "official releases" are available at
-http://leeft.eu/starcitizen/
+The latest "official releases" are currently available at
+http://leeft.eu/starcitizen/ until the website with the database is ready for
+the public :)
 
-![Screenshot](http://img801.imageshack.us/img801/544/53iu.png)
+![Screenshot](http://img.photobucket.com/albums/v107/Liaantje/map-20140319.png)
 
-Several primary features are still missing;
+Several primary features are still missing, such as:
 
-* Graphics improvements to make it more similar to the map in that video
-* A "flat" map mode like in the video
-* Filling in the missing data
-* Linking to e.g. the Wiki and other fan-created maps
+* More graphics improvements to make it more similar to the map in that video,
+as well as better 2D elements for the 2D mode
+* Better interactivity, e.g. when selecting a system highlighting the systems
+which they can trade goods with
+* Tracking your settings
+* Bookmarking locations, remembering your position
 
-Things which will likely be implemented:
+At some point I'll at least implement:
 
-* Route-planner, showing alternative routes, relative distances (which may
-get more accurate as we get more info) and the known dangers on these routes
-* Graphics (or other) settings panel
-* Map editor, saving locally in the browser (which can be saved as a map
-with the program)
+* More route-planner features: showing alternative routes, relative distances
+(which may get more accurate as we get more info) and the known dangers on these
+routes, trading information, etc.
+* More settings for the settings panel
+* Other points of interest besides star systems
+* Interactive map editing
 * ...
 
-Other things I may do in the future, largely dependant on what information
-will be available through any API's Cloud Imperium Games might be creating for us:
+Other things I may do in the future (largely dependant on what information
+will be available through any API's Cloud Imperium Games might be creating for us):
 
 * News tracker for (selected) systems
-* Seeing where your friends are
+* Tracking where your friends are
 * Highlighting big events on the map
 * Revealing new jump points as they've been explored and published widely
 * ...
 
 I will probably *not* implement anything like the planets view in the video, the
-amount of work involved with that could be tremendous. And leaving it out of my map
+amount of work involved with that would be tremendous. And leaving it out of my map
 leaves some use for the in-game map feature as well. ;)
 
-The map is far from complete still: the map needs the rest of the systems known
-so far to be added, and the known system info is basically empty (except for
-a single system to test with, Nul). I've been focusing on the code rather than
-the data, which is why the data isn't there just yet. Of course if you want to
-contribute, I more than welcome updates to my files on github.
+The map itself is mostly complete (for the moment the "unknown" systems
+have been deliberately left out), and it is still static data as the database
+used to generate the map data is also a work in progress. The XZ coordinates of
+the systems are pretty accurate but deliberately slightly randomised, and the
+vertical (Y) positions are still entirely random. They'll be fixed when I can
+do the interactive editing.
 
-Initial release, September 2013 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari)
+If you want to discuss anything related to this map, please go to [my forum thread](https://forums.robertsspaceindustries.com/discussion/54931/browser-based-3d-system-map-early-wip).
+
+Second release, March 2014 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari)
 

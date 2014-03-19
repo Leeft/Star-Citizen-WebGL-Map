@@ -78,5 +78,5 @@ SCMAP.JumpPoint.prototype = {
    }
 };
 
-SCMAP.JumpPoint.lineMaterial = new THREE.LineBasicMaterial({ color: 0xCCCCCC, linewidth: 1, vertexColors: true });
+SCMAP.JumpPoint.lineMaterial = new THREE.LineBasicMaterial({ color: 0xCCCCCC, linewidth: 1.5, vertexColors: true });
 

@@ -36,8 +36,7 @@ module.exports = function(grunt) {
           { expand: false, src: 'js/three.js/examples/js/postprocessing/ShaderPass.js',     dest: 'build/postprocessing/ShaderPass.js' },
           { expand: false, src: 'js/three.js/examples/js/postprocessing/BloomPass.js',      dest: 'build/postprocessing/BloomPass.js'  },
           { expand: false, src: 'js/three.js/examples/js/Detector.js',                      dest: 'build/Detector.js'                  },
-          { expand: false, src: 'js/three.js/examples/js/libs/stats.min.js',                dest: 'build/stats.min.js'                 },
-          { expand: false, src: 'js/controls/OrbitControls.js',                             dest: 'build/controls/OrbitControls.js'    }
+          { expand: false, src: 'js/three.js/examples/js/libs/stats.min.js',                dest: 'build/stats.min.js'                 }
         ]
       },
 
@@ -110,7 +109,7 @@ module.exports = function(grunt) {
           'js/three.js/examples/js/postprocessing/BloomPass.js',
           'js/three.js/examples/js/Detector.js',
           'js/three.js/examples/js/libs/stats.min.js',
-          'js/controls/OrbitControls.js',
+          'js/controls/OrbitControlsFSM.js',
           'build/jquery.jscrollpane.min.js',
           'build/jquery.mousewheel.min.js',
           'build/markdown.min.js',

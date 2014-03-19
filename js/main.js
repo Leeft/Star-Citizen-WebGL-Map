@@ -51,7 +51,7 @@ function init()
    camera.position.z = 100;
    camera.setViewOffset( width, height, 0, - ( height / 6 ), width, height );
 
-   controls = new THREE.OrbitControls( camera, $('#webgl-container')[0] );
+   controls = new THREE.OrbitControlsFSM( camera, $('#webgl-container')[0] );
    controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
    controls.zoomSpeed = $('#gl-info').data('zoomSpeed');
    controls.panSpeed = $('#gl-info').data('panSpeed');
@@ -74,6 +74,7 @@ function init()
    container.appendChild( renderer.domElement );
 
    map = new SCMAP.Map( scene, SCMAP.data.map );
+   controls.map = map;
 
    editor = new SCMAP.Editor( map, camera );
    editor.panSpeed = 0.6;
@@ -99,17 +100,21 @@ function init()
    // Rendering
 
    renderModel = new THREE.RenderPass( scene, camera );
-   //effectBloom = new THREE.BloomPass( 1.3 );
+   effectBloom = new THREE.BloomPass( 0.75 );
+
    effectCopy = new THREE.ShaderPass( THREE.CopyShader );
    effectCopy.renderToScreen = true;
 
-   //effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-   //effectFXAA.uniforms[ 'resolution' ].value.set( 1 / width, 1 / height );
+   effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+   effectFXAA.uniforms.resolution.value.set( 1 / width, 1 / height );
+
+   effectFXAA.enabled = false;
+   effectBloom.enabled = false;
 
    composer = new THREE.EffectComposer( renderer );
    composer.addPass( renderModel );
-   //composer.addPass( effectFXAA );
-   //composer.addPass( effectBloom );
+   composer.addPass( effectFXAA );
+   composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
    displayState = buildDisplayModeFSM( '3d' ); // TODO get current state for user on load
@@ -122,8 +127,16 @@ function init()
       }
    });
 
-   $('#lock-heading').on( 'change', function() {
-      controls.lockHeading = this.checked;
+   $('#lock-rotation').on( 'change', function() {
+      controls.noRotate = this.checked;
+   });
+
+   $('#toggle-fxaa').on( 'change', function() {
+      effectFXAA.enabled = this.checked;
+   });
+
+   $('#toggle-bloom').on( 'change', function() {
+      effectBloom.enabled = this.checked;
    });
 }
 
@@ -198,6 +211,8 @@ function buildDisplayModeFSM ( initialState )
       .to( { x: 0.5, rotate: 0 }, 2000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
+            map.deselect();
+            map.graph.destroyRoute();
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
@@ -216,6 +231,8 @@ function buildDisplayModeFSM ( initialState )
       .to( { x: 100, rotate: 90 }, 2000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
+            map.deselect();
+            map.graph.destroyRoute();
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
@@ -239,12 +256,10 @@ function buildDisplayModeFSM ( initialState )
 
       callbacks: {
          onenter2d: function() {
-            //tween.start();
             $('#3d-mode').prop( 'checked', false );
          },
 
          onenter3d: function() {
-            //tweenBack.start();
             $('#3d-mode').prop( 'checked', true );
          },
 
@@ -253,7 +268,7 @@ function buildDisplayModeFSM ( initialState )
                fsm.transition();
             });
             tweenTo3d.start();
-            return StateMachine.ASYNC; // tell StateMachine to defer next state until we call transition (in fadeOut callback above)
+            return StateMachine.ASYNC;
          },
 
          onleave3d: function() {
@@ -261,12 +276,12 @@ function buildDisplayModeFSM ( initialState )
                fsm.transition();
             });
             tweenTo2d.start();
-            return StateMachine.ASYNC; // tell StateMachine to defer next state until we call transition (in slideDown callback above)
+            return StateMachine.ASYNC;
          },
+      },
 
-         error: function( eventName, from, to, args, errorCode, errorMessage ) {
-            console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
-         }
+      error: function( eventName, from, to, args, errorCode, errorMessage ) {
+         console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
       }
    });
 
