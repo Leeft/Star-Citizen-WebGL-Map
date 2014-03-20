@@ -274,13 +274,35 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    };
 
    // assumes mapMode for now
+   this.moveTo = function ( system ) {
+
+      // make sure the destination is at the same xz plane
+      var destinationVector = system.position.clone().setY( this.target.y );
+      var _this = this;
+      var traverse = this.target.clone();
+
+      var tween = new TWEEN.Tween( traverse )
+         .to( { x: destinationVector.x, y: destinationVector.y, z: destinationVector.z }, 750 )
+         .easing( TWEEN.Easing.Cubic.InOut )
+         .onUpdate( function () {
+            var vec = new THREE.Vector3( this.x, this.y, this.z );
+            _this.goTo( vec );
+         } );
+
+      tween.onComplete( function() {
+         _this.map.select( system );
+      });
+
+      tween.start();
+   };
+
+   // assumes mapMode for now
    this.goTo = function ( vector ) {
 
       // make sure the given vector is at the same xz plane
       vector = vector.clone().setY( this.target.y );
       vector.sub( this.target );
       pan.add( vector );
-      // TODO: this needs a tween animation
    };
 
    // main entry point; pass in Vector2 of change desired in pixel space,
@@ -412,7 +434,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
 
       this.showState();
    };
-
 
    function getAutoRotationAngle() {
 

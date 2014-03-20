@@ -157,8 +157,7 @@ SCMAP.System.prototype = {
       $line.text( _this.name );
       $line.bind( 'click', function() {
          _this.displayInfo( _this );
-         window.controls.goTo( _this.position );
-         window.map.select( _this.name );
+         window.controls.moveTo( _this );
       } );
       return $line;
    },
