@@ -46,6 +46,11 @@ SCMAP.Dijkstra.prototype = {
       var endTime, startTime = new Date();
 
       this.source = initialNode;
+
+      if ( !( initialNode instanceof SCMAP.System ) ) {
+         return;
+      }
+
       console.log( 'Building graph starting at ' + initialNode.name + ' ...' );
 
       // Built using:

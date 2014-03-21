@@ -154,7 +154,7 @@ SCMAP.System.prototype = {
       }
       $line.attr( 'href', '#system='+encodeURI( _this.name ) );
       $line.attr( 'title', 'Show information on '+_this.name );
-      $line.text( _this.name );
+      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + _this.name );
       $line.bind( 'click', function() {
          _this.displayInfo( _this );
          window.controls.moveTo( _this );
@@ -299,7 +299,7 @@ SCMAP.System.prototype = {
       $('#systemblurb').empty();
       $('#systemblurb').append( blurb );
 
-      $('#map_ui').tabs( 'option', 'active', 0 );
+      $('#map_ui').tabs( 'option', 'active', 1 );
       $('#map_ui').data( 'jsp' ).reinitialise();
 
    //   var text = new destinationSystem();

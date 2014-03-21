@@ -1,7 +1,14 @@
 var effectFXAA, camera, scene, renderer, composer, map,
-   shift, ctrl, alt, controls, editor, stats, displayState;
+   shift, ctrl, alt, controls, editor, stats, displayState,
+   cameraDefaults = {
+      x: 0,
+      y: 80,
+      z: 100,
+      target: new THREE.Vector3( 0, 10, 0 )
+   };
 
 $(function() {
+   //$( "#map_ui menubar" ).on( 'click', function ( event ) { event.preventDefault(); } );
    $( "#map_ui" ).tabs({
       active: 0,
       activate: function( event, ui ) {
@@ -45,13 +52,17 @@ function init()
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
 
-   camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+   camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 10, 800 );
 
-   camera.position.y = 80;
-   camera.position.z = 100;
-   camera.setViewOffset( width, height, 0, - ( height / 6 ), width, height );
+   camera.position.x = cameraDefaults.x;
+   camera.position.y = cameraDefaults.y;
+   camera.position.z = cameraDefaults.z;
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 8 ), width, height );
 
    controls = new THREE.OrbitControlsFSM( camera, $('#webgl-container')[0] );
+	controls.target = cameraDefaults.target.clone();
+   controls.minPolarAngle = 0;
+   controls.maxPolarAngle = THREE.Math.degToRad( 85 );
    controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
    controls.zoomSpeed = $('#gl-info').data('zoomSpeed');
    controls.panSpeed = $('#gl-info').data('panSpeed');
@@ -61,9 +72,6 @@ function init()
    controls.minDistance = 20;
    controls.maxDistance = 500;
    controls.keyPanSpeed = 25;
-   controls.minPolarAngle = 0;
-   controls.maxPolarAngle = THREE.Math.degToRad( 85 );
-	controls.target = new THREE.Vector3( 0, 10, 0 );
    controls.addEventListener( 'change', render );
 
    scene = new THREE.Scene();
@@ -119,24 +127,40 @@ function init()
 
    displayState = buildDisplayModeFSM( '3d' ); // TODO get current state for user on load
 
-   $('#3d-mode').on( 'change', function() {
-      if ( this.checked ) {
-         displayState.thick();
-      } else {
-         displayState.thin();
-      }
-   });
+   // Some simple UI stuff
 
-   $('#lock-rotation').on( 'change', function() {
-      controls.noRotate = this.checked;
-   });
+   camera.matrixWorldNeedsUpdate = true;
 
-   $('#toggle-fxaa').on( 'change', function() {
-      effectFXAA.enabled = this.checked;
-   });
+   $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
+   $('#lock-rotation').on( 'change', function() { controls.noRotate = this.checked; });
+   $('#toggle-fxaa').on( 'change', function() { effectFXAA.enabled = this.checked; });
+   $('#toggle-bloom').on( 'change', function() { effectBloom.enabled = this.checked; });
 
-   $('#toggle-bloom').on( 'change', function() {
-      effectBloom.enabled = this.checked;
+   $('#resetCamera').on( 'click', function() {
+      controls.noRotate = false;
+      $('#lock-rotation').prop( 'checked', false );
+      displayState.to3d();
+      controls.rotateTo( 0, THREE.Math.degToRad( 55.1 ), 122.2 );
+      controls.moveTo( cameraDefaults.target );
+   });
+   $('#centreCamera').on( 'click', function() {
+      controls.moveTo( cameraDefaults.target );
+   });
+   $('#northCamera').on( 'click', function() {
+      controls.rotateTo( 0, undefined, undefined );
+   });
+   $('#topCamera').on( 'click', function() {
+      controls.rotateTo( 0, 0, 180 );
+   });
+   $('#top2D').on( 'click', function() {
+      controls.noRotate = true;
+      $('#lock-rotation').prop( 'checked', true );
+      displayState.to2d();
+      controls.rotateTo( 0, 0, 180 );
+   });
+   $('.quick-button.with-checkbox').on( 'click', function ( event ) {
+      var $this = $(this);
+      $this.find('input[type=checkbox]').click();
    });
 }
 
@@ -163,23 +187,18 @@ function buildCross () {
    return group;
 }
 
-function onWindowResize()
-{
+function onWindowResize() {
    var width = window.innerWidth || 2;
    var height = window.innerHeight || 2;
    camera.aspect = width / height;
-   camera.setViewOffset( width, height, 0, - ( height / 8 ), width, height );
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 8 ), width, height );
    camera.updateProjectionMatrix();
-
    renderer.setSize( window.innerWidth, window.innerHeight );
-
-   //effectFXAA.uniforms[ 'resolution' ].value.set( 1 / window.innerWidth, 1 / window.innerHeight );
-
+   effectFXAA.uniforms.resolution.value.set( 1 / window.innerWidth, 1 / window.innerHeight );
    composer.reset();
 }
 
-function onDocumentMouseUpAndDown( event )
-{
+function onDocumentMouseUpAndDown( event ) {
    var vector, projector, raycaster, intersects, clickedOut;
    vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
    projector = new THREE.Projector();
@@ -193,7 +212,7 @@ function makeSafeForCSS( name ) {
    if ( typeof name !== 'string' ) {
       return;
    }
-   return name.replace( /[^a-z0-9]/g, function(s) {
+   return name.replace( /[^a-zA-Z0-9]/g, function(s) {
       var c = s.charCodeAt(0);
       if (c == 32) return '-';
       if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
@@ -208,15 +227,15 @@ function buildDisplayModeFSM ( initialState )
    position = { x: 100 };
 
    tweenTo2d = new TWEEN.Tween( position )
-      .to( { x: 0.5, rotate: 0 }, 2000 )
+      .to( { x: 0.5, rotate: 0 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            map.deselect();
+            //var target = map.selectedTarget;
+            //map.deselect();
             map.graph.destroyRoute();
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
-//child.system.rotateAroundAxis( new THREE.Vector3( 0, 1, 0 ), THREE.Math.degToRad( 45 ) );
                   var wantedY = child.system.position.y * ( this.x / 100 );
                   child.translateY( wantedY - child.position.y );
                   for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
@@ -225,13 +244,15 @@ function buildDisplayModeFSM ( initialState )
                   }
                }
             }
+            //map.updateRoute( target );
       } );
 
    tweenTo3d = new TWEEN.Tween( position )
-      .to( { x: 100, rotate: 90 }, 2000 )
+      .to( { x: 100, rotate: 90 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            map.deselect();
+            //var target = map.selectedTarget;
+            //map.deselect();
             map.graph.destroyRoute();
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
@@ -244,24 +265,21 @@ function buildDisplayModeFSM ( initialState )
                   }
                }
             }
+            //map.updateRoute( target );
       } );
 
    fsm = StateMachine.create({
       initial: initialState || '3d',
 
       events: [
-         { name: 'thin',  from: '3d', to: '2d' },
-         { name: 'thick', from: '2d', to: '3d' }
+         { name: 'to2d',  from: '3d', to: '2d' },
+         { name: 'to3d', from: '2d', to: '3d' }
       ],
 
       callbacks: {
-         onenter2d: function() {
-            $('#3d-mode').prop( 'checked', false );
-         },
+         onenter2d: function() { $('#3d-mode').prop( 'checked', false ); },
 
-         onenter3d: function() {
-            $('#3d-mode').prop( 'checked', true );
-         },
+         onenter3d: function() { $('#3d-mode').prop( 'checked', true ); },
 
          onleave2d: function() {
             tweenTo3d.onComplete( function() {
@@ -292,6 +310,7 @@ function buildDisplayModeFSM ( initialState )
 
 function animate() {
    requestAnimationFrame( animate );
+   TWEEN.update();
    if ( controls !== undefined ) {
       controls.update();
    }
@@ -299,27 +318,11 @@ function animate() {
       editor.update();
    }
    stats.update();
-   TWEEN.update();
    render();
 }
 
 function render() {
    map.animateSelector();
-
-//var m = new THREE.Matrix4();
-//m.extractRotation( camera.matrixWorldInverse );
-//var v = new THREE.Vector3( 1, 0, 0 );
-//v.applyMatrix4( m );
-//var angle = Math.atan2( v.z, v.x );
-//$('#debug-angle').html( 'Camera heading: ' + THREE.Math.radToDeg( angle ).toFixed(2) + '&deg; ' + angle.toFixed(3) );
-
-//var m = new THREE.Matrix4();
-//m.extractRotation( camera.matrixWorldInverse );
-//var v = new THREE.Vector3( 0, 0, 1 );
-//v.applyMatrix4( m );
-//var angle = Math.atan2( v.z, v.y ) - 1.57079633;
-//$('#debug-angle').html( 'Camera banking: ' + THREE.Math.radToDeg( angle ).toFixed(2) + '&deg; ' + angle.toFixed(3) );
-
    renderer.clear();
    composer.render();
 }

@@ -54,7 +54,6 @@ SCMAP.Map.prototype = {
          this.selector.visible = false;
          this.selected = undefined;
       }
-      $('#routelist').empty();
    },
 
    deselect: function ( ) {
@@ -138,6 +137,11 @@ SCMAP.Map.prototype = {
       var i, route, mesh, line, material, group, from_system, $entry;
 
       this.graph.destroyRoute();
+
+      if ( !( destination instanceof SCMAP.System ) ) {
+         return;
+      }
+
       this.graph.buildGraph( this.selected );
       this.selectedTarget = destination;
       route = this.graph.routeArray( destination );
@@ -163,7 +167,7 @@ SCMAP.Map.prototype = {
          from_system = route[i+0];
          $entry = $( '<li></li>' ).append( from_system.createLink() );
          $('#routelist ol').append( $entry );
-         $('#map_ui').tabs( 'option', 'active', 1 );
+         $('#map_ui').tabs( 'option', 'active', 2 );
       }
    },
 
@@ -172,7 +176,7 @@ SCMAP.Map.prototype = {
           zstep = 0.5,
           radius = 0.5,
           geometry = new THREE.Geometry(),
-          distance = source.position.distanceTo( destination.sceneObject.position ),
+          distance = source.sceneObject.position.distanceTo( destination.sceneObject.position ),
           z = 0, theta, x, y;
 
       for ( theta = 0; z < distance; theta += step )
@@ -189,7 +193,7 @@ SCMAP.Map.prototype = {
       var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
          data, starSystemObject, jumpPoint, faction,
-         endTime, startTime,
+         endTime, startTime, systemCount = 0,
          i, systems, exports, black_markets, systemInfo, imports;
 
       endTime = startTime = new Date();
@@ -264,6 +268,7 @@ SCMAP.Map.prototype = {
             starSystemObject = system.buildObject();
             this.scene.add( starSystemObject );
             this.interactables.push( system.sceneObjects.mesh );
+            systemCount++;
          }
       }
 
@@ -309,6 +314,8 @@ SCMAP.Map.prototype = {
       endTime = new Date();
       console.log( "Populating the scene (without ref plane) took " +
          (endTime.getTime() - startTime.getTime()) + " msec" );
+
+      $('#debug-systems').html( systemCount + ' systems loaded' );
 
       this.buildReferencePlane();
       //this.referencePlaneSolidColor( new THREE.Color( 0x000000 ) );

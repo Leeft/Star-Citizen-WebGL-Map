@@ -50,12 +50,23 @@ a:hover {
    text-align: center;
 }
 
-#sclogo {
+#map_popup {
+   overflow: auto;
    position: absolute;
-   top: 10px; right: 10px;
-}
-#sclogo img {
-   border: none;
+   top: 200px;
+   left: 500px;
+   width: 260px;
+   height: auto;
+   -webkit-border-radius: 12px;
+   -moz-border-radius: 12px;
+   border-radius: 12px;
+   border: 1px solid #333;
+   font-size: 14px;
+   text-align: left;
+   background: rgba( 0, 0, 0, 0.8 );
+   z-index: 110;
+   padding: 10px 15px;
+   display: none;
 }
 
 #map_ui {
@@ -129,6 +140,49 @@ a:hover {
    display: none;
 }
 
+#map_ui ul + h1 {
+   margin-top: 2em;
+}
+#map_ui ul.instructions li {
+   margin-top: 0.5em;
+   margin-bottom: 0.5em;
+}
+
+#map_ui button {
+   -webkit-border-radius: 5px;
+   -moz-border-radius: 5px;
+   border-radius: 5px;
+   width: 170px;
+   text-align: left;
+   padding: 6px;
+   background: transparent;
+   color: white;
+   border: 1px solid #888;
+   margin: 5px;
+}
+#map_ui button:focus {
+   outline: none;
+}
+
+#stats #fpsText { color: #6ABBCF !important; font-family: Electrolize, Helvetica, Arial, sans-serif !important; }
+#stats #fpsGraph { background-color: #6ABBCF !important; }
+
+/*** custom checkboxes ***/
+
+input[type=checkbox] { display:none; } /* to hide the checkbox itself */
+input[type=checkbox] + label:before {
+   font-family: FontAwesome;
+   display: inline-block;
+}
+
+input[type=checkbox] + label:before { content: "\f096"; color: #f88; } /* unchecked icon */
+input[type=checkbox] + label:before { letter-spacing: 10px; } /* space between checkbox and label */
+
+input[type=checkbox]:checked + label:before { content: "\f046"; color: #8f8; } /* checked icon */
+input[type=checkbox]:checked + label:before { letter-spacing: 8px; } /* allow space for check mark */
+
+button.with-checkbox label { padding-left: 2px; }
+
 dl {
    border: none;
    padding: 0;
@@ -158,6 +212,7 @@ dd {
 .jspContainer {
 	overflow: hidden;
 	position: relative;
+   background: rgba( 0, 0, 0, 0.8 );
 }
 
 .jspPane {

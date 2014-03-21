@@ -11,14 +11,35 @@
    <body>
       <div id="map_ui" class="noselect">
          <ul class="menubar">
-            <li class="info"><a title="Selected Item Information" href="#info"><i class="fa fa-question-circle fa-fw fa-2x"></i></a></li>
-            <li class="route"><a title="Route Mode" href="#route"><i class="fa fa-map-marker fa-fw fa-2x"></i></a></li>
+            <li class="home"><a title="Usage" href="#home"><i class="fa fa-home fa-fw fa-2x"></i></a></li>
+            <li class="info"><a title="Selected Item Information" href="#info"><i class="fa fa-info-circle fa-fw fa-2x"></i></a></li>
+            <li class="route"><a title="Route Mode" href="#route"><i class="fa fa-rocket fa-fw fa-2x"></i></a></li>
             <li class="editor" style="display: none;"><a title="Map Editor" href="#editor"><i class="fa fa-edit fa-fw fa-2x"></i></a></li>
-            <li class="config"><a title="Configuration" href="#config"><i class="fa fa-cog fa-fw fa-2x"></i></a></li>
-            <li class="debug"><a title="Debug Information" href="#debug"><i class="fa fa-list-ul fa-fw fa-2x"></i></a></li>
-            <li class="about"><a title="About this map" href="#about"><i class="fa fa-info-circle fa-fw fa-2x"></i></a></li>
+            <li class="config"><a title="Configuration" href="#config"><i class="fa fa-wrench fa-fw fa-2x"></i></a></li>
+            <li class="debug"><a title="Debug Information" href="#debug"><i class="fa fa-bug fa-fw fa-2x"></i></a></li>
+            <li class="about"><a title="About this map" href="#about"><i class="fa fa-comment fa-fw fa-2x"></i></a></li>
          </ul>
-         <div class="info" id="info">
+         <div class="home" id="home">
+            <h1>Basic usage</h1>
+            <ul class="fa-ul instructions">
+               <li><i class="fa-li fa fa-circle-o"></i>Left-click and release to select a system.</li>
+               <li><i class="fa-li fa fa-circle-o"></i>Left-click and drag from system to system to map a route.</li>
+               <li><i class="fa-li fa fa-circle-o"></i>Left-click and drag on the map to rotate the camera around the center of the map.</li>
+               <li><i class="fa-li fa fa-circle-o"></i>Middle-click and drag or mousewheel to zoom in and out.</li>
+               <li><i class="fa-li fa fa-circle-o"></i>Right-click to pan the camera around the map.</li>
+            </ul>
+            <h1>Quick functions</h1>
+            <p>
+               <button class="quick-button" id="resetCamera"><i class="fa fa-camera fa-fw fa-lg"></i> Reset camera</button><br>
+               <button class="quick-button" id="centreCamera"><i class="fa fa-home fa-fw fa-lg"></i> Centre camera</button><br>
+               <button class="quick-button" id="northCamera"><i class="fa fa-compass fa-fw fa-lg"></i> Reset orientation</button><br>
+               <button class="quick-button" id="topCamera"><i class="fa fa-camera-retro fa-fw fa-lg"></i> Top-down camera</button><br>
+               <button class="quick-button" id="top2D"><i class="fa fa-map-marker fa-fw fa-lg"></i> 2D map mode</button><br>
+               <button class="quick-button with-checkbox"><input type="checkbox" value="1" id="3d-mode"><label class="fa-lg" for="3d-mode"></label>3D mode</button><br>
+               <button class="quick-button with-checkbox"><input type="checkbox" value="1" id="lock-rotation"><label class="fa-lg" for="lock-rotation"></label>Lock map rotation</button><br>
+            </p>
+         </div>
+         <div class="info" id="info" style="display: none;">
             <h1 id="systemname"></h1>
             <div id="systemblurb"><strong>No system selected</strong></div>
          </div>
@@ -41,15 +62,16 @@
          <div class="config" id="config" style="display: none;">
             <h1>Configuration</h1>
             <p><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
-            <p><input type="checkbox" value="1" id="toggle-fxaa"><label for="toggle-fxaa">FXAA</label>
-               <input type="checkbox" value="1" id="toggle-bloom"><label for="toggle-bloom">Bloom</label></p>
-            <p><input type="checkbox" value="1" id="3d-mode"><label for="3d-mode">3D Map</label></p>
-            <p><input type="checkbox" value="1" id="lock-rotation"><label for="lock-rotation">Lock map rotation</label></p>
+            <p>
+               <input type="checkbox" value="1" id="toggle-fxaa"><label for="toggle-fxaa">FXAA</label><br>
+               <input type="checkbox" value="1" id="toggle-bloom"><label for="toggle-bloom">Bloom</label>
+            </p>
          </div>
          <div class="debug" id="debug" style="display: none;">
-            <h1>Debug Info</h1>
+            <h1>Debug Information</h1>
             <div id="debugstuff" class="debug">
                <!-- doesn't work, TODO <p><a href="#" onclick="window.centerCross.visible = ( window.centerCross.visible ) ? false : true;">Toggle center crosshair</a></p> -->
+               <p id="debug-systems"></p>
                <p id="debug-state"></p>
                <p id="debug-angle"></p>
                <p id="debug-target"></p>
@@ -81,7 +103,6 @@
             </p>
          </div>
       </div>
-
       <div id="gl-info" data-glow-image="images/glow.png" data-rotate-speed="0.4" data-zoom-speed="1.0" data-pan-speed="0.6"></div>
       <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
       <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>

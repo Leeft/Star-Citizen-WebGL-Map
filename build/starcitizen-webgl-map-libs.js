@@ -964,6 +964,11 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    var pan = new THREE.Vector3();
 
    var lastPosition = new THREE.Vector3();
+   var targetTween;
+   var rotationTween;
+   var rotationLeft = undefined;
+   var rotationUp = undefined;
+   var rotationRadius = undefined;
 
    // events
 
@@ -980,27 +985,17 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    };
 
    this.rotateLeft = function ( angle ) {
-
       if ( angle === undefined ) {
-
          angle = getAutoRotationAngle();
-
       }
-
       thetaDelta -= angle;
-
    };
 
    this.rotateUp = function ( angle ) {
-
       if ( angle === undefined ) {
-
          angle = getAutoRotationAngle();
-
       }
-
       phiDelta -= angle;
-
    };
 
    // pass in distance in world space to move left
@@ -1040,14 +1035,26 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    };
 
    // assumes mapMode for now
-   this.moveTo = function ( system ) {
+   this.moveTo = function ( destination ) {
 
-      // make sure the destination is at the same xz plane
-      var destinationVector = system.position.clone().setY( this.target.y );
       var _this = this;
       var traverse = this.target.clone();
+      var destinationVector;
 
-      var tween = new TWEEN.Tween( traverse )
+      // makes sure the destination is at the same xz plane
+      if ( destination instanceof SCMAP.System ) {
+         destinationVector = destination.position.clone().setY( this.target.y );
+      } else if ( destination instanceof THREE.Vector3 ) {
+         destinationVector = destination.clone().setY( this.target.y );
+      } else {
+         return;
+      }
+
+      if ( targetTween ) {
+         targetTween.stop();
+      }
+
+      targetTween = new TWEEN.Tween( traverse )
          .to( { x: destinationVector.x, y: destinationVector.y, z: destinationVector.z }, 750 )
          .easing( TWEEN.Easing.Cubic.InOut )
          .onUpdate( function () {
@@ -1055,12 +1062,57 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
             _this.goTo( vec );
          } );
 
-      tween.onComplete( function() {
-         _this.map.select( system );
+      targetTween.onComplete( function() {
+         if ( destination instanceof SCMAP.System ) {
+            _this.map.select( destination );
+         }
+         targetTween = undefined;
       });
 
-      tween.start();
+      targetTween.start();
    };
+
+   // assumes mapMode for now
+   this.rotateTo = function ( left, up, radius ) {
+
+      var _this = this;
+      var offset = this.objectVectorToTarget();
+      // angle from z-axis around y-axis
+      var theta = Math.atan2( offset.x, offset.z );
+      // angle from y-axis
+      var phi = Math.atan2( Math.sqrt( offset.x * offset.x + offset.z * offset.z ), offset.y );
+      var rotate = {
+         left: theta,
+         up: phi,
+         radius: offset.length()
+      };
+
+      rotateLeft = rotate.left;
+      rotateUp   = rotate.up;
+
+      if ( rotationTween ) {
+         rotationTween.stop();
+      }
+
+      rotationTween = new TWEEN.Tween( rotate )
+         .to( { left: left, up: up, radius: radius }, 1000 )
+         .easing( TWEEN.Easing.Cubic.InOut )
+         .onUpdate( function () {
+            rotationLeft   = this.left;
+            rotationUp     = this.up;
+            rotationRadius = this.radius;
+         });
+
+      rotationTween.onComplete( function() {
+         rotationTween  = undefined;
+         rotationLeft   = undefined;
+         rotationUp     = undefined;
+         rotationRadius = undefined;
+      });
+
+      rotationTween.start();
+   };
+
 
    // assumes mapMode for now
    this.goTo = function ( vector ) {
@@ -1080,9 +1132,7 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       if ( scope.object.fov !== undefined ) {
 
          // perspective
-         var position = scope.object.position;
-         var offset = position.clone().sub( scope.target );
-         var targetDistance = offset.length();
+         var targetDistance = scope.objectVectorToTarget().length();
          var yDistance;
 
          // half of the fov is center to top of screen
@@ -1107,27 +1157,19 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    };
 
    this.dollyIn = function ( dollyScale ) {
-
       if ( dollyScale === undefined ) {
-
          dollyScale = getZoomScale();
-
       }
 
       scale /= dollyScale;
-
    };
 
    this.dollyOut = function ( dollyScale ) {
-
       if ( dollyScale === undefined ) {
-
          dollyScale = getZoomScale();
-
       }
 
       scale *= dollyScale;
-
    };
 
    this.getIntersect = function ( event ) {
@@ -1141,94 +1183,97 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       return intersects[0];
    };
 
+   this.objectVectorToTarget = function () {
+      return this.object.position.clone().sub( this.target );
+   };
+
    this.update = function () {
 
-      var position = this.object.position;
-      var offset = position.clone().sub( this.target );
+      var offset = this.objectVectorToTarget();
+
+      // move target to panned location
+      this.target.add( pan );
 
       // angle from z-axis around y-axis
-
       var theta = Math.atan2( offset.x, offset.z );
 
       // angle from y-axis
-
       var phi = Math.atan2( Math.sqrt( offset.x * offset.x + offset.z * offset.z ), offset.y );
 
-      if ( this.autoRotate ) {
-
-         this.rotateLeft( getAutoRotationAngle() );
-
-      }
+      //if ( this.autoRotate ) {
+      //   this.rotateLeft( getAutoRotationAngle() );
+      //}
 
       theta += thetaDelta;
       phi += phiDelta;
 
+      if ( rotationLeft !== undefined ) {
+         theta = rotationLeft;
+      }
+      if ( rotationUp !== undefined ) {
+         phi = rotationUp;
+      }
+
       // restrict phi to be between desired limits
       phi = Math.max( this.minPolarAngle, Math.min( this.maxPolarAngle, phi ) );
 
-      // restrict phi to be betwee EPS and PI-EPS
+      // restrict phi to be between EPS and PI-EPS
       phi = Math.max( EPS, Math.min( Math.PI - EPS, phi ) );
 
       var radius = offset.length() * scale;
+      if ( rotationRadius !== undefined ) {
+         radius = rotationRadius;
+      }
+
+      $('#debug-angle').html(
+         'Camera heading: '+THREE.Math.radToDeg( theta ).toFixed(1)+'&deg;<br>'+
+         'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg;'
+      );
 
       // restrict radius to be between desired limits
       radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );
-
-      // move target to panned location
-      this.target.add( pan );
 
       offset.x = radius * Math.sin( phi ) * Math.sin( theta );
       offset.y = radius * Math.cos( phi );
       offset.z = radius * Math.sin( phi ) * Math.cos( theta );
 
-      position.copy( this.target ).add( offset );
+      this.object.position.copy( this.target ).add( offset );
 
       this.object.lookAt( this.target );
 
       thetaDelta = 0;
       phiDelta = 0;
       scale = 1;
-      pan.set(0,0,0);
+      pan.set( 0, 0, 0 );
 
       if ( lastPosition.distanceTo( this.object.position ) > 0 ) {
-
          this.dispatchEvent( changeEvent );
-
          lastPosition.copy( this.object.position );
-
       }
 
       this.showState();
    };
 
    function getAutoRotationAngle() {
-
       return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
-
    }
 
    function getZoomScale() {
-
       return Math.pow( 0.95, scope.zoomSpeed );
-
    }
 
    function onMouseDown( event ) {
-
       if ( scope.enabled === false ) { return; }
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
       event.preventDefault();
       state.starttouch( event );
-
       scope.domElement.addEventListener( 'mousemove', onMouseMove, false );
       scope.domElement.addEventListener( 'mouseup', onMouseUp, false );
    }
 
    function onMouseMove( event ) {
-
       if ( scope.enabled === false ) return;
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
-
       event.preventDefault();
 
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
@@ -1236,15 +1281,10 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       if ( state.current === 'touch' ) {
 
          if ( event.button === 0 ) { // left mouse
-
             state.touchtorotate( event );
-
          } else if ( event.button === 1 ) { // middle mouse
-
             state.touchtodolly( event );
-
          } else if ( event.button === 2 ) { // right mouse
-
             state.touchtopan( event );
          }
 
@@ -1308,7 +1348,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    }
 
    function onMouseUp( event ) {
-
       if ( scope.enabled === false ) return;
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
 
@@ -1316,11 +1355,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       scope.domElement.removeEventListener( 'mouseup', onMouseUp, false );
 
       state.idle( event );
-
    }
 
    function onMouseWheel( event ) {
-
       if ( scope.enabled === false || scope.noZoom === true ) return;
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
 
@@ -1330,33 +1367,21 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       var delta = 0;
 
       if ( event.deltaY ) { // jquery-mousewheel
-
          delta = event.deltaY;
-
       } else if ( event.wheelDelta ) { // WebKit / Opera / Explorer 9
-
          delta = event.wheelDelta;
-
       } else if ( event.detail ) { // Firefox
-
          delta = - event.detail;
-
       }
 
       if ( delta > 0 ) {
-
          scope.dollyOut();
-
       } else {
-
          scope.dollyIn();
-
       }
-
    }
 
    function onKeyDown( event ) {
-
       if ( scope.enabled === false ) { return; }
       if ( scope.noKeys === true ) { return; }
       if ( scope.noPan === true ) { return; }
@@ -1367,7 +1392,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
 
       // pan a pixel - I guess for precise positioning?
       var needUpdate = false;
-
       switch ( event.keyCode ) {
          case scope.keys.UP:
             scope.pan( new THREE.Vector2( 0, scope.keyPanSpeed ) );
@@ -1390,11 +1414,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       if ( needUpdate ) {
          scope.update();
       }
-
    }
 
    function touchstart( event ) {
-
       if ( scope.enabled === false ) { return; }
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
 
@@ -1514,12 +1536,10 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    this.domElement.addEventListener( 'mousewheel', onMouseWheel, false );
    this.domElement.addEventListener( 'DOMMouseScroll', onMouseWheel, false ); // firefox
 
-   // And we need to trigger jquery-mousewheel explicitly, or the WebGL view doesn't
+   // We need to trigger jquery-mousewheel explicitly, or the WebGL view doesn't
    // get any mousewheel events
-   if ( window.jQuery ) {
-      window.jQuery( this.domElement ).on( 'mousewheel', onMouseWheel );
-      window.jQuery( this.domElement ).on( 'mouseenter', function ( event ) { state.idle( event ); });
-   }
+   $( this.domElement ).on( 'mousewheel', onMouseWheel );
+   $( this.domElement ).on( 'mouseenter', function ( event ) { state.idle( event ); });
 
    this.domElement.addEventListener( 'keydown', onKeyDown, false );
 
