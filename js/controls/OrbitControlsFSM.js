@@ -74,7 +74,21 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    // Set to true to disable use of the keys
    this.noKeys = false;
    // The four arrow keys
-   this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
+   this.keys = {
+      LEFT: 37,
+      UP: 38,
+      RIGHT: 39,
+      BOTTOM: 40,
+      ESCAPE: 27,
+      R: 82,
+      C: 67,
+      T: 84,
+      2: 50,
+      3: 51,
+      L: 76,
+      SPACE: 32,
+      TAB: 9
+   };
 
    this.debug = false;
 
@@ -345,6 +359,11 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       });
 
       rotationTween.start();
+   };
+
+   this.cameraTo = function ( target, theta, phi, radius ) {
+      this.rotateTo( theta, phi, radius );
+      this.moveTo( target )
    };
 
 
@@ -643,6 +662,37 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
             scope.pan( new THREE.Vector2( -scope.keyPanSpeed, 0 ) );
             needUpdate = true;
             break;
+         case scope.keys.ESCAPE: // Deselect selected
+            scope.map.deselect();
+            break;
+         case scope.keys.TAB: // Tab through route
+            // TODO
+            break;
+         case scope.keys.R: // Reset orientation
+            scope.rotateTo( cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+            break;
+         case scope.keys.C: // Center on default
+            scope.moveTo( cameraDefaults.target );
+            break;
+         case scope.keys.T: // Top view
+            scope.rotateTo( 0, 0, 200 );
+            break;
+         case scope.keys['2']: // 2D mode
+            scope.noRotate = true;
+            $('#lock-rotation').prop( 'checked', true );
+            displayState.to2d();
+            scope.rotateTo( 0, 0, 180 );
+            break;
+         case scope.keys['3']: // 3D mode
+            displayState.to3d();
+            scope.rotateTo( cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+            break;
+         case scope.keys.L: // Lock/unlock rotation
+            $('#lock-rotation').click();
+            break;
+         default:
+//console.log( "onkeydown", event.keyCode ); // TODO: REMOVE ME
+            break;
       }
 
       if ( needUpdate ) {
@@ -775,7 +825,10 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    $( this.domElement ).on( 'mousewheel', onMouseWheel );
    $( this.domElement ).on( 'mouseenter', function ( event ) { state.idle( event ); });
 
-   this.domElement.addEventListener( 'keydown', onKeyDown, false );
+   console.log( this.domElement );
+   //this.domElement.addEventListener( 'keydown', onKeyDown, false );
+   window.addEventListener( 'keydown', onKeyDown, false );
+   //$( this.domElement ).on( 'keydown', onKeyDown );
 
    this.domElement.addEventListener( 'touchstart', touchstart, false );
    this.domElement.addEventListener( 'touchend', touchend, false );

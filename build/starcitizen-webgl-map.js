@@ -1751,7 +1751,10 @@ var effectFXAA, camera, scene, renderer, composer, map, dpr,
       x: 0,
       y: 80,
       z: 100,
-      target: new THREE.Vector3( 0, 10, 0 )
+      target: new THREE.Vector3( 0, 10, 0 ),
+      theta: 0,
+      phi: THREE.Math.degToRad( 55.1 ),
+      radius: 122.2
    };
 
 $(function() {
@@ -1888,11 +1891,7 @@ function init()
    $('#toggle-bloom').on( 'change', function() { effectBloom.enabled = this.checked; });
 
    $('#resetCamera').on( 'click', function() {
-      controls.noRotate = false;
-      $('#lock-rotation').prop( 'checked', false );
-      displayState.to3d();
-      controls.rotateTo( 0, THREE.Math.degToRad( 55.1 ), 122.2 );
-      controls.moveTo( cameraDefaults.target );
+      controls.cameraTo( cameraDefaults.target, cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
    });
    $('#centreCamera').on( 'click', function() {
       controls.moveTo( cameraDefaults.target );
@@ -1912,6 +1911,16 @@ function init()
    $('.quick-button.with-checkbox').on( 'click', function ( event ) {
       var $this = $(this);
       $this.find('input[type=checkbox]').click();
+   });
+   $('#keyboard-shortcuts').on( 'click', function ( event ) {
+      var $this = $(this);
+      //$.toggle(!$('#keyboard-shortcuts dl').is(':visible')); // or:
+      $('#keyboard-shortcuts dl').toggle();
+      if ( $('#keyboard-shortcuts dl').is(':visible') ) {
+         $('#keyboard-shortcuts > a > i').removeClass('fa-caret-right').addClass('fa-caret-down');
+      } else {
+         $('#keyboard-shortcuts > a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
+      }
    });
 }
 

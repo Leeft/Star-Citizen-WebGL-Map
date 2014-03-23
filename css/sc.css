@@ -198,9 +198,15 @@ dt {
 dt:after {
    content: ": ";
 }
+#keyboard-shortcuts dt {
+   width: 25px;
+}
 dd {
-   margin: 0 0 0 145px;
+   margin: 0 0 0 40px;
    padding: 0 0 0.4em 0;
+}
+#keyboard-shortcuts dd {
+   width: 250px;
 }
 
 /*
