@@ -81,21 +81,38 @@ SCMAP.System.prototype = {
    },
 
    labelMaterial: function () {
-      var canvas, context, texture, material;
+      var canvas, context, texture, material, text = this.name, actualWidth;
+
       canvas = document.createElement('canvas');
-      canvas.width = 300;
-      canvas.height = 64;
+      canvas.width = 400;
+      canvas.height = 54;
       context = canvas.getContext('2d');
-      context.font = "36pt Electrolize, sans-serif";
+
+      context.font = '36pt Electrolize, Calibri, sans-serif';
       context.textAlign = 'center';
       context.strokeStyle = 'rgba(0,0,0,0.95)';
       context.lineWidth = 5;
-      context.strokeText( this.name, canvas.width / 2, 38 );
-      context.fillStyle = "rgba(255,255,255,0.95)";
-      //systemNameWidth = context.measureText( this.name ).width; // didn't get this to work yet
-      context.fillText( this.name, canvas.width / 2, 38 );
+      actualWidth = Math.ceil( context.measureText( text ).width + 1 );
+      canvas.width = actualWidth;
+
+      //context.beginPath();
+      //context.rect( 0, 0, canvas.width, canvas.height );
+      //context.lineWidth = 5;
+      //context.strokeStyle = 'yellow';
+      //context.stroke();
+
+      context.font = '36pt Electrolize, Calibri, sans-serif';
+      context.strokeStyle = 'rgba(0,0,0,0.95)';
+      context.textAlign = 'center';
+      context.lineWidth = 5;
+      context.strokeText( text, canvas.width / 2, 39 );
+
+      context.fillStyle = 'rgba(255,255,255,0.95)';
+      context.fillText( text, canvas.width / 2, 39 );
+
       texture = new THREE.Texture( canvas ) ;
       texture.needsUpdate = true;
+
       material = new THREE.SpriteMaterial({ map: texture, useScreenCoordinates: false });
       return material;
    },

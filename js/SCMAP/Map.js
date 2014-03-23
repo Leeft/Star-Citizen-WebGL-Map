@@ -213,8 +213,8 @@ SCMAP.Map.prototype = {
          sceneObject = system.buildSceneObject();
          this.scene.add( sceneObject );
          this.interactables.push( sceneObject.children[0] );
-         //this.interactables.push( sceneObject.children[1] ); // Glow too big, disabled
-         //this.interactables.push( sceneObject.children[2] ); // Label too big, disabled
+         //this.interactables.push( sceneObject.children[1] ); // Glow too big for now, disabled
+         //this.interactables.push( sceneObject.children[2] ); // Even a properly sized label is too big :(
 
          systemCount++;
 
