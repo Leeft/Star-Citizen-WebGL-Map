@@ -2,7 +2,7 @@
 * @author LiannaEeftinck / https://github.com/Leeft
 */
 
-var SCMAP = SCMAP || { REVISION: '2' };
+var SCMAP = SCMAP || { REVISION: '3' };
 
 self.console = self.console || {
    info: function () {},
@@ -18,7 +18,8 @@ SCMAP.data = {
    uee_strategic_values: [],
    goods: [],
    map: {},
-   systems: []
+   systems: [],
+   systemsById: []
 };
 
 // constants here

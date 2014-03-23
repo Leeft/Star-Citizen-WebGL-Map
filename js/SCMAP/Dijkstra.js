@@ -56,16 +56,17 @@ SCMAP.Dijkstra.prototype = {
       // Built using:
       // http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
 
-      for ( var k = 0; k < map.systems.length; k++ ) {
-         map.systems[k].distance = Number.POSITIVE_INFINITY;
-         map.systems[k].parent = null;
+      var unvisited = Object.values( SCMAP.data.systems );
+
+      for ( var k = 0; k < unvisited.length; k++ ) {
+         unvisited[k].distance = Number.POSITIVE_INFINITY;
+         unvisited[k].parent = null;
       }
 
       var currentSystem = initialNode;
       currentSystem.distance = 0;
       currentSystem.parent = null;
 
-      var unvisited = map.systems.slice(0); // Make a copy
       unvisited = SCMAP.Dijkstra.quickSort( unvisited );
 
       //var distance = 0;
@@ -81,19 +82,19 @@ SCMAP.Dijkstra.prototype = {
             break;
          }
 
-         for ( var i = 0; i < currentSystem.jumppoints.length; i++ )
+         for ( var i = 0; i < currentSystem.jumpPoints.length; i++ )
          {
-            var alt = currentSystem.distance + currentSystem.jumppoints[i].length();
+            var alt = currentSystem.distance + currentSystem.jumpPoints[i].length();
 
-            if ( alt < currentSystem.jumppoints[i].destination.distance ) {
-               currentSystem.jumppoints[i].destination.distance = alt;
-               currentSystem.jumppoints[i].destination.parent = currentSystem;
+            if ( alt < currentSystem.jumpPoints[i].destination.distance ) {
+               currentSystem.jumpPoints[i].destination.distance = alt;
+               currentSystem.jumpPoints[i].destination.parent = currentSystem;
                unvisited = SCMAP.Dijkstra.quickSort( unvisited );
             }
          }
       }
 
-      this.results = map.systems;
+      this.results = unvisited;
       endTime = new Date();
       console.log( "Graph building took " + (endTime.getTime() - startTime.getTime()) + " msec" );
    },

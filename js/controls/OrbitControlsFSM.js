@@ -124,9 +124,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
                // that object (possibly to another object) so we take
                // note of that object and switch to the drag state
                intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.system ) {
-                  startObject = intersect.object.system;
-                  scope.debug && console.log( 'Started dragging at "' + intersect.object.system.name + '"' );
+               if ( intersect && intersect.object.parent.system ) {
+                  startObject = intersect.object.parent.system;
+                  scope.debug && console.log( 'Started dragging at "' + intersect.object.parent.system.name + '"' );
                   scope.map.select( startObject );
                   this.touchtodrag( event );
                }
@@ -161,9 +161,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
             scope.debug && console.log( stateEvent, ": idling after", from );
             if ( from === 'drag' ) {
                var intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.system ) {
-                  endObject = intersect.object.system;
-                  scope.debug && console.log( 'Ended dragging at "' + intersect.object.system.name + '"' );
+               if ( intersect && intersect.object.parent.system ) {
+                  endObject = intersect.object.parent.system;
+                  scope.debug && console.log( 'Ended dragging at "' + intersect.object.parent.system.name + '"' );
                }
             }
             startObject = undefined;
@@ -526,9 +526,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
 
          if ( startObject ) {
             var intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.system && intersect.object.system !== startObject ) {
-               if ( !endObject || endObject !== intersect.object.system ) {
-                  endObject = intersect.object.system;
+            if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== startObject ) {
+               if ( !endObject || endObject !== intersect.object.parent.system ) {
+                  endObject = intersect.object.parent.system;
                   scope.map.updateRoute( endObject );
                   scope.debug && console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
                }

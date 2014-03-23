@@ -1,4 +1,4 @@
-var effectFXAA, camera, scene, renderer, composer, map,
+var effectFXAA, camera, scene, renderer, composer, map, dpr,
    shift, ctrl, alt, controls, editor, stats, displayState,
    cameraDefaults = {
       x: 0,
@@ -45,6 +45,11 @@ function init()
 {
    var container, renderModel, effectCopy, effectBloom, width, height;
 
+   dpr = 1;
+   if ( window.devicePixelRatio !== undefined ) {
+      dpr = window.devicePixelRatio;
+   }
+
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
    container.className = 'noselect webgl-container-noedit';
@@ -52,12 +57,12 @@ function init()
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
 
-   camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 10, 800 );
+   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 800 );
 
    camera.position.x = cameraDefaults.x;
    camera.position.y = cameraDefaults.y;
    camera.position.z = cameraDefaults.z;
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 8 ), width, height );
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 4 ), width, height );
 
    controls = new THREE.OrbitControlsFSM( camera, $('#webgl-container')[0] );
 	controls.target = cameraDefaults.target.clone();
@@ -114,12 +119,13 @@ function init()
    effectCopy.renderToScreen = true;
 
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-   effectFXAA.uniforms.resolution.value.set( 1 / width, 1 / height );
+   effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
    effectFXAA.enabled = false;
    effectBloom.enabled = false;
 
    composer = new THREE.EffectComposer( renderer );
+   composer.setSize( width * dpr, height * dpr );
    composer.addPass( renderModel );
    composer.addPass( effectFXAA );
    composer.addPass( effectBloom );
@@ -128,8 +134,6 @@ function init()
    displayState = buildDisplayModeFSM( '3d' ); // TODO get current state for user on load
 
    // Some simple UI stuff
-
-   camera.matrixWorldNeedsUpdate = true;
 
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
    $('#lock-rotation').on( 'change', function() { controls.noRotate = this.checked; });
@@ -187,14 +191,24 @@ function buildCross () {
    return group;
 }
 
+Object.values = function (obj ) {
+    var vals = [];
+    for ( var key in obj ) {
+        if ( obj.hasOwnProperty(key) ) {
+            vals.push( obj[key] );
+        }
+    }
+    return vals;
+};
+
 function onWindowResize() {
    var width = window.innerWidth || 2;
    var height = window.innerHeight || 2;
    camera.aspect = width / height;
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 8 ), width, height );
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 4 ), width, height );
    camera.updateProjectionMatrix();
-   renderer.setSize( window.innerWidth, window.innerHeight );
-   effectFXAA.uniforms.resolution.value.set( 1 / window.innerWidth, 1 / window.innerHeight );
+   effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
+   renderer.setSize( width, height );
    composer.reset();
 }
 
@@ -203,7 +217,7 @@ function onDocumentMouseUpAndDown( event ) {
    vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
    projector = new THREE.Projector();
    projector.unprojectVector( vector, camera );
-   raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+   raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
    intersects = raycaster.intersectObjects( map.interactables );
    map.handleSelection( event, intersects[0] );
 }
@@ -232,7 +246,7 @@ function buildDisplayModeFSM ( initialState )
       .onUpdate( function () {
             //var target = map.selectedTarget;
             //map.deselect();
-            map.graph.destroyRoute();
+            map._graph.destroyRoute();
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
@@ -253,7 +267,7 @@ function buildDisplayModeFSM ( initialState )
       .onUpdate( function () {
             //var target = map.selectedTarget;
             //map.deselect();
-            map.graph.destroyRoute();
+            map._graph.destroyRoute();
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {

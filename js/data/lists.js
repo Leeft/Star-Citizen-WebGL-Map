@@ -1,426 +1,426 @@
 SCMAP.data.factions = {
-   "6" : {
-      "color" : "0x666666",
-      "short_name" : "UNC",
-      "is_real_faction" : 0,
-      "name" : "Unclaimed",
-      "id" : 6
-   },
-   "4" : {
-      "color" : "0xFFED9B",
-      "short_name" : "BAN",
-      "is_real_faction" : 1,
-      "name" : "Banu",
-      "id" : 4
-   },
    "1" : {
       "color" : "0x90ABD9",
-      "short_name" : "UEE",
+      "faction_id" : 1,
       "is_real_faction" : 1,
       "name" : "United Empire of Earth",
-      "id" : 1
-   },
-   "3" : {
-      "color" : "0xA4D49C",
-      "short_name" : "XIA",
-      "is_real_faction" : 1,
-      "name" : "Xi'An",
-      "id" : 3
-   },
-   "7" : {
-      "color" : "0xE67100",
-      "short_name" : "KRT",
-      "is_real_faction" : 1,
-      "name" : "Kr'thak",
-      "id" : 7
+      "short_name" : "UEE"
    },
    "2" : {
       "color" : "0xF9B29C",
-      "short_name" : "VAN",
+      "faction_id" : 2,
       "is_real_faction" : 1,
       "name" : "Vanduul",
-      "id" : 2
+      "short_name" : "VAN"
+   },
+   "3" : {
+      "color" : "0xA4D49C",
+      "faction_id" : 3,
+      "is_real_faction" : 1,
+      "name" : "Xi'An",
+      "short_name" : "XIA"
+   },
+   "4" : {
+      "color" : "0xFFED9B",
+      "faction_id" : 4,
+      "is_real_faction" : 1,
+      "name" : "Banu",
+      "short_name" : "BAN"
    },
    "5" : {
       "color" : "0xD1A4D0",
-      "short_name" : "SUB",
+      "faction_id" : 5,
       "is_real_faction" : 0,
       "name" : "Sub-UEE",
-      "id" : 5
+      "short_name" : "SUB"
+   },
+   "6" : {
+      "color" : "0x666666",
+      "faction_id" : 6,
+      "is_real_faction" : 0,
+      "name" : "Unclaimed",
+      "short_name" : "UNC"
+   },
+   "7" : {
+      "color" : "0xE67100",
+      "faction_id" : 7,
+      "is_real_faction" : 1,
+      "name" : "Kr'thak",
+      "short_name" : "KRT"
    }
 }
 
 SCMAP.data.crime_levels = {
-   "6" : {
-      "name" : "High",
-      "id" : 6
-   },
-   "3" : {
-      "name" : "Low-Medium",
-      "id" : 3
-   },
-   "7" : {
-      "name" : "Very High",
-      "id" : 7
-   },
-   "2" : {
-      "name" : "Low",
-      "id" : 2
-   },
-   "8" : {
-      "name" : "Full",
-      "id" : 8
-   },
-   "1" : {
-      "name" : "Very Low",
-      "id" : 1
-   },
-   "4" : {
-      "name" : "Medium",
-      "id" : 4
+   "-1" : {
+      "crime_level_id" : -1,
+      "name" : "Unknown"
    },
    "0" : {
-      "name" : "None (Lawless)",
-      "id" : 0
+      "crime_level_id" : 0,
+      "name" : "None (Lawless)"
    },
-   "-1" : {
-      "name" : "Unknown",
-      "id" : -1
+   "1" : {
+      "crime_level_id" : 1,
+      "name" : "Very Low"
+   },
+   "2" : {
+      "crime_level_id" : 2,
+      "name" : "Low"
+   },
+   "3" : {
+      "crime_level_id" : 3,
+      "name" : "Low-Medium"
+   },
+   "4" : {
+      "crime_level_id" : 4,
+      "name" : "Medium"
    },
    "5" : {
-      "name" : "Med-High",
-      "id" : 5
+      "crime_level_id" : 5,
+      "name" : "Med-High"
+   },
+   "6" : {
+      "crime_level_id" : 6,
+      "name" : "High"
+   },
+   "7" : {
+      "crime_level_id" : 7,
+      "name" : "Very High"
+   },
+   "8" : {
+      "crime_level_id" : 8,
+      "name" : "Full"
    }
 }
 
 SCMAP.data.uee_strategic_values = {
-   "6" : {
-      "color" : "Purple",
-      "id" : 6,
-      "description" : ""
-   },
-   "3" : {
-      "color" : "Yellow",
-      "id" : 3,
-      "description" : ""
-   },
-   "7" : {
-      "color" : "White",
-      "id" : 7,
-      "description" : ""
-   },
-   "9" : {
-      "color" : "Black",
-      "id" : 9,
-      "description" : ""
+   "1" : {
+      "color" : "Red",
+      "description" : "",
+      "uee_strategic_value_id" : 1
    },
    "2" : {
       "color" : "Orange",
-      "id" : 2,
-      "description" : ""
+      "description" : "",
+      "uee_strategic_value_id" : 2
    },
-   "8" : {
-      "color" : "Gray",
-      "id" : 8,
-      "description" : ""
-   },
-   "1" : {
-      "color" : "Red",
-      "id" : 1,
-      "description" : ""
+   "3" : {
+      "color" : "Yellow",
+      "description" : "",
+      "uee_strategic_value_id" : 3
    },
    "4" : {
       "color" : "Green",
-      "id" : 4,
-      "description" : ""
+      "description" : "",
+      "uee_strategic_value_id" : 4
    },
    "5" : {
       "color" : "Blue",
-      "id" : 5,
-      "description" : ""
+      "description" : "",
+      "uee_strategic_value_id" : 5
+   },
+   "6" : {
+      "color" : "Purple",
+      "description" : "",
+      "uee_strategic_value_id" : 6
+   },
+   "7" : {
+      "color" : "White",
+      "description" : "",
+      "uee_strategic_value_id" : 7
+   },
+   "8" : {
+      "color" : "Gray",
+      "description" : "",
+      "uee_strategic_value_id" : 8
+   },
+   "9" : {
+      "color" : "Black",
+      "description" : "",
+      "uee_strategic_value_id" : 9
    }
 }
 
 SCMAP.data.goods = {
-   "33" : {
-      "black_market" : 0,
-      "name" : "Criminals",
-      "id" : 33
-   },
-   "32" : {
-      "black_market" : 0,
-      "name" : "Antimatter",
-      "id" : 32
-   },
-   "21" : {
-      "black_market" : 0,
-      "name" : "Raw Materials",
-      "id" : 21
-   },
-   "7" : {
-      "black_market" : 0,
-      "name" : "Silica",
-      "id" : 7
-   },
-   "26" : {
-      "black_market" : 0,
-      "name" : "Refuse",
-      "id" : 26
-   },
-   "17" : {
-      "black_market" : 0,
-      "name" : "Research",
-      "id" : 17
-   },
-   "2" : {
-      "black_market" : 1,
-      "name" : "Narcotics",
-      "id" : 2
-   },
    "1" : {
       "black_market" : 1,
-      "name" : "Slaves",
-      "id" : 1
-   },
-   "18" : {
-      "black_market" : 0,
-      "name" : "Electronics",
-      "id" : 18
-   },
-   "30" : {
-      "black_market" : 0,
-      "name" : "Textiles",
-      "id" : 30
-   },
-   "16" : {
-      "black_market" : 1,
-      "name" : "Artwork",
-      "id" : 16
-   },
-   "44" : {
-      "black_market" : 1,
-      "name" : "Oso Meat",
-      "id" : 44
-   },
-   "55" : {
-      "black_market" : 0,
-      "name" : "Human Cultural Goods",
-      "id" : 55
-   },
-   "27" : {
-      "black_market" : 0,
-      "name" : "Crystals",
-      "id" : 27
-   },
-   "25" : {
-      "black_market" : 0,
-      "name" : "Salvage",
-      "id" : 25
-   },
-   "28" : {
-      "black_market" : 0,
-      "name" : "Graphite",
-      "id" : 28
-   },
-   "40" : {
-      "black_market" : 0,
-      "name" : "Fuel",
-      "id" : 40
-   },
-   "20" : {
-      "black_market" : 1,
-      "name" : "Weapons",
-      "id" : 20
-   },
-   "14" : {
-      "black_market" : 0,
-      "name" : "GeoEngineering Products",
-      "id" : 14
-   },
-   "49" : {
-      "black_market" : 1,
-      "name" : "Chemicals",
-      "id" : 49
-   },
-   "24" : {
-      "black_market" : 0,
-      "name" : "Reactors",
-      "id" : 24
+      "goods_id" : 1,
+      "name" : "Slaves"
    },
    "10" : {
       "black_market" : 1,
-      "name" : "Luxury Goods",
-      "id" : 10
-   },
-   "31" : {
-      "black_market" : 1,
-      "name" : "Biological Goods",
-      "id" : 31
-   },
-   "35" : {
-      "black_market" : 1,
-      "name" : "Medical Supplies",
-      "id" : 35
+      "goods_id" : 10,
+      "name" : "Luxury Goods"
    },
    "11" : {
       "black_market" : 1,
-      "name" : "Kidnapping",
-      "id" : 11
-   },
-   "53" : {
-      "black_market" : 0,
-      "name" : "Industrial Machinery",
-      "id" : 53
-   },
-   "48" : {
-      "black_market" : 0,
-      "name" : "Research Equipment",
-      "id" : 48
-   },
-   "42" : {
-      "black_market" : 0,
-      "name" : "Crude Oil",
-      "id" : 42
-   },
-   "22" : {
-      "black_market" : 0,
-      "name" : "Heavy Metals",
-      "id" : 22
-   },
-   "46" : {
-      "black_market" : 0,
-      "name" : "Heavy Machinery",
-      "id" : 46
-   },
-   "13" : {
-      "black_market" : 0,
-      "name" : "Energy Supplies",
-      "id" : 13
-   },
-   "23" : {
-      "black_market" : 0,
-      "name" : "Oxygen",
-      "id" : 23
-   },
-   "29" : {
-      "black_market" : 0,
-      "name" : "Processed Goods",
-      "id" : 29
-   },
-   "6" : {
-      "black_market" : 1,
-      "name" : "Pleasure Bots",
-      "id" : 6
-   },
-   "50" : {
-      "black_market" : 0,
-      "name" : "Black Glass",
-      "id" : 50
-   },
-   "39" : {
-      "black_market" : 1,
-      "name" : "Atomics",
-      "id" : 39
-   },
-   "36" : {
-      "black_market" : 0,
-      "name" : "Printed Material",
-      "id" : 36
-   },
-   "3" : {
-      "black_market" : 1,
-      "name" : "Mercenaries",
-      "id" : 3
-   },
-   "51" : {
-      "black_market" : 0,
-      "name" : "Gray Oil",
-      "id" : 51
-   },
-   "9" : {
-      "black_market" : 0,
-      "name" : "Labor",
-      "id" : 9
-   },
-   "41" : {
-      "black_market" : 0,
-      "name" : "Mechanical Goods",
-      "id" : 41
+      "goods_id" : 11,
+      "name" : "Kidnapping"
    },
    "12" : {
       "black_market" : 1,
-      "name" : "Theft",
-      "id" : 12
+      "goods_id" : 12,
+      "name" : "Theft"
    },
-   "47" : {
+   "13" : {
       "black_market" : 0,
-      "name" : "Rare Metals",
-      "id" : 47
+      "goods_id" : 13,
+      "name" : "Energy Supplies"
+   },
+   "14" : {
+      "black_market" : 0,
+      "goods_id" : 14,
+      "name" : "GeoEngineering Products"
    },
    "15" : {
       "black_market" : 1,
-      "name" : "Stims",
-      "id" : 15
+      "goods_id" : 15,
+      "name" : "Stims"
    },
-   "52" : {
+   "16" : {
       "black_market" : 1,
-      "name" : "Animals",
-      "id" : 52
+      "goods_id" : 16,
+      "name" : "Artwork"
    },
-   "38" : {
-      "black_market" : 1,
-      "name" : "Gemstones",
-      "id" : 38
-   },
-   "8" : {
+   "17" : {
       "black_market" : 0,
-      "name" : "Food",
-      "id" : 8
+      "goods_id" : 17,
+      "name" : "Research"
    },
-   "4" : {
+   "18" : {
       "black_market" : 0,
-      "name" : "Elements",
-      "id" : 4
-   },
-   "34" : {
-      "black_market" : 1,
-      "name" : "Poisons",
-      "id" : 34
-   },
-   "56" : {
-      "black_market" : 0,
-      "name" : "Spare Parts",
-      "id" : 56
-   },
-   "45" : {
-      "black_market" : 0,
-      "name" : "Fertilizer",
-      "id" : 45
-   },
-   "37" : {
-      "black_market" : 0,
-      "name" : "Copper",
-      "id" : 37
-   },
-   "43" : {
-      "black_market" : 0,
-      "name" : "Water",
-      "id" : 43
+      "goods_id" : 18,
+      "name" : "Electronics"
    },
    "19" : {
       "black_market" : 0,
-      "name" : "Computer Tech",
-      "id" : 19
+      "goods_id" : 19,
+      "name" : "Computer Tech"
    },
-   "54" : {
+   "2" : {
       "black_market" : 1,
-      "name" : "Gambling",
-      "id" : 54
+      "goods_id" : 2,
+      "name" : "Narcotics"
+   },
+   "20" : {
+      "black_market" : 1,
+      "goods_id" : 20,
+      "name" : "Weapons"
+   },
+   "21" : {
+      "black_market" : 0,
+      "goods_id" : 21,
+      "name" : "Raw Materials"
+   },
+   "22" : {
+      "black_market" : 0,
+      "goods_id" : 22,
+      "name" : "Heavy Metals"
+   },
+   "23" : {
+      "black_market" : 0,
+      "goods_id" : 23,
+      "name" : "Oxygen"
+   },
+   "24" : {
+      "black_market" : 0,
+      "goods_id" : 24,
+      "name" : "Reactors"
+   },
+   "25" : {
+      "black_market" : 0,
+      "goods_id" : 25,
+      "name" : "Salvage"
+   },
+   "26" : {
+      "black_market" : 0,
+      "goods_id" : 26,
+      "name" : "Refuse"
+   },
+   "27" : {
+      "black_market" : 0,
+      "goods_id" : 27,
+      "name" : "Crystals"
+   },
+   "28" : {
+      "black_market" : 0,
+      "goods_id" : 28,
+      "name" : "Graphite"
+   },
+   "29" : {
+      "black_market" : 0,
+      "goods_id" : 29,
+      "name" : "Processed Goods"
+   },
+   "3" : {
+      "black_market" : 1,
+      "goods_id" : 3,
+      "name" : "Mercenaries"
+   },
+   "30" : {
+      "black_market" : 0,
+      "goods_id" : 30,
+      "name" : "Textiles"
+   },
+   "31" : {
+      "black_market" : 1,
+      "goods_id" : 31,
+      "name" : "Biological Goods"
+   },
+   "32" : {
+      "black_market" : 0,
+      "goods_id" : 32,
+      "name" : "Antimatter"
+   },
+   "33" : {
+      "black_market" : 0,
+      "goods_id" : 33,
+      "name" : "Criminals"
+   },
+   "34" : {
+      "black_market" : 1,
+      "goods_id" : 34,
+      "name" : "Poisons"
+   },
+   "35" : {
+      "black_market" : 1,
+      "goods_id" : 35,
+      "name" : "Medical Supplies"
+   },
+   "36" : {
+      "black_market" : 0,
+      "goods_id" : 36,
+      "name" : "Printed Material"
+   },
+   "37" : {
+      "black_market" : 0,
+      "goods_id" : 37,
+      "name" : "Copper"
+   },
+   "38" : {
+      "black_market" : 1,
+      "goods_id" : 38,
+      "name" : "Gemstones"
+   },
+   "39" : {
+      "black_market" : 1,
+      "goods_id" : 39,
+      "name" : "Atomics"
+   },
+   "4" : {
+      "black_market" : 0,
+      "goods_id" : 4,
+      "name" : "Elements"
+   },
+   "40" : {
+      "black_market" : 0,
+      "goods_id" : 40,
+      "name" : "Fuel"
+   },
+   "41" : {
+      "black_market" : 0,
+      "goods_id" : 41,
+      "name" : "Mechanical Goods"
+   },
+   "42" : {
+      "black_market" : 0,
+      "goods_id" : 42,
+      "name" : "Crude Oil"
+   },
+   "43" : {
+      "black_market" : 0,
+      "goods_id" : 43,
+      "name" : "Water"
+   },
+   "44" : {
+      "black_market" : 1,
+      "goods_id" : 44,
+      "name" : "Oso Meat"
+   },
+   "45" : {
+      "black_market" : 0,
+      "goods_id" : 45,
+      "name" : "Fertilizer"
+   },
+   "46" : {
+      "black_market" : 0,
+      "goods_id" : 46,
+      "name" : "Heavy Machinery"
+   },
+   "47" : {
+      "black_market" : 0,
+      "goods_id" : 47,
+      "name" : "Rare Metals"
+   },
+   "48" : {
+      "black_market" : 0,
+      "goods_id" : 48,
+      "name" : "Research Equipment"
+   },
+   "49" : {
+      "black_market" : 1,
+      "goods_id" : 49,
+      "name" : "Chemicals"
    },
    "5" : {
       "black_market" : 0,
-      "name" : "Minerals",
-      "id" : 5
+      "goods_id" : 5,
+      "name" : "Minerals"
+   },
+   "50" : {
+      "black_market" : 0,
+      "goods_id" : 50,
+      "name" : "Black Glass"
+   },
+   "51" : {
+      "black_market" : 0,
+      "goods_id" : 51,
+      "name" : "Gray Oil"
+   },
+   "52" : {
+      "black_market" : 1,
+      "goods_id" : 52,
+      "name" : "Animals"
+   },
+   "53" : {
+      "black_market" : 0,
+      "goods_id" : 53,
+      "name" : "Industrial Machinery"
+   },
+   "54" : {
+      "black_market" : 1,
+      "goods_id" : 54,
+      "name" : "Gambling"
+   },
+   "55" : {
+      "black_market" : 0,
+      "goods_id" : 55,
+      "name" : "Human Cultural Goods"
+   },
+   "56" : {
+      "black_market" : 0,
+      "goods_id" : 56,
+      "name" : "Spare Parts"
+   },
+   "6" : {
+      "black_market" : 1,
+      "goods_id" : 6,
+      "name" : "Pleasure Bots"
+   },
+   "7" : {
+      "black_market" : 0,
+      "goods_id" : 7,
+      "name" : "Silica"
+   },
+   "8" : {
+      "black_market" : 0,
+      "goods_id" : 8,
+      "name" : "Food"
+   },
+   "9" : {
+      "black_market" : 0,
+      "goods_id" : 9,
+      "name" : "Labor"
    }
 }
 

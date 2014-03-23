@@ -76,6 +76,7 @@ module.exports = function(grunt) {
           'js/SCMAP/SelectedSystemGeometry.js',
           'js/SCMAP/JumpPoint.js',
           'js/SCMAP/Faction.js',
+          'js/SCMAP/Goods.js',
           'js/SCMAP/System.js',
           'js/SCMAP/Dijkstra.js',
           'js/SCMAP/Map.js',

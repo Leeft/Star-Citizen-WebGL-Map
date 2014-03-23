@@ -1,30 +1,53 @@
 /**
-* @author LiannaEeftinck / https://github.com/Leeft
+* @author Lianna Eeftinck / https://github.com/Leeft
 */
-// TODO: this is currently hardcoded, data should come from elsewhere ... very low priority for me though
+
 SCMAP.Faction = function ( data ) {
+
+   this.id = undefined;
    this.name = 'Unclaimed';
+   this.shortName = 'NONE';
    this.isRealFaction = false;
    this.color = new THREE.Color( 0xFFFFFF );
-   this.dark = new THREE.Color( 0x000000 );
+   this.planeColor = new THREE.Color( 0xFF0000 );
+   this.lineColor = new THREE.Color( 0xFFFF00 );
+
    this.setValues( data );
 
    // Internals
-   this.owns = [];
-   this.material = undefined;
+   this._claimed = {
+      systems: {}
+   };
+   this._darkMaterial = undefined;
+
 };
 
 SCMAP.Faction.prototype = {
    constructor: SCMAP.Faction,
 
-   // TODO: this might need some way of dealing with ownership changing
    claim: function ( system ) {
       if ( ! system instanceof SCMAP.System ) {
          new Error( "A faction can only claim ownership over a system" );
          return;
       }
-      //system.setOwnership( this );
-      this.owns.push( system );
+      this._claimed.systems[ system.uuid ] = true;
+      return this;
+   },
+
+   claimed: function ( system ) {
+      if ( ! system instanceof SCMAP.System ) {
+         new Error( "A faction can only test ownership over a system" );
+         return;
+      }
+      return this._claimed.systems[ system.uuid ];
+   },
+
+   material: function ( ) {
+      if ( typeof this._darkMaterial === 'undefined' ) {
+         this._darkMaterial = new THREE.MeshBasicMaterial({
+            color: this.planeColor, vertexColors: true });
+      }
+      return this._darkMaterial;
    },
 
    getValue: function ( key ) {
@@ -41,6 +64,7 @@ SCMAP.Faction.prototype = {
       }
 
       for ( var key in values ) {
+
          var newValue = values[ key ];
          if ( newValue === undefined ) {
             console.log( 'SCMAP.Faction: "' + key + '" parameter is undefined for "'+this.name+'"' );
@@ -51,63 +75,68 @@ SCMAP.Faction.prototype = {
          {
             var currentValue = this[ key ];
             if ( currentValue instanceof THREE.Color ) {
+
                if ( newValue instanceof THREE.Color ) {
                   this[ key ] = newValue;
                } else {
+                  newValue = newValue.replace( '0x', '#' );
                   this[ key ] = new THREE.Color( newValue );
                }
+               if ( key === 'color' ) {
+                  this.planeColor = this[ key ].clone().offsetHSL( 0, 0.5, 0 ).multiplyScalar( 0.20 );
+                  this.lineColor = this[ key ].clone().offsetHSL( 0, 0.05, -0.05 );
+               }
+
             } else {
                this[ key ] = newValue;
             }
          }
+
       }
    }
 };
 
-SCMAP.Faction.FACTIONS = {
-   "UEE": new SCMAP.Faction({ name: 'United Empire of Earth', color: 0x90ABD9, dark: 0x000011, isRealFaction: true }),
-   "VANDUUL": new SCMAP.Faction({ name: 'Vanduul', color: 0xF9B29C, dark: 0x110000, isRealFaction: true }),
-   "XIAN": new SCMAP.Faction({ name: "Xi'An", color: 0xA4D49C, dark: 0x001100, isRealFaction: true }),
-   "BANU": new SCMAP.Faction({ name: "Banu", color: 0xFFED9B, dark: 0x111100, isRealFaction: true }),
-   "NONE": new SCMAP.Faction({ name: "Unclaimed", color: 0x666666, dark: 0x000000 }),
-   "OTHER": new SCMAP.Faction({ name: "(Other)", color: 0xD1A4D0, dark: 0x110011 })
+SCMAP.Faction.preprocessFactions = function () {
+   var factionId, faction;
+
+   SCMAP.data.factionsByName = {};
+
+   for ( factionId in SCMAP.data.factions ) {
+
+      faction = SCMAP.data.factions[ factionId ];
+      if ( faction instanceof SCMAP.Faction ) {
+         SCMAP.data.factionsByName[ faction.name ]      = faction;
+         SCMAP.data.factionsByName[ faction.shortName ] = faction;
+         continue;
+      }
+
+      faction = new SCMAP.Faction({
+         id: factionId,
+         name: faction.name,
+         shortName: faction.short_name,
+         color: faction.color,
+         isRealFaction: faction.is_real_faction
+      });
+
+      SCMAP.data.factions[ factionId ]               = faction;
+      SCMAP.data.factionsByName[ faction.name ]      = faction;
+      SCMAP.data.factionsByName[ faction.shortName ] = faction;
+   }
 };
 
+SCMAP.Faction.getById = function ( id ) {
+   var faction = SCMAP.data.factions[ id ];
+   if ( ! ( faction instanceof SCMAP.Faction ) ) {
+      faction = SCMAP.data.factionsByName.Unclaimed;
+   }
+   return faction;
+};
 SCMAP.Faction.getByName = function ( name ) {
-   var mapped;
-   if ( name instanceof SCMAP.Faction ) {
-      return name;
-   }
-
-   switch ( name.toUpperCase() )
-   {
-      case 'UNITED EMPIRE OF EARTH':
-         mapped = 'UEE';
-         break;
-      case "XI'AN":
-         mapped = 'XIAN';
-         break;
-      case "UNCLAIMED":
-         mapped = 'NONE';
-         break;
-
-      default:
-         mapped = name.toUpperCase();
-   }
-
-   var faction;
-   if ( SCMAP.Faction.FACTIONS[ mapped ] instanceof SCMAP.Faction ) {
-      faction = SCMAP.Faction.FACTIONS[ mapped ];
-   } else {
-      faction = SCMAP.Faction.FACTIONS.OTHER;
-   }
-   if ( typeof faction.material === 'undefined' ) {
-      var newColor = faction.dark.clone();
-      //newColor.multiplyScalar( 0.3 );
-      faction.material = new THREE.MeshBasicMaterial({ color: newColor, vertexColors: false });
+   var faction = SCMAP.data.factionsByName[ name ];
+   if ( ! ( faction instanceof SCMAP.Faction ) ) {
+      faction = SCMAP.data.factionsByName.Unclaimed;
    }
    return faction;
 };
 
 // EOF
-

@@ -1,31 +1,27 @@
 /**
-* @author LiannaEeftinck / https://github.com/Leeft
+* @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-SCMAP.Map = function ( scene, mapdata ) {
+SCMAP.Map = function ( scene ) {
    this.name = "Star Citizen 'Verse";
    this.scene = scene;
-   this.mapdata = typeof mapdata === 'object' ? mapdata : {};
-   this.route = undefined;
-   this.graph = new SCMAP.Dijkstra( this );
+   this.goods = {};
 
-   this.systemsByName = {};
-   this.systems = [];
-   this.selector = this.createSelector();
    this.selected = undefined;
    this.selectedTarget = undefined;
-   this.scene.add( this.selector );
    this.group = undefined;
    this.interactables = [];
    this.referencePlane = undefined;
+
+   this._graph = new SCMAP.Dijkstra( this );
+   this._selector = this.createSelector();
+   this.scene.add( this._selector );
 
    // No editing available for the moment (doesn't work yet)
    this.canEdit = false;
    $('#map_ui li.editor').hide();
 
-   if ( Object.keys( mapdata ).length ) {
-      this.populateScene();
-   }
+   this.populateScene();
 };
 
 SCMAP.Map.prototype = {
@@ -42,31 +38,32 @@ SCMAP.Map.prototype = {
    },
 
    system: function ( name ) {
-      return this.systemsByName[ name ];
+      return SCMAP.System.getByName( name );
    },
 
    select: function ( system ) {
       if ( system instanceof SCMAP.System ) {
-         this.selector.position = system.sceneObject.position;
-         this.selector.visible = true;
+         this._selector.position = system.sceneObject.position;
+         this._selector.visible = true;
          this.selected = system;
       } else {
-         this.selector.visible = false;
+         this._selector.visible = false;
          this.selected = undefined;
       }
    },
 
    deselect: function ( ) {
-      this.selector.visible = false;
+      this._selector.visible = false;
       this.selected = undefined;
    },
 
    animateSelector: function ( ) {
-      if ( this.selector.visible ) {
-         this.selector.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
+      if ( this._selector.visible ) {
+         this._selector.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
       }
    },
 
+   // TODO: move to control class
    handleSelection: function ( event, intersect ) {
 
       if ( typeof intersect !== 'object' ) {
@@ -75,52 +72,52 @@ SCMAP.Map.prototype = {
 
       var modifierPressed = ( event.shiftKey || event.ctrlKey ) ? true : false;
 
-      if ( event.type === 'mouseup' )
+      if ( event.type === 'mousedown' )
+      {
+         //if ( window.editor.enabled )
+         //{
+         //   if ( ! event.altKey && typeof intersect.object.parent.system === 'object' ) {
+
+         //      // if in edit mode, and the targeted object is already selected, start dragging
+         //      // otherwise, select it
+         //      if ( this.selected instanceof SCMAP.System &&
+         //           intersect.object.parent.system instanceof SCMAP.System &&
+         //           this.selected == intersect.object.parent.system
+         //      ) {
+         //         window.controls.editDrag = true;
+         //      } else {
+         //         this.select( intersect.object.parent.system );
+         //         window.controls.editDrag = false;
+         //      }
+         //   }
+         //}
+         //else
+         {
+            if ( modifierPressed ) {
+               this.selectedTarget = intersect.object.parent.system;
+            } else {
+               this.selected = intersect.object.parent.system;
+            }
+         }
+      }
+      else if ( event.type === 'mouseup' )
       {
          if ( ! window.editor.enabled )
          {
             if ( ! modifierPressed )
             {
-               if ( this.selected instanceof SCMAP.System && intersect.object.system instanceof SCMAP.System ) {
-                  if ( intersect.object.system === this.selected ) {
-                     //if ( $('#systemname').text() != intersect.object.system.name ) {
-                        this.select( intersect.object.system );
-                        intersect.object.system.displayInfo();
+               if ( this.selected instanceof SCMAP.System && intersect.object.parent.system instanceof SCMAP.System ) {
+                  if ( intersect.object.parent.system === this.selected ) {
+                     //if ( $('#systemname').text() != intersect.object.parent.system.name ) {
+                        this.select( intersect.object.parent.system );
+                        intersect.object.parent.system.displayInfo();
                      //}
                   }
                }
             }
             else
             {
-               this.updateRoute( intersect.object.system );
-            }
-         }
-      }
-      else if ( event.type === 'mousedown' )
-      {
-         if ( window.editor.enabled )
-         {
-            if ( ! event.altKey && typeof intersect.object.system === 'object' ) {
-
-               // if in edit mode, and the targeted object is already selected, start dragging
-               // otherwise, select it
-               if ( this.selected instanceof SCMAP.System &&
-                    intersect.object.system instanceof SCMAP.System &&
-                    this.selected == intersect.object.system
-               ) {
-                  window.controls.editDrag = true;
-               } else {
-                  this.select( intersect.object.system );
-                  window.controls.editDrag = false;
-               }
-            }
-         }
-         else
-         {
-            if ( modifierPressed ) {
-               this.selectedTarget = intersect.object.system;
-            } else {
-               this.selected = intersect.object.system;
+               this.updateRoute( intersect.object.parent.system );
             }
          }
       }
@@ -128,7 +125,7 @@ SCMAP.Map.prototype = {
 
    currentRoute: function () {
       if ( this.selectedTarget instanceof SCMAP.System ) {
-         return this.graph.routeArray( this.selectedTarget );
+         return this._graph.routeArray( this.selectedTarget );
       }
       return [];
    },
@@ -136,18 +133,19 @@ SCMAP.Map.prototype = {
    updateRoute: function ( destination ) {
       var i, route, mesh, line, material, group, from_system, $entry;
 
-      this.graph.destroyRoute();
+      this._graph.destroyRoute();
 
       if ( !( destination instanceof SCMAP.System ) ) {
          return;
       }
 
-      this.graph.buildGraph( this.selected );
+      this._graph.buildGraph( this.selected );
       this.selectedTarget = destination;
-      route = this.graph.routeArray( destination );
+      route = this._graph.routeArray( destination );
 
       material = new THREE.LineBasicMaterial( { color: 0xFF00FF, linewidth: 2.5 } );
-      group = this.graph.createRouteObject(); // all the parts of the route together in a single geometry group
+      // building all the parts of the route together in a single geometry group
+      group = this._graph.createRouteObject();
       for ( i = 0; i < route.length - 1; i++ ) {
          mesh = this.createRouteMesh( route[i+0], route[i+1] );
          line = new THREE.Line( mesh, material );
@@ -165,7 +163,7 @@ SCMAP.Map.prototype = {
 
       for ( i = 0; i < route.length; i++ ) {
          from_system = route[i+0];
-         $entry = $( '<li></li>' ).append( from_system.createLink() );
+         $entry = $( '<li></li>' ).append( from_system.createInfoLink() );
          $('#routelist ol').append( $entry );
          $('#map_ui').tabs( 'option', 'active', 2 );
       }
@@ -189,126 +187,56 @@ SCMAP.Map.prototype = {
       return geometry;
    },
 
-   populateScene: function ( mapdata ) {
+   populateScene: function () {
       var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
-         data, starSystemObject, jumpPoint, faction,
-         endTime, startTime, systemCount = 0,
+         data, jumpPoint, jumpPointObject, faction, systemObject,
+         endTime, startTime, systemCount = 0, good,
          i, systems, exports, black_markets, systemInfo, imports;
 
       endTime = startTime = new Date();
 
-      // TODO: clean up the existing scene and mapdata when populating with
+      // TODO: clean up the existing scene and map data when populating with
       // new data
 
-      this.mapdata = typeof mapdata === 'object' ? mapdata : this.mapdata;
-      this.systems = [];
-      this.systemsByName = {};
+      SCMAP.Faction.preprocessFactions();
+      SCMAP.Goods.preprocessGoods();
+      SCMAP.System.preprocessSystems();
 
       // First we go through the data to build the basic systems so
       // the routes can be built as well
 
-      for ( territoryName in this.mapdata )
+      for ( systemName in SCMAP.data.systems )
       {
-         territory = this.mapdata[ territoryName ];
 
-         faction = SCMAP.Faction.getByName( territoryName );
+         system = SCMAP.System.getByName( systemName );
+         sceneObject = system.buildSceneObject();
+         this.scene.add( sceneObject );
+         this.interactables.push( sceneObject.children[0] );
+         //this.interactables.push( sceneObject.children[1] ); // Glow too big, disabled
+         //this.interactables.push( sceneObject.children[2] ); // Label too big, disabled
 
-         for ( systemName in territory.systems )
-         {
-            data = territory.systems[ systemName ];
-            if (typeof data.scale !== 'number' ) {
-               data.scale = 1.0;
-            }
+         systemCount++;
 
-            system = new SCMAP.System({
-               name: systemName,
-               position: new THREE.Vector3( data.coords[0], data.coords[1], data.coords[2] ),
-               scale: data.scale,
-               color: territory.color,
-               ownership: faction
-            });
-
-            systemInfo = SCMAP.data.systems[ systemName ];
-            if ( typeof systemInfo === 'object' ) {
-               imports = [];
-               exports = [];
-               black_markets = [];
-               for ( i = 0; i < systemInfo['import'].length; i++ ) {
-                  imports.push( SCMAP.data.goods[ systemInfo.import[i] ] );
-               }
-               for ( i = 0; i < systemInfo['export'].length; i++ ) {
-                  exports.push( SCMAP.data.goods[ systemInfo.export[i] ] );
-               }
-               for ( i = 0; i < systemInfo.black_market.length; i++ ) {
-                  black_markets.push( SCMAP.data.goods[ systemInfo.black_market[i] ] );
-               }
-               system.setValues({
-                  'nickname': systemInfo.nick,
-                  'star_color': systemInfo.color,
-                  'size': systemInfo.size,
-                  'source': systemInfo.source,
-                  'crime_status': SCMAP.data.crime_levels[ systemInfo.crime ].name,
-                  'uee_strategic_value': SCMAP.data.uee_strategic_values[ systemInfo.uee_sv ].color,
-                  'import': imports,
-                  'export': exports,
-                  'black_market': black_markets,
-                  'blob': systemInfo.blob,
-                  'planets': 0,
-                  'planetary_rotation': [],
-                  'have_info': true
-               });
-            }
-
-            faction.claim( system ); // assign ownership to this faction
-
-            this.systemsByName[ systemName ] = system;
-            this.systems.push( system );
-
-            starSystemObject = system.buildObject();
-            this.scene.add( starSystemObject );
-            this.interactables.push( system.sceneObjects.mesh );
-            systemCount++;
-         }
       }
 
       // Then we go through again and add the routes
 
-      for ( territoryName in this.mapdata )
+      for ( systemName in SCMAP.data.systems )
       {
-         territory = this.mapdata[ territoryName ];
 
-         for ( systemName in territory.known_routes )
-         {
-            if ( this.system( systemName ) === undefined ) {
-               console.log( "Territory '"+territoryName+"' space route: can't find the source system '"+systemName+"'" );
-               continue;
+         system = SCMAP.System.getByName( systemName );
+
+         for ( i = 0; i < system.jumpPoints.length; i ++ ) {
+
+            jumpPoint = system.jumpPoints[ i ];
+            jumpPointObject = jumpPoint.buildSceneObject();
+            if ( jumpPointObject instanceof THREE.Object3D ) {
+               this.scene.add( jumpPointObject );
             }
 
-            source = this.system( systemName );
-
-            destinations = territory.known_routes[ systemName ];
-
-            for ( i = 0; i < destinations.length; i++ )
-            {
-               destination = this.system( destinations[i] );
-               if ( destination === undefined ) {
-                  console.log( territoryName+" space route from "+systemName+
-                     " can't find the destination system '"+destinations[i]+"'" );
-                  continue;
-               }
-
-               jumpPoint = new SCMAP.JumpPoint( source, destination );
-               var jumpObject = jumpPoint.sceneObject();
-               if ( jumpObject instanceof THREE.Object3D ) {
-                  this.scene.add( jumpObject );
-               }
-               source.jumppoints.push( jumpPoint );
-               // for now, add another route the other way as well (we're making
-               // the crude assumption that jumppoints are bi-directional
-               destination.jumppoints.push( new SCMAP.JumpPoint( destination, source ) );
-            }
          }
+
       }
 
       endTime = new Date();
@@ -319,16 +247,16 @@ SCMAP.Map.prototype = {
 
       this.buildReferencePlane();
       //this.referencePlaneSolidColor( new THREE.Color( 0x000000 ) );
-      this.referencePlaneTerritoryColor();
+      //this.referencePlaneTerritoryColor();
    },
 
    closestPOI: function ( vector ) {
       var closest = Infinity, closestPOI, system, length, systemname, xd, zd;
 
-      for ( systemname in this.systemsByName ) {
-         system = this.systemsByName[ systemname ];
-         xd = vector.x - system.sceneObject.position.x;
-         zd = vector.z - system.sceneObject.position.z;
+      for ( systemname in SCMAP.data.systems ) {
+         system = SCMAP.System.getByName( systemname );
+         xd = vector.x - system.position.x;
+         zd = vector.z - system.position.z;
          length = Math.sqrt( xd * xd + zd * zd );
          if ( length < closest ) {
             closest = length;
@@ -339,13 +267,43 @@ SCMAP.Map.prototype = {
       return [ closest, closestPOI ];
    },
 
+   closestFromArray: function ( vector, systems ) {
+      var closest = Infinity, closestPOI, system, length, systemname, xd, zd;
+
+      for ( var i = 0; i < systems.length; i++ ) {
+         system = systems[i];
+         xd = vector.x - system.position.x;
+         zd = vector.z - system.position.z;
+         length = Math.sqrt( xd * xd + zd * zd );
+         if ( length < closest ) {
+            closest = length;
+            closestPOI = system;
+         }
+      }
+
+      return [ closest, closestPOI ];
+   },
+
+   withinApproxDistance: function ( vector, distance ) {
+      var systems = [];
+      for ( var systemname in SCMAP.data.systems ) {
+         system = SCMAP.System.getByName( systemname );
+         if ( system.position.x < ( vector.x - distance ) ) { continue; }
+         if ( system.position.x > ( vector.x + distance ) ) { continue; }
+         if ( system.position.z < ( vector.z - distance ) ) { continue; }
+         if ( system.position.z > ( vector.z + distance ) ) { continue; }
+         systems.push( system );
+      }
+      return systems;
+   },
+
    furthestPOI: function ( vector ) {
       var furthest = 0, furthestPOI, system, length, systemname, xd, zd;
 
-      for ( systemname in this.systemsByName ) {
-         system = this.systemsByName[ systemname ];
-         xd = vector.x - system.sceneObject.position.x;
-         zd = vector.z - system.sceneObject.position.z;
+      for ( systemname in SCMAP.data.systems ) {
+         system = SCMAP.System.getByName[ systemname ];
+         xd = vector.x - system.position.x;
+         zd = vector.z - system.position.z;
          length = Math.sqrt( xd * xd + zd * zd );
          if ( length > furthest ) {
             furthest = length;
@@ -359,21 +317,26 @@ SCMAP.Map.prototype = {
       if ( ! this.referencePlane instanceof THREE.Object3D ) {
          return;
       }
+
       var geometry = this.referencePlane.geometry,
-         minDistance = 35;
+         minDistance = 55;
+
       for ( var i = 0; i < geometry.vertices.length; i++ )
       {
          var point = geometry.vertices[ i ];
          var arr = this.closestPOI( point );
-         var distance = arr[0], closest = arr[1];
+         var distance = arr[0],
+             closest = arr[1];
          if ( distance > minDistance ) { distance = minDistance; }
-         //color = closest.ownership.color.clone();
-         var color = closest.ownership.color.clone();
          var strength = ( minDistance - distance ) / minDistance;
-         color.setRGB( strength * color.r * 0.8, strength * color.g * 0.8, strength * color.b * 0.8 );
-         //color.setRGB( strength * color.r, strength * color.g, strength * color.b );
-         //color.setRGB( strength * color.r * 1.2, strength * color.g * 1.2, strength * color.b * 1.2 );
+         var color = closest.faction.planeColor.clone();
+         color.multiplyScalar( strength * 0.8 );
          geometry.colors[i] = color;
+
+         //var color = closest.faction.color.clone();
+         //   var strength = ( minDistance - distance ) / minDistance;
+         //   color.multiplyScalar( strength * 1.2 );
+         //   geometry.colors[i] = color;
       }
    },
 
@@ -393,7 +356,7 @@ SCMAP.Map.prototype = {
       return new THREE.Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
    },
 
-   referencePlaneTerritoryColourMesh: function( ownership, prevTheta, nextTheta, innerRadius, outerRadius )
+   referencePlaneTerritoryColourMesh: function( material, prevTheta, nextTheta, innerRadius, outerRadius )
    {
       var geo, mesh;
       geo = new THREE.Geometry();
@@ -403,11 +366,124 @@ SCMAP.Map.prototype = {
       geo.vertices.push( this.pointAtPlane( prevTheta, outerRadius, -0.04 ) );
       geo.faces.push( new THREE.Face3( 2, 1, 0 ) );
       geo.faces.push( new THREE.Face3( 3, 2, 0 ) );
-      mesh = new THREE.Mesh( geo, ownership.material );
+      mesh = new THREE.Mesh( geo, material );
       return mesh;
    },
 
    buildReferencePlane: function()
+   {
+      var segmentWidth = 10.0, i, position, systemname,
+         minX = 0, minZ = 0, maxX = 0, maxZ = 0,
+         endTime, startTime;
+
+      endTime = startTime = new Date();
+
+      for ( systemname in SCMAP.data.systems ) {
+         position = SCMAP.System.getByName( systemname ).position;
+         if ( position.x < minX ) { minX = position.x; }
+         if ( position.x > maxX ) { maxX = position.x; }
+         if ( position.z < minZ ) { minZ = position.z; }
+         if ( position.z > maxZ ) { maxZ = position.z; }
+      }
+      minX -= segmentWidth * 4;
+      minZ -= segmentWidth * 4;
+      maxX += segmentWidth * 4;
+      maxZ += segmentWidth * 4;
+      minX = Math.floor( minX / segmentWidth ) * segmentWidth;
+      minZ = Math.floor( minZ / segmentWidth ) * segmentWidth;
+      maxX = Math.floor( maxX / segmentWidth ) * segmentWidth;
+      maxZ = Math.floor( maxZ / segmentWidth ) * segmentWidth;
+
+      var startX = Math.floor( minX / segmentWidth );
+      var startZ = Math.floor( minZ / segmentWidth );
+      var gridX = Math.floor( maxX / segmentWidth );
+      var gridZ = Math.floor( maxZ / segmentWidth );
+
+      var geo = new THREE.Geometry();
+
+var redcolor = new THREE.Color( 0x000000 );
+var color;
+      //var plane = new THREE.Object3D();
+      var lineMaterial = new THREE.LineBasicMaterial({
+         //color: 0x6060A0,
+         linewidth: 1.5,
+         wireframe: true,
+         vertexColors: THREE.VertexColors
+      });
+
+      for ( var iz = startZ; iz <= gridZ; iz ++ ) {
+
+         var z1 = iz * segmentWidth;
+         var z2 = ( iz + 1 ) * segmentWidth;
+
+         for ( var ix = startX; ix <= gridX; ix ++ ) {
+
+            var x1 = ix * segmentWidth;
+            var x2 = ( ix + 1 ) * segmentWidth;
+
+            var vec1 = new THREE.Vector3( x1, 0, z1 );
+            var vec2 = new THREE.Vector3( x2, 0, z1 );
+            var vec3 = new THREE.Vector3( x2, 0, z2 );
+
+            geo.vertices.push( vec1 );
+            geo.vertices.push( vec2 );
+            geo.vertices.push( vec2 );
+            geo.vertices.push( vec3 );
+
+            var systems = this.withinApproxDistance( vec2, 55 );
+
+var arr = this.closestFromArray( vec1, systems );
+if ( arr[0] <= 45 && arr[1] ) {
+   color = arr[1].faction.planeColor.clone();
+   if ( arr[0] >= 40 ) {
+      color.multiplyScalar( 0.5 );
+   } else if ( arr[0] >= 30 ) {
+      color.multiplyScalar( 0.8 );
+   }
+} else {
+   color = redcolor;
+}
+geo.colors.push( color );
+
+arr = this.closestFromArray( vec2, systems );
+if ( arr[0] <= 45 && arr[1] ) {
+   color = arr[1].faction.planeColor.clone();
+   if ( arr[0] >= 40 ) {
+      color.multiplyScalar( 0.5 );
+   } else if ( arr[0] >= 30 ) {
+      color.multiplyScalar( 0.8 );
+   }
+} else {
+   color = redcolor;
+}
+            geo.colors.push( color, color );
+
+arr = this.closestFromArray( vec3, systems );
+if ( arr[0] <= 45 && arr[1] ) {
+   color = arr[1].faction.planeColor.clone();
+   if ( arr[0] >= 40 ) {
+      color.multiplyScalar( 0.5 );
+   } else if ( arr[0] >= 30 ) {
+      color.multiplyScalar( 0.8 );
+   }
+} else {
+   color = redcolor;
+}
+            geo.colors.push( color );
+         }
+
+      }
+
+      // and create the ground reference plane
+      var referenceLines = new THREE.Line( geo, lineMaterial, THREE.LinePieces );
+      scene.add( referenceLines );
+
+      endTime = new Date();
+      console.log( "Building the territory reference plane took " +
+         (endTime.getTime() - startTime.getTime()) + " msec" );
+   },
+
+   buildOldReferencePlane: function()
    {
       var ringWidth = 10.0, // plane circle scaling factor to match the map video
          step = 2 * Math.PI / 36, // 36 radial segments
@@ -428,7 +504,7 @@ SCMAP.Map.prototype = {
       maxRadius = arr[0] + 50;
 
       lineMaterial = new THREE.LineBasicMaterial({
-         color: 0xA0A0A0,
+         color: 0x6060A0,
          linewidth: 1.5,
          vertexColors: true,
          opacity: 0.6
@@ -458,11 +534,21 @@ SCMAP.Map.prototype = {
 
             if ( arr[0] <= 35 )
             {
-               referenceColours.add(
-                  this.referencePlaneTerritoryColourMesh(
-                     arr[1].ownership, prevTheta, nextTheta, insideRadius, outsideRadius
-                  )
-               );
+               //var mesh = this.referencePlaneTerritoryColourMesh(
+               //   arr[1].faction.material(), prevTheta, nextTheta, insideRadius, outsideRadius
+               //);
+               //if ( mesh ) {
+               //   referenceColours.add( mesh );
+               //}
+         //var point = geometry.vertices[ i ];
+         //var arr = this.closestPOI( point );
+         //var distance = arr[0],
+         //    closest = arr[1];
+         //if ( distance > minDistance ) { distance = minDistance; }
+         //var strength = ( minDistance - distance ) / minDistance;
+         //var color = closest.faction.planeColor.clone();
+         //color.multiplyScalar( strength * 0.8 );
+         //geometry.colors[i] = color;
             }
 
             if ( arr[0] < 55 )
