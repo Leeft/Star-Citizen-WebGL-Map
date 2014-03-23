@@ -443,7 +443,7 @@ SCMAP.data.systems = {
       "coords" : [
          63.75,
          18.08,
-         -116.78
+         116.78
       ],
       "crime_level_id" : 4,
       "export" : [],
@@ -454,7 +454,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.923,
                0,
-               3.098
+               -3.098
             ],
             "destination" : 62,
             "name" : "Bacchus to Unknown #9",
@@ -464,7 +464,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.265,
                0,
-               2.332
+               -2.332
             ],
             "destination" : 85,
             "name" : "Bacchus to Oberon",
@@ -490,7 +490,7 @@ SCMAP.data.systems = {
       "coords" : [
          156.18,
          3.66,
-         -3.63
+         3.63
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -501,7 +501,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.398,
                0,
-               1.937
+               -1.937
             ],
             "destination" : 19,
             "name" : "Baker to Terra",
@@ -511,7 +511,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.468,
                0,
-               5.714
+               -5.714
             ],
             "destination" : 65,
             "name" : "Baker to Unknown #2",
@@ -521,7 +521,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.829,
                0,
-               -6.057
+               6.057
             ],
             "destination" : 93,
             "name" : "Baker to Odin",
@@ -547,7 +547,7 @@ SCMAP.data.systems = {
       "coords" : [
          -5.92,
          12.49,
-         -119.3
+         119.3
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -558,7 +558,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.039,
                0,
-               -5.954
+               5.954
             ],
             "destination" : 29,
             "name" : "Banshee to Yulin",
@@ -568,7 +568,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.637,
                0,
-               -0.792
+               0.792
             ],
             "destination" : 80,
             "name" : "Banshee to Fora",
@@ -578,7 +578,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.681,
                0,
-               -0.226
+               0.226
             ],
             "destination" : 87,
             "name" : "Banshee to Leir",
@@ -604,7 +604,7 @@ SCMAP.data.systems = {
       "coords" : [
          -24.35,
          10.69,
-         94.7
+         -94.7
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -615,7 +615,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                0.294,
                0,
-               -6.678
+               6.678
             ],
             "destination" : 12,
             "name" : "Branaugh to Vega",
@@ -625,7 +625,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.787,
                0,
-               3.347
+               -3.347
             ],
             "destination" : 31,
             "name" : "Branaugh to Gliese",
@@ -635,7 +635,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.669,
                0,
-               0.459
+               -0.459
             ],
             "destination" : 33,
             "name" : "Branaugh to Bremen",
@@ -645,7 +645,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.111,
                0,
-               -5.916
+               5.916
             ],
             "destination" : 82,
             "name" : "Branaugh to Chronos",
@@ -671,7 +671,7 @@ SCMAP.data.systems = {
       "coords" : [
          -50.77,
          23.85,
-         96.52
+         -96.52
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -682,7 +682,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.669,
                0,
-               -0.459
+               0.459
             ],
             "destination" : 36,
             "name" : "Bremen to Branaugh",
@@ -692,7 +692,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.556,
                0,
-               -3.716
+               3.716
             ],
             "destination" : 82,
             "name" : "Bremen to Chronos",
@@ -702,7 +702,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.237,
                0,
-               -6.299
+               6.299
             ],
             "destination" : 90,
             "name" : "Bremen to Kellog",
@@ -728,7 +728,7 @@ SCMAP.data.systems = {
       "coords" : [
          -56.22,
          8.48,
-         -24.36
+         24.36
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -739,7 +739,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.021,
                0,
-               -2.903
+               2.903
             ],
             "destination" : 3,
             "name" : "Caliban to Vanguard",
@@ -749,7 +749,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.677,
                0,
-               -0.325
+               0.325
             ],
             "destination" : 89,
             "name" : "Caliban to Nul",
@@ -759,7 +759,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.263,
                0,
-               2.335
+               -2.335
             ],
             "destination" : 104,
             "name" : "Caliban to Orion",
@@ -785,7 +785,7 @@ SCMAP.data.systems = {
       "coords" : [
          73.77,
          3.81,
-         48.49
+         -48.49
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -796,7 +796,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.368,
                0,
-               2.033
+               -2.033
             ],
             "destination" : 28,
             "name" : "Castra to Pelles",
@@ -806,7 +806,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.752,
                0,
-               6.451
+               -6.451
             ],
             "destination" : 40,
             "name" : "Castra to Oya",
@@ -816,7 +816,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.501,
                0,
-               -1.555
+               1.555
             ],
             "destination" : 49,
             "name" : "Castra to Unknown #1",
@@ -826,7 +826,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.357,
                0,
-               -3.999
+               3.999
             ],
             "destination" : 97,
             "name" : "Castra to Oso",
@@ -854,7 +854,7 @@ SCMAP.data.systems = {
       "coords" : [
          56.69,
          20.47,
-         -32.94
+         32.94
       ],
       "crime_level_id" : 6,
       "export" : [
@@ -869,7 +869,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.559,
                0,
-               -1.287
+               1.287
             ],
             "destination" : 8,
             "name" : "Cathcart to Min",
@@ -879,7 +879,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.666,
                0,
-               0.5
+               -0.5
             ],
             "destination" : 10,
             "name" : "Cathcart to Davien",
@@ -889,7 +889,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.019,
                0,
-               -6.606
+               6.606
             ],
             "destination" : 13,
             "name" : "Cathcart to Taranis",
@@ -899,7 +899,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.246,
                0,
-               -2.38
+               2.38
             ],
             "destination" : 37,
             "name" : "Cathcart to Nexus",
@@ -925,7 +925,7 @@ SCMAP.data.systems = {
       "coords" : [
          -42.79,
          4.43,
-         -58.28
+         58.28
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -936,7 +936,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.037,
                0,
-               -6.604
+               6.604
             ],
             "destination" : 7,
             "name" : "Centauri to Elysium",
@@ -946,7 +946,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.075,
                0,
-               4.35
+               -4.35
             ],
             "destination" : 14,
             "name" : "Centauri to Croshaw",
@@ -956,7 +956,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.314,
                0,
-               6.271
+               -6.271
             ],
             "destination" : 89,
             "name" : "Centauri to Nul",
@@ -982,7 +982,7 @@ SCMAP.data.systems = {
       "coords" : [
          134.79,
          8.17,
-         -45.07
+         45.07
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -993,7 +993,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.671,
                0,
-               0.435
+               -0.435
             ],
             "destination" : 8,
             "name" : "Charon to Min",
@@ -1003,7 +1003,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.187,
                0,
-               -2.532
+               2.532
             ],
             "destination" : 79,
             "name" : "Charon to Tyrol",
@@ -1029,7 +1029,7 @@ SCMAP.data.systems = {
       "coords" : [
          -11.49,
          20.42,
-         70.25
+         -70.25
       ],
       "crime_level_id" : 2,
       "export" : [],
@@ -1042,7 +1042,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.556,
                0,
-               3.716
+               -3.716
             ],
             "destination" : 33,
             "name" : "Chronos to Bremen",
@@ -1052,7 +1052,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.111,
                0,
-               5.916
+               -5.916
             ],
             "destination" : 36,
             "name" : "Chronos to Branaugh",
@@ -1062,7 +1062,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.613,
                0,
-               -4.837
+               4.837
             ],
             "destination" : 84,
             "name" : "Chronos to Stanton",
@@ -1072,7 +1072,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.621,
                0,
-               -0.916
+               0.916
             ],
             "destination" : 90,
             "name" : "Chronos to Kellog",
@@ -1098,7 +1098,7 @@ SCMAP.data.systems = {
       "coords" : [
          97.9,
          27.8,
-         -78.54
+         78.54
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -1109,7 +1109,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.474,
                0,
-               5.711
+               -5.711
             ],
             "destination" : 37,
             "name" : "Corel to Nexus",
@@ -1119,7 +1119,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.16,
                0,
-               2.595
+               -2.595
             ],
             "destination" : 45,
             "name" : "Corel to Unknown #12",
@@ -1129,7 +1129,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.642,
                0,
-               -6.48
+               6.48
             ],
             "destination" : 62,
             "name" : "Corel to Unknown #9",
@@ -1139,7 +1139,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.568,
                0,
-               1.246
+               -1.246
             ],
             "destination" : 96,
             "name" : "Corel to Nemo",
@@ -1165,7 +1165,7 @@ SCMAP.data.systems = {
       "coords" : [
          1.83,
          2.78,
-         -20.03
+         20.03
       ],
       "crime_level_id" : 2,
       "export" : [],
@@ -1176,7 +1176,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.075,
                0,
-               -4.35
+               4.35
             ],
             "destination" : 5,
             "name" : "Croshaw to Centauri",
@@ -1186,7 +1186,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.24,
                0,
-               -2.397
+               2.397
             ],
             "destination" : 10,
             "name" : "Croshaw to Davien",
@@ -1196,7 +1196,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -0.608,
                0,
-               6.657
+               -6.657
             ],
             "destination" : 15,
             "name" : "Croshaw to Sol",
@@ -1206,7 +1206,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.953,
                0,
-               -5.39
+               5.39
             ],
             "destination" : 83,
             "name" : "Croshaw to Rhetor",
@@ -1216,7 +1216,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.589,
                0,
-               -1.127
+               1.127
             ],
             "destination" : 89,
             "name" : "Croshaw to Nul",
@@ -1242,7 +1242,7 @@ SCMAP.data.systems = {
       "coords" : [
          30.28,
          27.04,
-         -30.96
+         30.96
       ],
       "crime_level_id" : 2,
       "export" : [],
@@ -1253,7 +1253,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.051,
                0,
-               -4.378
+               4.378
             ],
             "destination" : 2,
             "name" : "Davien to Ferron",
@@ -1263,7 +1263,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.24,
                0,
-               2.397
+               -2.397
             ],
             "destination" : 14,
             "name" : "Davien to Croshaw",
@@ -1273,7 +1273,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.666,
                0,
-               -0.5
+               0.5
             ],
             "destination" : 86,
             "name" : "Davien to Cathcart",
@@ -1301,7 +1301,7 @@ SCMAP.data.systems = {
       "coords" : [
          230.91,
          28.93,
-         98.41
+         -98.41
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -1331,7 +1331,7 @@ SCMAP.data.systems = {
       "coords" : [
          89.48,
          19.88,
-         -27.43
+         27.43
       ],
       "crime_level_id" : 4,
       "export" : [
@@ -1347,7 +1347,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.223,
                0,
-               -4.172
+               4.172
             ],
             "destination" : 37,
             "name" : "Ellis to Nexus",
@@ -1357,7 +1357,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.576,
                0,
-               6.168
+               -6.168
             ],
             "destination" : 108,
             "name" : "Ellis to Kilian",
@@ -1383,7 +1383,7 @@ SCMAP.data.systems = {
       "coords" : [
          -46.9,
          16.96,
-         -84.45
+         84.45
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -1394,7 +1394,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.037,
                0,
-               6.604
+               -6.604
             ],
             "destination" : 5,
             "name" : "Elysium to Centauri",
@@ -1404,7 +1404,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.986,
                0,
-               -2.976
+               2.976
             ],
             "destination" : 32,
             "name" : "Elysium to Vul Ture",
@@ -1430,7 +1430,7 @@ SCMAP.data.systems = {
       "coords" : [
          15.04,
          12.28,
-         -44.17
+         44.17
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -1441,7 +1441,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.051,
                0,
-               4.378
+               -4.378
             ],
             "destination" : 10,
             "name" : "Ferron to Davien",
@@ -1451,7 +1451,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.023,
                0,
-               -4.411
+               4.411
             ],
             "destination" : 18,
             "name" : "Ferron to Idris",
@@ -1480,7 +1480,7 @@ SCMAP.data.systems = {
       "coords" : [
          27.33,
          26.57,
-         -123.27
+         123.27
       ],
       "crime_level_id" : 8,
       "export" : [
@@ -1497,7 +1497,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.637,
                0,
-               0.792
+               -0.792
             ],
             "destination" : 23,
             "name" : "Fora to Banshee",
@@ -1507,7 +1507,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.856,
                0,
-               -6.421
+               6.421
             ],
             "destination" : 69,
             "name" : "Fora to Unknown #29",
@@ -1517,7 +1517,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.369,
                0,
-               6.543
+               -6.543
             ],
             "destination" : 83,
             "name" : "Fora to Rhetor",
@@ -1543,7 +1543,7 @@ SCMAP.data.systems = {
       "coords" : [
          -42.79,
          14.67,
-         -1.58
+         1.58
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -1554,7 +1554,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.057,
                0,
-               4.372
+               -4.372
             ],
             "destination" : 12,
             "name" : "Garron to Vega",
@@ -1564,7 +1564,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3,
                0,
-               -5.974
+               5.974
             ],
             "destination" : 89,
             "name" : "Garron to Nul",
@@ -1574,7 +1574,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.188,
                0,
-               2.529
+               -2.529
             ],
             "destination" : 99,
             "name" : "Garron to Tiber",
@@ -1602,7 +1602,7 @@ SCMAP.data.systems = {
       "coords" : [
          193.97,
          13.82,
-         -86.16
+         86.16
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -1618,7 +1618,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.406,
                0,
-               1.908
+               -1.908
             ],
             "destination" : 59,
             "name" : "Geddon to Unknown #6",
@@ -1644,7 +1644,7 @@ SCMAP.data.systems = {
       "coords" : [
          28.01,
          4.9,
-         124.98
+         -124.98
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -1655,7 +1655,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.683,
                0,
-               -0.115
+               0.115
             ],
             "destination" : 17,
             "name" : "Gliese to Pallas",
@@ -1665,7 +1665,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.787,
                0,
-               -3.347
+               3.347
             ],
             "destination" : 36,
             "name" : "Gliese to Branaugh",
@@ -1694,7 +1694,7 @@ SCMAP.data.systems = {
       "coords" : [
          92.21,
          25.2,
-         10.13
+         -10.13
       ],
       "crime_level_id" : 4,
       "export" : [
@@ -1710,7 +1710,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.051,
                0,
-               -4.379
+               4.379
             ],
             "destination" : 16,
             "name" : "Goss to Magnus",
@@ -1720,7 +1720,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.612,
                0,
-               -0.978
+               0.978
             ],
             "destination" : 19,
             "name" : "Goss to Terra",
@@ -1730,7 +1730,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.992,
                0,
-               4.445
+               -4.445
             ],
             "destination" : 49,
             "name" : "Goss to Unknown #1",
@@ -1740,7 +1740,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.356,
                0,
-               5.781
+               -5.781
             ],
             "destination" : 98,
             "name" : "Goss to Hades",
@@ -1766,7 +1766,7 @@ SCMAP.data.systems = {
       "coords" : [
          124.54,
          27.66,
-         71.25
+         -71.25
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -1777,7 +1777,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.627,
                0,
-               0.878
+               -0.878
             ],
             "destination" : 40,
             "name" : "Gurzil to Oya",
@@ -1787,7 +1787,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -0.443,
                0,
-               -6.67
+               6.67
             ],
             "destination" : 49,
             "name" : "Gurzil to Unknown #1",
@@ -1797,7 +1797,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.21,
                0,
-               6.574
+               -6.574
             ],
             "destination" : 100,
             "name" : "Gurzil to Hadur",
@@ -1823,7 +1823,7 @@ SCMAP.data.systems = {
       "coords" : [
          81.5,
          20.36,
-         28.58
+         -28.58
       ],
       "crime_level_id" : 4,
       "export" : [],
@@ -1834,7 +1834,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.356,
                0,
-               -5.781
+               5.781
             ],
             "destination" : 81,
             "name" : "Hades to Goss",
@@ -1844,7 +1844,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.589,
                0,
-               1.125
+               -1.125
             ],
             "destination" : 97,
             "name" : "Hades to Oso",
@@ -1873,7 +1873,7 @@ SCMAP.data.systems = {
       "coords" : [
          204.45,
          8.55,
-         -69.78
+         69.78
       ],
       "crime_level_id" : 2,
       "export" : [],
@@ -1886,7 +1886,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.678,
                0,
-               3.528
+               -3.528
             ],
             "destination" : 67,
             "name" : "Hadrian to Unknown #5",
@@ -1896,7 +1896,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.365,
                0,
-               2.041
+               -2.041
             ],
             "destination" : 79,
             "name" : "Hadrian to Tyrol",
@@ -1924,7 +1924,7 @@ SCMAP.data.systems = {
       "coords" : [
          117.48,
          9.98,
-         109.62
+         -109.62
       ],
       "crime_level_id" : 0,
       "export" : [],
@@ -1941,7 +1941,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.425,
                0,
-               1.844
+               -1.844
             ],
             "destination" : 17,
             "name" : "Hadur to Pallas",
@@ -1951,7 +1951,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.616,
                0,
-               -4.835
+               4.835
             ],
             "destination" : 21,
             "name" : "Hadur to Horus",
@@ -1961,7 +1961,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.21,
                0,
-               -6.574
+               6.574
             ],
             "destination" : 38,
             "name" : "Hadur to Gurzil",
@@ -1987,7 +1987,7 @@ SCMAP.data.systems = {
       "coords" : [
          157.32,
          27.69,
-         -41.66
+         41.66
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -1998,7 +1998,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.608,
                0,
-               4.843
+               -4.843
             ],
             "destination" : 93,
             "name" : "Helios to Odin",
@@ -2024,7 +2024,7 @@ SCMAP.data.systems = {
       "coords" : [
          158.46,
          16.9,
-         66.7
+         -66.7
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -2035,7 +2035,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -0.807,
                0,
-               6.636
+               -6.636
             ],
             "destination" : 9,
             "name" : "Horus to Indra",
@@ -2045,7 +2045,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.937,
                0,
-               -6.397
+               6.397
             ],
             "destination" : 11,
             "name" : "Horus to Kiel",
@@ -2055,7 +2055,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.616,
                0,
-               4.835
+               -4.835
             ],
             "destination" : 100,
             "name" : "Horus to Hadur",
@@ -2081,7 +2081,7 @@ SCMAP.data.systems = {
       "coords" : [
          -13.2,
          29.26,
-         -68.97
+         68.97
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -2092,7 +2092,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.023,
                0,
-               4.411
+               -4.411
             ],
             "destination" : 2,
             "name" : "Idris to Ferron",
@@ -2102,7 +2102,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                0.684,
                0,
-               -6.65
+               6.65
             ],
             "destination" : 85,
             "name" : "Idris to Oberon",
@@ -2128,7 +2128,7 @@ SCMAP.data.systems = {
       "coords" : [
          152.31,
          22.72,
-         117.26
+         -117.26
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -2139,7 +2139,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                0.807,
                0,
-               -6.636
+               6.636
             ],
             "destination" : 21,
             "name" : "Indra to Horus",
@@ -2165,7 +2165,7 @@ SCMAP.data.systems = {
       "coords" : [
          40.52,
          19.55,
-         11.5
+         -11.5
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -2181,7 +2181,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.185,
                0,
-               5.212
+               -5.212
             ],
             "destination" : 84,
             "name" : "Kallis to Stanton",
@@ -2191,7 +2191,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.413,
                0,
-               5.748
+               -5.748
             ],
             "destination" : 97,
             "name" : "Kallis to Oso",
@@ -2220,7 +2220,7 @@ SCMAP.data.systems = {
       "coords" : [
          -62.61,
          18.29,
-         63.18
+         -63.18
       ],
       "crime_level_id" : 1,
       "export" : [
@@ -2236,7 +2236,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.495,
                0,
-               -4.948
+               4.948
             ],
             "destination" : 12,
             "name" : "Kellog to Vega",
@@ -2246,7 +2246,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.237,
                0,
-               6.299
+               -6.299
             ],
             "destination" : 33,
             "name" : "Kellog to Bremen",
@@ -2256,7 +2256,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.52,
                0,
-               -1.474
+               1.474
             ],
             "destination" : 35,
             "name" : "Kellog to Vendetta",
@@ -2266,7 +2266,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.621,
                0,
-               0.916
+               -0.916
             ],
             "destination" : 82,
             "name" : "Kellog to Chronos",
@@ -2292,7 +2292,7 @@ SCMAP.data.systems = {
       "coords" : [
          148.67,
          15.89,
-         34.37
+         -34.37
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -2303,7 +2303,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.778,
                0,
-               -5.515
+               5.515
             ],
             "destination" : 19,
             "name" : "Kiel to Terra",
@@ -2313,7 +2313,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.937,
                0,
-               6.397
+               -6.397
             ],
             "destination" : 21,
             "name" : "Kiel to Horus",
@@ -2323,7 +2323,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.654,
                0,
-               0.635
+               -0.635
             ],
             "destination" : 49,
             "name" : "Kiel to Unknown #1",
@@ -2352,7 +2352,7 @@ SCMAP.data.systems = {
       "coords" : [
          95.85,
          27.33,
-         -12.18
+         12.18
       ],
       "crime_level_id" : 2,
       "export" : [],
@@ -2368,7 +2368,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.821,
                0,
-               -6.06
+               6.06
             ],
             "destination" : 8,
             "name" : "Kilian to Min",
@@ -2378,7 +2378,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.643,
                0,
-               -0.739
+               0.739
             ],
             "destination" : 16,
             "name" : "Kilian to Magnus",
@@ -2388,7 +2388,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.928,
                0,
-               3.089
+               -3.089
             ],
             "destination" : 19,
             "name" : "Kilian to Terra",
@@ -2398,7 +2398,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.576,
                0,
-               -6.168
+               6.168
             ],
             "destination" : 95,
             "name" : "Kilian to Ellis",
@@ -2424,7 +2424,7 @@ SCMAP.data.systems = {
       "coords" : [
          275.99,
          9.82,
-         27.53
+         -27.53
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -2452,7 +2452,7 @@ SCMAP.data.systems = {
       "coords" : [
          -49.63,
          5.09,
-         -120.78
+         120.78
       ],
       "crime_level_id" : 0,
       "export" : [
@@ -2467,7 +2467,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.681,
                0,
-               0.226
+               -0.226
             ],
             "destination" : 23,
             "name" : "Leir to Banshee",
@@ -2477,7 +2477,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.253,
                0,
-               -2.364
+               2.364
             ],
             "destination" : 29,
             "name" : "Leir to Yulin",
@@ -2487,7 +2487,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.538,
                0,
-               3.743
+               -3.743
             ],
             "destination" : 32,
             "name" : "Leir to Vul Ture",
@@ -2497,7 +2497,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.147,
                0,
-               4.264
+               -4.264
             ],
             "destination" : 85,
             "name" : "Leir to Oberon",
@@ -2523,7 +2523,7 @@ SCMAP.data.systems = {
       "coords" : [
          62.15,
          25.09,
-         -15.93
+         15.93
       ],
       "crime_level_id" : 4,
       "export" : [],
@@ -2534,7 +2534,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.034,
                0,
-               -5.956
+               5.956
             ],
             "destination" : 37,
             "name" : "Magnus to Nexus",
@@ -2544,7 +2544,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.051,
                0,
-               4.379
+               -4.379
             ],
             "destination" : 81,
             "name" : "Magnus to Goss",
@@ -2554,7 +2554,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.643,
                0,
-               0.739
+               -0.739
             ],
             "destination" : 108,
             "name" : "Magnus to Kilian",
@@ -2580,7 +2580,7 @@ SCMAP.data.systems = {
       "coords" : [
          110.42,
          16.36,
-         -43.48
+         43.48
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -2591,7 +2591,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.671,
                0,
-               -0.435
+               0.435
             ],
             "destination" : 30,
             "name" : "Min to Charon",
@@ -2601,7 +2601,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.606,
                0,
-               -6.156
+               6.156
             ],
             "destination" : 45,
             "name" : "Min to Unknown #12",
@@ -2611,7 +2611,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.559,
                0,
-               1.287
+               -1.287
             ],
             "destination" : 86,
             "name" : "Min to Cathcart",
@@ -2621,7 +2621,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.684,
                0,
-               -0.083
+               0.083
             ],
             "destination" : 94,
             "name" : "Min to Pyro",
@@ -2631,7 +2631,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.821,
                0,
-               6.06
+               -6.06
             ],
             "destination" : 108,
             "name" : "Min to Kilian",
@@ -2660,7 +2660,7 @@ SCMAP.data.systems = {
       "coords" : [
          63.75,
          10.47,
-         -72.06
+         72.06
       ],
       "crime_level_id" : 4,
       "export" : [
@@ -2677,7 +2677,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.346,
                0,
-               6.547
+               -6.547
             ],
             "destination" : 13,
             "name" : "Nemo to Taranis",
@@ -2687,7 +2687,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.568,
                0,
-               -1.246
+               1.246
             ],
             "destination" : 26,
             "name" : "Nemo to Corel",
@@ -2697,7 +2697,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.662,
                0,
-               0.543
+               -0.543
             ],
             "destination" : 83,
             "name" : "Nemo to Rhetor",
@@ -2723,7 +2723,7 @@ SCMAP.data.systems = {
       "coords" : [
          74.22,
          18.97,
-         -39.62
+         39.62
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -2734,7 +2734,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.073,
                0,
-               -4.352
+               4.352
             ],
             "destination" : 13,
             "name" : "Nexus to Taranis",
@@ -2744,7 +2744,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.034,
                0,
-               5.956
+               -5.956
             ],
             "destination" : 16,
             "name" : "Nexus to Magnus",
@@ -2754,7 +2754,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.474,
                0,
-               -5.711
+               5.711
             ],
             "destination" : 26,
             "name" : "Nexus to Corel",
@@ -2764,7 +2764,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.246,
                0,
-               2.38
+               -2.38
             ],
             "destination" : 86,
             "name" : "Nexus to Cathcart",
@@ -2774,7 +2774,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.223,
                0,
-               4.172
+               -4.172
             ],
             "destination" : 95,
             "name" : "Nexus to Ellis",
@@ -2802,7 +2802,7 @@ SCMAP.data.systems = {
       "coords" : [
          -30.73,
          5.78,
-         -25.6
+         25.6
       ],
       "crime_level_id" : 2,
       "export" : [],
@@ -2813,7 +2813,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3,
                0,
-               5.974
+               -5.974
             ],
             "destination" : 4,
             "name" : "Nul to Garron",
@@ -2823,7 +2823,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.314,
                0,
-               -6.271
+               6.271
             ],
             "destination" : 5,
             "name" : "Nul to Centauri",
@@ -2833,7 +2833,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.589,
                0,
-               1.127
+               -1.127
             ],
             "destination" : 14,
             "name" : "Nul to Croshaw",
@@ -2843,7 +2843,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.677,
                0,
-               0.325
+               -0.325
             ],
             "destination" : 39,
             "name" : "Nul to Caliban",
@@ -2871,7 +2871,7 @@ SCMAP.data.systems = {
       "coords" : [
          -11.15,
          9.58,
-         -88.9
+         88.9
       ],
       "crime_level_id" : 4,
       "export" : [
@@ -2887,7 +2887,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -0.684,
                0,
-               6.65
+               -6.65
             ],
             "destination" : 18,
             "name" : "Oberon to Idris",
@@ -2897,7 +2897,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.265,
                0,
-               -2.332
+               2.332
             ],
             "destination" : 20,
             "name" : "Oberon to Bacchus",
@@ -2907,7 +2907,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.147,
                0,
-               -4.264
+               4.264
             ],
             "destination" : 87,
             "name" : "Oberon to Leir",
@@ -2936,7 +2936,7 @@ SCMAP.data.systems = {
       "coords" : [
          168.47,
          3.07,
-         -29.94
+         29.94
       ],
       "crime_level_id" : 4,
       "export" : [],
@@ -2950,7 +2950,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.608,
                0,
-               -4.843
+               4.843
             ],
             "destination" : 6,
             "name" : "Odin to Helios",
@@ -2960,7 +2960,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.829,
                0,
-               6.057
+               -6.057
             ],
             "destination" : 34,
             "name" : "Odin to Baker",
@@ -2970,7 +2970,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.689,
                0,
-               -6.468
+               6.468
             ],
             "destination" : 79,
             "name" : "Odin to Tyrol",
@@ -2980,7 +2980,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.643,
                0,
-               4.809
+               -4.809
             ],
             "destination" : 91,
             "name" : "Odin to Osiris",
@@ -3006,7 +3006,7 @@ SCMAP.data.systems = {
       "coords" : [
          154.36,
          24.34,
-         -142.98
+         142.98
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3032,7 +3032,7 @@ SCMAP.data.systems = {
       "coords" : [
          -84,
          29.88,
-         -14
+         14
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3043,7 +3043,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.206,
                0,
-               -6.575
+               6.575
             ],
             "destination" : 3,
             "name" : "Orion to Vanguard",
@@ -3053,7 +3053,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.263,
                0,
-               -2.335
+               2.335
             ],
             "destination" : 39,
             "name" : "Orion to Caliban",
@@ -3063,7 +3063,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.34,
                0,
-               5.79
+               -5.79
             ],
             "destination" : 99,
             "name" : "Orion to Tiber",
@@ -3091,7 +3091,7 @@ SCMAP.data.systems = {
       "coords" : [
          193.97,
          20.42,
-         -3.53
+         3.53
       ],
       "crime_level_id" : 4,
       "export" : [],
@@ -3102,7 +3102,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.643,
                0,
-               -4.809
+               4.809
             ],
             "destination" : 93,
             "name" : "Osiris to Odin",
@@ -3130,7 +3130,7 @@ SCMAP.data.systems = {
       "coords" : [
          53.5,
          26.98,
-         33.36
+         -33.36
       ],
       "crime_level_id" : 4,
       "export" : [],
@@ -3141,7 +3141,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                0.751,
                0,
-               6.642
+               -6.642
             ],
             "destination" : 24,
             "name" : "Oso to Tohil",
@@ -3151,7 +3151,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.357,
                0,
-               3.999
+               -3.999
             ],
             "destination" : 25,
             "name" : "Oso to Castra",
@@ -3161,7 +3161,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.589,
                0,
-               -1.125
+               1.125
             ],
             "destination" : 98,
             "name" : "Oso to Hades",
@@ -3171,7 +3171,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.413,
                0,
-               -5.748
+               5.748
             ],
             "destination" : 101,
             "name" : "Oso to Kallis",
@@ -3197,7 +3197,7 @@ SCMAP.data.systems = {
       "coords" : [
          81.5,
          26.05,
-         76.95
+         -76.95
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3208,7 +3208,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.047,
                0,
-               6.363
+               -6.363
             ],
             "destination" : 17,
             "name" : "Oya to Pallas",
@@ -3218,7 +3218,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.752,
                0,
-               -6.451
+               6.451
             ],
             "destination" : 25,
             "name" : "Oya to Castra",
@@ -3228,7 +3228,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.627,
                0,
-               -0.878
+               0.878
             ],
             "destination" : 38,
             "name" : "Oya to Gurzil",
@@ -3254,7 +3254,7 @@ SCMAP.data.systems = {
       "coords" : [
          66.26,
          20.03,
-         124.32
+         -124.32
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3265,7 +3265,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.128,
                0,
-               -6.589
+               6.589
             ],
             "destination" : 24,
             "name" : "Pallas to Tohil",
@@ -3275,7 +3275,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.683,
                0,
-               0.115
+               -0.115
             ],
             "destination" : 31,
             "name" : "Pallas to Gliese",
@@ -3285,7 +3285,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.047,
                0,
-               -6.363
+               6.363
             ],
             "destination" : 40,
             "name" : "Pallas to Oya",
@@ -3295,7 +3295,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.425,
                0,
-               -1.844
+               1.844
             ],
             "destination" : 100,
             "name" : "Pallas to Hadur",
@@ -3321,7 +3321,7 @@ SCMAP.data.systems = {
       "coords" : [
          42.35,
          27.47,
-         58.52
+         -58.52
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3332,7 +3332,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.368,
                0,
-               -2.033
+               2.033
             ],
             "destination" : 25,
             "name" : "Pelles to Castra",
@@ -3342,7 +3342,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.024,
                0,
-               -4.409
+               4.409
             ],
             "destination" : 84,
             "name" : "Pelles to Stanton",
@@ -3371,7 +3371,7 @@ SCMAP.data.systems = {
       "coords" : [
          83.78,
          24.15,
-         -43.81
+         43.81
       ],
       "crime_level_id" : 6,
       "export" : [],
@@ -3385,7 +3385,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.684,
                0,
-               0.083
+               -0.083
             ],
             "destination" : 8,
             "name" : "Pyro to Min",
@@ -3395,7 +3395,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.32,
                0,
-               -2.177
+               2.177
             ],
             "destination" : 13,
             "name" : "Pyro to Taranis",
@@ -3424,7 +3424,7 @@ SCMAP.data.systems = {
       "coords" : [
          38.48,
          26.68,
-         -70
+         70
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -3441,7 +3441,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.953,
                0,
-               5.39
+               -5.39
             ],
             "destination" : 14,
             "name" : "Rhetor to Croshaw",
@@ -3451,7 +3451,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.369,
                0,
-               -6.543
+               6.543
             ],
             "destination" : 80,
             "name" : "Rhetor to Fora",
@@ -3461,7 +3461,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.662,
                0,
-               -0.543
+               0.543
             ],
             "destination" : 96,
             "name" : "Rhetor to Nemo",
@@ -3489,7 +3489,7 @@ SCMAP.data.systems = {
       "coords" : [
          222.88,
          20.88,
-         0.57
+         -0.57
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -3505,7 +3505,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.86,
                0,
-               5.458
+               -5.458
             ],
             "destination" : 22,
             "name" : "Rihlah to Virtus",
@@ -3515,7 +3515,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.366,
                0,
-               2.037
+               -2.037
             ],
             "destination" : 65,
             "name" : "Rihlah to Unknown #2",
@@ -3525,7 +3525,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.438,
                0,
-               -5.732
+               5.732
             ],
             "destination" : 67,
             "name" : "Rihlah to Unknown #5",
@@ -3562,7 +3562,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.152,
                0,
-               4.259
+               -4.259
             ],
             "destination" : 12,
             "name" : "Sol to Vega",
@@ -3572,7 +3572,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                0.608,
                0,
-               -6.657
+               6.657
             ],
             "destination" : 14,
             "name" : "Sol to Croshaw",
@@ -3582,7 +3582,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.997,
                0,
-               5.975
+               -5.975
             ],
             "destination" : 84,
             "name" : "Sol to Stanton",
@@ -3608,7 +3608,7 @@ SCMAP.data.systems = {
       "coords" : [
          19.13,
          20.62,
-         38.14
+         -38.14
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -3626,7 +3626,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.931,
                0,
-               -3.083
+               3.083
             ],
             "destination" : 12,
             "name" : "Stanton to Vega",
@@ -3636,7 +3636,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.997,
                0,
-               -5.975
+               5.975
             ],
             "destination" : 15,
             "name" : "Stanton to Sol",
@@ -3646,7 +3646,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.024,
                0,
-               4.409
+               -4.409
             ],
             "destination" : 28,
             "name" : "Stanton to Pelles",
@@ -3656,7 +3656,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.613,
                0,
-               4.837
+               -4.837
             ],
             "destination" : 82,
             "name" : "Stanton to Chronos",
@@ -3666,7 +3666,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.185,
                0,
-               -5.212
+               5.212
             ],
             "destination" : 101,
             "name" : "Stanton to Kallis",
@@ -3694,7 +3694,7 @@ SCMAP.data.systems = {
       "coords" : [
          220.83,
          30.26,
-         71.15
+         -71.15
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -3711,7 +3711,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.035,
                0,
-               -4.397
+               4.397
             ],
             "destination" : 22,
             "name" : "Tal to Virtus",
@@ -3737,7 +3737,7 @@ SCMAP.data.systems = {
       "coords" : [
          59.65,
          18.02,
-         -52.12
+         52.12
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3748,7 +3748,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.073,
                0,
-               4.352
+               -4.352
             ],
             "destination" : 37,
             "name" : "Taranis to Nexus",
@@ -3758,7 +3758,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.019,
                0,
-               6.606
+               -6.606
             ],
             "destination" : 86,
             "name" : "Taranis to Cathcart",
@@ -3768,7 +3768,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.32,
                0,
-               2.177
+               -2.177
             ],
             "destination" : 94,
             "name" : "Taranis to Pyro",
@@ -3778,7 +3778,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.346,
                0,
-               -6.547
+               6.547
             ],
             "destination" : 96,
             "name" : "Taranis to Nemo",
@@ -3804,7 +3804,7 @@ SCMAP.data.systems = {
       "coords" : [
          128.4,
          16.68,
-         4.78
+         -4.78
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3815,7 +3815,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.778,
                0,
-               5.515
+               -5.515
             ],
             "destination" : 11,
             "name" : "Terra to Kiel",
@@ -3825,7 +3825,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.398,
                0,
-               -1.937
+               1.937
             ],
             "destination" : 34,
             "name" : "Terra to Baker",
@@ -3835,7 +3835,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.255,
                0,
-               6.566
+               -6.566
             ],
             "destination" : 49,
             "name" : "Terra to Unknown #1",
@@ -3845,7 +3845,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.612,
                0,
-               0.978
+               -0.978
             ],
             "destination" : 81,
             "name" : "Terra to Goss",
@@ -3855,7 +3855,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.928,
                0,
-               -3.089
+               3.089
             ],
             "destination" : 108,
             "name" : "Terra to Kilian",
@@ -3883,7 +3883,7 @@ SCMAP.data.systems = {
       "coords" : [
          -70.34,
          4.72,
-         9.68
+         -9.68
       ],
       "crime_level_id" : 0,
       "export" : [],
@@ -3896,7 +3896,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.188,
                0,
-               -2.529
+               2.529
             ],
             "destination" : 4,
             "name" : "Tiber to Garron",
@@ -3906,7 +3906,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.238,
                0,
-               4.154
+               -4.154
             ],
             "destination" : 27,
             "name" : "Tiber to Virgil",
@@ -3916,7 +3916,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.192,
                0,
-               5.873
+               -5.873
             ],
             "destination" : 35,
             "name" : "Tiber to Vendetta",
@@ -3926,7 +3926,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.34,
                0,
-               -5.79
+               5.79
             ],
             "destination" : 104,
             "name" : "Tiber to Orion",
@@ -3952,7 +3952,7 @@ SCMAP.data.systems = {
       "coords" : [
          58.97,
          29.66,
-         81.72
+         -81.72
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -3963,7 +3963,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.128,
                0,
-               6.589
+               -6.589
             ],
             "destination" : 17,
             "name" : "Tohil to Pallas",
@@ -3973,7 +3973,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -0.751,
                0,
-               -6.642
+               6.642
             ],
             "destination" : 97,
             "name" : "Tohil to Oso",
@@ -4001,7 +4001,7 @@ SCMAP.data.systems = {
       "coords" : [
          84.47,
          31.62,
-         -156.99
+         156.99
       ],
       "crime_level_id" : 2,
       "export" : [
@@ -4037,7 +4037,7 @@ SCMAP.data.systems = {
       "coords" : [
          161.65,
          8.43,
-         -56.06
+         56.06
       ],
       "crime_level_id" : 6,
       "export" : [
@@ -4051,7 +4051,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.187,
                0,
-               2.532
+               -2.532
             ],
             "destination" : 30,
             "name" : "Tyrol to Charon",
@@ -4061,7 +4061,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.996,
                0,
-               -5.976
+               5.976
             ],
             "destination" : 59,
             "name" : "Tyrol to Unknown #6",
@@ -4071,7 +4071,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.689,
                0,
-               6.468
+               -6.468
             ],
             "destination" : 93,
             "name" : "Tyrol to Odin",
@@ -4081,7 +4081,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.365,
                0,
-               -2.041
+               2.041
             ],
             "destination" : 107,
             "name" : "Tyrol to Hadrian",
@@ -4107,7 +4107,7 @@ SCMAP.data.systems = {
       "coords" : [
          122.26,
          18.33,
-         36.89
+         -36.89
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4118,7 +4118,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.654,
                0,
-               -0.635
+               0.635
             ],
             "destination" : 11,
             "name" : "Unknown #1 to Kiel",
@@ -4128,7 +4128,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.255,
                0,
-               -6.566
+               6.566
             ],
             "destination" : 19,
             "name" : "Unknown #1 to Terra",
@@ -4138,7 +4138,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.501,
                0,
-               1.555
+               -1.555
             ],
             "destination" : 25,
             "name" : "Unknown #1 to Castra",
@@ -4148,7 +4148,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                0.443,
                0,
-               6.67
+               -6.67
             ],
             "destination" : 38,
             "name" : "Unknown #1 to Gurzil",
@@ -4158,7 +4158,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.992,
                0,
-               -4.445
+               4.445
             ],
             "destination" : 81,
             "name" : "Unknown #1 to Goss",
@@ -4184,7 +4184,7 @@ SCMAP.data.systems = {
       "coords" : [
          112.7,
          29.99,
-         -122.03
+         122.03
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4195,7 +4195,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.491,
                0,
-               6.203
+               -6.203
             ],
             "destination" : 62,
             "name" : "Unknown #10 to Unknown #9",
@@ -4221,7 +4221,7 @@ SCMAP.data.systems = {
       "coords" : [
          -126.57,
          11.33,
-         13.89
+         -13.89
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4247,7 +4247,7 @@ SCMAP.data.systems = {
       "coords" : [
          121.12,
          17.74,
-         -68.76
+         68.76
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4258,7 +4258,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.606,
                0,
-               6.156
+               -6.156
             ],
             "destination" : 8,
             "name" : "Unknown #12 to Min",
@@ -4268,7 +4268,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.16,
                0,
-               -2.595
+               2.595
             ],
             "destination" : 26,
             "name" : "Unknown #12 to Corel",
@@ -4278,7 +4278,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.14,
                0,
-               -2.642
+               2.642
             ],
             "destination" : 77,
             "name" : "Unknown #12 to Unknown #3",
@@ -4304,7 +4304,7 @@ SCMAP.data.systems = {
       "coords" : [
          -124.07,
          4.1,
-         65.8
+         -65.8
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4330,7 +4330,7 @@ SCMAP.data.systems = {
       "coords" : [
          -108.58,
          10.54,
-         28.23
+         -28.23
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4356,7 +4356,7 @@ SCMAP.data.systems = {
       "coords" : [
          -115.19,
          19.32,
-         -9.79
+         9.79
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4382,7 +4382,7 @@ SCMAP.data.systems = {
       "coords" : [
          -104.49,
          27.19,
-         -17.3
+         17.3
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4408,7 +4408,7 @@ SCMAP.data.systems = {
       "coords" : [
          -134.32,
          9.51,
-         -31.18
+         31.18
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4434,7 +4434,7 @@ SCMAP.data.systems = {
       "coords" : [
          -109.96,
          16.65,
-         -57.14
+         57.14
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4445,7 +4445,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.682,
                0,
-               -0.173
+               0.173
             ],
             "destination" : 50,
             "name" : "Unknown #18 to Unknown #22",
@@ -4471,7 +4471,7 @@ SCMAP.data.systems = {
       "coords" : [
          205.12,
          18.72,
-         172.05
+         -172.05
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4497,7 +4497,7 @@ SCMAP.data.systems = {
       "coords" : [
          169.16,
          2.32,
-         17.76
+         -17.76
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4508,7 +4508,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                4.18,
                0,
-               5.216
+               -5.216
             ],
             "destination" : 22,
             "name" : "Unknown #2 to Virtus",
@@ -4518,7 +4518,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.468,
                0,
-               -5.714
+               5.714
             ],
             "destination" : 34,
             "name" : "Unknown #2 to Baker",
@@ -4528,7 +4528,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.366,
                0,
-               -2.037
+               2.037
             ],
             "destination" : 106,
             "name" : "Unknown #2 to Rihlah",
@@ -4554,7 +4554,7 @@ SCMAP.data.systems = {
       "coords" : [
          28.47,
          8.41,
-         84.18
+         -84.18
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4580,7 +4580,7 @@ SCMAP.data.systems = {
       "coords" : [
          -149.34,
          7.74,
-         -1.42
+         1.42
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4606,7 +4606,7 @@ SCMAP.data.systems = {
       "coords" : [
          -72.85,
          17.58,
-         -58.1
+         58.1
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4617,7 +4617,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.682,
                0,
-               0.173
+               -0.173
             ],
             "destination" : 68,
             "name" : "Unknown #22 to Unknown #18",
@@ -4643,7 +4643,7 @@ SCMAP.data.systems = {
       "coords" : [
          -92.42,
          26.51,
-         -79.97
+         79.97
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4669,7 +4669,7 @@ SCMAP.data.systems = {
       "coords" : [
          -123.84,
          26.39,
-         -89.52
+         89.52
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4695,7 +4695,7 @@ SCMAP.data.systems = {
       "coords" : [
          -99.48,
          30.29,
-         94.89
+         -94.89
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4721,7 +4721,7 @@ SCMAP.data.systems = {
       "coords" : [
          -77.63,
          20.53,
-         -133.01
+         133.01
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4747,7 +4747,7 @@ SCMAP.data.systems = {
       "coords" : [
          -30.05,
          6.17,
-         -151.69
+         151.69
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4773,7 +4773,7 @@ SCMAP.data.systems = {
       "coords" : [
          -73.98,
          20.57,
-         -166.47
+         166.47
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4799,7 +4799,7 @@ SCMAP.data.systems = {
       "coords" : [
          34.61,
          18.2,
-         -148.46
+         148.46
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4810,7 +4810,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.856,
                0,
-               6.421
+               -6.421
             ],
             "destination" : 80,
             "name" : "Unknown #29 to Fora",
@@ -4836,7 +4836,7 @@ SCMAP.data.systems = {
       "coords" : [
          149.12,
          9.39,
-         -80.81
+         80.81
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4847,7 +4847,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.14,
                0,
-               2.642
+               -2.642
             ],
             "destination" : 45,
             "name" : "Unknown #3 to Unknown #12",
@@ -4857,7 +4857,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.682,
                0,
-               0.185
+               -0.185
             ],
             "destination" : 59,
             "name" : "Unknown #3 to Unknown #6",
@@ -4883,7 +4883,7 @@ SCMAP.data.systems = {
       "coords" : [
          8.88,
          27.92,
-         -93.16
+         93.16
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4909,7 +4909,7 @@ SCMAP.data.systems = {
       "coords" : [
          -44.84,
          8.94,
-         -39.66
+         39.66
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4935,7 +4935,7 @@ SCMAP.data.systems = {
       "coords" : [
          -14.1,
          4.66,
-         -19.4
+         19.4
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4961,7 +4961,7 @@ SCMAP.data.systems = {
       "coords" : [
          109.28,
          18.14,
-         78.03
+         -78.03
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -4987,7 +4987,7 @@ SCMAP.data.systems = {
       "coords" : [
          193.07,
          6.35,
-         102.4
+         -102.4
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5013,7 +5013,7 @@ SCMAP.data.systems = {
       "coords" : [
          194.43,
          29.87,
-         125.41
+         -125.41
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5039,7 +5039,7 @@ SCMAP.data.systems = {
       "coords" : [
          138.64,
          10.8,
-         -106.81
+         106.81
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5065,7 +5065,7 @@ SCMAP.data.systems = {
       "coords" : [
          126.35,
          9.81,
-         -33.51
+         33.51
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5091,7 +5091,7 @@ SCMAP.data.systems = {
       "coords" : [
          187.37,
          6.65,
-         -21
+         21
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5117,7 +5117,7 @@ SCMAP.data.systems = {
       "coords" : [
          141.61,
          6.07,
-         -133.23
+         133.23
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5143,7 +5143,7 @@ SCMAP.data.systems = {
       "coords" : [
          248.62,
          14.19,
-         -42.34
+         42.34
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5154,7 +5154,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.438,
                0,
-               5.732
+               -5.732
             ],
             "destination" : 106,
             "name" : "Unknown #5 to Rihlah",
@@ -5164,7 +5164,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.678,
                0,
-               -3.528
+               3.528
             ],
             "destination" : 107,
             "name" : "Unknown #5 to Hadrian",
@@ -5190,7 +5190,7 @@ SCMAP.data.systems = {
       "coords" : [
          173.72,
          17.13,
-         -80.13
+         80.13
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5201,7 +5201,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.682,
                0,
-               -0.185
+               0.185
             ],
             "destination" : 77,
             "name" : "Unknown #6 to Unknown #3",
@@ -5211,7 +5211,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -2.996,
                0,
-               5.976
+               -5.976
             ],
             "destination" : 79,
             "name" : "Unknown #6 to Tyrol",
@@ -5221,7 +5221,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.406,
                0,
-               -1.908
+               1.908
             ],
             "destination" : 102,
             "name" : "Unknown #6 to Geddon",
@@ -5247,7 +5247,7 @@ SCMAP.data.systems = {
       "coords" : [
          182.59,
          12.37,
-         143.19
+         -143.19
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5273,7 +5273,7 @@ SCMAP.data.systems = {
       "coords" : [
          135.93,
          15.82,
-         149.34
+         -149.34
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5299,7 +5299,7 @@ SCMAP.data.systems = {
       "coords" : [
          102.46,
          22.62,
-         -96.53
+         96.53
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5310,7 +5310,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.923,
                0,
-               -3.098
+               3.098
             ],
             "destination" : 20,
             "name" : "Unknown #9 to Bacchus",
@@ -5320,7 +5320,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -1.642,
                0,
-               6.48
+               -6.48
             ],
             "destination" : 26,
             "name" : "Unknown #9 to Corel",
@@ -5330,7 +5330,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                2.491,
                0,
-               -6.203
+               6.203
             ],
             "destination" : 47,
             "name" : "Unknown #9 to Unknown #10",
@@ -5356,7 +5356,7 @@ SCMAP.data.systems = {
       "coords" : [
          -88.78,
          5.33,
-         -40.06
+         40.06
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5367,7 +5367,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.021,
                0,
-               2.903
+               -2.903
             ],
             "destination" : 39,
             "name" : "Vanguard to Caliban",
@@ -5377,7 +5377,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                1.206,
                0,
-               6.575
+               -6.575
             ],
             "destination" : 104,
             "name" : "Vanguard to Orion",
@@ -5403,7 +5403,7 @@ SCMAP.data.systems = {
       "coords" : [
          -20.94,
          19.33,
-         17.31
+         -17.31
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5414,7 +5414,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.057,
                0,
-               -4.372
+               4.372
             ],
             "destination" : 4,
             "name" : "Vega to Garron",
@@ -5424,7 +5424,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.152,
                0,
-               -4.259
+               4.259
             ],
             "destination" : 15,
             "name" : "Vega to Sol",
@@ -5434,7 +5434,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.638,
                0,
-               0.786
+               -0.786
             ],
             "destination" : 27,
             "name" : "Vega to Virgil",
@@ -5444,7 +5444,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -0.294,
                0,
-               6.678
+               -6.678
             ],
             "destination" : 36,
             "name" : "Vega to Branaugh",
@@ -5454,7 +5454,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.931,
                0,
-               3.083
+               -3.083
             ],
             "destination" : 84,
             "name" : "Vega to Stanton",
@@ -5464,7 +5464,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.495,
                0,
-               4.948
+               -4.948
             ],
             "destination" : 90,
             "name" : "Vega to Kellog",
@@ -5490,7 +5490,7 @@ SCMAP.data.systems = {
       "coords" : [
          -95.39,
          10.22,
-         55.77
+         -55.77
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5501,7 +5501,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.52,
                0,
-               1.474
+               -1.474
             ],
             "destination" : 90,
             "name" : "Vendetta to Kellog",
@@ -5511,7 +5511,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.192,
                0,
-               -5.873
+               5.873
             ],
             "destination" : 99,
             "name" : "Vendetta to Tiber",
@@ -5537,7 +5537,7 @@ SCMAP.data.systems = {
       "coords" : [
          -55.55,
          31.16,
-         21.41
+         -21.41
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5548,7 +5548,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                6.638,
                0,
-               -0.786
+               0.786
             ],
             "destination" : 12,
             "name" : "Virgil to Vega",
@@ -5558,7 +5558,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -5.238,
                0,
-               -4.154
+               4.154
             ],
             "destination" : 99,
             "name" : "Virgil to Tiber",
@@ -5584,7 +5584,7 @@ SCMAP.data.systems = {
       "coords" : [
          191.24,
          15.13,
-         45.31
+         -45.31
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5595,7 +5595,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -4.18,
                0,
-               -5.216
+               5.216
             ],
             "destination" : 65,
             "name" : "Virtus to Unknown #2",
@@ -5605,7 +5605,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.035,
                0,
-               4.397
+               -4.397
             ],
             "destination" : 88,
             "name" : "Virtus to Tal",
@@ -5615,7 +5615,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                3.86,
                0,
-               -5.458
+               5.458
             ],
             "destination" : 106,
             "name" : "Virtus to Rihlah",
@@ -5641,7 +5641,7 @@ SCMAP.data.systems = {
       "coords" : [
          -79.44,
          11.06,
-         -100.63
+         100.63
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5652,7 +5652,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.986,
                0,
-               2.976
+               -2.976
             ],
             "destination" : 7,
             "name" : "Vul Ture to Elysium",
@@ -5662,7 +5662,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                5.538,
                0,
-               -3.743
+               3.743
             ],
             "destination" : 87,
             "name" : "Vul Ture to Leir",
@@ -5688,7 +5688,7 @@ SCMAP.data.systems = {
       "coords" : [
          5.47,
          9.56,
-         -141.61
+         141.61
       ],
       "crime_level_id" : -1,
       "export" : [],
@@ -5699,7 +5699,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -3.039,
                0,
-               5.954
+               -5.954
             ],
             "destination" : 23,
             "name" : "Yulin to Banshee",
@@ -5709,7 +5709,7 @@ SCMAP.data.systems = {
             "coords_au" : [
                -6.253,
                0,
-               2.364
+               -2.364
             ],
             "destination" : 87,
             "name" : "Yulin to Leir",
