@@ -129,6 +129,16 @@ a:hover {
 #map_ui h1 a.right {
    float: right;
 }
+#map_ui h2 {
+   color: #6ABBCF;
+   font-size: 16px;
+   padding: 0px;
+   margin: 0px;
+   margin-top: 4px;
+   width: 99%;
+}
+#map_ui h2.nickname:before { content: "“"; }
+#map_ui h2.nickname:after { content: "”"; }
 
 #map_ui p {
    clear: both;
@@ -206,11 +216,12 @@ dt:after {
    width: 25px;
 }
 dd {
-   margin: 0 0 0 40px;
+   margin: 0 0 0 145px;
    padding: 0 0 0.4em 0;
 }
 #keyboard-shortcuts dd {
    width: 250px;
+   margin: 0 0 0 35px;
 }
 
 /*

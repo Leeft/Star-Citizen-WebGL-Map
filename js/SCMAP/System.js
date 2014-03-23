@@ -20,7 +20,7 @@ SCMAP.System = function ( data ) {
    this.export = [];
    this.crimeStatus = '';
    this.blackMarket = [];
-   this.uueStrategicValue = undefined;
+   this.ueeStrategicValue = undefined;
    this.blob = [];
 
    this.setValues( data );
@@ -118,13 +118,24 @@ SCMAP.System.prototype = {
    displayInfo: function ( system ) {
       if ( typeof system === 'undefined' ) { system = this; }
 
-      var blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
+      var worlds = '(No information)';
+      var _import = '&mdash;';
+      var _export = '&mdash;';
+      var blackMarket = '&mdash;';
+      var strategicValue = 'Unknown';
+      var crimeStatus = 'Unknown';
       var i;
+      var tmp = [];
+      var $blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
 
       $('#systemname')
          .attr( 'class', makeSafeForCSS( system.faction.name ) )
          .css( 'color', system.faction.color.getStyle() )
          .text( 'System: ' + system.name );
+
+      if ( typeof system.nickname === 'string' && system.nickname.length ) {
+         $blurb.append( '<h2 class="nickname">'+system.nickname+'</h2>' );
+      }
 
       var currentRoute = window.map.currentRoute();
       if ( currentRoute.length )
@@ -146,7 +157,6 @@ SCMAP.System.prototype = {
 
             if ( currentStep > 0 ) {
                var $prev = currentRoute[currentStep-1].createInfoLink();
-               //$prev.addClass( 'left' );
                $prev.attr( 'title', 'Previous jump to ' + currentRoute[currentStep-1].name +
                   ' (' + currentRoute[currentStep-1].faction.name + ' territory)' );
                $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
@@ -157,7 +167,6 @@ SCMAP.System.prototype = {
 
             if ( currentStep < ( currentRoute.length - 1 ) ) {
                var $next = currentRoute[currentStep+1].createInfoLink();
-               //$next.addClass( 'right' );
                $next.attr( 'title', 'Next jump to ' + currentRoute[currentStep+1].name +
                   ' (' + currentRoute[currentStep+1].faction.name + ' territory)'  );
                $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
@@ -172,78 +181,65 @@ SCMAP.System.prototype = {
          }
       }
 
-      var worlds = 'No inhabitable worlds',
-         _import = '&mdash;',
-         _export = '&mdash;',
-         blackMarket = '&mdash;',
-         strategic_value = 'Unknown',
-         crimeStatus = 'Unknown',
-         planets = 'Unknown',
-         nickname,
-         tmp = [];
-
       if ( system.planetaryRotation.length ) {
          worlds = system.planetaryRotation.join( ', ' );
       }
 
       if ( system.import.length ) {
-         tmp = [];
-         for ( i = 0; i < system.import.length; i++ ) {
-            tmp.push( system.import[i].name );
-         }
-         _import = tmp.join( ', ' );
+         _import = $.map( system.import, function( elem, i ) {
+            return SCMAP.data.goods[ elem ].name;
+         }).join( ', ' );
       }
 
       if ( system.export.length ) {
-         tmp = [];
-         for ( i = 0; i < system.export.length; i++ ) {
-            tmp.push( system.export[i].name );
-         }
-         _export = tmp.join( ', ' );
+         _export = $.map( system.export, function( elem, i ) {
+            return SCMAP.data.goods[ elem ].name;
+         }).join( ', ' );
       }
 
       if ( system.blackMarket.length ) {
-         tmp = [];
-         for ( i = 0; i < system.blackMarket.length; i++ ) {
-            tmp.push( system.blackMarket[i].name );
-         }
-         blackMarket = tmp.join( ', ' );
+         blackMarket = $.map( system.blackMarket, function( elem, i ) {
+            return SCMAP.data.goods[ elem ].name;
+         }).join( ', ' );
       }
 
-      if ( typeof system.planets === 'string' || typeof system.planets === 'number' ) {
-         planets = system.planets;
+      //if ( typeof system.planets === 'string' || typeof system.planets === 'number' ) {
+      //   planets = system.planets;
+      //}
+
+      if ( typeof system.crimeStatus === 'object' ) {
+         crimeStatus = system.crimeStatus.name;
       }
 
-      if ( typeof system.crimeStatus === 'string' && system.crimeStatus.length ) {
-         crimeStatus = system.crimeStatus;
+      if ( typeof system.ueeStrategicValue === 'object' ) {
+         strategicValue = system.ueeStrategicValue.color;
       }
 
-      if ( typeof system.ueeStrategicValue === 'string' && system.ueeStrategicValue.length ) {
-         strategic_value = system.ueeStrategicValue;
-      }
-
-      blurb.append( '<dl>' +
-         ( ( typeof nickname === 'string' ) ? '<dt class="nickname">Nickname</dt><dd class="nickname">'+nickname+'</dd>' : '' ) +
+      $blurb.append( '<dl>' +
          '<dt class="faction">Faction</dt><dd class="faction">'+system.faction.name+'</dd>' +
-         '<dt class="planets">Planets</dt><dd class="planets">'+planets+'</dd>' +
+         //'<dt class="planets">Planets</dt><dd class="planets">'+planets+'</dd>' +
          '<dt class="rotation">Planetary rotation</dt><dd class="rotation">'+worlds+'</dd>' +
          '<dt class="import">Import</dt><dd class="import">'+_import+'</dd>' +
          '<dt class="export">Export</dt><dd class="export">'+_export+'</dd>' +
          '<dt class="blackMarket">Black market</dt><dd class="crime">'+blackMarket+'</dd>' +
          '<dt class="crime_'+crimeStatus.toLowerCase()+'">Crime status</dt><dd class="crime">'+crimeStatus+'</dd>' +
-         '<dt class="strategic_value_'+strategic_value.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+strategic_value+'</dd>' +
+         '<dt class="strategic_value_'+strategicValue.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+strategicValue+'</dd>' +
       '</dl>' );
 
-      blurb.append( markdown.toHTML( system.blob ) );
-
-      if ( system.source ) {
-         blurb.append( '<p class=""><a href="' + system.source + '" target="_blank">(source)</a></p>' );
+      if ( system.faction.name !== 'Unclaimed' ) {
+         $blurb.find('dd.faction').css( 'color', system.faction.color.getStyle() );
       }
 
-      blurb.append( '<div id="destinations">' );
+      $blurb.append( '<div id="systemInfo">'+markdown.toHTML( system.blob )+'</div>' );
+
+      if ( system.source ) {
+         $blurb.append( '<p><a class="system-source-url" href="' + system.source + '" target="_blank">(source)</a></p>' );
+      }
+
+      $blurb.append( '<div id="destinations">' );
 
       $('#systemblurb').empty();
-      $('#systemblurb').append( blurb );
+      $('#systemblurb').append( $blurb );
 
       $('#map_ui').tabs( 'option', 'active', 1 );
       $('#map_ui').data( 'jsp' ).reinitialise();
@@ -359,7 +355,7 @@ SCMAP.System.preprocessSystems = function () {
          'size': data.size,
          'source': data.source,
          'crimeStatus': SCMAP.data.crime_levels[ data.crime_level_id ],
-         'ueeStrategicValue': SCMAP.data.uee_strategic_values[ data.uee_strategic_value_id ],
+         'ueeStrategicValue': SCMAP.data.uee_strategic_values[ ""+data.uee_strategic_value_id ],
          'import': data.import,
          'export': data.export,
          'blackMarket': data.black_market,

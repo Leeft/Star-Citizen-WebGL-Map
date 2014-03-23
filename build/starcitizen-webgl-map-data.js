@@ -847,7 +847,7 @@ SCMAP.data.systems = {
    },
    "Cathcart" : {
       "black_market" : [
-         11
+         20
       ],
       "blob" : "**Cathcart** is widely recognized as a ‘pirate system,’ and its reputation in the UEE expends little treasure trying to downplay. At heart, Cathcart is a galactic junkyard with no natural planets and no particular redeeming qualities. It’s been humanity’s prime dumping ground for radioactive debris, failed starship hulls and out-of-date space technology for generations. The only enforced rule: leave the route between jump-points clear at all time.\r\n\r\nThe inhabitants of Cathcart have constructed makeshift environments by lashing together wrecked ships, orbital platforms and anything else that can be re-pressurized. It’s an interesting environment that has spawned a truly unique subculture… but the huge population of pirates, smugglers, mercenaries and outright killers means that anthropologists won’t be documenting it any time soon.\r\n\r\nCathcart’s largest “world” is called Spider, a sprawling mass of abandoned UEE warships spiraling in ever-increasing mated tendrils around an ancient colony ship’s massive hull. Visitors are encouraged to keep their suits on during their stay, as the shoddy construction of the inhabited areas often gives out. Still, it’s a great place to pick up a bargain if you aren’t picky about what century your ship upgrades came  from.",
       "color" : "yellow",
@@ -858,11 +858,11 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 6,
       "export" : [
-         11
+         25
       ],
       "faction_id" : 6,
       "import" : [
-         13
+         26
       ],
       "jumppoints" : [
          {
@@ -1035,7 +1035,7 @@ SCMAP.data.systems = {
       "export" : [],
       "faction_id" : 1,
       "import" : [
-         6
+         14
       ],
       "jumppoints" : [
          {
@@ -1294,7 +1294,7 @@ SCMAP.data.systems = {
    },
    "Eealus" : {
       "black_market" : [
-         29
+         52
       ],
       "blob" : "**Eealus** is the Xi’An Empire’s prime nature preserve. Per Xi’An policy, there are in fact four identical nature preserve worlds scattered around the empire (two are kept secret, one is designated “backup” and Eealus is “prime.”) The planet was laid out from the ground up to act as a massive zoo/terrarium and features every single species located in the Xi’An sphere of influence. Despite the planned nature of the world (like most Xi’An worlds) it is a truly beautiful place.\r\n\r\nEealus imports food and a great deal of other natural resources in order to maintain the artificial environments needed to simulate every Xi’An world on a single planet. For the less scrupulous, there is an eager black-market for species stolen from Eealus.\r\n\r\nBe warned that the Xi’An do NOT take kindly to attempting to import species from other worlds without their permission. A flo-pet outbreak some years back has lead to a shoot first, don’t bother asking question ever policy among Xi’An customs patrols.\r\n\r\nFor humans not interested in the vast cultural riches of an ancient empire, Eealus is best known as the setting for pop sensation Xandi’s debut music video.",
       "color" : "unknown",
@@ -1305,11 +1305,11 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         28
+         45
       ],
       "faction_id" : 3,
       "import" : [
-         35
+         8
       ],
       "jumppoints" : [],
       "last_updated" : null,
@@ -1335,12 +1335,12 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 4,
       "export" : [
-         21
+         40
       ],
       "faction_id" : 1,
       "import" : [
-         23,
-         24
+         10,
+         41
       ],
       "jumppoints" : [
          {
@@ -1472,8 +1472,8 @@ SCMAP.data.systems = {
    },
    "Fora" : {
       "black_market" : [
-         4,
-         5
+         2,
+         6
       ],
       "blob" : "**Fora** is, for lack of a better description, a known pirate system in UEE space – the only of its kind. Home to Hyperion, a dusty outpost planet, Fora has evolved into a safe zone in an area of space littered with Outsiders and Banu. Pirates, smugglers and worse frequently call the place their home and are largely ignored by the local police garrison.\r\n\r\nTerraforming problems left the world awash in perpetual HyperClay dust storms. The stuff coats nearly every surface and has such a low silica content as to be useless for mining purposes. Hyperion has a single landing area, Shoel, and no practical exports. If you’re on the run, though, it’s a good place to hide – bounties rarely reach this area of space.\r\n\r\nOther worlds in the system are completely dead, although they make a good hiding place for larger spacecraft. Fora does have one additional point of interest: it is probably the safest area to cross into Banu space undetected. As a result, you are likely to encounter plenty of smugglers in the system’s environs… as well as the occasional UEE special operations team.",
       "color" : "blue",
@@ -1484,13 +1484,13 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 8,
       "export" : [
-         3
+         7
       ],
       "faction_id" : 1,
       "import" : [
-         1,
-         2,
-         3
+         8,
+         9,
+         10
       ],
       "jumppoints" : [
          {
@@ -1595,7 +1595,7 @@ SCMAP.data.systems = {
    },
    "Geddon" : {
       "black_market" : [
-         28
+         49
       ],
       "blob" : "**Geddon** is a system of a Banu Protectorate, located two jumps behind the Perry line. It is home to a single planet, Tat’Ko. Tat’Ko is a barren, windswept mass of volcanic rock. It’s no place for a human being—certainly not one without a light pressure suit—but it’s the ideal environment for the Banu.\r\n\r\nThe planet’s churning, underground volcanoes help produce the system’s main exports: black glass for producing circuitry and a gray oil, the so-called ‘planetblood’ which is used as a high-end space engine lubricant. Both products are exceptionally pure; the “Tat’Ko Seal” graphic which confirms their place of origin is the mark of highly respected products.\r\n\r\nThe weather patterns on Tat’Ko are turbulent at best, lethal on the average day. Therefore, the cities are massive enclosed arcologies driven deep into the planet surface. Nicknamed Spires by UEE travellers due to their resemblance to massive spikes driven into the planet. Docking at a spire can be exceptionally difficult, starship accidents during landing here are common.\r\n\r\nThe polar regions of Tat’ko are a source of bad-ice, a highly illegal frozen combination of water and refinable poisons.",
       "color" : "red",
@@ -1606,12 +1606,12 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         26,
-         27
+         50,
+         51
       ],
       "faction_id" : 4,
       "import" : [
-         34
+         8
       ],
       "jumppoints" : [
          {
@@ -1686,8 +1686,8 @@ SCMAP.data.systems = {
    },
    "Goss" : {
       "black_market" : [
-         6,
-         7
+         11,
+         12
       ],
       "blob" : "Generally regarded as one of the most visually stunning systems in the Empire, the **Goss** System is a binary star system situated in the forefront of a massive emission nebula. Permanent bands of turqouise, gold and deep orange paint the sky from any location in the system.\r\n\r\nAll three of Goss’ planets are inhabitable. The bulk of the system’s economy comes from tourism, but Gossians pride themselves on being self sufficient. Long-haul traders will find few bargains here, as the system produces little worthy of export and gathers its raw materials internally, mining and harvesting resources from the inner planets as needed.\r\n\r\nThe main destination is the lush, thriving resort world of Cassel (Goss II.) The surface is largely tropical rain forests dotted with stately pleasure domes constructed to support tourists and dozens of launch arcologies that house the descendants of the original Goss settlers. Goss I is a low-atmosphere world with abundant heavy metals. Scattered pockets of well-paid miners are a reasonable market for luxury goods and black market items, although the systems’ strict export policies prevent shipping raw materials out-system.\r\n\r\nThe Olympus Pool has dark side, too: the same nebula that delights tourists also acts as an effective curtain for several deep space pirate clans. Pirates are generally careful not to interfere in the tourism on Cassel… but the brilliantly colored sky is believed to hide multiple clan operations facilities and supply chain master points.\r\n\r\n**WARNING:** gravity effects of the binary star have rendered portions of the system untenable to starships not carrying Level 7 shields or above. Consult current gravity maps before attempting transit!",
       "color" : "blue",
@@ -1702,8 +1702,8 @@ SCMAP.data.systems = {
       ],
       "faction_id" : 1,
       "import" : [
-         5,
-         4
+         8,
+         13
       ],
       "jumppoints" : [
          {
@@ -1865,8 +1865,8 @@ SCMAP.data.systems = {
    },
    "Hadrian" : {
       "black_market" : [
-         31,
-         32
+         2,
+         54
       ],
       "blob" : "No one loves **Hadrian**; famously known as the No Man’s Land where the bulk of the warships of the UEE and Xi’An fleet maintained their stalemate, Hadrian is now one of the most famous checkpoint systems for pilots traveling between UEE territory to Xi’An proper.\r\n\r\nAnyone traveling through Hadrian can expect to be scanned at least three times: by an initial human patrol, by a combined customs patrol near the inner system and then by a Xi’An force holding station at the other side’s jump point. Smugglers interested in bringing anything illegal into Xi’An controlled space would be advised to avoid Hadrian… or at least invest in some heavy duty electronic countermeasures.\r\n\r\nPilots are advised not to wander off the buoy-marked space lanes; unexploded anti-ship space mines are commonly discovered in the system.",
       "color" : "white",
@@ -1879,7 +1879,7 @@ SCMAP.data.systems = {
       "export" : [],
       "faction_id" : 5,
       "import" : [
-         38
+         55
       ],
       "jumppoints" : [
          {
@@ -1917,7 +1917,7 @@ SCMAP.data.systems = {
    },
    "Hadur" : {
       "black_market" : [
-         27
+         20
       ],
       "blob" : "**Hadur** was part of the Perry Line ceded to the Xi’An as part of the Akari/Kray Treaty. The Xi’An have begun terraforming a pair of planets in the system and are willing both to employ human labor and to purchase human-delivered goods as part of the process. A seemingly endless supply of heavy metals, fertilizers, heavy machinery and clean water is required, and the Xi’An as always pay top dollar for items they need.\r\n\r\nThe Xi’An and the UEE continue to patrol the system together, with an elite UEE police unit stationed near the star’s outer marker. Both governments claim the effort is an example of the evolving friendship between the two powers and it is not unusual to see Xi’An craft flying on the wing of UEE patrol ships. As a result, the system is on the short list for future UEE/Xi’An “First Laser” military traininge exercises.",
       "color" : "yellow",
@@ -1930,11 +1930,11 @@ SCMAP.data.systems = {
       "export" : [],
       "faction_id" : 3,
       "import" : [
-         29,
-         30,
-         31,
-         27,
-         28
+         22,
+         23,
+         43,
+         45,
+         46
       ],
       "jumppoints" : [
          {
@@ -2169,12 +2169,12 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         25
+         47
       ],
       "faction_id" : 5,
       "import" : [
-         32,
-         33
+         10,
+         48
       ],
       "jumppoints" : [
          {
@@ -2212,8 +2212,8 @@ SCMAP.data.systems = {
    },
    "Kellog" : {
       "black_market" : [
-         15,
-         16
+         2,
+         31
       ],
       "blob" : "Located near Vanduul territory, the **Kellog** system is home to a stark dichotomy.\r\n\r\nKellog II (“Xis”) has been designated by the UEE Subcommittee for Development & Expansion as a Developing World to a primitive species. A lush jungle paradise world, Xis would be otherwise ideal for human colonization. There is a small market for medicines and other organic goods collected with some risk on the planet’s surface. Flo-pets, the focus of a brief exotic animal fad among Earth’s upper class, were initially illegally trapped here.\r\n\r\nMeanwhile, the outer planet in the system is the infamous QuarterDeck PrisonWorld, a maximum security penal facility home to hundreds of thousands of hardened criminals. The UEE allows prisoners at QuarterDeck to work their sentences in a full-process antimatter refinery; the fuel is thus available cheaply and raw materials involved in its creation are sometimes at a premium. Bounty Hunters should note that QuarterDeck’s booking officers are known to pay a reasonable rate for captured criminals.\r\n\r\nD&E dictums specify that the system is not to be tampered with and so the other planets have also been declared off-limits for mining and exploration purposes. The small army of police and guards that monitor QuarterDeck ensure that no one interferes with the planets or the species on Kellog II. Should they catch someone, they certainly don’t have to take them too far.",
       "color" : "yellow",
@@ -2224,12 +2224,12 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 1,
       "export" : [
-         18
+         32
       ],
       "faction_id" : 5,
       "import" : [
-         16,
-         15
+         8,
+         33
       ],
       "jumppoints" : [
          {
@@ -2344,8 +2344,8 @@ SCMAP.data.systems = {
    },
    "Kilian" : {
       "black_market" : [
-         33,
-         34
+         2,
+         54
       ],
       "blob" : "**Kilian** is where young soldiers go to learn the art of warfare and where old soldiers return to fade away. For them and most other Humans, it is the shining symbol of UEE military might. Located at the heart of the Empire, a single jump line away from Terra, and home to hundreds of military barracks, training facilities, shipyards and support facilities. Kilian’s economy is based entirely on the massive military presence, with weapons manufacturers and ship designers flocking to the system to offer their wares. Between the shipyards at Naval Station MacArthur to the Marine headquarters on Corin, Kilian may be the safest place in the galaxy . . . if you’re on the right side of the law.\r\n\r\nKilian itself is a white A-type main sequence star orbited by fourteen planets. The discovery of Kilian occurred early in man’s expansion into the galaxy. Terraforming of green-band planets began very early, as did the garrisoning of military forces here. While there was no specific plan to build out the system specifically as a military base, it naturally evolved from a forward base in the early days of exploration to the most important headquarters in the galaxy, as power shifted towards the region of space surrounding Terra. Only the UEE Army continues to maintain their formal headquarters on Earth; the Navy and Marine top commanders now direct troop and ship movements from armored city-bases on planets in the Kilian System. As a collateral development, Kilian has generated a large civilian population and is fully represented in the UEE Senate.\r\n\r\n*(more at the information link)*",
       "color" : "red",
@@ -2358,10 +2358,10 @@ SCMAP.data.systems = {
       "export" : [],
       "faction_id" : 1,
       "import" : [
-         40,
-         42,
-         39,
-         41
+         10,
+         20,
+         55,
+         56
       ],
       "jumppoints" : [
          {
@@ -2445,7 +2445,7 @@ SCMAP.data.systems = {
    },
    "Leir" : {
       "black_market" : [
-         12
+         10
       ],
       "blob" : "**Leir** II, Mya, is home to the Outsiders, a fringe society that rejects civilization. Leir was a corporate terraformed world which was abandoned after cultists staged an armed takover. Rather than retake the world it was decided to simply let sleeping dogs lie, cutting the group off and waiting for them to turn upon themselves. Surprisingly, this has not happened. The group stabilized into a thriving society very quickly and managed to fit in quite nicely on the world.\r\n\r\nThe Outsiders, who claim to oppose mankind’s arrogance and refuse to export anything from their sanctuary, now have quasi-normal relations with visiting traders. High quality made-goods can be purchased for a significant outlay, although the Outsiders still will not purchase anything from other planets. The Outsiders operate a strong local militia which operates top of the line ship hulls (apparently their one nod to offworld commodities. Miners operate unobstructed on the other two worlds in the system. Neither are terraformed and as a result require standard deliveries of machinery, oxygen, food and luxury supplies.",
       "color" : "red",
@@ -2456,9 +2456,9 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 0,
       "export" : [
-         14,
-         12,
-         13
+         22,
+         27,
+         28
       ],
       "faction_id" : 6,
       "import" : [],
@@ -2652,8 +2652,8 @@ SCMAP.data.systems = {
    },
    "Nemo" : {
       "black_market" : [
-         24,
-         23
+         1,
+         2
       ],
       "blob" : "**Nemo** is a mid-range human-settled system centered around a tropical water-world, Ergo. Ergo produces vast quantities of undersea oil and has been settled with a series of orbital-dropped platform cities. Although there is no denying the fact that the planet exists largely to supply other more populous systems, the Ergonians have developed their own unique culture. Unlike most water worlds, absolutely no indigenous life has formed on the planet, so visitors hoping to find an unusual fish will be disappointed.\r\n\r\nThe highlight of the Nemo system is the so-called “Space Whale.” A naturally forming asteroid located in safe orbit around Nemo III, the planetoid resembles nothing so much as an Earth whale suspended in space. The locals have taken the whale as their own, constructing a nearby tourist trap for visitors to the system. Here you will find readily available t-shirts and shot-glasses with phrases ranging from the obvious “I Saw the Space Whale!” to the utterly inexplicable “Ergo, I Got Blubbered.”\r\n\r\nNemo II is a resource and refining world, producing a variety of mid-class alloys.",
       "color" : "yellow",
@@ -2664,13 +2664,13 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 4,
       "export" : [
-         23,
-         22,
-         24
+         8,
+         42,
+         43
       ],
       "faction_id" : 1,
       "import" : [
-         25
+         18
       ],
       "jumppoints" : [
          {
@@ -2795,7 +2795,7 @@ SCMAP.data.systems = {
    },
    "Nul" : {
       "black_market" : [
-         14
+         1
       ],
       "blob" : "**Nul** is a Classical Cepheid star, a yellow supergiant that pulsates (swelling 10-15% in size and luminosity) approximately every few months. Due to the variable nature of the star, attempts to terraform have not been successful, so the system was simply abandoned. To the public (and most law enforcement) there is nothing of interest in the system.  To a sliver of the criminal element, it’s the site of a slave market, set up for randomly determined times and locations to keep it under the radar.\r\n\r\nThis guide can not, in good conscious, advise pilots to engage in human trafficking. Even with a less human set of morals, it would be ill-advised: modern slavers are just as likely to take a hapless cargo pilot right alongside his victims. The only advice is: avoid at all costs.",
       "color" : "yellow",
@@ -2864,7 +2864,7 @@ SCMAP.data.systems = {
    },
    "Oberon" : {
       "black_market" : [
-         10
+         20
       ],
       "blob" : "**Oberon** IV, Gonn, is home to a robust mining community like those found in the most distant places on Earth: a group of humans seemingly unconcerned with their own welfare in an impossibly harsh environment. The world is not terraformed, and inhabitants must brave extreme heat and cold in order to survive… but the process is worthwhile, with massive exports of titanium, durasteel and tungsten. Countless robotic refineries allow the miners to offer processed alloys rather than simply raw ores.\r\n\r\nThe historical centerpiece of the system is Oberon V, Uriel. One of the saddest stories in modern terraforming, Uriel represents an attempt to raise the core temperature to make up for the lack of heat from Oberon’s neutron star. The attempt was considered a sure thing and its failure left three sloships of colonists bound for the world trapped and forced to either eke out a life underground or die of exposure. A competitive, family-based society has formed on the world, with seven major clans vying for control of scant few resources.\r\n\r\nSeveral above-ground settlements have sprung up in recent years, although they have a distinct expiration date. In five years, a swarm of 70-year cyclical insects will devour all organic matter above sea level. Attempts at extermination in advance of the deadline have thus far been unsuccessful. As the saying goes, the most valuable thing someone can ship in the Gonn system is Urielians away from it.",
       "color" : "blue",
@@ -2875,12 +2875,12 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 4,
       "export" : [
-         10
+         22
       ],
       "faction_id" : 6,
       "import" : [
-         11,
-         12
+         23,
+         24
       ],
       "jumppoints" : [
          {
@@ -2928,8 +2928,8 @@ SCMAP.data.systems = {
    },
    "Odin" : {
       "black_market" : [
-         19,
-         20
+         20,
+         38
       ],
       "blob" : "**Odin** is one of the oldest star systems visited by man. Fifty thousand years ago, it was a vibrant solar system remarkably similar to Earth or Terra. Since that time, Odin’s star has degenerated into a white dwarf, rendering its planets icy nightmare worlds.\r\n\r\nOdin II is within the system’s minuscule green band and is home to a variety of temporary UEE “deep freeze” expeditions, with the lack of surviving vegetation making it an ideal site for a weapons laboratory. Smugglers occasionally choose to call the system home, but their stays are infrequent… Odin is too cold even for pirates and trained killers.\r\n\r\nOdin II’s moon, Vili, is frequently used as a corporate weapons testing range. As a result, something of a black market for weapons technology has grown up in the region: much of it is junk, but pilots have reported finding occasional deals on discarded top-of-the-line military-grade surplus.\r\n\r\nThere is a thick asteroid belt close in, likely the remnants of a planet which did not survive the star’s failure. The UEE formally bans mining in the system, although little effort is paid to enforcing this edict. The field is largely uninteresting, but intrepid miners have been known to hit on substantive caches of gemstones, making their trips worthwhile.\r\n\r\nOdin IV is a gas giant and home to a UEE-sponsored hydrogen rendering station and fuel depot. Fuel is remarkably cheap here for this part of the galaxy, although accommodations are notoriously spartan.\r\n\r\nKnown jumps to Baker, Helios and Osiris.",
       "color" : "white",
@@ -2942,8 +2942,8 @@ SCMAP.data.systems = {
       "export" : [],
       "faction_id" : 1,
       "import" : [
-         19,
-         20
+         8,
+         35
       ],
       "jumppoints" : [
          {
@@ -3084,7 +3084,7 @@ SCMAP.data.systems = {
    },
    "Osiris" : {
       "black_market" : [
-         17
+         31
       ],
       "blob" : "**Osiris** is a small system featuring only two planets: the inhabited Etos (Osiris I) and an outer gas giant that has become ideal for refueling. Etos has not been settled by humanity and remains largely uncontested by the galaxy’s other races. Scientists believe that Etos I is capable of eventually being terraformed.\r\n\r\nEtos is located on the edge of the habitable zone very close to Osiris’ star. Life on Etos is primarily nocturnal, with the Etosian equivalent of higher primates just starting to appear. More advanced life on Etos has evolved an interesting adaptation, a thick rubber-like skin that protects it from the star’s damaging radiation. Other life forms have evolved to avoid the sun altogether, living in complete darkness in the planet’s extensive network of underground caves.\r\n\r\nAlthough Etos is technically protected by UEE mandate, little is done to guard the planet from poachers or other criminals who wish to use it as a base.",
       "color" : "yellow",
@@ -3123,7 +3123,7 @@ SCMAP.data.systems = {
    },
    "Oso" : {
       "black_market" : [
-         25
+         44
       ],
       "blob" : "**Oso** has been designated by the UEE as a developing system off-limits to interaction and trade. A small military garrison maintains this edict, although they are generally willing to look the other way for the right price. As such, Oso is regularly visited by traders of all stripes looking to ship between here and the Xi’An Empire.\r\n\r\nOsoians are the most developed of all the primitive species discovered by the UEE. A furry, multi-limbed race that communicates through flashes of color generated by chameleon cells that are patterned across their forehead-equivalents.\r\n\r\nHuman scientists find the natives to be endlessly fascinating, and Earth’s universities are full of graduate students suggesting new ways to study and attempt to communicate with the Osoians. The Xi’An, however, have a more tragic take on the species: they find them to be delicious.",
       "color" : "blue",
@@ -3363,8 +3363,8 @@ SCMAP.data.systems = {
    },
    "Pyro" : {
       "black_market" : [
-         21,
-         22
+         2,
+         39
       ],
       "blob" : "**Pyro** is a lawless frontier system with a bright central star undergoing a prolonged nova phase. Pyro’s sun went nova long before mankind reached for the stars and little is known of the original makeup of the system. Six burned-out planets remain, none of which are capable of supporting llfe. Every planet in the system is at some level of decay: from Pyro I’s slow infusion into the star to Pyro IV being knocked out of orbit in a meteor strike and slowly being subsumed by Pyro V’s gas giant.\r\n\r\nThere is little inherently interesting in the Pyro system. The planets were quickly mined out of any remaining precious metals shortly after the system’s discovery and the gas giant Pyro V is a mediocre refueling point at best (the atmosphere contains a poor hydrogen mix.)\r\n\r\nPersons unknown have established a mysterious space station in orbit around Pyro. The least damaged system in the world, Pyro VI is still an uninhabitable world… so why a pristine orbital station was built there is unknown. The current inhabitants, primarily pirates and other criminals seeing to lay low, are happy to have it.\r\n\r\n**TRAVEL WARNING:** Any improperly shielded spacecraft will sustain residual damage from Pyro’s star while making transit through the system.",
       "color" : "orange",
@@ -3377,8 +3377,8 @@ SCMAP.data.systems = {
       "export" : [],
       "faction_id" : 6,
       "import" : [
-         21,
-         22
+         8,
+         23
       ],
       "jumppoints" : [
          {
@@ -3416,8 +3416,8 @@ SCMAP.data.systems = {
    },
    "Rhetor" : {
       "black_market" : [
-         8,
-         9
+         15,
+         16
       ],
       "blob" : "**Rhetor** is home to the centerpiece of the United Empire of Earth’s private university system. With three separate inhabitable planets each boasting galaxy-class institutions, Rhetor is the destination of choice for future starship engineers and Xi’an romantic lit interpreters alike. An advanced degree from a school in the Rhetor system, even a secondary university, almost assures a job on Earth or Terra.\r\n\r\nPersei, Rhetor II, is a haven for thinktanks and theoretical research. It is home to the elite government-sponsored UPARQ campus, home to the brain trust that has overseen much of the UEE’s technological advancement in recent years. As a result, access to Persie is extremely limited: undergraduates without security clearances need not apply. An elite naval guard garrison is stationed here on constant assignment.\r\n\r\nRhetor III, Reisse, is a stark contrast: it is the heart of the UEE’s youth movement. For six generations, Reisse has found itself on the opposing side of whatever political group happened to hold sway over the Empire. The fourth planet, Mentor, claims a similar number of students as Reisse, though the significantly colder climate seems to keep them focused on more practical studies.\r\n\r\nRhetor V is a beautful multicolored gas giant: you can often find local students and pilots dosing up on Color and staring at the planet. Rhetor has been preserved by the Earth Sights Trust as a national park; refueling here is strictly forbidden.",
       "color" : "white",
@@ -3428,13 +3428,13 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         5,
-         6
+         9,
+         17
       ],
       "faction_id" : 1,
       "import" : [
          8,
-         7
+         18
       ],
       "jumppoints" : [
          {
@@ -3482,7 +3482,7 @@ SCMAP.data.systems = {
    },
    "Rihlah" : {
       "black_market" : [
-         30
+         20
       ],
       "blob" : "**Rihlah** (a Xi’An word meaning “source of strength”) is the first system past the Perry Line. Rihlah was originally a major staging area for Xi’An military forces and was processed as a military zone. All of the planets and resources in the system have been converted to a martial nature, helping to build and maintain the defensive capabilities of the system. The Xi’An have ramped down their buildup in the region, leaving the system in the middle of an identity crisis. Re-designated for industrial and trade purposes, Rihlah has shuttered the invasion countermeasure systems… for now. One result of the change is that the strong military presence is now used to handle border and system security, making it an inopportune point for smugglers to try and break into Xi’An space.\r\n\r\nThe system is home to two Xi’An-inhabited worlds, Shorvu and Xi. Standard Xi’An interaction and trade warnings apply to all settlements on both.",
       "color" : "red",
@@ -3493,12 +3493,12 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         29
+         20
       ],
       "faction_id" : 3,
       "import" : [
-         36,
-         37
+         22,
+         53
       ],
       "jumppoints" : [
          {
@@ -3612,14 +3612,14 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         8,
-         7,
-         9
+         18,
+         19,
+         20
       ],
       "faction_id" : 1,
       "import" : [
          9,
-         10
+         21
       ],
       "jumppoints" : [
          {
@@ -3687,7 +3687,7 @@ SCMAP.data.systems = {
    },
    "Tal" : {
       "black_market" : [
-         13
+         2
       ],
       "blob" : "**Tal** is a system on the edge of the Xi’An Empire and one which has been generally receptive to extended human presence. The entire planetary series is what the Xi’An call a ProductionSystem: every planet has been carefully planned and patterned as a specific work zone. Each inhabited world (Tal II through V) is filled with factories, refineries, food production domes and other facilities and each planet has a specific purpose in a larger production chain.\r\n\r\nOne visually surprising element of Tal is that the Xi’An love of large scale organization means that they have actually color coded their ProductionSystem worlds: EVERY structure on Tal II is a bright yellow, Tal III purple, Tal IV dark green and Tal V a burnt orange. Humans regularly express their disbelief that such a system is even possible, although it goes a long way to explaining why Xi’An frequently have trouble adapting to the chaos of human cities.\r\n\r\nAlthough the actual system is far more complex than a simple summary can provide, merchants should know that Tal II produces large scale space fabrication, Tal III food and textiles, Tal IV processes hydrogen and antimatter and Tal V is responsible for end-stage processing of weapons. The Xi’An are happy to purchase raw materials for use on their factory planets and they sell surplus production runs at fair prices. It’s not the best place in the galaxy to score a deal, but dealing with the Xi’An is as close to being able to guarantee a small profit as you can find.",
       "color" : "blue",
@@ -3698,13 +3698,13 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         17,
-         15,
-         16
+         20,
+         29,
+         30
       ],
       "faction_id" : 3,
       "import" : [
-         14
+         21
       ],
       "jumppoints" : [
          {
@@ -3876,7 +3876,7 @@ SCMAP.data.systems = {
    },
    "Tiber" : {
       "black_market" : [
-         26
+         35
       ],
       "blob" : "To the Vanduul, this system was called **Korathen**. To humanity, **Tiber**. To the soldiers and pilots of the UEE expeditionary forces, it had another name: **the Grinder**. Historically, Tiber has been a staging area for Vanduul raiding groups preparing to raid UEE territory. The UEE has made countless attempts to shut down the system, from antimatter bombing the two charred planets to launching full scale military campaigns against the Vanduul warships garrisoned here. None were ever successful, and the efforts cost the lives of countless spacers.\r\n\r\nTiber II is known as the Tomb, a larger world which has attracted the destroyed wreckage of thousands of starships and other weapons. Occasional bombings flatten the junk, but new layers pile up with some frequency. Fearless salvage crews might find Tiber II a good source of old technology, although the salvage crew capable of facing off the frequently active Vanduul forces in the system hasn't been found yet…\r\n\r\nThe Vanduul have recently begun “harvesting” Tiber I for their war machine. Massive Vanduul reclimators are literally sloughing the planet into molten ore to construct new ships to replace those lost in the “Grinder.”",
       "color" : "yellow",
@@ -3889,7 +3889,7 @@ SCMAP.data.systems = {
       "export" : [],
       "faction_id" : 2,
       "import" : [
-         26
+         35
       ],
       "jumppoints" : [
          {
@@ -3994,7 +3994,7 @@ SCMAP.data.systems = {
    },
    "Trise" : {
       "black_market" : [
-         18
+         34
       ],
       "blob" : "A single planet orbiting close to a star, the **Trise** System is not one of the galaxy’s most inviting spots. To the Banu, however, it is holy ground: the location of “The Council,” their religious collective. The Council is responsible for the dictums that define Banu society, but their own calling requires that they be separated from their people in so much as is possible. As a result, Trise is located deep in Banu territory far from any populated systems.\r\n\r\nThere are no great Banu pilgrimages, though, so do not expect to move worshippers to and from the system. The idea that the collective must be separate from the society is law. In fact, shippers take note, The Collective prefers human and Xi’An goods specifically because they wish to avoid the influence of their own people… and they’re willing to pay top dollar to maintain their philosophy.\r\n\r\nBanu monk equivalents do produce elaborate copper-based artwork which has a certain kitsch value; their healers concoct a variety of medicines which have been shown to have a positive effect on human disease.",
       "color" : "unknown",
@@ -4005,13 +4005,13 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 2,
       "export" : [
-         19,
-         20
+         35,
+         36
       ],
       "faction_id" : 4,
       "import" : [
-         18,
-         17
+         8,
+         37
       ],
       "jumppoints" : [],
       "last_updated" : null,
@@ -4041,8 +4041,8 @@ SCMAP.data.systems = {
       ],
       "crime_level_id" : 6,
       "export" : [
-         1,
-         2
+         4,
+         5
       ],
       "faction_id" : 1,
       "import" : [],
