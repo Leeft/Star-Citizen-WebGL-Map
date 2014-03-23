@@ -163,6 +163,10 @@ a:hover {
 #map_ui button:focus {
    outline: none;
 }
+#map_ui li dl {
+   margin-top: 1em;
+   margin-bottom: 1em;
+}
 
 #stats #fpsText { color: #6ABBCF !important; font-family: Electrolize, Helvetica, Arial, sans-serif !important; }
 #stats #fpsGraph { background-color: #6ABBCF !important; }

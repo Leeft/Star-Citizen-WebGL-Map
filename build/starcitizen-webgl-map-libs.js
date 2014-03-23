@@ -1591,7 +1591,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    $( this.domElement ).on( 'mousewheel', onMouseWheel );
    $( this.domElement ).on( 'mouseenter', function ( event ) { state.idle( event ); });
 
-   console.log( this.domElement );
    //this.domElement.addEventListener( 'keydown', onKeyDown, false );
    window.addEventListener( 'keydown', onKeyDown, false );
    //$( this.domElement ).on( 'keydown', onKeyDown );
