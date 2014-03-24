@@ -1,6 +1,6 @@
 var effectFXAA, camera, scene, renderer, composer, map, dpr,
    shift, ctrl, alt, controls, editor, stats, displayState,
-   cameraDefaults = {
+   localStorage, cameraDefaults = {
       x: 0,
       y: 80,
       z: 100,
@@ -48,6 +48,10 @@ function init()
 {
    var container, renderModel, effectCopy, effectBloom, width, height, i;
 
+   if ( hasLocalStorage() ) {
+      localStorage = window.localStorage;
+   }
+
    dpr = 1;
    if ( window.devicePixelRatio !== undefined ) {
       dpr = window.devicePixelRatio;
@@ -69,6 +73,7 @@ function init()
 
    controls = new THREE.OrbitControlsFSM( camera, $('#webgl-container')[0] );
 	controls.target = cameraDefaults.target.clone();
+   controls.restoreOldPosition();
    controls.minPolarAngle = 0;
    controls.maxPolarAngle = THREE.Math.degToRad( 85 );
    controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
@@ -140,8 +145,10 @@ function init()
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
-   effectFXAA.enabled = false;
-   effectBloom.enabled = false;
+   effectFXAA.enabled  = ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false;
+   effectBloom.enabled = ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false;
+   $('#toggle-fxaa').prop( 'checked', effectFXAA.enabled );
+   $('#toggle-bloom').prop( 'checked', effectBloom.enabled );
 
    composer = new THREE.EffectComposer( renderer );
    composer.setSize( width * dpr, height * dpr );
@@ -150,14 +157,28 @@ function init()
    composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
-   displayState = buildDisplayModeFSM( '3d' ); // TODO get current state for user on load
+   displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage.mode : '2d' );
+   $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
 
    // Some simple UI stuff
 
+   $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
+   controls.noRotate = localStorage && localStorage['control.rotationLocked'] === '1';
+
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
-   $('#lock-rotation').on( 'change', function() { controls.noRotate = this.checked; });
-   $('#toggle-fxaa').on( 'change', function() { effectFXAA.enabled = this.checked; });
-   $('#toggle-bloom').on( 'change', function() { effectBloom.enabled = this.checked; });
+
+   $('#lock-rotation').on( 'change', function() {
+      controls.noRotate = this.checked;
+      if ( localStorage ) { localStorage['control.rotationLocked'] = ( this.checked ) ? 1 : 0; }
+   });
+   $('#toggle-fxaa').on( 'change', function() {
+      effectFXAA.enabled = this.checked;
+      if ( localStorage ) { localStorage['effect.FXAA'] = ( this.checked ) ? 1 : 0; }
+   });
+   $('#toggle-bloom').on( 'change', function() {
+      effectBloom.enabled = this.checked;
+      if ( localStorage ) { localStorage['effect.Bloom'] = ( this.checked ) ? 1 : 0; }
+   });
 
    $('#resetCamera').on( 'click', function() {
       controls.cameraTo( cameraDefaults.target, cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
@@ -263,7 +284,7 @@ function buildDisplayModeFSM ( initialState )
 {
    var tweenTo2d, tweenTo3d, position, fsm;
 
-   position = { x: 100 };
+   position = { x: ( initialState === '3d' ) ? 100 : 0.5 };
 
    tweenTo2d = new TWEEN.Tween( position )
       .to( { x: 0.5, rotate: 0 }, 1000 )
@@ -316,9 +337,15 @@ function buildDisplayModeFSM ( initialState )
       ],
 
       callbacks: {
-         onenter2d: function() { $('#3d-mode').prop( 'checked', false ); },
+         onenter2d: function() {
+            $('#3d-mode').prop( 'checked', false );
+            if ( localStorage ) { localStorage.mode = '2d'; }
+         },
 
-         onenter3d: function() { $('#3d-mode').prop( 'checked', true ); },
+         onenter3d: function() {
+            $('#3d-mode').prop( 'checked', true );
+            if ( localStorage ) { localStorage.mode = '3d'; }
+         },
 
          onleave2d: function() {
             tweenTo3d.onComplete( function() {
@@ -364,6 +391,14 @@ function render() {
    map.animateSelector();
    renderer.clear();
    composer.render();
+}
+
+function hasLocalStorage() {
+   try {
+      return 'localStorage' in window && window.localStorage !== null;
+   } catch (e) {
+      return false;
+   }
 }
 
 Array.prototype.humanSort = function( ) {

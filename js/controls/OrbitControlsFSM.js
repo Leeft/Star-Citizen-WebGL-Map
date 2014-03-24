@@ -320,6 +320,41 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       targetTween.start();
    };
 
+   this.getCurrentPosition = function () {
+      var cameraSettings = {
+         cameraX: this.object.position.x,
+         cameraY: this.object.position.y,
+         cameraZ: this.object.position.z,
+         targetX: this.target.x,
+         targetY: this.target.y,
+         targetZ: this.target.z
+      };
+      return cameraSettings;
+   };
+
+   this.rememberCurrentPosition = function () {
+      if ( localStorage ) {
+         var positions = this.getCurrentPosition();
+         localStorage['camera.x'] = positions.cameraX;
+         localStorage['camera.y'] = positions.cameraY;
+         localStorage['camera.z'] = positions.cameraZ;
+         localStorage['target.x'] = positions.targetX;
+         localStorage['target.y'] = positions.targetY;
+         localStorage['target.z'] = positions.targetZ;
+      }
+   };
+
+   this.restoreOldPosition = function () {
+      if ( localStorage && typeof localStorage['camera.x'] !== 'undefined' ) {
+         this.object.position.setX( Number( localStorage['camera.x'] ) );
+         this.object.position.setY( Number( localStorage['camera.y'] ) );
+         this.object.position.setZ( Number( localStorage['camera.z'] ) );
+         this.target.setX( Number( localStorage['target.x'] ) );
+         this.target.setY( Number( localStorage['target.y'] ) );
+         this.target.setZ( Number( localStorage['target.z'] ) );
+      }
+   };
+
    // assumes mapMode for now
    this.rotateTo = function ( left, up, radius ) {
 
@@ -505,6 +540,7 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       }
 
       this.showState();
+      this.rememberCurrentPosition();
    };
 
    function getAutoRotationAngle() {

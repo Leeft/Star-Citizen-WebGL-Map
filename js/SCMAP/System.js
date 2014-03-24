@@ -41,7 +41,7 @@ SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
    buildSceneObject: function () {
-      var star, label, glow;
+      var star, label, glow, position;
 
       this.sceneObject = new THREE.Object3D();
       star = new THREE.Mesh( SCMAP.System.MESH, this.starMaterial() );
@@ -63,7 +63,11 @@ SCMAP.System.prototype = {
          this.sceneObject.add( label );
       }
 
-      this.sceneObject.position = this.position.clone();
+      position = this.position.clone();
+      if ( localStorage && localStorage.mode === '2d' ) {
+         position.setY( position.y * 0.005 );
+      }
+      this.sceneObject.position = position;
       this.sceneObject.system = this;
       return this.sceneObject;
    },
