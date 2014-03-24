@@ -632,7 +632,7 @@ SCMAP.System.prototype = {
 
       if ( SCMAP.settings.labels ) {
          label = new THREE.Sprite( this.labelMaterial() );
-         label.position.set( 0, 3, 0 );
+         label.position.set( 0, 3.5, 0 );
          label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
          label.isLabel = true;
          this.sceneObject.add( label );
@@ -682,7 +682,8 @@ SCMAP.System.prototype = {
       context.lineWidth = 5;
       context.strokeText( text, canvas.width / 2, 39 );
 
-      context.fillStyle = 'rgba(255,255,255,0.95)';
+      //context.fillStyle = 'rgba(255,255,255,0.95)';
+      context.fillStyle = this.faction.color.getStyle();
       context.fillText( text, canvas.width / 2, 39 );
 
       texture = new THREE.Texture( canvas ) ;
