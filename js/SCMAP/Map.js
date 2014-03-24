@@ -165,7 +165,7 @@ SCMAP.Map.prototype = {
          from_system = route[i+0];
          $entry = $( '<li></li>' ).append( from_system.createInfoLink() );
          $('#routelist ol').append( $entry );
-         $('#map_ui').tabs( 'option', 'active', 2 );
+         $('#map_ui').tabs( 'option', 'active', 3 );
       }
    },
 

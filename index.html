@@ -12,6 +12,7 @@
       <div id="map_ui" class="noselect">
          <ul class="menubar">
             <li class="home"><a title="Usage" href="#home"><i class="fa fa-home fa-fw fa-2x"></i></a></li>
+            <li class="listing"><a title="Systems" href="#listing"><i class="fa fa-list fa-fw fa-2x"></i></a></li>
             <li class="info"><a title="Selected Item Information" href="#info"><i class="fa fa-info-circle fa-fw fa-2x"></i></a></li>
             <li class="route"><a title="Route Mode" href="#route"><i class="fa fa-rocket fa-fw fa-2x"></i></a></li>
             <li class="editor" style="display: none;"><a title="Map Editor" href="#editor"><i class="fa fa-edit fa-fw fa-2x"></i></a></li>
@@ -49,6 +50,10 @@
                <button class="quick-button with-checkbox"><input type="checkbox" value="1" id="3d-mode"><label class="fa-lg" for="3d-mode"></label>3D mode</button><br>
                <button class="quick-button with-checkbox"><input type="checkbox" value="1" id="lock-rotation"><label class="fa-lg" for="lock-rotation"></label>Lock map rotation</button><br>
             </p>
+         </div>
+         <div class="listing" id="listing" style="display: none;">
+            <h1 id="systems">Systems</h1>
+            <div id="system-list"><ul class="fa-ul"></ul></div>
          </div>
          <div class="info" id="info" style="display: none;">
             <h1 id="systemname"></h1>

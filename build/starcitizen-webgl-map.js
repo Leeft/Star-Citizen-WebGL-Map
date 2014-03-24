@@ -834,7 +834,7 @@ SCMAP.System.prototype = {
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
 
-      $('#map_ui').tabs( 'option', 'active', 1 );
+      $('#map_ui').tabs( 'option', 'active', 2 );
       $('#map_ui').data( 'jsp' ).reinitialise();
 
    //   var select = $('<select>').attr('id','destination').appendTo('#destinations');
@@ -1338,7 +1338,7 @@ SCMAP.Map.prototype = {
          from_system = route[i+0];
          $entry = $( '<li></li>' ).append( from_system.createInfoLink() );
          $('#routelist ol').append( $entry );
-         $('#map_ui').tabs( 'option', 'active', 2 );
+         $('#map_ui').tabs( 'option', 'active', 3 );
       }
    },
 
@@ -1807,7 +1807,7 @@ $(function() {
 
 function init()
 {
-   var container, renderModel, effectCopy, effectBloom, width, height;
+   var container, renderModel, effectCopy, effectBloom, width, height, i;
 
    dpr = 1;
    if ( window.devicePixelRatio !== undefined ) {
@@ -1852,6 +1852,22 @@ function init()
 
    map = new SCMAP.Map( scene, SCMAP.data.map );
    controls.map = map;
+
+   var arr = []; for ( var system in SCMAP.data.systems ) { arr.push( system ); }
+   var arr2 = arr.humanSort();
+   for ( i = 0; i < arr2.length; i++ ) {
+      system = SCMAP.data.systems[ arr[i] ];
+      var $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
+      $li.find('a').css( 'color', system.faction.color.getStyle() );
+      $('#system-list ul').append( $li );
+   }
+
+   $('#system-list ul a').bind( 'click', function() {
+      var $this = $(this);
+      var system = SCMAP.System.getById( $this.data('system') );
+      system.displayInfo();
+      controls.moveTo( system );
+   } );
 
    editor = new SCMAP.Editor( map, camera );
    editor.panSpeed = 0.6;
@@ -2110,6 +2126,30 @@ function render() {
    renderer.clear();
    composer.render();
 }
+
+Array.prototype.humanSort = function( ) {
+   return this.sort( function( a, b ) {
+      var x, cmp1, cmp2;
+      var aa = a.split(/(\d+)/);
+      var bb = b.split(/(\d+)/);
+
+      for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
+      {
+         if ( aa[x] != bb[x] )
+         {
+            cmp1 = ( isNaN( parseInt( aa[x], 10 ) ) ) ? aa[x] : parseInt( aa[x], 10 );
+            cmp2 = ( isNaN( parseInt( bb[x], 10 ) ) ) ? bb[x] : parseInt( bb[x], 10 );
+
+            if ( cmp1 === undefined || cmp2 === undefined ) {
+               return aa.length - bb.length;
+            } else {
+               return ( cmp1 < cmp2 ) ? -1 : 1;
+            }
+         }
+      }
+      return 0;
+   });
+};
 
 // End of file
 

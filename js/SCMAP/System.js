@@ -259,7 +259,7 @@ SCMAP.System.prototype = {
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
 
-      $('#map_ui').tabs( 'option', 'active', 1 );
+      $('#map_ui').tabs( 'option', 'active', 2 );
       $('#map_ui').data( 'jsp' ).reinitialise();
 
    //   var select = $('<select>').attr('id','destination').appendTo('#destinations');
