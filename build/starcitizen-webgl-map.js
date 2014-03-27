@@ -271,7 +271,7 @@ SCMAP.JumpPoint.prototype = {
    },
 
    buildSceneObject: function() {
-      var i, jumppoint, geometry, midColour, routeObject;
+      var i, jumppoint, geometry, midColour;
       if ( this.drawn ) {
          return;
       }
@@ -303,9 +303,7 @@ SCMAP.JumpPoint.prototype = {
          }
       }
 
-      routeObject = new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
-      this.source.routeObjects.push( routeObject );
-      return routeObject;
+      return new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
    },
 
    setDrawn: function() {
@@ -600,14 +598,8 @@ SCMAP.System = function ( data ) {
 
    this.setValues( data );
 
-   // Internals -- For Dijkstra routing code
-   this.distance = Number.MAX_VALUE *2;
-   this.visited = false;
-   this.parent = undefined;
-
    // Generated
-   this.routeVertices = [];
-   this.routeObjects = [];
+   this._routeObjects = [];
    this.scale = 1.0;
    this.binary = false;
 };
@@ -849,6 +841,28 @@ SCMAP.System.prototype = {
    //   $('<input>').attr( 'type', 'checkbox' ).attr( 'id', 'locked' ).appendTo('#destinations');
    },
 
+   scaleY: function ( scalar ) {
+      var wantedY = this.position.y * ( scalar / 100 );
+      this.sceneObject.translateY( wantedY - this.sceneObject.position.y );
+      for ( var j = 0; j < this._routeObjects.length; j++ ) {
+         this._routeObjects[j].geometry.verticesNeedUpdate = true;
+      }
+   },
+
+   moveTo: function ( vector ) {
+      this.sceneObject.position.copy( vector );
+      for ( var j = 0; j < this._routeObjects.length; j++ ) {
+         this._routeObjects[j].geometry.verticesNeedUpdate = true;
+      }
+   },
+
+   translateVector: function ( vector ) {
+      this.sceneObject.add( vector );
+      for ( var j = 0; j < this._routeObjects.length; j++ ) {
+         this._routeObjects[j].geometry.verticesNeedUpdate = true;
+      }
+   },
+
    getValue: function ( key ) {
       if ( key === undefined ) {
          return;
@@ -925,6 +939,7 @@ SCMAP.System.preprocessSystems = function () {
    var i, systemName, system, data, faction;
 
    SCMAP.data.systemsById = {};
+   SCMAP.System.List = [];
 
    for ( systemName in SCMAP.data.systems ) {
 
@@ -973,6 +988,8 @@ SCMAP.System.preprocessSystems = function () {
 
       system = SCMAP.System.getByName( systemName );
 
+      SCMAP.System.List.push( system );
+
       for ( i = 0; i < system.jumpPoints.length; i++ )
       {
          jumpPoint = system.jumpPoints[ i ];
@@ -982,6 +999,8 @@ SCMAP.System.preprocessSystems = function () {
 
    }
 };
+
+SCMAP.System.List = [];
 
 SCMAP.System.getByName = function ( name ) {
    return SCMAP.data.systems[ name ];
@@ -1020,132 +1039,150 @@ SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.Syste
 // EOF
 
 /**
-* @author LiannaEeftinck / https://github.com/Leeft
+* @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-function isInfinite ( num ) {
-   return !isFinite( num );
-}
-
-SCMAP.Dijkstra = function ( map ) {
-   if ( ! ( map instanceof SCMAP.Map ) ) {
-      console.error( "No map specified to SCMAP.Dijkstra constructor!" );
+SCMAP.Dijkstra = function ( systems ) {
+   if ( ! ( typeof systems === 'object' && Array.isArray( systems ) ) ) {
+      console.error( "No array specified to SCMAP.Dijkstra constructor!" );
       return;
    }
 
-   this.scene = map.scene;
-   this.results = [];
-   this.object = undefined;
-   this.source = undefined;
-   this.destination = undefined;
+   // prebuild a node list
+   this._nodes = [];
+   this._mapping = {}; // system.id to _nodes map
+   var i = systems.length;
+   while( i-- ) {
+      this._nodes[ i ] = {
+         system:   systems[i],
+         distance: Number.POSITIVE_INFINITY,
+         previous: null
+      };
+      this._mapping[ systems[i].id ] = this._nodes[ i ];
+   }
+   this._result = {};
 };
 
 SCMAP.Dijkstra.prototype = {
    constructor: SCMAP.Dijkstra,
 
-   createRouteObject: function() {
-      this.destroyRoute();
-      this.object = new THREE.Object3D();
-      return this.object;
-   },
+   buildGraph: function( source ) {
+      var nodes, i, distance, system, currentNode, jumpPoint,
+         endTime, startTime = new Date();
 
-   destroyRoute: function() {
-      if ( this.object instanceof THREE.Object3D ) {
-         this.scene.remove( this.object );
-         this.object = undefined;
-      }
-   },
+      if ( !( source instanceof SCMAP.System ) ) { return; }
 
-   destroyGraph: function() {
-      this.destroyRoute();
-      this.results = [];
-      this.source = undefined;
-      this.destination = undefined;
-   },
-
-   buildGraph: function( initialNode ) {
-      var endTime, startTime = new Date();
-
-      this.source = initialNode;
-
-      if ( !( initialNode instanceof SCMAP.System ) ) {
+      if ( this._result.source instanceof SCMAP.System && this._result.source === source ) {
+         console.log( 'Reusing generated graph starting at', source.name );
          return;
       }
 
-      console.log( 'Building graph starting at ' + initialNode.name + ' ...' );
+      this.destroyGraph();
+      this._result.source = source;
 
-      // Built using:
-      // http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
+      console.log( 'Building graph, starting at', source.name );
 
-      var unvisited = Object.values( SCMAP.data.systems );
+      // Created using http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
 
-      for ( var k = 0; k < unvisited.length; k++ ) {
-         unvisited[k].distance = Number.POSITIVE_INFINITY;
-         unvisited[k].parent = null;
+      for ( i = 0; i < this._nodes.length; i++ ) {
+         this._nodes[ i ].distance = Number.POSITIVE_INFINITY;
+         this._nodes[ i ].previous = null;
       }
 
-      var currentSystem = initialNode;
-      currentSystem.distance = 0;
-      currentSystem.parent = null;
+      currentNode = this._mapping[ source.id ];
+      currentNode.distance = 0; // distance from source to source
+      currentNode.previous = null;
 
-      unvisited = SCMAP.Dijkstra.quickSort( unvisited );
+      nodes = SCMAP.Dijkstra.quickSort( this._nodes );
 
-      //var distance = 0;
-      var currentIndex = 0;
-
-      while ( unvisited.length >= 1 )
+      while ( nodes.length >= 1 )
       {
-         currentSystem = unvisited[0];
-         // Remove currentSystem from unvisited set
-         unvisited.splice( 0, 1 );
+         currentNode = nodes[0];
+         // Remove currentNode from set
+         nodes.splice( 0, 1 );
 
-         if ( isInfinite( currentSystem.distance ) ) {
+         if ( isInfinite( currentNode.distance ) ) {
             break;
          }
 
-         for ( var i = 0; i < currentSystem.jumpPoints.length; i++ )
+         for ( i = 0; i < currentNode.system.jumpPoints.length; i++ )
          {
-            var alt = currentSystem.distance + currentSystem.jumpPoints[i].length();
+            jumpPoint = currentNode.system.jumpPoints[i];
+            distance = currentNode.distance + jumpPoint.length();
 
-            if ( alt < currentSystem.jumpPoints[i].destination.distance ) {
-               currentSystem.jumpPoints[i].destination.distance = alt;
-               currentSystem.jumpPoints[i].destination.parent = currentSystem;
-               unvisited = SCMAP.Dijkstra.quickSort( unvisited );
+            if ( distance < this._mapping[ jumpPoint.destination.id ].distance ) {
+               this._mapping[ jumpPoint.destination.id ].distance = distance;
+               this._mapping[ jumpPoint.destination.id ].previous = currentNode;
+               nodes = SCMAP.Dijkstra.quickSort( nodes );
             }
          }
       }
 
-      this.results = unvisited;
+      this._result.nodes = nodes;
       endTime = new Date();
-      console.log( "Graph building took " + (endTime.getTime() - startTime.getTime()) + " msec" );
+      console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
    },
 
-   routeArray: function( target ) {
-      if ( ! ( target instanceof SCMAP.System ) ) {
-         console.error( 'No or invalid target specified.' );
-         return ;
+   destroyGraph: function() {
+      this._result = {};
+   },
+
+   routeArray: function( destination ) {
+      if ( ! ( destination instanceof SCMAP.System ) ) {
+         console.error( 'No or invalid destination specified.' );
+         return;
       }
-      if ( this.results.length > 0 ) {
-         this.destination = target;
-         // Get path and print it out, we're traversing backwards through the optimal path for the target
-         var route = [];
-         var currentNode = target;
+
+      if ( this._result.nodes.length > 0 ) {
+         // Get path and print it out, we're traversing backwards
+         // through the optimal path for the destination
          var visited = [];
-         var x = currentNode;
+         var x = this._mapping[ destination.id ];
          var seen = {};
          while ( x !== null ) {
-            seen[ x.name ] = true;
+            seen[ x.system.name ] = true;
             visited.push( x );
-            x = x.parent;
+            x = x.previous;
          }
          visited.reverse();
          return visited;
       }
+   },
+
+   constructRouteObject: function( from, to, callback ) {
+      var routeArray, i, object;
+
+      if ( !( from instanceof SCMAP.System ) || !( to instanceof SCMAP.System ) ) {
+         return;
+      }
+
+      if ( typeof callback !== 'function' ) {
+         console.error( "Callback not given or not a function" );
+         return;
+      }
+
+      this.buildGraph( from );
+
+      routeArray = this.routeArray( to );
+      if ( typeof routeArray === 'object' && Array.isArray( routeArray ) ) {
+
+         object = new THREE.Object3D();
+         for ( i = 0; i < routeArray.length - 1; i++ ) {
+            object.add( callback( routeArray[i+0].system, routeArray[i+1].system ) );
+         }
+         return object;
+
+      }
    }
 };
 
-SCMAP.Dijkstra.quickSort = function ( systems ) {
-   var array = systems.slice(0); // makes a copy, prevents overwriting
+SCMAP.Dijkstra.quickSort = function ( nodes ) {
+   // makes a copy, prevents overwriting
+   var array = [];
+   var i = nodes.length;
+   while( i-- ) {
+      array[i] = nodes[i];
+   }
 
    if ( array.length <= 1 ) {
       return array;
@@ -1157,7 +1194,7 @@ SCMAP.Dijkstra.quickSort = function ( systems ) {
 
    pivot = array.splice( pivot, 1 )[0];
 
-   for ( var i = 0; i < array.length; i++ ) {
+   for ( i = 0; i < array.length; i++ ) {
       if ( array[i].distance <= pivot.distance ) {
          lhs.push( array[i] );
       } else {
@@ -1172,6 +1209,10 @@ SCMAP.Dijkstra.quickSort = function ( systems ) {
    return t1.concat( t2 );
 };
 
+function isInfinite ( num ) {
+   return !isFinite( num );
+}
+
 // End of file
 
 
@@ -1184,13 +1225,12 @@ SCMAP.Map = function ( scene ) {
    this.scene = scene;
    this.goods = {};
 
-   this.selected = undefined;
-   this.selectedTarget = undefined;
+   this._selected = undefined;
+   this._destination = undefined;
    this.group = undefined;
-   this.interactables = [];
+   this._interactables = [];
    this.referencePlane = undefined;
 
-   this._graph = new SCMAP.Dijkstra( this );
    this._selector = this.createSelector();
    this.scene.add( this._selector );
 
@@ -1199,6 +1239,8 @@ SCMAP.Map = function ( scene ) {
    $('#map_ui li.editor').hide();
 
    this.populateScene();
+   this._graph = new SCMAP.Dijkstra( SCMAP.System.List );
+   this._routeObject = undefined;
 };
 
 SCMAP.Map.prototype = {
@@ -1218,26 +1260,113 @@ SCMAP.Map.prototype = {
       return SCMAP.System.getByName( name );
    },
 
+   selected: function () {
+      return this._selected;
+   },
+
+   interactables: function () {
+      return this._interactables;
+   },
+
    select: function ( system ) {
       if ( system instanceof SCMAP.System ) {
-         this._selector.position = system.sceneObject.position;
          this._selector.visible = true;
-         this.selected = system;
+         //this._selector.position = system.sceneObject.position;
+         this.moveSelectorTo( system );
+         this._selected = system;
       } else {
          this._selector.visible = false;
-         this.selected = undefined;
+         this._selected = undefined;
       }
    },
 
    deselect: function ( ) {
       this._selector.visible = false;
-      this.selected = undefined;
+      this._selected = undefined;
    },
 
    animateSelector: function ( ) {
       if ( this._selector.visible ) {
          this._selector.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
       }
+   },
+
+   moveSelectorTo: function ( system ) {
+      var tween, newPosition, position, _this = this, poi;
+
+      if ( !(_this._selector.visible) || !(_this._selected instanceof SCMAP.System) ) {
+         _this._selector.position = system.sceneObject.position;
+         _this._selector.visible = true;
+         _this._selected = system;
+         return;
+      }
+
+      newPosition = system.sceneObject.position;
+      var graph = new SCMAP.Dijkstra( SCMAP.System.List );
+      graph.buildGraph( _this._selected );
+      var route = graph.routeArray( system );
+
+      if ( route.length <= 1 ) {
+         _this._selector.position = system.sceneObject.position;
+         _this._selector.visible = true;
+         _this._selected = system;
+         return;
+      }
+
+
+      _this._selector.position = _this._selector.position.clone();
+
+      position = {
+         x: _this._selector.position.x,
+         y: _this._selector.position.y,
+         z: _this._selector.position.z
+      };
+
+      var tweens = [];
+
+      /* jshint ignore:start */
+      for ( i = 0; i < route.length; i++ ) {
+         poi = route[ i ].system;
+
+         tween = new TWEEN.Tween( position )
+            .to( {
+               x: poi.sceneObject.position.x,
+               y: poi.sceneObject.position.y,
+               z: poi.sceneObject.position.z
+            }, 800 / route.length )
+            .easing( TWEEN.Easing.Linear.None )
+            .onUpdate( function () {
+               _this._selector.position.setX( this.x );
+               _this._selector.position.setY( this.y );
+               _this._selector.position.setZ( this.z );
+            } );
+
+         if ( i == 0 ) {
+            if ( route.length == 2 ) {
+               tween.easing( TWEEN.Easing.Cubic.InOut );
+            } else {
+               tween.easing( TWEEN.Easing.Cubic.In );
+            }
+         }
+
+         if ( i > 0 ) {
+            tweens[ i - 1 ].chain( tween );
+         }
+
+         if ( i == route.length - 1 ) {
+            tween.easing( TWEEN.Easing.Cubic.Out );
+            tween.onComplete( function() {
+               _this._selector.position = poi.sceneObject.position;
+               _this._selected = system;
+            } );
+         }
+
+         tweens.push( tween );
+      }
+      /* jshint ignore:end */
+
+      tweens[0].start();
+
    },
 
    // TODO: move to control class
@@ -1257,9 +1386,9 @@ SCMAP.Map.prototype = {
 
          //      // if in edit mode, and the targeted object is already selected, start dragging
          //      // otherwise, select it
-         //      if ( this.selected instanceof SCMAP.System &&
+         //      if ( this._selected instanceof SCMAP.System &&
          //           intersect.object.parent.system instanceof SCMAP.System &&
-         //           this.selected == intersect.object.parent.system
+         //           this._selected == intersect.object.parent.system
          //      ) {
          //         window.controls.editDrag = true;
          //      } else {
@@ -1271,9 +1400,9 @@ SCMAP.Map.prototype = {
          //else
          {
             if ( modifierPressed ) {
-               this.selectedTarget = intersect.object.parent.system;
+               this._destination = intersect.object.parent.system;
             } else {
-               this.selected = intersect.object.parent.system;
+               this.moveSelectorTo( intersect.object.parent.system );
             }
          }
       }
@@ -1283,8 +1412,8 @@ SCMAP.Map.prototype = {
          {
             if ( ! modifierPressed )
             {
-               if ( this.selected instanceof SCMAP.System && intersect.object.parent.system instanceof SCMAP.System ) {
-                  if ( intersect.object.parent.system === this.selected ) {
+               if ( this._selected instanceof SCMAP.System && intersect.object.parent.system instanceof SCMAP.System ) {
+                  if ( intersect.object.parent.system === this._selected ) {
                      //if ( $('#systemname').text() != intersect.object.parent.system.name ) {
                         this.select( intersect.object.parent.system );
                         intersect.object.parent.system.displayInfo();
@@ -1301,47 +1430,50 @@ SCMAP.Map.prototype = {
    },
 
    currentRoute: function () {
-      if ( this.selectedTarget instanceof SCMAP.System ) {
-         return this._graph.routeArray( this.selectedTarget );
+      if ( this._destination instanceof SCMAP.System ) {
+         return this._graph.routeArray( this._destination );
       }
       return [];
    },
 
-   updateRoute: function ( destination ) {
-      var i, route, mesh, line, material, group, from_system, $entry;
-
-      this._graph.destroyRoute();
-
-      if ( !( destination instanceof SCMAP.System ) ) {
-         return;
+   destroyCurrentRoute: function () {
+      if ( this._routeObject ) {
+         scene.remove( this._routeObject );
       }
+   },
 
-      this._graph.buildGraph( this.selected );
-      this.selectedTarget = destination;
-      route = this._graph.routeArray( destination );
+   updateRoute: function ( destination ) {
+      var _this = this, i, route, material, system, $entry;
 
       material = new THREE.LineBasicMaterial( { color: 0xFF00FF, linewidth: 2.5 } );
+
+      this.destroyCurrentRoute();
+
       // building all the parts of the route together in a single geometry group
-      group = this._graph.createRouteObject();
-      for ( i = 0; i < route.length - 1; i++ ) {
-         mesh = this.createRouteMesh( route[i+0], route[i+1] );
-         line = new THREE.Line( mesh, material );
-         line.position = route[i+0].sceneObject.position;
-         line.lookAt( route[i+1].sceneObject.position );
-         group.add( line );
-      }
+      // the constructRouteObject method will iterate for us here with the callback
+      this._routeObject = _this._graph.constructRouteObject( _this._selected, destination, function ( from, to ) {
+         var mesh = _this.createRouteMesh( from, to );
+         var line = new THREE.Line( mesh, material );
+         line.position = from.sceneObject.position;
+         line.lookAt( to.sceneObject.position );
+         return line;
+      });
+      if ( this._routeObject ) {
+         this.scene.add( this._routeObject );
+         this._destination = destination;
+         route = this._graph.routeArray( destination );
 
-      this.scene.add( group );
+         $('#routelist').empty();
+         $('#routelist').append('<p>The shortest route from '+route[0].name+' to ' +
+            route[route.length-1].name+' along <strong>' + (route.length - 1) +
+            '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
 
-      $('#routelist').empty();
-      $('#routelist').append('<p>The shortest route from '+route[0].name+' to ' +
-         route[route.length-1].name+' along <strong>' + (route.length - 1) +
-         '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
+         for ( i = 0; i < route.length; i++ ) {
+            system = route[i+0].system;
+            $entry = $('<li></li>').append( system.createInfoLink() );
+            $('#routelist ol').append( $entry );
+         }
 
-      for ( i = 0; i < route.length; i++ ) {
-         from_system = route[i+0];
-         $entry = $( '<li></li>' ).append( from_system.createInfoLink() );
-         $('#routelist ol').append( $entry );
          $('#map_ui').tabs( 'option', 'active', 3 );
       }
    },
@@ -1389,9 +1521,9 @@ SCMAP.Map.prototype = {
          system = SCMAP.System.getByName( systemName );
          sceneObject = system.buildSceneObject();
          this.scene.add( sceneObject );
-         this.interactables.push( sceneObject.children[0] );
-         //this.interactables.push( sceneObject.children[1] ); // Glow too big for now, disabled
-         //this.interactables.push( sceneObject.children[2] ); // Even a properly sized label is too big :(
+         this._interactables.push( sceneObject.children[0] );
+         //this._interactables.push( sceneObject.children[1] ); // Glow too big for now, disabled
+         //this._interactables.push( sceneObject.children[2] ); // Even a properly sized label is too big :(
 
          systemCount++;
 
@@ -1409,6 +1541,7 @@ SCMAP.Map.prototype = {
             jumpPoint = system.jumpPoints[ i ];
             jumpPointObject = jumpPoint.buildSceneObject();
             if ( jumpPointObject instanceof THREE.Object3D ) {
+               system._routeObjects.push( jumpPointObject );
                this.scene.add( jumpPointObject );
             }
 
@@ -1790,8 +1923,8 @@ $(function() {
             $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
             window.editor.enabled = false;
             window.controls.requireAlt = false;
-            if ( clicked_on === '#info' && typeof map.selected !== 'undefined' && typeof map.selected.object !== 'undefined' ) {
-               map.selected.object.system.displayInfo();
+            if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
+               map.selected().displayInfo();
             }
          }
          $('#map_ui').data( 'jsp' ).reinitialise();
@@ -1859,11 +1992,11 @@ function init()
    renderer.autoClear = false;
    container.appendChild( renderer.domElement );
 
-   map = new SCMAP.Map( scene, SCMAP.data.map );
+   map = new SCMAP.Map( scene );
    controls.map = map;
 
    var arr = []; for ( var system in SCMAP.data.systems ) { arr.push( system ); }
-   var arr2 = arr.humanSort();
+   var arr2 = arr.sort( humanSort );
    for ( i = 0; i < arr2.length; i++ ) {
       system = SCMAP.data.systems[ arr[i] ];
       var $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
@@ -2029,7 +2162,7 @@ function onDocumentMouseUpAndDown( event ) {
    projector = new THREE.Projector();
    projector.unprojectVector( vector, camera );
    raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-   intersects = raycaster.intersectObjects( map.interactables );
+   intersects = raycaster.intersectObjects( map.interactables() );
    map.handleSelection( event, intersects[0] );
 }
 
@@ -2049,48 +2182,32 @@ function buildDisplayModeFSM ( initialState )
 {
    var tweenTo2d, tweenTo3d, position, fsm;
 
-   position = { x: ( initialState === '3d' ) ? 100 : 0.5 };
+   position = { y: ( initialState === '3d' ) ? 100 : 0.5 };
 
    tweenTo2d = new TWEEN.Tween( position )
-      .to( { x: 0.5, rotate: 0 }, 1000 )
+      .to( { y: 0.5 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            //var target = map.selectedTarget;
-            //map.deselect();
-            map._graph.destroyRoute();
+            map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
-                  var wantedY = child.system.position.y * ( this.x / 100 );
-                  child.translateY( wantedY - child.position.y );
-                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
-                     var routeObject = child.system.routeObjects[j];
-                     routeObject.geometry.verticesNeedUpdate = true;
-                  }
+                  child.system.scaleY( this.y );
                }
             }
-            //map.updateRoute( target );
       } );
 
    tweenTo3d = new TWEEN.Tween( position )
-      .to( { x: 100, rotate: 90 }, 1000 )
+      .to( { y: 100.0 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            //var target = map.selectedTarget;
-            //map.deselect();
-            map._graph.destroyRoute();
+            map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
-                  var wantedY = child.system.position.y * ( this.x / 100 );
-                  child.translateY( wantedY - child.position.y );
-                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
-                     var routeObject = child.system.routeObjects[j];
-                     routeObject.geometry.verticesNeedUpdate = true;
-                  }
+                  child.system.scaleY( this.y );
                }
             }
-            //map.updateRoute( target );
       } );
 
    fsm = StateMachine.create({
@@ -2166,29 +2283,28 @@ function hasLocalStorage() {
    }
 }
 
-Array.prototype.humanSort = function( ) {
-   return this.sort( function( a, b ) {
-      var x, cmp1, cmp2;
-      var aa = a.split(/(\d+)/);
-      var bb = b.split(/(\d+)/);
+function humanSort( a, b ) {
+   var x, cmp1, cmp2;
+   var aa = a.split(/(\d+)/);
+   var bb = b.split(/(\d+)/);
 
-      for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
+   for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
+   {
+      if ( aa[x] != bb[x] )
       {
-         if ( aa[x] != bb[x] )
-         {
-            cmp1 = ( isNaN( parseInt( aa[x], 10 ) ) ) ? aa[x] : parseInt( aa[x], 10 );
-            cmp2 = ( isNaN( parseInt( bb[x], 10 ) ) ) ? bb[x] : parseInt( bb[x], 10 );
+         cmp1 = ( isNaN( parseInt( aa[x], 10 ) ) ) ? aa[x] : parseInt( aa[x], 10 );
+         cmp2 = ( isNaN( parseInt( bb[x], 10 ) ) ) ? bb[x] : parseInt( bb[x], 10 );
 
-            if ( cmp1 === undefined || cmp2 === undefined ) {
-               return aa.length - bb.length;
-            } else {
-               return ( cmp1 < cmp2 ) ? -1 : 1;
-            }
+         if ( cmp1 === undefined || cmp2 === undefined ) {
+            return aa.length - bb.length;
+         } else {
+            return ( cmp1 < cmp2 ) ? -1 : 1;
          }
       }
-      return 0;
-   });
-};
+   }
+
+   return 0;
+}
 
 // End of file
 

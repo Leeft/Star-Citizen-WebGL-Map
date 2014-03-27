@@ -30,7 +30,7 @@ SCMAP.JumpPoint.prototype = {
    },
 
    buildSceneObject: function() {
-      var i, jumppoint, geometry, midColour, routeObject;
+      var i, jumppoint, geometry, midColour;
       if ( this.drawn ) {
          return;
       }
@@ -62,9 +62,7 @@ SCMAP.JumpPoint.prototype = {
          }
       }
 
-      routeObject = new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
-      this.source.routeObjects.push( routeObject );
-      return routeObject;
+      return new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
    },
 
    setDrawn: function() {

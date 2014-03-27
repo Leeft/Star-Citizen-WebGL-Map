@@ -25,14 +25,8 @@ SCMAP.System = function ( data ) {
 
    this.setValues( data );
 
-   // Internals -- For Dijkstra routing code
-   this.distance = Number.MAX_VALUE *2;
-   this.visited = false;
-   this.parent = undefined;
-
    // Generated
-   this.routeVertices = [];
-   this.routeObjects = [];
+   this._routeObjects = [];
    this.scale = 1.0;
    this.binary = false;
 };
@@ -274,6 +268,28 @@ SCMAP.System.prototype = {
    //   $('<input>').attr( 'type', 'checkbox' ).attr( 'id', 'locked' ).appendTo('#destinations');
    },
 
+   scaleY: function ( scalar ) {
+      var wantedY = this.position.y * ( scalar / 100 );
+      this.sceneObject.translateY( wantedY - this.sceneObject.position.y );
+      for ( var j = 0; j < this._routeObjects.length; j++ ) {
+         this._routeObjects[j].geometry.verticesNeedUpdate = true;
+      }
+   },
+
+   moveTo: function ( vector ) {
+      this.sceneObject.position.copy( vector );
+      for ( var j = 0; j < this._routeObjects.length; j++ ) {
+         this._routeObjects[j].geometry.verticesNeedUpdate = true;
+      }
+   },
+
+   translateVector: function ( vector ) {
+      this.sceneObject.add( vector );
+      for ( var j = 0; j < this._routeObjects.length; j++ ) {
+         this._routeObjects[j].geometry.verticesNeedUpdate = true;
+      }
+   },
+
    getValue: function ( key ) {
       if ( key === undefined ) {
          return;
@@ -350,6 +366,7 @@ SCMAP.System.preprocessSystems = function () {
    var i, systemName, system, data, faction;
 
    SCMAP.data.systemsById = {};
+   SCMAP.System.List = [];
 
    for ( systemName in SCMAP.data.systems ) {
 
@@ -398,6 +415,8 @@ SCMAP.System.preprocessSystems = function () {
 
       system = SCMAP.System.getByName( systemName );
 
+      SCMAP.System.List.push( system );
+
       for ( i = 0; i < system.jumpPoints.length; i++ )
       {
          jumpPoint = system.jumpPoints[ i ];
@@ -407,6 +426,8 @@ SCMAP.System.preprocessSystems = function () {
 
    }
 };
+
+SCMAP.System.List = [];
 
 SCMAP.System.getByName = function ( name ) {
    return SCMAP.data.systems[ name ];

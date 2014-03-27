@@ -25,8 +25,8 @@ $(function() {
             $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
             window.editor.enabled = false;
             window.controls.requireAlt = false;
-            if ( clicked_on === '#info' && typeof map.selected !== 'undefined' && typeof map.selected.object !== 'undefined' ) {
-               map.selected.object.system.displayInfo();
+            if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
+               map.selected().displayInfo();
             }
          }
          $('#map_ui').data( 'jsp' ).reinitialise();
@@ -94,11 +94,11 @@ function init()
    renderer.autoClear = false;
    container.appendChild( renderer.domElement );
 
-   map = new SCMAP.Map( scene, SCMAP.data.map );
+   map = new SCMAP.Map( scene );
    controls.map = map;
 
    var arr = []; for ( var system in SCMAP.data.systems ) { arr.push( system ); }
-   var arr2 = arr.humanSort();
+   var arr2 = arr.sort( humanSort );
    for ( i = 0; i < arr2.length; i++ ) {
       system = SCMAP.data.systems[ arr[i] ];
       var $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
@@ -264,7 +264,7 @@ function onDocumentMouseUpAndDown( event ) {
    projector = new THREE.Projector();
    projector.unprojectVector( vector, camera );
    raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-   intersects = raycaster.intersectObjects( map.interactables );
+   intersects = raycaster.intersectObjects( map.interactables() );
    map.handleSelection( event, intersects[0] );
 }
 
@@ -284,48 +284,32 @@ function buildDisplayModeFSM ( initialState )
 {
    var tweenTo2d, tweenTo3d, position, fsm;
 
-   position = { x: ( initialState === '3d' ) ? 100 : 0.5 };
+   position = { y: ( initialState === '3d' ) ? 100 : 0.5 };
 
    tweenTo2d = new TWEEN.Tween( position )
-      .to( { x: 0.5, rotate: 0 }, 1000 )
+      .to( { y: 0.5 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            //var target = map.selectedTarget;
-            //map.deselect();
-            map._graph.destroyRoute();
+            map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
-                  var wantedY = child.system.position.y * ( this.x / 100 );
-                  child.translateY( wantedY - child.position.y );
-                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
-                     var routeObject = child.system.routeObjects[j];
-                     routeObject.geometry.verticesNeedUpdate = true;
-                  }
+                  child.system.scaleY( this.y );
                }
             }
-            //map.updateRoute( target );
       } );
 
    tweenTo3d = new TWEEN.Tween( position )
-      .to( { x: 100, rotate: 90 }, 1000 )
+      .to( { y: 100.0 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            //var target = map.selectedTarget;
-            //map.deselect();
-            map._graph.destroyRoute();
+            map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
                if ( child.system ) {
-                  var wantedY = child.system.position.y * ( this.x / 100 );
-                  child.translateY( wantedY - child.position.y );
-                  for ( var j = 0; j < child.system.routeObjects.length; j++ ) {
-                     var routeObject = child.system.routeObjects[j];
-                     routeObject.geometry.verticesNeedUpdate = true;
-                  }
+                  child.system.scaleY( this.y );
                }
             }
-            //map.updateRoute( target );
       } );
 
    fsm = StateMachine.create({
@@ -401,29 +385,28 @@ function hasLocalStorage() {
    }
 }
 
-Array.prototype.humanSort = function( ) {
-   return this.sort( function( a, b ) {
-      var x, cmp1, cmp2;
-      var aa = a.split(/(\d+)/);
-      var bb = b.split(/(\d+)/);
+function humanSort( a, b ) {
+   var x, cmp1, cmp2;
+   var aa = a.split(/(\d+)/);
+   var bb = b.split(/(\d+)/);
 
-      for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
+   for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
+   {
+      if ( aa[x] != bb[x] )
       {
-         if ( aa[x] != bb[x] )
-         {
-            cmp1 = ( isNaN( parseInt( aa[x], 10 ) ) ) ? aa[x] : parseInt( aa[x], 10 );
-            cmp2 = ( isNaN( parseInt( bb[x], 10 ) ) ) ? bb[x] : parseInt( bb[x], 10 );
+         cmp1 = ( isNaN( parseInt( aa[x], 10 ) ) ) ? aa[x] : parseInt( aa[x], 10 );
+         cmp2 = ( isNaN( parseInt( bb[x], 10 ) ) ) ? bb[x] : parseInt( bb[x], 10 );
 
-            if ( cmp1 === undefined || cmp2 === undefined ) {
-               return aa.length - bb.length;
-            } else {
-               return ( cmp1 < cmp2 ) ? -1 : 1;
-            }
+         if ( cmp1 === undefined || cmp2 === undefined ) {
+            return aa.length - bb.length;
+         } else {
+            return ( cmp1 < cmp2 ) ? -1 : 1;
          }
       }
-      return 0;
-   });
-};
+   }
+
+   return 0;
+}
 
 // End of file
 

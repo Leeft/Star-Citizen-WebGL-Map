@@ -1,130 +1,148 @@
 /**
-* @author LiannaEeftinck / https://github.com/Leeft
+* @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-function isInfinite ( num ) {
-   return !isFinite( num );
-}
-
-SCMAP.Dijkstra = function ( map ) {
-   if ( ! ( map instanceof SCMAP.Map ) ) {
-      console.error( "No map specified to SCMAP.Dijkstra constructor!" );
+SCMAP.Dijkstra = function ( systems ) {
+   if ( ! ( typeof systems === 'object' && Array.isArray( systems ) ) ) {
+      console.error( "No array specified to SCMAP.Dijkstra constructor!" );
       return;
    }
 
-   this.scene = map.scene;
-   this.results = [];
-   this.object = undefined;
-   this.source = undefined;
-   this.destination = undefined;
+   // prebuild a node list
+   this._nodes = [];
+   this._mapping = {}; // system.id to _nodes map
+   var i = systems.length;
+   while( i-- ) {
+      this._nodes[ i ] = {
+         system:   systems[i],
+         distance: Number.POSITIVE_INFINITY,
+         previous: null
+      };
+      this._mapping[ systems[i].id ] = this._nodes[ i ];
+   }
+   this._result = {};
 };
 
 SCMAP.Dijkstra.prototype = {
    constructor: SCMAP.Dijkstra,
 
-   createRouteObject: function() {
-      this.destroyRoute();
-      this.object = new THREE.Object3D();
-      return this.object;
-   },
+   buildGraph: function( source ) {
+      var nodes, i, distance, system, currentNode, jumpPoint,
+         endTime, startTime = new Date();
 
-   destroyRoute: function() {
-      if ( this.object instanceof THREE.Object3D ) {
-         this.scene.remove( this.object );
-         this.object = undefined;
-      }
-   },
+      if ( !( source instanceof SCMAP.System ) ) { return; }
 
-   destroyGraph: function() {
-      this.destroyRoute();
-      this.results = [];
-      this.source = undefined;
-      this.destination = undefined;
-   },
-
-   buildGraph: function( initialNode ) {
-      var endTime, startTime = new Date();
-
-      this.source = initialNode;
-
-      if ( !( initialNode instanceof SCMAP.System ) ) {
+      if ( this._result.source instanceof SCMAP.System && this._result.source === source ) {
+         console.log( 'Reusing generated graph starting at', source.name );
          return;
       }
 
-      console.log( 'Building graph starting at ' + initialNode.name + ' ...' );
+      this.destroyGraph();
+      this._result.source = source;
 
-      // Built using:
-      // http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
+      console.log( 'Building graph, starting at', source.name );
 
-      var unvisited = Object.values( SCMAP.data.systems );
+      // Created using http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
 
-      for ( var k = 0; k < unvisited.length; k++ ) {
-         unvisited[k].distance = Number.POSITIVE_INFINITY;
-         unvisited[k].parent = null;
+      for ( i = 0; i < this._nodes.length; i++ ) {
+         this._nodes[ i ].distance = Number.POSITIVE_INFINITY;
+         this._nodes[ i ].previous = null;
       }
 
-      var currentSystem = initialNode;
-      currentSystem.distance = 0;
-      currentSystem.parent = null;
+      currentNode = this._mapping[ source.id ];
+      currentNode.distance = 0; // distance from source to source
+      currentNode.previous = null;
 
-      unvisited = SCMAP.Dijkstra.quickSort( unvisited );
+      nodes = SCMAP.Dijkstra.quickSort( this._nodes );
 
-      //var distance = 0;
-      var currentIndex = 0;
-
-      while ( unvisited.length >= 1 )
+      while ( nodes.length >= 1 )
       {
-         currentSystem = unvisited[0];
-         // Remove currentSystem from unvisited set
-         unvisited.splice( 0, 1 );
+         currentNode = nodes[0];
+         // Remove currentNode from set
+         nodes.splice( 0, 1 );
 
-         if ( isInfinite( currentSystem.distance ) ) {
+         if ( isInfinite( currentNode.distance ) ) {
             break;
          }
 
-         for ( var i = 0; i < currentSystem.jumpPoints.length; i++ )
+         for ( i = 0; i < currentNode.system.jumpPoints.length; i++ )
          {
-            var alt = currentSystem.distance + currentSystem.jumpPoints[i].length();
+            jumpPoint = currentNode.system.jumpPoints[i];
+            distance = currentNode.distance + jumpPoint.length();
 
-            if ( alt < currentSystem.jumpPoints[i].destination.distance ) {
-               currentSystem.jumpPoints[i].destination.distance = alt;
-               currentSystem.jumpPoints[i].destination.parent = currentSystem;
-               unvisited = SCMAP.Dijkstra.quickSort( unvisited );
+            if ( distance < this._mapping[ jumpPoint.destination.id ].distance ) {
+               this._mapping[ jumpPoint.destination.id ].distance = distance;
+               this._mapping[ jumpPoint.destination.id ].previous = currentNode;
+               nodes = SCMAP.Dijkstra.quickSort( nodes );
             }
          }
       }
 
-      this.results = unvisited;
+      this._result.nodes = nodes;
       endTime = new Date();
-      console.log( "Graph building took " + (endTime.getTime() - startTime.getTime()) + " msec" );
+      console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
    },
 
-   routeArray: function( target ) {
-      if ( ! ( target instanceof SCMAP.System ) ) {
-         console.error( 'No or invalid target specified.' );
-         return ;
+   destroyGraph: function() {
+      this._result = {};
+   },
+
+   routeArray: function( destination ) {
+      if ( ! ( destination instanceof SCMAP.System ) ) {
+         console.error( 'No or invalid destination specified.' );
+         return;
       }
-      if ( this.results.length > 0 ) {
-         this.destination = target;
-         // Get path and print it out, we're traversing backwards through the optimal path for the target
-         var route = [];
-         var currentNode = target;
+
+      if ( this._result.nodes.length > 0 ) {
+         // Get path and print it out, we're traversing backwards
+         // through the optimal path for the destination
          var visited = [];
-         var x = currentNode;
+         var x = this._mapping[ destination.id ];
          var seen = {};
          while ( x !== null ) {
-            seen[ x.name ] = true;
+            seen[ x.system.name ] = true;
             visited.push( x );
-            x = x.parent;
+            x = x.previous;
          }
          visited.reverse();
          return visited;
       }
+   },
+
+   constructRouteObject: function( from, to, callback ) {
+      var routeArray, i, object;
+
+      if ( !( from instanceof SCMAP.System ) || !( to instanceof SCMAP.System ) ) {
+         return;
+      }
+
+      if ( typeof callback !== 'function' ) {
+         console.error( "Callback not given or not a function" );
+         return;
+      }
+
+      this.buildGraph( from );
+
+      routeArray = this.routeArray( to );
+      if ( typeof routeArray === 'object' && Array.isArray( routeArray ) ) {
+
+         object = new THREE.Object3D();
+         for ( i = 0; i < routeArray.length - 1; i++ ) {
+            object.add( callback( routeArray[i+0].system, routeArray[i+1].system ) );
+         }
+         return object;
+
+      }
    }
 };
 
-SCMAP.Dijkstra.quickSort = function ( systems ) {
-   var array = systems.slice(0); // makes a copy, prevents overwriting
+SCMAP.Dijkstra.quickSort = function ( nodes ) {
+   // makes a copy, prevents overwriting
+   var array = [];
+   var i = nodes.length;
+   while( i-- ) {
+      array[i] = nodes[i];
+   }
 
    if ( array.length <= 1 ) {
       return array;
@@ -136,7 +154,7 @@ SCMAP.Dijkstra.quickSort = function ( systems ) {
 
    pivot = array.splice( pivot, 1 )[0];
 
-   for ( var i = 0; i < array.length; i++ ) {
+   for ( i = 0; i < array.length; i++ ) {
       if ( array[i].distance <= pivot.distance ) {
          lhs.push( array[i] );
       } else {
@@ -150,6 +168,10 @@ SCMAP.Dijkstra.quickSort = function ( systems ) {
    t1.push( pivot );
    return t1.concat( t2 );
 };
+
+function isInfinite ( num ) {
+   return !isFinite( num );
+}
 
 // End of file
 
