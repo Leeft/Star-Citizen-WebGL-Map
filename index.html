@@ -46,9 +46,9 @@
                <button class="quick-button" id="centreCamera"><i class="fa fa-home fa-fw fa-lg"></i> Centre camera</button><br>
                <button class="quick-button" id="northCamera"><i class="fa fa-compass fa-fw fa-lg"></i> Reset orientation</button><br>
                <button class="quick-button" id="topCamera"><i class="fa fa-camera-retro fa-fw fa-lg"></i> Top-down camera</button><br>
-               <button class="quick-button" id="top2D"><i class="fa fa-map-marker fa-fw fa-lg"></i> 2D map mode</button><br>
-               <button class="quick-button with-checkbox"><input type="checkbox" value="1" id="3d-mode"><label class="fa-lg" for="3d-mode"></label>3D mode</button><br>
-               <button class="quick-button with-checkbox"><input type="checkbox" value="1" id="lock-rotation"><label class="fa-lg" for="lock-rotation"></label>Lock map rotation</button><br>
+               <button class="quick-button" id="top2D"><i class="fa fa-map-marker fa-fw fa-lg"></i> 2D map mode</button><br><br>
+               <span class="quick-button"><input type="checkbox" id="3d-mode"><label class="fa-lg" for="3d-mode">3D mode</label></span>
+               <span class="quick-button"><input type="checkbox" id="lock-rotation"><label class="fa-lg" for="lock-rotation">Lock map rotation</label></span>
             </p>
          </div>
          <div class="listing" id="listing" style="display: none;">
@@ -79,8 +79,23 @@
             <h1>Configuration</h1>
             <p><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
             <p>
-               <input type="checkbox" value="1" id="toggle-fxaa"><label for="toggle-fxaa">FXAA</label><br>
-               <input type="checkbox" value="1" id="toggle-bloom"><label for="toggle-bloom">Bloom</label>
+               <span class="quick-button"><input type="checkbox" id="toggle-fxaa"><label class="fa-lg" for="toggle-fxaa">FXAA</label></span>
+               <span class="quick-button"><input type="checkbox" id="toggle-bloom"><label class="fa-lg" for="toggle-bloom">Bloom</label></span>
+            </p>
+            <p>
+               <span class="quick-button">
+                  <input type="checkbox" id="toggle-glow" checked>
+                  <label class="fa-lg" for="toggle-glow">Enable star glow</label>
+               </span>
+               <span class="quick-button">
+                  <input type="checkbox" id="toggle-labels" checked>
+                  <label class="fa-lg" for="toggle-labels">Enable system labels</label>
+               </span>
+               <span class="quick-button">
+                  <i class="fa fa-level-up fa-rotate-90 fa-fw"></i>
+                  <input type="checkbox" id="toggle-label-icons" checked>
+                  <label class="fa-lg" for="toggle-label-icons">include icons</label>
+               </span>
             </p>
          </div>
          <div class="debug" id="debug" style="display: none;">

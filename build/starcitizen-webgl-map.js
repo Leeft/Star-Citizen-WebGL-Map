@@ -30,6 +30,29 @@ SCMAP.data = {
    systemsById: []
 };
 
+SCMAP.Symbol = {};
+SCMAP.Symbols = {};
+
+SCMAP.Symbol.SIZE = 24;
+SCMAP.Symbol.SPACING = 9;
+
+SCMAP.Symbols.DANGER = {
+   code: "\uf071",
+   scale: 0.9,
+   color: 'rgba(200,0,0,0.95)'
+};
+SCMAP.Symbols.HOME = {
+   code: "\uf015",
+   scale: 1.15,
+   color: 'rgba(255,255,255,0.95)',
+   offset: new THREE.Vector2( 0, 2 )
+};
+SCMAP.Symbols.TRADE = {
+   code: "\uf0d1",
+   scale: 1.0,
+   color: 'rgba(255,255,0,0.95)'
+};
+
 // constants here
 // SCMAP.Foo = 'bar'
 
@@ -41,6 +64,7 @@ SCMAP.data = {
 SCMAP.Settings = function () {
    this.glow = true;
    this.labels = true;
+   this.labelIcons = true;
 };
 
 SCMAP.settings = new SCMAP.Settings();
@@ -615,20 +639,21 @@ SCMAP.System.prototype = {
       star.scale.set( this.scale, this.scale, this.scale );
       this.sceneObject.add( star );
 
-      if ( SCMAP.settings.glow ) {
-         glow = new THREE.Sprite( this.glowMaterial() );
-         glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
-         glow.isGlow = true;
-         this.sceneObject.add( glow );
-      }
+      glow = new THREE.Sprite( this.glowMaterial() );
+      glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
+      glow.isGlow = true;
+      glow.sortParticles = true;
+      glow.visible = SCMAP.settings.glow;
+      this.sceneObject.add( glow );
 
-      if ( SCMAP.settings.labels ) {
-         label = new THREE.Sprite( this.labelMaterial() );
-         label.position.set( 0, 3.5, 0 );
-         label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
-         label.isLabel = true;
-         this.sceneObject.add( label );
-      }
+      label = new THREE.Sprite( this.labelSprite( SCMAP.settings.labelIcons ) );
+      label.position.set( 0, 3.5, 0 );
+      label.position.set( 0, this.scale * 3, 0 );
+      label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
+      label.isLabel = true;
+      label.sortParticles = true;
+      label.visible = SCMAP.settings.labels;
+      this.sceneObject.add( label );
 
       position = this.position.clone();
       if ( localStorage && localStorage.mode === '2d' ) {
@@ -636,7 +661,20 @@ SCMAP.System.prototype = {
       }
       this.sceneObject.position = position;
       this.sceneObject.system = this;
+      this.sceneObject.scaleY = this.scaleY;
       return this.sceneObject;
+   },
+
+   updateSceneObject: function ( scene ) {
+      for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
+         var object = this.sceneObject.children[i];
+         if ( object.isLabel ) {
+            this.updateLabelSprite( object.material, SCMAP.settings.labelIcons );
+            object.visible = SCMAP.settings.labels;
+         } else if ( object.isGlow ) {
+            object.visible = SCMAP.settings.glow;
+         }
+      }
    },
 
    starMaterial: function () {
@@ -644,19 +682,53 @@ SCMAP.System.prototype = {
    },
 
    glowMaterial: function () {
+      var color = this.starColor;
+      if ( color.equals( SCMAP.Color.BLACK ) ) {
+         color.copy( SCMAP.Color.UNSET );
+      }
       return new THREE.SpriteMaterial({
          map: SCMAP.System.GLOW_MAP,
          blending: THREE.AdditiveBlending,
-         color: this.starColor,
+         transparent: false,
+         useScreenCoordinates: false,
+         color: color
       });
    },
 
-   labelMaterial: function () {
-      var canvas, context, texture, material, text = this.name, actualWidth;
+   labelSprite: function ( drawIcons ) {
+      var canvas, texture, material;
+
+      canvas = this.drawSystemText( drawIcons );
+
+      texture = new THREE.Texture( canvas ) ;
+      texture.needsUpdate = true;
+
+      material = new THREE.SpriteMaterial({
+         map: texture,
+         useScreenCoordinates: false,
+         blending: THREE.CustomBlending
+      });
+
+      return material;
+   },
+
+   // Refreshes the text and icons on the system's label
+   updateLabelSprite: function ( spriteMaterial, drawLabels ) {
+      var canvas, texture;
+      canvas = this.drawSystemText( drawLabels );
+      texture = new THREE.Texture( canvas ) ;
+      texture.needsUpdate = true;
+      spriteMaterial.map = texture;
+   },
+
+   // Draws the text on a label
+   drawSystemText: function ( drawSymbols ) {
+      var canvas, context, texture, text = this.name, actualWidth;
+      var textX, textY;
 
       canvas = document.createElement('canvas');
-      canvas.width = 400;
-      canvas.height = 54;
+      canvas.width = 256;
+      canvas.height = 256;
       context = canvas.getContext('2d');
 
       context.font = '36pt Electrolize, Calibri, sans-serif';
@@ -664,7 +736,10 @@ SCMAP.System.prototype = {
       context.strokeStyle = 'rgba(0,0,0,0.95)';
       context.lineWidth = 5;
       actualWidth = Math.ceil( context.measureText( text ).width + 1 );
-      canvas.width = actualWidth;
+      while ( actualWidth > canvas.width ) {
+         canvas.width *= 2;
+         canvas.height *= 2;
+      }
 
       //context.beginPath();
       //context.rect( 0, 0, canvas.width, canvas.height );
@@ -672,21 +747,62 @@ SCMAP.System.prototype = {
       //context.strokeStyle = 'yellow';
       //context.stroke();
 
+      textX = canvas.width / 2;
+      textY = canvas.height / 2;
+
       context.font = '36pt Electrolize, Calibri, sans-serif';
       context.strokeStyle = 'rgba(0,0,0,0.95)';
       context.textAlign = 'center';
       context.lineWidth = 5;
-      context.strokeText( text, canvas.width / 2, 39 );
+      context.strokeText( text, textX, textY );
 
-      //context.fillStyle = 'rgba(255,255,255,0.95)';
       context.fillStyle = this.faction.color.getStyle();
-      context.fillText( text, canvas.width / 2, 39 );
+      context.fillText( text, textX, textY );
 
-      texture = new THREE.Texture( canvas ) ;
-      texture.needsUpdate = true;
+      if ( drawSymbols )
+      {
+         var mySymbols = [];
+         if ( this.faction.name === 'Vanduul' ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
+         if ( this.name === 'Sol' ) { mySymbols.push( SCMAP.Symbols.HOME ); }
+         if ( Math.random() > 0.8 ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
+         this._drawSymbols( context, textX, textY - 50, mySymbols );
+      }
 
-      material = new THREE.SpriteMaterial({ map: texture, useScreenCoordinates: false });
-      return material;
+      return canvas;
+   },
+
+   // Draws the icon(s) on a label
+   _drawSymbols: function ( context, x, y, symbols ) {
+      var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
+      x -= totalWidth / 2;
+
+      for ( i = 0; i < symbols.length; i++ )
+      {
+         symbol = symbols[ i ];
+
+         context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
+
+         //context.beginPath();
+         //context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
+         //context.lineWidth = 5;
+         //context.strokeStyle = 'yellow';
+         //context.stroke();
+
+         if ( symbol.offset ) {
+            x += symbol.offset.x;
+            y += symbol.offset.y;
+         }
+
+         context.strokeStyle = 'rgba(0,0,0,0.95)';
+         context.textAlign = 'center';
+         context.lineWidth = 5;
+         context.strokeText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
+
+         context.fillStyle = symbol.color; 
+         context.fillText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
+
+         x += SCMAP.Symbol.SIZE + SCMAP.Symbol.SPACING;
+      }
    },
 
    createInfoLink: function () {
@@ -694,13 +810,11 @@ SCMAP.System.prototype = {
       if ( typeof _this.faction !== 'undefined' && typeof _this.faction !== 'undefined' ) {
          $line.css( 'color', _this.faction.color.getStyle() );
       }
+      $line.attr( 'data-goto', 'system' );
+      $line.attr( 'data-system', _this.id );
       $line.attr( 'href', '#system='+encodeURI( _this.name ) );
       $line.attr( 'title', 'Show information on '+_this.name );
       $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + _this.name );
-      $line.bind( 'click', function() {
-         _this.displayInfo( _this );
-         window.controls.moveTo( _this );
-      } );
       return $line;
    },
 
@@ -716,6 +830,7 @@ SCMAP.System.prototype = {
       var i;
       var tmp = [];
       var $blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
+      var currentStep = window.map.indexOfCurrentRoute( system );
 
       $('#systemname')
          .attr( 'class', makeSafeForCSS( system.faction.name ) )
@@ -726,48 +841,34 @@ SCMAP.System.prototype = {
          $blurb.append( '<h2 class="nickname">'+system.nickname+'</h2>' );
       }
 
-      var currentRoute = window.map.currentRoute();
-      if ( currentRoute.length )
+      if ( typeof currentStep === 'number' )
       {
-         var partOfRoute = false;
-         var currentStep = 0;
+         var currentRoute = window.map.currentRoute();
+         var header = [];
 
-         for ( i = 0; i < currentRoute.length; i++ ) {
-            if ( currentRoute[i] == system ) {
-               partOfRoute = true;
-               currentStep = i;
-               break;
-            }
+         if ( currentStep > 0 ) {
+            var $prev = currentRoute[currentStep-1].system.createInfoLink();
+            $prev.attr( 'title', 'Previous jump to ' + currentRoute[currentStep-1].system.name +
+               ' (' + currentRoute[currentStep-1].system.faction.name + ' territory)' );
+            $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
+            header.push( $prev );
+         } else {
+            header.push( $('<i class="left fa fa-fw"></i>') );
          }
 
-         if ( partOfRoute )
-         {
-            var header = [];
-
-            if ( currentStep > 0 ) {
-               var $prev = currentRoute[currentStep-1].createInfoLink();
-               $prev.attr( 'title', 'Previous jump to ' + currentRoute[currentStep-1].name +
-                  ' (' + currentRoute[currentStep-1].faction.name + ' territory)' );
-               $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
-               header.push( $prev );
-            } else {
-               header.push( $('<i class="left fa fa-fw"></i>') );
-            }
-
-            if ( currentStep < ( currentRoute.length - 1 ) ) {
-               var $next = currentRoute[currentStep+1].createInfoLink();
-               $next.attr( 'title', 'Next jump to ' + currentRoute[currentStep+1].name +
-                  ' (' + currentRoute[currentStep+1].faction.name + ' territory)'  );
-               $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
-               header.push( $next );
-            } else {
-               header.push( $('<i class="right fa fa-fw"></i>') );
-            }
-
-            header.push( system.name );
-
-            $('#systemname').empty().attr( 'class', makeSafeForCSS( system.faction.name ) ).append( header );
+         if ( currentStep < ( currentRoute.length - 1 ) ) {
+            var $next = currentRoute[currentStep+1].system.createInfoLink();
+            $next.attr( 'title', 'Next jump to ' + currentRoute[currentStep+1].system.name +
+               ' (' + currentRoute[currentStep+1].system.faction.name + ' territory)'  );
+            $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
+            header.push( $next );
+         } else {
+            header.push( $('<i class="right fa fa-fw"></i>') );
          }
+
+         header.push( system.name );
+
+         $('#systemname').empty().attr( 'class', makeSafeForCSS( system.faction.name ) ).append( header );
       }
 
       if ( system.planetaryRotation.length ) {
@@ -819,7 +920,11 @@ SCMAP.System.prototype = {
          $blurb.find('dd.faction').css( 'color', system.faction.color.getStyle() );
       }
 
-      $blurb.append( '<div id="systemInfo">'+markdown.toHTML( system.blob )+'</div>' );
+      if ( system.blob.length ) {
+         var $md = $(markdown.toHTML( system.blob ));
+         $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
+         $blurb.append( '<div id="systemInfo">', $md, '</div>' );
+      }
 
       if ( system.source ) {
          $blurb.append( '<p><a class="system-source-url" href="' + system.source + '" target="_blank">(source)</a></p>' );
@@ -832,20 +937,14 @@ SCMAP.System.prototype = {
 
       $('#map_ui').tabs( 'option', 'active', 2 );
       $('#map_ui').data( 'jsp' ).reinitialise();
-
-   //   var select = $('<select>').attr('id','destination').appendTo('#destinations');
-   //   $( system.jumppoints ).each( function() {
-   //      select.append( $('<option>').attr( 'value', system.destination.name ).text( system.destination.name ) );
-   //   } );
-   //
-   //   $('<input>').attr( 'type', 'checkbox' ).attr( 'id', 'locked' ).appendTo('#destinations');
    },
 
+   // 2d/3d tween callback
    scaleY: function ( scalar ) {
-      var wantedY = this.position.y * ( scalar / 100 );
-      this.sceneObject.translateY( wantedY - this.sceneObject.position.y );
-      for ( var j = 0; j < this._routeObjects.length; j++ ) {
-         this._routeObjects[j].geometry.verticesNeedUpdate = true;
+      var wantedY = this.system.position.y * ( scalar / 100 );
+      this.system.sceneObject.translateY( wantedY - this.system.sceneObject.position.y );
+      for ( var j = 0; j < this.system._routeObjects.length; j++ ) {
+         this.system._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
    },
 
@@ -1009,6 +1108,10 @@ SCMAP.System.getByName = function ( name ) {
 SCMAP.System.getById = function ( id ) {
    return SCMAP.data.systemsById[ id ];
 };
+
+SCMAP.Color = {};
+SCMAP.Color.BLACK = new THREE.Color( 'black' );
+SCMAP.Color.UNSET = new THREE.Color( 0x80A0CC );
 
 SCMAP.System.COLORS = {
    RED: 0xFF6060,
@@ -1231,8 +1334,8 @@ SCMAP.Map = function ( scene ) {
    this._interactables = [];
    this.referencePlane = undefined;
 
-   this._selector = this.createSelector();
-   this.scene.add( this._selector );
+   this._selectorObject = this.createSelectorObject();
+   this.scene.add( this._selectorObject );
 
    // No editing available for the moment (doesn't work yet)
    this.canEdit = false;
@@ -1246,14 +1349,33 @@ SCMAP.Map = function ( scene ) {
 SCMAP.Map.prototype = {
    constructor: SCMAP.Map,
 
-   createSelector: function () {
-      var material = new THREE.MeshBasicMaterial( { color: 0xCCCCCC } );
-      material.transparent = true;
-      material.blending = THREE.AdditiveBlending;
-      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, material );
-      mesh.scale.set( 4, 4, 4 );
+   createSelectorObject: function () {
+      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({
+         color: 0xCCCCCC,
+         transparent: true,
+         blending: THREE.AdditiveBlending
+      }) );
+      mesh.scale.set( 4.2, 4.2, 4.2 );
       mesh.visible = false;
+      mesh.systemPosition = new THREE.Vector3( 0, 0, 0 );
+      // 2d/3d tween callback
+      mesh.scaleY = function ( scalar ) {
+         var wantedY = this.systemPosition.y * ( scalar / 100 );
+         this.translateY( wantedY - this.position.y );
+      };
       return mesh;
+   },
+   updateSelectorObject: function ( system ) {
+      if ( system instanceof SCMAP.System ) {
+         this._selectorObject.visible = true;
+         this._selectorObject.systemPosition.copy( system.position );
+         //this._selectorObject.position.copy( system.sceneObject.position );
+         this.moveSelectorTo( system );
+         this._selected = system;
+      } else {
+         this._selectorObject.visible = false;
+         this._selected = undefined;
+      }
    },
 
    system: function ( name ) {
@@ -1268,77 +1390,72 @@ SCMAP.Map.prototype = {
       return this._interactables;
    },
 
-   select: function ( system ) {
-      if ( system instanceof SCMAP.System ) {
-         this._selector.visible = true;
-         //this._selector.position = system.sceneObject.position;
-         this.moveSelectorTo( system );
-         this._selected = system;
-      } else {
-         this._selector.visible = false;
-         this._selected = undefined;
-      }
-   },
-
    deselect: function ( ) {
-      this._selector.visible = false;
+      this._selectorObject.visible = false;
       this._selected = undefined;
    },
 
    animateSelector: function ( ) {
-      if ( this._selector.visible ) {
-         this._selector.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
+      if ( this._selectorObject.visible ) {
+         this._selectorObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
+      }
+   },
+
+   updateSystems: function ( ) {
+      for ( var i = 0; i < SCMAP.System.List.length; i++ ) {
+         SCMAP.System.List[i].updateSceneObject( this.scene );
       }
    },
 
    moveSelectorTo: function ( system ) {
       var tween, newPosition, position, _this = this, poi;
 
-      if ( !(_this._selector.visible) || !(_this._selected instanceof SCMAP.System) ) {
-         _this._selector.position = system.sceneObject.position;
-         _this._selector.visible = true;
+      if ( !(_this._selectorObject.visible) || !(_this._selected instanceof SCMAP.System) ) {
+         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.position.copy( system.sceneObject.position );
+         _this._selectorObject.visible = true;
          _this._selected = system;
          return;
       }
 
-      newPosition = system.sceneObject.position;
+      newPosition = system.sceneObject.position.clone();
       var graph = new SCMAP.Dijkstra( SCMAP.System.List );
       graph.buildGraph( _this._selected );
       var route = graph.routeArray( system );
 
       if ( route.length <= 1 ) {
-         _this._selector.position = system.sceneObject.position;
-         _this._selector.visible = true;
+         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.position.copy( system.sceneObject.position );
+         _this._selectorObject.visible = true;
          _this._selected = system;
          return;
       }
 
-
-      _this._selector.position = _this._selector.position.clone();
+      _this._selectorObject.position.copy( _this._selectorObject.position );
 
       position = {
-         x: _this._selector.position.x,
-         y: _this._selector.position.y,
-         z: _this._selector.position.z
+         x: _this._selectorObject.position.x,
+         y: _this._selectorObject.position.y,
+         z: _this._selectorObject.position.z
       };
 
       var tweens = [];
 
       /* jshint ignore:start */
-      for ( i = 0; i < route.length; i++ ) {
-         poi = route[ i ].system;
+      for ( i = 0; i < route.length - 1; i++ ) {
+         poi = route[ i + 1 ].system;
 
          tween = new TWEEN.Tween( position )
             .to( {
                x: poi.sceneObject.position.x,
                y: poi.sceneObject.position.y,
                z: poi.sceneObject.position.z
-            }, 800 / route.length )
+            }, 800 / ( route.length - 1 ) )
             .easing( TWEEN.Easing.Linear.None )
             .onUpdate( function () {
-               _this._selector.position.setX( this.x );
-               _this._selector.position.setY( this.y );
-               _this._selector.position.setZ( this.z );
+               _this._selectorObject.position.setX( this.x );
+               _this._selectorObject.position.setY( this.y );
+               _this._selectorObject.position.setZ( this.z );
             } );
 
          if ( i == 0 ) {
@@ -1353,10 +1470,11 @@ SCMAP.Map.prototype = {
             tweens[ i - 1 ].chain( tween );
          }
 
-         if ( i == route.length - 1 ) {
+         if ( i == route.length - 2 ) {
             tween.easing( TWEEN.Easing.Cubic.Out );
             tween.onComplete( function() {
-               _this._selector.position = poi.sceneObject.position;
+               _this._selectorObject.systemPosition.copy( poi.position );
+               _this._selectorObject.position.copy( poi.sceneObject.position );
                _this._selected = system;
             } );
          }
@@ -1392,7 +1510,7 @@ SCMAP.Map.prototype = {
          //      ) {
          //         window.controls.editDrag = true;
          //      } else {
-         //         this.select( intersect.object.parent.system );
+         //         this.updateSelectorObject( intersect.object.parent.system );
          //         window.controls.editDrag = false;
          //      }
          //   }
@@ -1415,7 +1533,7 @@ SCMAP.Map.prototype = {
                if ( this._selected instanceof SCMAP.System && intersect.object.parent.system instanceof SCMAP.System ) {
                   if ( intersect.object.parent.system === this._selected ) {
                      //if ( $('#systemname').text() != intersect.object.parent.system.name ) {
-                        this.select( intersect.object.parent.system );
+                        this.updateSelectorObject( intersect.object.parent.system );
                         intersect.object.parent.system.displayInfo();
                      //}
                   }
@@ -1436,6 +1554,27 @@ SCMAP.Map.prototype = {
       return [];
    },
 
+   // TODO: separate Route class
+   indexOfCurrentRoute: function ( system ) {
+      if ( ! system instanceof SCMAP.System ) {
+         return;
+      }
+
+      var currentStep;
+      var currentRoute = this.currentRoute();
+
+      if ( currentRoute.length ) {
+         for ( i = 0; i < currentRoute.length; i++ ) {
+            if ( currentRoute[i].system === system ) {
+               currentStep = i;
+               break;
+            }
+         }
+      }
+
+      return currentStep;
+   },
+
    destroyCurrentRoute: function () {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
@@ -1454,7 +1593,7 @@ SCMAP.Map.prototype = {
       this._routeObject = _this._graph.constructRouteObject( _this._selected, destination, function ( from, to ) {
          var mesh = _this.createRouteMesh( from, to );
          var line = new THREE.Line( mesh, material );
-         line.position = from.sceneObject.position;
+         line.position = from.sceneObject.position.clone();
          line.lookAt( to.sceneObject.position );
          return line;
       });
@@ -1464,8 +1603,8 @@ SCMAP.Map.prototype = {
          route = this._graph.routeArray( destination );
 
          $('#routelist').empty();
-         $('#routelist').append('<p>The shortest route from '+route[0].name+' to ' +
-            route[route.length-1].name+' along <strong>' + (route.length - 1) +
+         $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink().outerHtml()+' to ' +
+            route[route.length-1].system.createInfoLink().outerHtml()+' along <strong>' + (route.length - 1) +
             '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
 
          for ( i = 0; i < route.length; i++ ) {
@@ -1955,6 +2094,13 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
+   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
+   $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
+   $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
+   $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
+
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
    container.className = 'noselect webgl-container-noedit';
@@ -2029,9 +2175,6 @@ function init()
 
    window.addEventListener( 'resize', onWindowResize, false );
 
-   renderer.domElement.addEventListener( 'mousedown', onDocumentMouseUpAndDown, false );
-   renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUpAndDown, false );
-
    // Rendering
 
    renderModel = new THREE.RenderPass( scene, camera );
@@ -2058,6 +2201,26 @@ function init()
    displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage.mode : '2d' );
    $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
 
+//var smokeParticles = new THREE.Geometry();
+//for (i = 0; i < 25; i++) {
+//    var particle = new THREE.Vector3( Math.random() * 8, Math.random() * 10 + 5, Math.random() * 8 );
+//    smokeParticles.vertices.push( particle );
+//}
+//var smokeTexture = THREE.ImageUtils.loadTexture('images/smoke.png');
+//var smokeMaterial = new THREE.ParticleBasicMaterial({
+//   map: smokeTexture,
+//   transparent: true,
+//   blending: THREE.AdditiveBlending,
+//   size: 25,
+//   color: 0x111111
+//});
+//
+//var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
+//smoke.sortParticles = true;
+//smoke.position.x = 10;
+// 
+//scene.add(smoke);
+
    // Some simple UI stuff
 
    $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
@@ -2076,6 +2239,22 @@ function init()
    $('#toggle-bloom').on( 'change', function() {
       effectBloom.enabled = this.checked;
       if ( localStorage ) { localStorage['effect.Bloom'] = ( this.checked ) ? 1 : 0; }
+   });
+
+   $('#toggle-glow').on( 'change', function() {
+      SCMAP.settings.glow = this.checked;
+      map.updateSystems();
+      if ( localStorage ) { localStorage['settings.Glow'] = ( this.checked ) ? 1 : 0; }
+   });
+   $('#toggle-labels').on( 'change', function() {
+      SCMAP.settings.labels = this.checked;
+      map.updateSystems();
+      if ( localStorage ) { localStorage['settings.Labels'] = ( this.checked ) ? 1 : 0; }
+   });
+   $('#toggle-label-icons').on( 'change', function() {
+      SCMAP.settings.labelIcons = this.checked;
+      map.updateSystems();
+      if ( localStorage ) { localStorage['settings.LabelIcons'] = ( this.checked ) ? 1 : 0; }
    });
 
    $('#resetCamera').on( 'click', function() {
@@ -2109,6 +2288,13 @@ function init()
       } else {
          $('#keyboard-shortcuts > a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
+   });
+
+   $('#map_ui').on( 'click', "a[data-goto='system']", function() {
+      var $this = $(this);
+      var system = SCMAP.data.systemsById[ $this.data('system') ];
+      system.displayInfo();
+      controls.moveTo( system );
    });
 }
 
@@ -2156,16 +2342,6 @@ function onWindowResize() {
    composer.reset();
 }
 
-function onDocumentMouseUpAndDown( event ) {
-   var vector, projector, raycaster, intersects, clickedOut;
-   vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
-   projector = new THREE.Projector();
-   projector.unprojectVector( vector, camera );
-   raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-   intersects = raycaster.intersectObjects( map.interactables() );
-   map.handleSelection( event, intersects[0] );
-}
-
 function makeSafeForCSS( name ) {
    if ( typeof name !== 'string' ) {
       return;
@@ -2191,8 +2367,8 @@ function buildDisplayModeFSM ( initialState )
             map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
-               if ( child.system ) {
-                  child.system.scaleY( this.y );
+               if ( typeof child.scaleY === 'function' ) {
+                  child.scaleY( this.y );
                }
             }
       } );
@@ -2204,8 +2380,8 @@ function buildDisplayModeFSM ( initialState )
             map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
-               if ( child.system ) {
-                  child.system.scaleY( this.y );
+               if ( typeof child.scaleY === 'function' ) {
+                  child.scaleY( this.y );
                }
             }
       } );
@@ -2282,6 +2458,10 @@ function hasLocalStorage() {
       return false;
    }
 }
+
+jQuery.fn.outerHtml = function() {
+     return jQuery('<div />').append(this.eq(0).clone()).html();
+};
 
 function humanSort( a, b ) {
    var x, cmp1, cmp2;

@@ -13,8 +13,8 @@ SCMAP.Map = function ( scene ) {
    this._interactables = [];
    this.referencePlane = undefined;
 
-   this._selector = this.createSelector();
-   this.scene.add( this._selector );
+   this._selectorObject = this.createSelectorObject();
+   this.scene.add( this._selectorObject );
 
    // No editing available for the moment (doesn't work yet)
    this.canEdit = false;
@@ -28,14 +28,33 @@ SCMAP.Map = function ( scene ) {
 SCMAP.Map.prototype = {
    constructor: SCMAP.Map,
 
-   createSelector: function () {
-      var material = new THREE.MeshBasicMaterial( { color: 0xCCCCCC } );
-      material.transparent = true;
-      material.blending = THREE.AdditiveBlending;
-      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, material );
-      mesh.scale.set( 4, 4, 4 );
+   createSelectorObject: function () {
+      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({
+         color: 0xCCCCCC,
+         transparent: true,
+         blending: THREE.AdditiveBlending
+      }) );
+      mesh.scale.set( 4.2, 4.2, 4.2 );
       mesh.visible = false;
+      mesh.systemPosition = new THREE.Vector3( 0, 0, 0 );
+      // 2d/3d tween callback
+      mesh.scaleY = function ( scalar ) {
+         var wantedY = this.systemPosition.y * ( scalar / 100 );
+         this.translateY( wantedY - this.position.y );
+      };
       return mesh;
+   },
+   updateSelectorObject: function ( system ) {
+      if ( system instanceof SCMAP.System ) {
+         this._selectorObject.visible = true;
+         this._selectorObject.systemPosition.copy( system.position );
+         //this._selectorObject.position.copy( system.sceneObject.position );
+         this.moveSelectorTo( system );
+         this._selected = system;
+      } else {
+         this._selectorObject.visible = false;
+         this._selected = undefined;
+      }
    },
 
    system: function ( name ) {
@@ -50,77 +69,72 @@ SCMAP.Map.prototype = {
       return this._interactables;
    },
 
-   select: function ( system ) {
-      if ( system instanceof SCMAP.System ) {
-         this._selector.visible = true;
-         //this._selector.position = system.sceneObject.position;
-         this.moveSelectorTo( system );
-         this._selected = system;
-      } else {
-         this._selector.visible = false;
-         this._selected = undefined;
-      }
-   },
-
    deselect: function ( ) {
-      this._selector.visible = false;
+      this._selectorObject.visible = false;
       this._selected = undefined;
    },
 
    animateSelector: function ( ) {
-      if ( this._selector.visible ) {
-         this._selector.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
+      if ( this._selectorObject.visible ) {
+         this._selectorObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
+      }
+   },
+
+   updateSystems: function ( ) {
+      for ( var i = 0; i < SCMAP.System.List.length; i++ ) {
+         SCMAP.System.List[i].updateSceneObject( this.scene );
       }
    },
 
    moveSelectorTo: function ( system ) {
       var tween, newPosition, position, _this = this, poi;
 
-      if ( !(_this._selector.visible) || !(_this._selected instanceof SCMAP.System) ) {
-         _this._selector.position = system.sceneObject.position;
-         _this._selector.visible = true;
+      if ( !(_this._selectorObject.visible) || !(_this._selected instanceof SCMAP.System) ) {
+         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.position.copy( system.sceneObject.position );
+         _this._selectorObject.visible = true;
          _this._selected = system;
          return;
       }
 
-      newPosition = system.sceneObject.position;
+      newPosition = system.sceneObject.position.clone();
       var graph = new SCMAP.Dijkstra( SCMAP.System.List );
       graph.buildGraph( _this._selected );
       var route = graph.routeArray( system );
 
       if ( route.length <= 1 ) {
-         _this._selector.position = system.sceneObject.position;
-         _this._selector.visible = true;
+         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.position.copy( system.sceneObject.position );
+         _this._selectorObject.visible = true;
          _this._selected = system;
          return;
       }
 
-
-      _this._selector.position = _this._selector.position.clone();
+      _this._selectorObject.position.copy( _this._selectorObject.position );
 
       position = {
-         x: _this._selector.position.x,
-         y: _this._selector.position.y,
-         z: _this._selector.position.z
+         x: _this._selectorObject.position.x,
+         y: _this._selectorObject.position.y,
+         z: _this._selectorObject.position.z
       };
 
       var tweens = [];
 
       /* jshint ignore:start */
-      for ( i = 0; i < route.length; i++ ) {
-         poi = route[ i ].system;
+      for ( i = 0; i < route.length - 1; i++ ) {
+         poi = route[ i + 1 ].system;
 
          tween = new TWEEN.Tween( position )
             .to( {
                x: poi.sceneObject.position.x,
                y: poi.sceneObject.position.y,
                z: poi.sceneObject.position.z
-            }, 800 / route.length )
+            }, 800 / ( route.length - 1 ) )
             .easing( TWEEN.Easing.Linear.None )
             .onUpdate( function () {
-               _this._selector.position.setX( this.x );
-               _this._selector.position.setY( this.y );
-               _this._selector.position.setZ( this.z );
+               _this._selectorObject.position.setX( this.x );
+               _this._selectorObject.position.setY( this.y );
+               _this._selectorObject.position.setZ( this.z );
             } );
 
          if ( i == 0 ) {
@@ -135,10 +149,11 @@ SCMAP.Map.prototype = {
             tweens[ i - 1 ].chain( tween );
          }
 
-         if ( i == route.length - 1 ) {
+         if ( i == route.length - 2 ) {
             tween.easing( TWEEN.Easing.Cubic.Out );
             tween.onComplete( function() {
-               _this._selector.position = poi.sceneObject.position;
+               _this._selectorObject.systemPosition.copy( poi.position );
+               _this._selectorObject.position.copy( poi.sceneObject.position );
                _this._selected = system;
             } );
          }
@@ -174,7 +189,7 @@ SCMAP.Map.prototype = {
          //      ) {
          //         window.controls.editDrag = true;
          //      } else {
-         //         this.select( intersect.object.parent.system );
+         //         this.updateSelectorObject( intersect.object.parent.system );
          //         window.controls.editDrag = false;
          //      }
          //   }
@@ -197,7 +212,7 @@ SCMAP.Map.prototype = {
                if ( this._selected instanceof SCMAP.System && intersect.object.parent.system instanceof SCMAP.System ) {
                   if ( intersect.object.parent.system === this._selected ) {
                      //if ( $('#systemname').text() != intersect.object.parent.system.name ) {
-                        this.select( intersect.object.parent.system );
+                        this.updateSelectorObject( intersect.object.parent.system );
                         intersect.object.parent.system.displayInfo();
                      //}
                   }
@@ -218,6 +233,27 @@ SCMAP.Map.prototype = {
       return [];
    },
 
+   // TODO: separate Route class
+   indexOfCurrentRoute: function ( system ) {
+      if ( ! system instanceof SCMAP.System ) {
+         return;
+      }
+
+      var currentStep;
+      var currentRoute = this.currentRoute();
+
+      if ( currentRoute.length ) {
+         for ( i = 0; i < currentRoute.length; i++ ) {
+            if ( currentRoute[i].system === system ) {
+               currentStep = i;
+               break;
+            }
+         }
+      }
+
+      return currentStep;
+   },
+
    destroyCurrentRoute: function () {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
@@ -236,7 +272,7 @@ SCMAP.Map.prototype = {
       this._routeObject = _this._graph.constructRouteObject( _this._selected, destination, function ( from, to ) {
          var mesh = _this.createRouteMesh( from, to );
          var line = new THREE.Line( mesh, material );
-         line.position = from.sceneObject.position;
+         line.position = from.sceneObject.position.clone();
          line.lookAt( to.sceneObject.position );
          return line;
       });
@@ -246,8 +282,8 @@ SCMAP.Map.prototype = {
          route = this._graph.routeArray( destination );
 
          $('#routelist').empty();
-         $('#routelist').append('<p>The shortest route from '+route[0].name+' to ' +
-            route[route.length-1].name+' along <strong>' + (route.length - 1) +
+         $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink().outerHtml()+' to ' +
+            route[route.length-1].system.createInfoLink().outerHtml()+' along <strong>' + (route.length - 1) +
             '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
 
          for ( i = 0; i < route.length; i++ ) {

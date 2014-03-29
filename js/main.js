@@ -57,6 +57,13 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
+   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
+   $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
+   $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
+   $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
+
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
    container.className = 'noselect webgl-container-noedit';
@@ -131,9 +138,6 @@ function init()
 
    window.addEventListener( 'resize', onWindowResize, false );
 
-   renderer.domElement.addEventListener( 'mousedown', onDocumentMouseUpAndDown, false );
-   renderer.domElement.addEventListener( 'mouseup', onDocumentMouseUpAndDown, false );
-
    // Rendering
 
    renderModel = new THREE.RenderPass( scene, camera );
@@ -160,6 +164,26 @@ function init()
    displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage.mode : '2d' );
    $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
 
+//var smokeParticles = new THREE.Geometry();
+//for (i = 0; i < 25; i++) {
+//    var particle = new THREE.Vector3( Math.random() * 8, Math.random() * 10 + 5, Math.random() * 8 );
+//    smokeParticles.vertices.push( particle );
+//}
+//var smokeTexture = THREE.ImageUtils.loadTexture('images/smoke.png');
+//var smokeMaterial = new THREE.ParticleBasicMaterial({
+//   map: smokeTexture,
+//   transparent: true,
+//   blending: THREE.AdditiveBlending,
+//   size: 25,
+//   color: 0x111111
+//});
+//
+//var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
+//smoke.sortParticles = true;
+//smoke.position.x = 10;
+// 
+//scene.add(smoke);
+
    // Some simple UI stuff
 
    $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
@@ -178,6 +202,22 @@ function init()
    $('#toggle-bloom').on( 'change', function() {
       effectBloom.enabled = this.checked;
       if ( localStorage ) { localStorage['effect.Bloom'] = ( this.checked ) ? 1 : 0; }
+   });
+
+   $('#toggle-glow').on( 'change', function() {
+      SCMAP.settings.glow = this.checked;
+      map.updateSystems();
+      if ( localStorage ) { localStorage['settings.Glow'] = ( this.checked ) ? 1 : 0; }
+   });
+   $('#toggle-labels').on( 'change', function() {
+      SCMAP.settings.labels = this.checked;
+      map.updateSystems();
+      if ( localStorage ) { localStorage['settings.Labels'] = ( this.checked ) ? 1 : 0; }
+   });
+   $('#toggle-label-icons').on( 'change', function() {
+      SCMAP.settings.labelIcons = this.checked;
+      map.updateSystems();
+      if ( localStorage ) { localStorage['settings.LabelIcons'] = ( this.checked ) ? 1 : 0; }
    });
 
    $('#resetCamera').on( 'click', function() {
@@ -211,6 +251,13 @@ function init()
       } else {
          $('#keyboard-shortcuts > a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
+   });
+
+   $('#map_ui').on( 'click', "a[data-goto='system']", function() {
+      var $this = $(this);
+      var system = SCMAP.data.systemsById[ $this.data('system') ];
+      system.displayInfo();
+      controls.moveTo( system );
    });
 }
 
@@ -258,16 +305,6 @@ function onWindowResize() {
    composer.reset();
 }
 
-function onDocumentMouseUpAndDown( event ) {
-   var vector, projector, raycaster, intersects, clickedOut;
-   vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
-   projector = new THREE.Projector();
-   projector.unprojectVector( vector, camera );
-   raycaster = new THREE.Raycaster( camera.position, vector.sub( camera.position ).normalize() );
-   intersects = raycaster.intersectObjects( map.interactables() );
-   map.handleSelection( event, intersects[0] );
-}
-
 function makeSafeForCSS( name ) {
    if ( typeof name !== 'string' ) {
       return;
@@ -293,8 +330,8 @@ function buildDisplayModeFSM ( initialState )
             map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
-               if ( child.system ) {
-                  child.system.scaleY( this.y );
+               if ( typeof child.scaleY === 'function' ) {
+                  child.scaleY( this.y );
                }
             }
       } );
@@ -306,8 +343,8 @@ function buildDisplayModeFSM ( initialState )
             map.destroyCurrentRoute(); // TODO: find a way to update
             for ( var i = 0; i < scene.children.length; i++ ) {
                var child = scene.children[i];
-               if ( child.system ) {
-                  child.system.scaleY( this.y );
+               if ( typeof child.scaleY === 'function' ) {
+                  child.scaleY( this.y );
                }
             }
       } );
@@ -384,6 +421,10 @@ function hasLocalStorage() {
       return false;
    }
 }
+
+jQuery.fn.outerHtml = function() {
+     return jQuery('<div />').append(this.eq(0).clone()).html();
+};
 
 function humanSort( a, b ) {
    var x, cmp1, cmp2;

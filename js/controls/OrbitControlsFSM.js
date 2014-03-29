@@ -140,8 +140,8 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
                intersect = scope.getIntersect( event );
                if ( intersect && intersect.object.parent.system ) {
                   startObject = intersect.object.parent.system;
-                  scope.debug && console.log( 'Started dragging at "' + intersect.object.parent.system.name + '"' );
-                  scope.map.select( startObject );
+                  scope.debug && console.log( 'Click at "' + intersect.object.parent.system.name + '"' );
+                  scope.map.updateSelectorObject( startObject );
                   this.touchtodrag( event );
                }
                else if ( ! scope.noRotate )
@@ -177,6 +177,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
                var intersect = scope.getIntersect( event );
                if ( intersect && intersect.object.parent.system ) {
                   endObject = intersect.object.parent.system;
+                  if ( scope.map.selected() === endObject ) {
+                     endObject.displayInfo();
+                  }
                   scope.debug && console.log( 'Ended dragging at "' + intersect.object.parent.system.name + '"' );
                }
             }
@@ -298,6 +301,10 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
          return;
       }
 
+      if ( destination instanceof SCMAP.System ) {
+         _this.map.updateSelectorObject( destination );
+      }
+
       if ( targetTween ) {
          targetTween.stop();
       }
@@ -311,9 +318,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
          } );
 
       targetTween.onComplete( function() {
-         if ( destination instanceof SCMAP.System ) {
-            _this.map.select( destination );
-         }
          targetTween = undefined;
       });
 
@@ -461,13 +465,13 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    };
 
    this.getIntersect = function ( event ) {
-      if ( !scope.map.interactables ) { return; }
+      if ( !scope.map.interactables() ) { return; }
       var vector, projector, raycaster, intersects;
       vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
       projector = new THREE.Projector();
       projector.unprojectVector( vector, scope.object );
       raycaster = new THREE.Raycaster( scope.object.position, vector.sub( scope.object.position ).normalize() );
-      intersects = raycaster.intersectObjects( scope.map.interactables );
+      intersects = raycaster.intersectObjects( scope.map.interactables() );
       return intersects[0];
    };
 

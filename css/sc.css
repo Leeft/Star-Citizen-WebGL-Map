@@ -195,7 +195,15 @@ input[type=checkbox] + label:before { letter-spacing: 10px; } /* space between c
 input[type=checkbox]:checked + label:before { content: "\f046"; color: #8f8; } /* checked icon */
 input[type=checkbox]:checked + label:before { letter-spacing: 8px; } /* allow space for check mark */
 
-button.with-checkbox label { padding-left: 2px; }
+input[type=checkbox] + label { font-size: 1.3em; }
+
+span.quick-button {
+   display: block;
+   width: auto;
+   margin-left: 0.65em;
+   margin-top: 0.5em;
+   margin-bottom: 0.5em;
+}
 
 dl {
    border: none;
