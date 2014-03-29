@@ -166,7 +166,8 @@ SCMAP.System.prototype = {
       {
          var mySymbols = [];
          if ( this.faction.name === 'Vanduul' ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
-         if ( this.name === 'Sol' ) { mySymbols.push( SCMAP.Symbols.HOME ); }
+         if ( this.name === 'Sol' ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
+         if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
          if ( Math.random() > 0.8 ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
          this._drawSymbols( context, textX, textY - 50, mySymbols );
       }
@@ -185,11 +186,13 @@ SCMAP.System.prototype = {
 
          context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
 
-         //context.beginPath();
-         //context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
-         //context.lineWidth = 5;
-         //context.strokeStyle = 'yellow';
-         //context.stroke();
+         if ( false ) {
+            context.beginPath();
+            context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
+            context.lineWidth = 5;
+            context.strokeStyle = 'yellow';
+            context.stroke();
+         }
 
          if ( symbol.offset ) {
             x += symbol.offset.x;
@@ -201,7 +204,7 @@ SCMAP.System.prototype = {
          context.lineWidth = 5;
          context.strokeText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
 
-         context.fillStyle = symbol.color; 
+         context.fillStyle = symbol.color;
          context.fillText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
 
          x += SCMAP.Symbol.SIZE + SCMAP.Symbol.SPACING;
@@ -495,8 +498,13 @@ SCMAP.System.preprocessSystems = function () {
       for ( i = 0; i < system.jumpPoints.length; i++ )
       {
          jumpPoint = system.jumpPoints[ i ];
-         jumpPoint = new SCMAP.JumpPoint( system, SCMAP.System.getById( jumpPoint.destination ), jumpPoint.name );
-         system.jumpPoints[ i ] = jumpPoint;
+         system.jumpPoints[ i ] = new SCMAP.JumpPoint({
+            source: system,
+            destination: SCMAP.System.getById( jumpPoint.destination ),
+            name: jumpPoint.name,
+            typeId: jumpPoint.type_id,
+            entryAU: jumpPoint.coords_au
+         });
       }
 
    }

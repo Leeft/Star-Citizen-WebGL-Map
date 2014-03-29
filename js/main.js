@@ -71,12 +71,12 @@ function init()
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
 
-   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 800 );
+   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 1600 );
 
    camera.position.x = cameraDefaults.x;
    camera.position.y = cameraDefaults.y;
    camera.position.z = cameraDefaults.z;
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 4 ), width, height );
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
 
    controls = new THREE.OrbitControlsFSM( camera, $('#webgl-container')[0] );
 	controls.target = cameraDefaults.target.clone();
@@ -90,7 +90,7 @@ function init()
    controls.noPan = false;
    controls.mapMode = true;
    controls.minDistance = 20;
-   controls.maxDistance = 500;
+   controls.maxDistance = 800;
    controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
 
@@ -106,9 +106,10 @@ function init()
 
    var arr = []; for ( var system in SCMAP.data.systems ) { arr.push( system ); }
    var arr2 = arr.sort( humanSort );
+   var $li;
    for ( i = 0; i < arr2.length; i++ ) {
       system = SCMAP.data.systems[ arr[i] ];
-      var $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
+      $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
       $li.find('a').css( 'color', system.faction.color.getStyle() );
       $('#system-list ul').append( $li );
    }
@@ -119,6 +120,14 @@ function init()
       system.displayInfo();
       controls.moveTo( system );
    } );
+
+   for ( var icon in SCMAP.Symbols ) {
+      icon = SCMAP.Symbols[ icon ];
+      console.log( icon );
+      $li = $('<li><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</li>' );
+      $li.css( 'color', icon.color );
+      $('#map_ui ul.legend').append( $li );
+   }
 
    editor = new SCMAP.Editor( map, camera );
    editor.panSpeed = 0.6;
@@ -181,7 +190,7 @@ function init()
 //var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
 //smoke.sortParticles = true;
 //smoke.position.x = 10;
-// 
+//
 //scene.add(smoke);
 
    // Some simple UI stuff
@@ -298,7 +307,7 @@ function onWindowResize() {
    var width = window.innerWidth || 2;
    var height = window.innerHeight || 2;
    camera.aspect = width / height;
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 4 ), width, height );
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
    camera.updateProjectionMatrix();
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
    renderer.setSize( width, height );

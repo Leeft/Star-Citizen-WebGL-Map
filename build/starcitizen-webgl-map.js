@@ -39,18 +39,62 @@ SCMAP.Symbol.SPACING = 9;
 SCMAP.Symbols.DANGER = {
    code: "\uf071",
    scale: 0.9,
-   color: 'rgba(200,0,0,0.95)'
+   faClass: 'fa-warning',
+   description: 'Danger, hostile environment!',
+   color: 'rgba(255,50,50,0.95)'
 };
-SCMAP.Symbols.HOME = {
+SCMAP.Symbols.HANGAR = {
    code: "\uf015",
    scale: 1.15,
+   faClass: 'fa-home',
+   description: 'Hangar location',
    color: 'rgba(255,255,255,0.95)',
    offset: new THREE.Vector2( 0, 2 )
 };
-SCMAP.Symbols.TRADE = {
-   code: "\uf0d1",
+SCMAP.Symbols.INFO = {
+   code: "\uf05a",
    scale: 1.0,
-   color: 'rgba(255,255,0,0.95)'
+   faClass: 'fa-info-circle',
+   description: 'Information available',
+   color: 'rgba(255, 162, 255, 0.95)'//,
+   //offset: new THREE.Vector2( 0, 2 )
+};
+SCMAP.Symbols.TRADE = {
+   code: "\uf0ec",
+   scale: 0.90,
+   faClass: 'fa-exchange',
+   description: 'Major trade hub',
+   color: 'rgba(255,255,0,0.95)',
+   offset: new THREE.Vector2( -2, -2 )
+};
+//SCMAP.Symbols.TRADE = {
+//   code: "\uf0d1",
+//   scale: 0.95,
+//   faClass: 'fa-truck',
+//   description: 'Major trade hub',
+//   color: 'rgba(255,255,0,0.95)',
+//   offset: new THREE.Vector2( -2, -2 )
+//};
+SCMAP.Symbols.BANNED = {
+   code: "\uf05e",
+   scale: 1.0,
+   faClass: 'fa-ban',
+   description: 'System off-limits',
+   color: 'rgba(255, 117, 25, 0.95)'
+};
+SCMAP.Symbols.COMMENTS = {
+   code: "\uf075",
+   scale: 0.9,
+   faClass: 'fa-comment',
+   description: 'Your comments',
+   color: 'rgba(106, 187, 207, 0.95)'
+};
+SCMAP.Symbols.BOOKMARKED = {
+   code: "\uf02e",
+   scale: 0.9,
+   faClass: 'fa-bookmark',
+   description: 'Bookmarked',
+   color: 'rgba(102, 153, 0, 0.95)'
 };
 
 // constants here
@@ -264,23 +308,27 @@ function _build_selected_system_object () {
 SCMAP.SelectedSystemGeometry = SCMAP.SelectedSystemGeometry || _build_selected_system_object();
 
 /**
-* @author LiannaEeftinck / https://github.com/Leeft
+* @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-SCMAP.JumpPoint = function ( source, destination, name ) {
-   this.name = typeof name === 'string' && name.length > 1 ? name : undefined;
-   this.source = source instanceof SCMAP.System ? source : undefined;
-   this.destination = destination instanceof SCMAP.System ? destination : undefined;
+SCMAP.JumpPoint = function ( data ) {
+   this.name = typeof data.name === 'string' && data.name.length > 1 ? data.name : undefined;
+   this.source = data.source instanceof SCMAP.System ? data.source : undefined;
+   this.destination = data.destination instanceof SCMAP.System ? data.destination : undefined;
    this.is_valid = false;
    this.drawn = false;
-   this.type_id = undefined;
-   this.entryAU = new THREE.Vector3( 0, 0, 0 );
+   this.typeId = ( typeof data.typeId === 'number' ) ? data.typeId : 4;
+   this.entryAU = new THREE.Vector3(
+      (typeof data.entryAU[ 0 ] === 'number') ? data.entryAU[ 0 ] : 0,
+      (typeof data.entryAU[ 1 ] === 'number') ? data.entryAU[ 1 ] : 0,
+      (typeof data.entryAU[ 2 ] === 'number') ? data.entryAU[ 2 ] : 0
+   );
 
    if ( this.source === undefined || this.destination === undefined || this.source === this.destination ) {
       console.error( "Invalid route created" );
    } else {
       this.is_valid = true;
-      if ( this.name === undefined ) {
+      if ( this.name === undefined || this.name === '' ) {
          this.name = "[" + this.source.name + " to " + this.destination.name + "]";
       }
    }
@@ -311,7 +359,7 @@ SCMAP.JumpPoint.prototype = {
       }
 
       geometry = new THREE.Geometry();
-      geometry.dynamic = true;
+      //geometry.dynamic = true;
       geometry.colors.push( this.source.faction.lineColor );
       geometry.vertices.push( this.source.sceneObject.position );
       geometry.colors.push( this.destination.faction.lineColor );
@@ -327,7 +375,18 @@ SCMAP.JumpPoint.prototype = {
          }
       }
 
-      return new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
+      geometry.computeLineDistances();
+      return new THREE.Line( geometry, this.getMaterial(), THREE.LinePieces );
+   },
+
+   getMaterial: function() {
+      if ( this.typeId === 2 ) {
+         return SCMAP.JumpPoint.Material.Undiscovered;
+      } else if ( this.typeId === 4 ) {
+         return SCMAP.JumpPoint.Material.Possible;
+      } else {
+         return SCMAP.JumpPoint.Material.Regular;
+      }
    },
 
    setDrawn: function() {
@@ -335,9 +394,24 @@ SCMAP.JumpPoint.prototype = {
    }
 };
 
-SCMAP.JumpPoint.lineMaterial = new THREE.LineBasicMaterial({
-   color: 0xCCCCCC,
-   linewidth: 1.5,
+SCMAP.JumpPoint.Material = {};
+SCMAP.JumpPoint.Material.Regular = new THREE.LineBasicMaterial({
+   color: 0xFFFFFF,
+   linewidth: 2,
+   vertexColors: true
+});
+SCMAP.JumpPoint.Material.Undiscovered = new THREE.LineDashedMaterial({
+   color: 0xFFFFFF,
+   dashSize: 0.75,
+   gapSize: 0.75,
+   linewidth: 2,
+   vertexColors: true
+});
+SCMAP.JumpPoint.Material.Possible = new THREE.LineDashedMaterial({
+   color: 0xFFFFFF,
+   dashSize: 2,
+   gapSize: 2,
+   linewidth: 2,
    vertexColors: true
 });
 
@@ -763,7 +837,8 @@ SCMAP.System.prototype = {
       {
          var mySymbols = [];
          if ( this.faction.name === 'Vanduul' ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
-         if ( this.name === 'Sol' ) { mySymbols.push( SCMAP.Symbols.HOME ); }
+         if ( this.name === 'Sol' ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
+         if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
          if ( Math.random() > 0.8 ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
          this._drawSymbols( context, textX, textY - 50, mySymbols );
       }
@@ -782,11 +857,13 @@ SCMAP.System.prototype = {
 
          context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
 
-         //context.beginPath();
-         //context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
-         //context.lineWidth = 5;
-         //context.strokeStyle = 'yellow';
-         //context.stroke();
+         if ( false ) {
+            context.beginPath();
+            context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
+            context.lineWidth = 5;
+            context.strokeStyle = 'yellow';
+            context.stroke();
+         }
 
          if ( symbol.offset ) {
             x += symbol.offset.x;
@@ -798,7 +875,7 @@ SCMAP.System.prototype = {
          context.lineWidth = 5;
          context.strokeText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
 
-         context.fillStyle = symbol.color; 
+         context.fillStyle = symbol.color;
          context.fillText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
 
          x += SCMAP.Symbol.SIZE + SCMAP.Symbol.SPACING;
@@ -1092,8 +1169,13 @@ SCMAP.System.preprocessSystems = function () {
       for ( i = 0; i < system.jumpPoints.length; i++ )
       {
          jumpPoint = system.jumpPoints[ i ];
-         jumpPoint = new SCMAP.JumpPoint( system, SCMAP.System.getById( jumpPoint.destination ), jumpPoint.name );
-         system.jumpPoints[ i ] = jumpPoint;
+         system.jumpPoints[ i ] = new SCMAP.JumpPoint({
+            source: system,
+            destination: SCMAP.System.getById( jumpPoint.destination ),
+            name: jumpPoint.name,
+            typeId: jumpPoint.type_id,
+            entryAU: jumpPoint.coords_au
+         });
       }
 
    }
@@ -2108,12 +2190,12 @@ function init()
    width = window.innerWidth || 2;
    height = window.innerHeight || 2;
 
-   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 800 );
+   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 1600 );
 
    camera.position.x = cameraDefaults.x;
    camera.position.y = cameraDefaults.y;
    camera.position.z = cameraDefaults.z;
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 4 ), width, height );
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
 
    controls = new THREE.OrbitControlsFSM( camera, $('#webgl-container')[0] );
 	controls.target = cameraDefaults.target.clone();
@@ -2127,7 +2209,7 @@ function init()
    controls.noPan = false;
    controls.mapMode = true;
    controls.minDistance = 20;
-   controls.maxDistance = 500;
+   controls.maxDistance = 800;
    controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
 
@@ -2143,9 +2225,10 @@ function init()
 
    var arr = []; for ( var system in SCMAP.data.systems ) { arr.push( system ); }
    var arr2 = arr.sort( humanSort );
+   var $li;
    for ( i = 0; i < arr2.length; i++ ) {
       system = SCMAP.data.systems[ arr[i] ];
-      var $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
+      $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
       $li.find('a').css( 'color', system.faction.color.getStyle() );
       $('#system-list ul').append( $li );
    }
@@ -2156,6 +2239,14 @@ function init()
       system.displayInfo();
       controls.moveTo( system );
    } );
+
+   for ( var icon in SCMAP.Symbols ) {
+      icon = SCMAP.Symbols[ icon ];
+      console.log( icon );
+      $li = $('<li><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</li>' );
+      $li.css( 'color', icon.color );
+      $('#map_ui ul.legend').append( $li );
+   }
 
    editor = new SCMAP.Editor( map, camera );
    editor.panSpeed = 0.6;
@@ -2218,7 +2309,7 @@ function init()
 //var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
 //smoke.sortParticles = true;
 //smoke.position.x = 10;
-// 
+//
 //scene.add(smoke);
 
    // Some simple UI stuff
@@ -2335,7 +2426,7 @@ function onWindowResize() {
    var width = window.innerWidth || 2;
    var height = window.innerHeight || 2;
    camera.aspect = width / height;
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), - ( height / 4 ), width, height );
+   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
    camera.updateProjectionMatrix();
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
    renderer.setSize( width, height );

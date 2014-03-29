@@ -619,7 +619,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 12,
             "name" : "Branaugh to Vega",
-            "type_id" : 1
+            "type_id" : 2
          },
          {
             "coords_au" : [
@@ -743,7 +743,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 3,
             "name" : "Caliban to Vanguard",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -763,7 +763,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 104,
             "name" : "Caliban to Orion",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,
@@ -1511,7 +1511,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 69,
             "name" : "Fora to Unknown #29",
-            "type_id" : 1
+            "type_id" : 4
          },
          {
             "coords_au" : [
@@ -1578,7 +1578,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 99,
             "name" : "Garron to Tiber",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,
@@ -2260,7 +2260,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 35,
             "name" : "Kellog to Vendetta",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -2847,7 +2847,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 39,
             "name" : "Nul to Caliban",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,
@@ -3047,7 +3047,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 3,
             "name" : "Orion to Vanguard",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -3057,7 +3057,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 39,
             "name" : "Orion to Caliban",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -3067,7 +3067,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 99,
             "name" : "Orion to Tiber",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,
@@ -3630,7 +3630,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 12,
             "name" : "Stanton to Vega",
-            "type_id" : 1
+            "type_id" : 2
          },
          {
             "coords_au" : [
@@ -3910,7 +3910,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 27,
             "name" : "Tiber to Virgil",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -3920,7 +3920,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 35,
             "name" : "Tiber to Vendetta",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -3930,7 +3930,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 104,
             "name" : "Tiber to Orion",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,
@@ -4449,7 +4449,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 50,
             "name" : "Unknown #18 to Unknown #22",
-            "type_id" : 1
+            "type_id" : 2
          }
       ],
       "last_updated" : null,
@@ -4621,7 +4621,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 68,
             "name" : "Unknown #22 to Unknown #18",
-            "type_id" : 1
+            "type_id" : 2
          }
       ],
       "last_updated" : null,
@@ -4814,7 +4814,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 80,
             "name" : "Unknown #29 to Fora",
-            "type_id" : 1
+            "type_id" : 4
          }
       ],
       "last_updated" : null,
@@ -5371,7 +5371,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 39,
             "name" : "Vanguard to Caliban",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -5381,7 +5381,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 104,
             "name" : "Vanguard to Orion",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,
@@ -5438,7 +5438,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 27,
             "name" : "Vega to Virgil",
-            "type_id" : 1
+            "type_id" : 3
          },
          {
             "coords_au" : [
@@ -5448,7 +5448,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 36,
             "name" : "Vega to Branaugh",
-            "type_id" : 1
+            "type_id" : 2
          },
          {
             "coords_au" : [
@@ -5458,7 +5458,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 84,
             "name" : "Vega to Stanton",
-            "type_id" : 1
+            "type_id" : 2
          },
          {
             "coords_au" : [
@@ -5515,7 +5515,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 99,
             "name" : "Vendetta to Tiber",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,
@@ -5562,7 +5562,7 @@ SCMAP.data.systems = {
             ],
             "destination" : 99,
             "name" : "Virgil to Tiber",
-            "type_id" : 1
+            "type_id" : 3
          }
       ],
       "last_updated" : null,

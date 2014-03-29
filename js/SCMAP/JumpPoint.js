@@ -1,21 +1,25 @@
 /**
-* @author LiannaEeftinck / https://github.com/Leeft
+* @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-SCMAP.JumpPoint = function ( source, destination, name ) {
-   this.name = typeof name === 'string' && name.length > 1 ? name : undefined;
-   this.source = source instanceof SCMAP.System ? source : undefined;
-   this.destination = destination instanceof SCMAP.System ? destination : undefined;
+SCMAP.JumpPoint = function ( data ) {
+   this.name = typeof data.name === 'string' && data.name.length > 1 ? data.name : undefined;
+   this.source = data.source instanceof SCMAP.System ? data.source : undefined;
+   this.destination = data.destination instanceof SCMAP.System ? data.destination : undefined;
    this.is_valid = false;
    this.drawn = false;
-   this.type_id = undefined;
-   this.entryAU = new THREE.Vector3( 0, 0, 0 );
+   this.typeId = ( typeof data.typeId === 'number' ) ? data.typeId : 4;
+   this.entryAU = new THREE.Vector3(
+      (typeof data.entryAU[ 0 ] === 'number') ? data.entryAU[ 0 ] : 0,
+      (typeof data.entryAU[ 1 ] === 'number') ? data.entryAU[ 1 ] : 0,
+      (typeof data.entryAU[ 2 ] === 'number') ? data.entryAU[ 2 ] : 0
+   );
 
    if ( this.source === undefined || this.destination === undefined || this.source === this.destination ) {
       console.error( "Invalid route created" );
    } else {
       this.is_valid = true;
-      if ( this.name === undefined ) {
+      if ( this.name === undefined || this.name === '' ) {
          this.name = "[" + this.source.name + " to " + this.destination.name + "]";
       }
    }
@@ -46,7 +50,7 @@ SCMAP.JumpPoint.prototype = {
       }
 
       geometry = new THREE.Geometry();
-      geometry.dynamic = true;
+      //geometry.dynamic = true;
       geometry.colors.push( this.source.faction.lineColor );
       geometry.vertices.push( this.source.sceneObject.position );
       geometry.colors.push( this.destination.faction.lineColor );
@@ -62,7 +66,18 @@ SCMAP.JumpPoint.prototype = {
          }
       }
 
-      return new THREE.Line( geometry, SCMAP.JumpPoint.lineMaterial );
+      geometry.computeLineDistances();
+      return new THREE.Line( geometry, this.getMaterial(), THREE.LinePieces );
+   },
+
+   getMaterial: function() {
+      if ( this.typeId === 2 ) {
+         return SCMAP.JumpPoint.Material.Undiscovered;
+      } else if ( this.typeId === 4 ) {
+         return SCMAP.JumpPoint.Material.Possible;
+      } else {
+         return SCMAP.JumpPoint.Material.Regular;
+      }
    },
 
    setDrawn: function() {
@@ -70,8 +85,23 @@ SCMAP.JumpPoint.prototype = {
    }
 };
 
-SCMAP.JumpPoint.lineMaterial = new THREE.LineBasicMaterial({
-   color: 0xCCCCCC,
-   linewidth: 1.5,
+SCMAP.JumpPoint.Material = {};
+SCMAP.JumpPoint.Material.Regular = new THREE.LineBasicMaterial({
+   color: 0xFFFFFF,
+   linewidth: 2,
+   vertexColors: true
+});
+SCMAP.JumpPoint.Material.Undiscovered = new THREE.LineDashedMaterial({
+   color: 0xFFFFFF,
+   dashSize: 0.75,
+   gapSize: 0.75,
+   linewidth: 2,
+   vertexColors: true
+});
+SCMAP.JumpPoint.Material.Possible = new THREE.LineDashedMaterial({
+   color: 0xFFFFFF,
+   dashSize: 2,
+   gapSize: 2,
+   linewidth: 2,
    vertexColors: true
 });
