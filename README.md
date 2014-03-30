@@ -12,8 +12,9 @@ awesome [three.js](http://threejs.org/) library to do much of the heavy lifting.
 You *need* a webbrowser with WebGL support to use this map (any recent Firefox
 or Chrome, or Internet Explorer 11+ will do), and your graphics card must
 be supported. It has been verified to work on the first Nexus 7 tablet (with
-Firefox for Android, Chrome didn't work; other browsers not tested) but should
-work in any functional WebGL environment. Performance may vary however.
+Firefox for Android, Chrome didn't work at the time; other browsers not
+tested) but should work in any functional WebGL environment. Performance may
+vary however.
 
 The latest "official releases" are currently available at
 http://leeft.eu/starcitizen/ until the website with the database is ready for
@@ -23,19 +24,16 @@ the public :)
 
 Several primary features are still missing, such as:
 
-* More graphics improvements to make it more similar to the map in that video,
-as well as better 2D elements for the 2D mode
+* More graphics improvements, not sure what yet though
+* Adding features like the perry line and nebulae to the scene
 * Better interactivity, e.g. when selecting a system highlighting the systems
 which they can trade goods with
-* Tracking your settings
-* Bookmarking locations, remembering your position
 
 At some point I'll at least implement:
 
 * More route-planner features: showing alternative routes, relative distances
 (which may get more accurate as we get more info) and the known dangers on these
 routes, trading information, etc.
-* More settings for the settings panel
 * Other points of interest besides star systems
 * Interactive map editing
 * ...
@@ -62,5 +60,5 @@ do the interactive editing.
 
 If you want to discuss anything related to this map, please go to [my forum thread](https://forums.robertsspaceindustries.com/discussion/54931/browser-based-3d-system-map-early-wip).
 
-Second release, March 2014 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari)
+Third release, March 2014 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari)
 
