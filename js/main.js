@@ -25,9 +25,9 @@ $(function() {
             $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
             window.editor.enabled = false;
             window.controls.requireAlt = false;
-            if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
-               map.selected().displayInfo();
-            }
+            //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
+            //   map.selected().displayInfo();
+            //}
          }
          $('#map_ui').data( 'jsp' ).reinitialise();
       }
@@ -50,6 +50,8 @@ function init()
 
    if ( hasLocalStorage() ) {
       localStorage = window.localStorage;
+   } else {
+      localStorage = {};
    }
 
    dpr = 1;
@@ -57,12 +59,15 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
+   SCMAP.settings.glow = ( localStorage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( localStorage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( localStorage['settings.LabelIcons'] === '0' ) ? false : true;
    $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
    $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
+   $('#avoid-hostile').prop( 'checked', ( localStorage['route.avoidHostile'] === '1' ) );
+   $('#avoid-off-limits').prop( 'checked', ( localStorage['route.avoidOffLimits'] === '1' ) );
+   $('#avoid-unknown-jumppoints').prop( 'checked', ( localStorage['route.avoidUnknownJumppoints'] === '1' ) );
 
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
@@ -109,21 +114,11 @@ function init()
    var $li;
    for ( i = 0; i < arr2.length; i++ ) {
       system = SCMAP.data.systems[ arr[i] ];
-      $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
-      $li.find('a').css( 'color', system.faction.color.getStyle() );
-      $('#system-list ul').append( $li );
+      $('#system-list ul').append( $('<li>'+system.createInfoLink().outerHtml()+'</li>') );
    }
-
-   $('#system-list ul a').bind( 'click', function() {
-      var $this = $(this);
-      var system = SCMAP.System.getById( $this.data('system') );
-      system.displayInfo();
-      controls.moveTo( system );
-   } );
 
    for ( var icon in SCMAP.Symbols ) {
       icon = SCMAP.Symbols[ icon ];
-      console.log( icon );
       $li = $('<li><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</li>' );
       $li.css( 'color', icon.color );
       $('#map_ui ul.legend').append( $li );
@@ -158,8 +153,8 @@ function init()
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
-   effectFXAA.enabled  = ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false;
+   effectFXAA.enabled  = ( localStorage['effect.FXAA'] === '1' ) ? true : false;
+   effectBloom.enabled = ( localStorage['effect.Bloom'] === '1' ) ? true : false;
    $('#toggle-fxaa').prop( 'checked', effectFXAA.enabled );
    $('#toggle-bloom').prop( 'checked', effectBloom.enabled );
 
@@ -170,8 +165,8 @@ function init()
    composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
-   displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage.mode : '2d' );
-   $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
+   displayState = buildDisplayModeFSM( ( localStorage.mode ) ? localStorage.mode : '2d' );
+   $('#3d-mode').prop( 'checked', localStorage.mode === '3d' );
 
 //var smokeParticles = new THREE.Geometry();
 //for (i = 0; i < 25; i++) {
@@ -195,38 +190,51 @@ function init()
 
    // Some simple UI stuff
 
-   $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
-   controls.noRotate = localStorage && localStorage['control.rotationLocked'] === '1';
+   $('#lock-rotation').prop( 'checked', localStorage['control.rotationLocked'] === '1' );
+   controls.noRotate = localStorage['control.rotationLocked'] === '1';
 
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
+   $('#avoid-hostile').on( 'change', function() {
+      localStorage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
+      map.rebuildCurrentRoute();
+   });
+   $('#avoid-off-limits').on( 'change', function() {
+      localStorage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
+      map.rebuildCurrentRoute();
+   });
+   $('#avoid-unknown-jumppoints').on( 'change', function() {
+      localStorage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
+      map.rebuildCurrentRoute();
+   });
+
    $('#lock-rotation').on( 'change', function() {
       controls.noRotate = this.checked;
-      if ( localStorage ) { localStorage['control.rotationLocked'] = ( this.checked ) ? 1 : 0; }
+      localStorage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-fxaa').on( 'change', function() {
       effectFXAA.enabled = this.checked;
-      if ( localStorage ) { localStorage['effect.FXAA'] = ( this.checked ) ? 1 : 0; }
+      localStorage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-bloom').on( 'change', function() {
       effectBloom.enabled = this.checked;
-      if ( localStorage ) { localStorage['effect.Bloom'] = ( this.checked ) ? 1 : 0; }
+      localStorage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
    });
 
    $('#toggle-glow').on( 'change', function() {
       SCMAP.settings.glow = this.checked;
       map.updateSystems();
-      if ( localStorage ) { localStorage['settings.Glow'] = ( this.checked ) ? 1 : 0; }
+      localStorage['settings.Glow'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
       map.updateSystems();
-      if ( localStorage ) { localStorage['settings.Labels'] = ( this.checked ) ? 1 : 0; }
+      localStorage['settings.Labels'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-label-icons').on( 'change', function() {
       SCMAP.settings.labelIcons = this.checked;
       map.updateSystems();
-      if ( localStorage ) { localStorage['settings.LabelIcons'] = ( this.checked ) ? 1 : 0; }
+      localStorage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
    });
 
    $('#resetCamera').on( 'click', function() {
@@ -264,7 +272,7 @@ function init()
 
    $('#map_ui').on( 'click', "a[data-goto='system']", function() {
       var $this = $(this);
-      var system = SCMAP.data.systemsById[ $this.data('system') ];
+      var system = SCMAP.System.getById( $this.data('system') );
       system.displayInfo();
       controls.moveTo( system );
    });
@@ -369,12 +377,12 @@ function buildDisplayModeFSM ( initialState )
       callbacks: {
          onenter2d: function() {
             $('#3d-mode').prop( 'checked', false );
-            if ( localStorage ) { localStorage.mode = '2d'; }
+            localStorage.mode = '2d';
          },
 
          onenter3d: function() {
             $('#3d-mode').prop( 'checked', true );
-            if ( localStorage ) { localStorage.mode = '3d'; }
+            localStorage.mode = '3d';
          },
 
          onleave2d: function() {

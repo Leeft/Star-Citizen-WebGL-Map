@@ -50,6 +50,19 @@ SCMAP.Faction.prototype = {
       return this._darkMaterial;
    },
 
+   isHostileTo: function ( comparedTo ) {
+      if ( !( comparedTo instanceof SCMAP.Faction ) ) {
+         throw "Can only compare to other factions";
+      }
+      // TODO: more data in database, more logic here
+      // rather than lots of hardcoding
+      if ( comparedTo.name === 'Vanduul' ) {
+         return ( this.name !== 'Vanduul' );
+      } else {
+         return ( this.name === 'Vanduul' );
+      }
+   },
+
    getValue: function ( key ) {
       if ( key === undefined ) {
          return;

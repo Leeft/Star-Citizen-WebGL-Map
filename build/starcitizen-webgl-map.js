@@ -40,8 +40,15 @@ SCMAP.Symbols.DANGER = {
    code: "\uf071",
    scale: 0.9,
    faClass: 'fa-warning',
-   description: 'Danger, hostile environment!',
+   description: 'Danger, hostile faction',
    color: 'rgba(255,50,50,0.95)'
+};
+SCMAP.Symbols.WARNING = {
+   code: "\uf071",
+   scale: 0.9,
+   faClass: 'fa-warning',
+   description: 'Warning, hostile environment',
+   color: 'rgba(255,117,25,0.95)'
 };
 SCMAP.Symbols.HANGAR = {
    code: "\uf015",
@@ -49,7 +56,7 @@ SCMAP.Symbols.HANGAR = {
    faClass: 'fa-home',
    description: 'Hangar location',
    color: 'rgba(255,255,255,0.95)',
-   offset: new THREE.Vector2( 0, 2 )
+   offset: new THREE.Vector2( -0.25, 2 )
 };
 SCMAP.Symbols.INFO = {
    code: "\uf05a",
@@ -65,7 +72,7 @@ SCMAP.Symbols.TRADE = {
    faClass: 'fa-exchange',
    description: 'Major trade hub',
    color: 'rgba(255,255,0,0.95)',
-   offset: new THREE.Vector2( -2, -2 )
+   offset: new THREE.Vector2( 0, -3 )
 };
 //SCMAP.Symbols.TRADE = {
 //   code: "\uf0d1",
@@ -84,22 +91,36 @@ SCMAP.Symbols.BANNED = {
 };
 SCMAP.Symbols.COMMENTS = {
    code: "\uf075",
-   scale: 0.9,
+   scale: 1.0,
    faClass: 'fa-comment',
    description: 'Your comments',
-   color: 'rgba(106, 187, 207, 0.95)'
+   color: 'rgba(106, 187, 207, 0.95)',
+   offset: new THREE.Vector2( 0, -3 )
 };
-SCMAP.Symbols.BOOKMARKED = {
+SCMAP.Symbols.BOOKMARK = {
    code: "\uf02e",
-   scale: 0.9,
+   scale: 1.05,
    faClass: 'fa-bookmark',
    description: 'Bookmarked',
-   color: 'rgba(102, 153, 0, 0.95)'
+   color: 'rgba(102, 193, 0, 0.95)',
+   offset: new THREE.Vector2( -2, 1 )
+};
+
+SCMAP.travelTimeAU = function ( distanceAU ) {
+   return( SCMAP.approximateTraveltimePerAU * distanceAU );
+};
+
+SCMAP.usersFaction = function ( ) {
+   // TODO: allow users to set their faction, if ever needed
+   return SCMAP.data.factionsByName.UEE;
 };
 
 // constants here
-// SCMAP.Foo = 'bar'
 
+SCMAP.LYtoAU = 63241.077;
+SCMAP.approximateTraveltimePerAU = ( ( 8 * 60 ) + 19 ) * 5; // 8:19 at 1c, but autopilot speed is 0.2c
+
+// EOF
 
 /**
 * @author LiannaEeftinck / https://github.com/Leeft
@@ -315,7 +336,6 @@ SCMAP.JumpPoint = function ( data ) {
    this.name = typeof data.name === 'string' && data.name.length > 1 ? data.name : undefined;
    this.source = data.source instanceof SCMAP.System ? data.source : undefined;
    this.destination = data.destination instanceof SCMAP.System ? data.destination : undefined;
-   this.is_valid = false;
    this.drawn = false;
    this.typeId = ( typeof data.typeId === 'number' ) ? data.typeId : 4;
    this.entryAU = new THREE.Vector3(
@@ -324,10 +344,9 @@ SCMAP.JumpPoint = function ( data ) {
       (typeof data.entryAU[ 2 ] === 'number') ? data.entryAU[ 2 ] : 0
    );
 
-   if ( this.source === undefined || this.destination === undefined || this.source === this.destination ) {
+   if ( !this.isValid() ) {
       console.error( "Invalid route created" );
    } else {
-      this.is_valid = true;
       if ( this.name === undefined || this.name === '' ) {
          this.name = "[" + this.source.name + " to " + this.destination.name + "]";
       }
@@ -338,8 +357,23 @@ SCMAP.JumpPoint.prototype = {
    constructor: SCMAP.JumpPoint,
 
    length: function() {
-      if ( !this.is_valid ) { return; }
+      if ( !this.isValid() ) { return; }
       return this.source.position.distanceTo( this.destination.position );
+   },
+
+   jumpTime: function() {
+      if ( !this.isValid() ) { return; }
+      // TODO FIXME: This is a rough guesstimate on how long it will take
+      // to travel a JP, and not based in any facts ... no word from devs
+      // on this so far.
+      return this.length() * 4; // 2 mins for 30LY, ~Sol to Vega (27LY)
+   },
+
+   fuelConsumption: function() {
+      if ( !this.isValid() ) { return; }
+      // TODO: Devs have stated that JP's don't consume fuel to traverse.
+      // If that changes, this needs to be quantified and fixed.
+      return 0;
    },
 
    buildSceneObject: function() {
@@ -389,6 +423,16 @@ SCMAP.JumpPoint.prototype = {
       }
    },
 
+   isValid: function() {
+      return( this.source instanceof SCMAP.System &&
+         this.destination instanceof SCMAP.System &&
+         this.source !== this.destination );
+   },
+
+   isUnconfirmed: function() {
+      return ( this.typeId === 2 || this.typeId === 4 );
+   },
+
    setDrawn: function() {
       this.drawn = true;
    }
@@ -414,6 +458,8 @@ SCMAP.JumpPoint.Material.Possible = new THREE.LineDashedMaterial({
    linewidth: 2,
    vertexColors: true
 });
+
+// EOF
 
 /**
 * @author Lianna Eeftinck / https://github.com/Leeft
@@ -465,6 +511,19 @@ SCMAP.Faction.prototype = {
             color: this.planeColor, vertexColors: true });
       }
       return this._darkMaterial;
+   },
+
+   isHostileTo: function ( comparedTo ) {
+      if ( !( comparedTo instanceof SCMAP.Faction ) ) {
+         throw "Can only compare to other factions";
+      }
+      // TODO: more data in database, more logic here
+      // rather than lots of hardcoding
+      if ( comparedTo.name === 'Vanduul' ) {
+         return ( this.name !== 'Vanduul' );
+      } else {
+         return ( this.name === 'Vanduul' );
+      }
    },
 
    getValue: function ( key ) {
@@ -730,7 +789,7 @@ SCMAP.System.prototype = {
       this.sceneObject.add( label );
 
       position = this.position.clone();
-      if ( localStorage && localStorage.mode === '2d' ) {
+      if ( localStorage.mode === '2d' ) {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
@@ -747,6 +806,14 @@ SCMAP.System.prototype = {
             object.visible = SCMAP.settings.labels;
          } else if ( object.isGlow ) {
             object.visible = SCMAP.settings.glow;
+         }
+      }
+   },
+
+   setLabelScale: function ( vector ) {
+      for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
+         if ( this.sceneObject.children[i].isLabel ) {
+            this.sceneObject.children[i].scale.copy( vector );
          }
       }
    },
@@ -833,14 +900,8 @@ SCMAP.System.prototype = {
       context.fillStyle = this.faction.color.getStyle();
       context.fillText( text, textX, textY );
 
-      if ( drawSymbols )
-      {
-         var mySymbols = [];
-         if ( this.faction.name === 'Vanduul' ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
-         if ( this.name === 'Sol' ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
-         if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
-         if ( Math.random() > 0.8 ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
-         this._drawSymbols( context, textX, textY - 50, mySymbols );
+      if ( drawSymbols ) {
+         this._drawSymbols( context, textX, textY - 50, this.getIcons() );
       }
 
       return canvas;
@@ -849,11 +910,15 @@ SCMAP.System.prototype = {
    // Draws the icon(s) on a label
    _drawSymbols: function ( context, x, y, symbols ) {
       var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
+      var offX, offY;
       x -= totalWidth / 2;
 
       for ( i = 0; i < symbols.length; i++ )
       {
          symbol = symbols[ i ];
+
+         offX = 0;
+         offY = 0;
 
          context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
 
@@ -866,33 +931,76 @@ SCMAP.System.prototype = {
          }
 
          if ( symbol.offset ) {
-            x += symbol.offset.x;
-            y += symbol.offset.y;
+            offX = symbol.offset.x;
+            offY = symbol.offset.y;
          }
 
          context.strokeStyle = 'rgba(0,0,0,0.95)';
          context.textAlign = 'center';
          context.lineWidth = 5;
-         context.strokeText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
+         context.strokeText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
 
          context.fillStyle = symbol.color;
-         context.fillText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
+         context.fillText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
 
          x += SCMAP.Symbol.SIZE + SCMAP.Symbol.SPACING;
       }
    },
 
-   createInfoLink: function () {
+   createInfoLink: function ( noIcons ) {
       var _this = this, $line = $( '<a></a>' );
       if ( typeof _this.faction !== 'undefined' && typeof _this.faction !== 'undefined' ) {
          $line.css( 'color', _this.faction.color.getStyle() );
       }
+      $line.addClass('system-link');
       $line.attr( 'data-goto', 'system' );
       $line.attr( 'data-system', _this.id );
       $line.attr( 'href', '#system='+encodeURI( _this.name ) );
       $line.attr( 'title', 'Show information on '+_this.name );
       $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + _this.name );
+
+      if ( !noIcons )
+      {
+         var icons = this.getIcons();
+         if ( icons.length )
+         {
+            var $span = $('<span class="icons"></span>');
+            var $icon, icon;
+            for ( var i = 0; i < icons.length; i++ ) {
+               icon = icons[i]; 
+               $icon = $( '<i title="'+icon.description+'" class="fa fa-fw '+icon.faClass+'"></i>' );
+               $icon.css( 'color', icon.color );
+               $span.append( $icon );
+            }
+            $line.append( $span );
+         }
+      }
+
       return $line;
+   },
+
+   getIcons: function () {
+      var mySymbols = [];
+      if ( false && this.name === 'Sol' ) {
+         mySymbols.push( SCMAP.Symbols.DANGER );
+         mySymbols.push( SCMAP.Symbols.WARNING );
+         mySymbols.push( SCMAP.Symbols.HANGAR );
+         mySymbols.push( SCMAP.Symbols.INFO );
+         mySymbols.push( SCMAP.Symbols.TRADE );
+         mySymbols.push( SCMAP.Symbols.BANNED );
+         mySymbols.push( SCMAP.Symbols.COMMENTS );
+         mySymbols.push( SCMAP.Symbols.BOOKMARK );
+         return mySymbols;
+      }
+      if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
+      if ( this.hasWarning() ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
+      if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
+      if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
+      if ( this.isMajorTradeHub() ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
+      if ( this.isOffLimits() ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
+      if ( this.hasComments() ) { mySymbols.push( SCMAP.Symbols.COMMENTS ); }
+      if ( this.isBookmarked() ) { mySymbols.push( SCMAP.Symbols.BOOKMARK ); }
+      return mySymbols;
    },
 
    displayInfo: function ( system ) {
@@ -997,6 +1105,23 @@ SCMAP.System.prototype = {
          $blurb.find('dd.faction').css( 'color', system.faction.color.getStyle() );
       }
 
+      $blurb.append( '<p class="user"></p>' );
+
+      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="hangar-location"><label class="fa-lg" for="hangar-location">Hangar Location</label></span>' );
+      $blurb.find('#hangar-location')
+         .prop( 'checked', system.hasHangar() )
+         .attr( 'data-system', system.id );
+
+      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="bookmark"><label class="fa-lg" for="bookmark">Bookmarked</label></span></p>' );
+      $blurb.find('#bookmark')
+         .prop( 'checked', system.isBookmarked() )
+         .attr( 'data-system', system.id );
+
+      $blurb.find('p.user').append('<label for="comments">Your comments:</label><br><textarea id="comments"></textarea>');
+      if ( localStorage['comments.'+system.id] ) {
+         $blurb.find('#comments').append( localStorage['comments.'+system.id] );
+      }
+
       if ( system.blob.length ) {
          var $md = $(markdown.toHTML( system.blob ));
          $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
@@ -1011,6 +1136,36 @@ SCMAP.System.prototype = {
 
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
+
+      $('#systemblurb #bookmark').on( 'change', function() {
+         if ( this.checked ) {
+            localStorage['bookmarks.'+system.id] = '1';
+         } else {
+            delete localStorage['bookmarks.'+system.id];
+         }
+         system.updateSceneObject( scene );
+      });
+      $('#systemblurb #hangar-location').on( 'change', function() {
+         if ( this.checked ) {
+            localStorage['hangarLocation.'+system.id] = '1';
+         } else {
+            delete localStorage['hangarLocation.'+system.id];
+         }
+         system.updateSceneObject( scene );
+      });
+      var getComments = function( event ) {
+         event.preventDefault();
+         var text = $(this).val();
+         if ( typeof text === 'string' && text.length > 0 ) {
+            localStorage['comments.'+system.id] = $(this).val();
+         } else {
+            delete localStorage['comments.'+system.id];
+         }
+         system.updateSceneObject( scene );
+      };
+      $('#systemblurb #comments').on( 'keyup', getComments );
+      $('#systemblurb #comments').on( 'blur', getComments );
+      $('#systemblurb #comments').on( 'change', getComments );
 
       $('#map_ui').tabs( 'option', 'active', 2 );
       $('#map_ui').data( 'jsp' ).reinitialise();
@@ -1037,6 +1192,42 @@ SCMAP.System.prototype = {
       for ( var j = 0; j < this._routeObjects.length; j++ ) {
          this._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
+   },
+
+   // Returns the jumppoint leading to the given destination
+   jumpPointTo: function ( destination ) {
+      for ( var i = 0; i < this.jumpPoints.length; i++ ) {
+         if ( this.jumpPoints[i].destination === destination ) {
+            return this.jumpPoints[i];
+         }
+      }
+   },
+
+   isBookmarked: function ( ) {
+      return localStorage[ 'bookmarks.' + this.id ] === '1';
+   },
+
+   hasHangar: function ( ) {
+      return localStorage[ 'hangarLocation.' + this.id ] === '1';
+   },
+
+   hasComments: function ( ) {
+      return localStorage[ 'comments.' + this.id ];
+   },
+
+   isOffLimits: function ( ) {
+      // TODO this needs to come from the DB
+      return ( this.id === 90 || this.id === 97 );
+   },
+
+   hasWarning: function ( ) {
+      // TODO this needs to come from the DB
+      return ( this.id === 81 || this.id === 94 );
+   },
+
+   isMajorTradeHub: function ( ) {
+      // TODO this needs to come from the DB
+      return ( this.id === 82 || this.id === 95 || this.id === 80 || this.id === 102 || this.id === 100 || this.id === 108 || this.id === 96 || this.id === 85 || this.id === 83 || this.id === 106 || this.id === 15 || this.id === 84 || this.id === 88 || this.id === 19 || this.id === 92 );
    },
 
    getValue: function ( key ) {
@@ -1233,10 +1424,11 @@ SCMAP.Dijkstra = function ( systems ) {
       return;
    }
 
-   // prebuild a node list
+   // First build a list of all nodes in the graph and
+   // map them by system.id so they can be found quickly
    this._nodes = [];
    this._mapping = {}; // system.id to _nodes map
-   var i = systems.length;
+   i = systems.length;
    while( i-- ) {
       this._nodes[ i ] = {
          system:   systems[i],
@@ -1245,27 +1437,50 @@ SCMAP.Dijkstra = function ( systems ) {
       };
       this._mapping[ systems[i].id ] = this._nodes[ i ];
    }
+
    this._result = {};
 };
 
 SCMAP.Dijkstra.prototype = {
    constructor: SCMAP.Dijkstra,
 
-   buildGraph: function( source ) {
+   buildGraph: function( parameters ) {
       var nodes, i, distance, system, currentNode, jumpPoint,
-         endTime, startTime = new Date();
+         otherNode, endTime, startTime = new Date();
 
-      if ( !( source instanceof SCMAP.System ) ) { return; }
+      if ( typeof parameters !== "object" ) { throw "No parameters object given"; }
+      if ( !parameters.source instanceof SCMAP.System ) { throw "No source given"; }
+      if ( parameters.destination !== undefined && !parameters.destination instanceof SCMAP.System ) { throw "Invalid destination given"; }
 
-      if ( this._result.source instanceof SCMAP.System && this._result.source === source ) {
-         console.log( 'Reusing generated graph starting at', source.name );
+      // This model allows for two priorities, time or fuel ... can't think
+      // of any others which make sense (distance is really irrelevant for
+      // gameplay purposes).
+      // There will be other parameters to work out the route as well, but
+      // this decides the main "cost" algorithm for the graph.
+      if ( typeof priority !== 'string' || priority !== 'fuel' ) {
+         priority = 'time';
+      }
+
+      if ( !( parameters.source instanceof SCMAP.System ) ) { return; }
+
+      // TODO: expiry, map may have changed
+      if ( this._result.source instanceof SCMAP.System && this._result.source === parameters.source && this._result.priority === priority ) {
+         console.log( 'Reusing generated graph starting at', parameters.source.name );
+         if ( parameters.destination instanceof SCMAP.System ) {
+            this._result.destination = parameters.destination;
+         }
          return;
       }
 
-      this.destroyGraph();
-      this._result.source = source;
+      if ( parameters.destination instanceof SCMAP.System ) {
+         console.log( 'Building graph, starting at', parameters.source.name, 'and ending at', parameters.destination.name );
+      } else {
+         console.log( 'Building graph, starting at', parameters.source.name );
+      }
 
-      console.log( 'Building graph, starting at', source.name );
+      this.destroyGraph();
+      this._result.source = parameters.source;
+      this._result.destination = parameters.destination;
 
       // Created using http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
 
@@ -1274,38 +1489,121 @@ SCMAP.Dijkstra.prototype = {
          this._nodes[ i ].previous = null;
       }
 
-      currentNode = this._mapping[ source.id ];
+      currentNode = this._mapping[ parameters.source.id ];
       currentNode.distance = 0; // distance from source to source
       currentNode.previous = null;
 
       nodes = SCMAP.Dijkstra.quickSort( this._nodes );
 
-      while ( nodes.length >= 1 )
+var distAU;
+
+      while ( nodes.length )
       {
          currentNode = nodes[0];
-         // Remove currentNode from set
+         // Remove currentNode (the first node) from set
          nodes.splice( 0, 1 );
+         //delete this._mapping[ currentNode.system.id ];
 
+         // Don't bother with this node if it's not reachable
          if ( isInfinite( currentNode.distance ) ) {
             break;
          }
 
+//console.log( "Working on node", currentNode.system.name, ', ', currentNode.system.jumpPoints.length, 'jumppoints to test' );
+
          for ( i = 0; i < currentNode.system.jumpPoints.length; i++ )
          {
             jumpPoint = currentNode.system.jumpPoints[i];
-            distance = currentNode.distance + jumpPoint.length();
+            otherNode = this._mapping[ jumpPoint.destination.id ];
 
-            if ( distance < this._mapping[ jumpPoint.destination.id ].distance ) {
-               this._mapping[ jumpPoint.destination.id ].distance = distance;
-               this._mapping[ jumpPoint.destination.id ].previous = currentNode;
+            if ( jumpPoint.isUnconfirmed() && localStorage['route.avoidUnknownJumppoints'] === '1' ) {
+               continue;
+            }
+
+            // Don't go into "hostile" nodes, unless we already are in one
+            if ( localStorage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+               continue;
+            }
+            if ( localStorage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
+               continue;
+            }
+
+//console.log( "  JP to", otherNode.system.name );
+
+            if ( priority === 'time' )
+            {
+               // cost = half time to JP + JP time + half time from JP
+               // TODO: at start and end this can be from start and to dest rather than half
+               //distance = currentNode.distance + jumpPoint.length();
+               distance = currentNode.distance + jumpPoint.jumpTime();
+               if ( currentNode.previous === null ) {
+distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
+                  //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
+                  //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
+               }
+               else
+               {
+//                  distance += SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() );
+                  distance += SCMAP.travelTimeAU( 0.7 );
+                  //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
+                  //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
+                  //console.log( "would add", SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) );
+               }
+            }
+            else // priority == 'fuel'
+            {
+               // cost = half fuel to JP +         + half fuel from JP
+               // TODO: at start and end this can be from start and to dest rather than half
+               distance = currentNode.distance + jumpPoint.length();
+            }
+
+            // Get out of "never" nodes asap by increasing the cost massively
+            if ( localStorage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+               distance *= 15;
+            }
+
+            if ( distance < otherNode.distance ) {
+               otherNode.distance = distance;
+               otherNode.previous = currentNode;
                nodes = SCMAP.Dijkstra.quickSort( nodes );
             }
          }
       }
 
       this._result.nodes = nodes;
+      this._result.priority = priority;
       endTime = new Date();
       console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
+   },
+
+   source: function() {
+      var source = this._result.source;
+      if ( source instanceof SCMAP.System ) {
+         return source;
+      }
+   },
+
+   destination: function() {
+      var destination = this._result.destination;
+      if ( destination instanceof SCMAP.System ) {
+         return destination;
+      }
+   },
+
+   rebuildGraph: function() {
+      var source = this._result.source;
+      var destination = this._result.destination;
+
+console.log( "rebuildGraph from", source, 'to', destination );
+      this.destroyGraph();
+
+      if ( source instanceof SCMAP.System ) {
+         this.buildGraph({
+            source: source,
+            destination: destination,
+         });
+         return true;
+      }
    },
 
    destroyGraph: function() {
@@ -1346,7 +1644,10 @@ SCMAP.Dijkstra.prototype = {
          return;
       }
 
-      this.buildGraph( from );
+      this.buildGraph({
+         source: from,
+         destination: to,
+      });
 
       routeArray = this.routeArray( to );
       if ( typeof routeArray === 'object' && Array.isArray( routeArray ) ) {
@@ -1489,6 +1790,13 @@ SCMAP.Map.prototype = {
       }
    },
 
+   setAllLabelSizes: function ( vector ) {
+      for ( var i = 0; i < SCMAP.System.List.length; i++ ) {
+         var system = SCMAP.System.List[i];
+         SCMAP.System.List[i].setLabelScale( vector );
+      }
+   },
+
    moveSelectorTo: function ( system ) {
       var tween, newPosition, position, _this = this, poi;
 
@@ -1502,7 +1810,10 @@ SCMAP.Map.prototype = {
 
       newPosition = system.sceneObject.position.clone();
       var graph = new SCMAP.Dijkstra( SCMAP.System.List );
-      graph.buildGraph( _this._selected );
+      graph.buildGraph({
+         source: _this._selected,
+         destination: system
+      });
       var route = graph.routeArray( system );
 
       if ( route.length <= 1 ) {
@@ -1657,10 +1968,27 @@ SCMAP.Map.prototype = {
       return currentStep;
    },
 
+   rebuildCurrentRoute: function () {
+      var source, destination;
+      if ( this._routeObject ) {
+         scene.remove( this._routeObject );
+      }
+      $('#routelist').empty();
+      if ( this._graph.rebuildGraph() ) {
+         console.log( "have new graph" );
+         destination = this._graph.destination();
+         if ( destination ) {
+         console.log( "have existing destination, updating route" );
+            this.updateRoute( destination );
+         }
+      }
+   },
+
    destroyCurrentRoute: function () {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
+      $('#routelist').empty();
    },
 
    updateRoute: function ( destination ) {
@@ -1683,16 +2011,23 @@ SCMAP.Map.prototype = {
          this.scene.add( this._routeObject );
          this._destination = destination;
          route = this._graph.routeArray( destination );
-
          $('#routelist').empty();
-         $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink().outerHtml()+' to ' +
-            route[route.length-1].system.createInfoLink().outerHtml()+' along <strong>' + (route.length - 1) +
-            '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
+         if ( route.length > 1 )
+         {
+            $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink( true ).outerHtml()+' to ' +
+               route[route.length-1].system.createInfoLink( true ).outerHtml()+' along <strong>' + (route.length - 1) +
+               '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
 
-         for ( i = 0; i < route.length; i++ ) {
-            system = route[i+0].system;
-            $entry = $('<li></li>').append( system.createInfoLink() );
-            $('#routelist ol').append( $entry );
+            for ( i = 0; i < route.length; i++ ) {
+               system = route[i+0].system;
+               $entry = $('<li></li>').append( system.createInfoLink() );
+               $('#routelist ol').append( $entry );
+            }
+         }
+         else
+         {
+            $('#routelist').append('<p class="impossible">No route available to '+
+               route[0].system.createInfoLink().outerHtml()+' with your current settings</p>');
          }
 
          $('#map_ui').tabs( 'option', 'active', 3 );
@@ -2144,9 +2479,9 @@ $(function() {
             $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
             window.editor.enabled = false;
             window.controls.requireAlt = false;
-            if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
-               map.selected().displayInfo();
-            }
+            //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
+            //   map.selected().displayInfo();
+            //}
          }
          $('#map_ui').data( 'jsp' ).reinitialise();
       }
@@ -2169,6 +2504,8 @@ function init()
 
    if ( hasLocalStorage() ) {
       localStorage = window.localStorage;
+   } else {
+      localStorage = {};
    }
 
    dpr = 1;
@@ -2176,12 +2513,15 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
+   SCMAP.settings.glow = ( localStorage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( localStorage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( localStorage['settings.LabelIcons'] === '0' ) ? false : true;
    $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
    $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
+   $('#avoid-hostile').prop( 'checked', ( localStorage['route.avoidHostile'] === '1' ) );
+   $('#avoid-off-limits').prop( 'checked', ( localStorage['route.avoidOffLimits'] === '1' ) );
+   $('#avoid-unknown-jumppoints').prop( 'checked', ( localStorage['route.avoidUnknownJumppoints'] === '1' ) );
 
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
@@ -2228,21 +2568,11 @@ function init()
    var $li;
    for ( i = 0; i < arr2.length; i++ ) {
       system = SCMAP.data.systems[ arr[i] ];
-      $li = $('<li><a data-system="'+system.id+'" href="#system='+encodeURI(system.name)+'"><i class="fa-li fa fa-sm fa-crosshairs"></i>'+system.name+'</a></li>');
-      $li.find('a').css( 'color', system.faction.color.getStyle() );
-      $('#system-list ul').append( $li );
+      $('#system-list ul').append( $('<li>'+system.createInfoLink().outerHtml()+'</li>') );
    }
-
-   $('#system-list ul a').bind( 'click', function() {
-      var $this = $(this);
-      var system = SCMAP.System.getById( $this.data('system') );
-      system.displayInfo();
-      controls.moveTo( system );
-   } );
 
    for ( var icon in SCMAP.Symbols ) {
       icon = SCMAP.Symbols[ icon ];
-      console.log( icon );
       $li = $('<li><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</li>' );
       $li.css( 'color', icon.color );
       $('#map_ui ul.legend').append( $li );
@@ -2277,8 +2607,8 @@ function init()
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
-   effectFXAA.enabled  = ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false;
+   effectFXAA.enabled  = ( localStorage['effect.FXAA'] === '1' ) ? true : false;
+   effectBloom.enabled = ( localStorage['effect.Bloom'] === '1' ) ? true : false;
    $('#toggle-fxaa').prop( 'checked', effectFXAA.enabled );
    $('#toggle-bloom').prop( 'checked', effectBloom.enabled );
 
@@ -2289,8 +2619,8 @@ function init()
    composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
-   displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage.mode : '2d' );
-   $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
+   displayState = buildDisplayModeFSM( ( localStorage.mode ) ? localStorage.mode : '2d' );
+   $('#3d-mode').prop( 'checked', localStorage.mode === '3d' );
 
 //var smokeParticles = new THREE.Geometry();
 //for (i = 0; i < 25; i++) {
@@ -2314,38 +2644,51 @@ function init()
 
    // Some simple UI stuff
 
-   $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
-   controls.noRotate = localStorage && localStorage['control.rotationLocked'] === '1';
+   $('#lock-rotation').prop( 'checked', localStorage['control.rotationLocked'] === '1' );
+   controls.noRotate = localStorage['control.rotationLocked'] === '1';
 
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
+   $('#avoid-hostile').on( 'change', function() {
+      localStorage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
+      map.rebuildCurrentRoute();
+   });
+   $('#avoid-off-limits').on( 'change', function() {
+      localStorage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
+      map.rebuildCurrentRoute();
+   });
+   $('#avoid-unknown-jumppoints').on( 'change', function() {
+      localStorage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
+      map.rebuildCurrentRoute();
+   });
+
    $('#lock-rotation').on( 'change', function() {
       controls.noRotate = this.checked;
-      if ( localStorage ) { localStorage['control.rotationLocked'] = ( this.checked ) ? 1 : 0; }
+      localStorage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-fxaa').on( 'change', function() {
       effectFXAA.enabled = this.checked;
-      if ( localStorage ) { localStorage['effect.FXAA'] = ( this.checked ) ? 1 : 0; }
+      localStorage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-bloom').on( 'change', function() {
       effectBloom.enabled = this.checked;
-      if ( localStorage ) { localStorage['effect.Bloom'] = ( this.checked ) ? 1 : 0; }
+      localStorage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
    });
 
    $('#toggle-glow').on( 'change', function() {
       SCMAP.settings.glow = this.checked;
       map.updateSystems();
-      if ( localStorage ) { localStorage['settings.Glow'] = ( this.checked ) ? 1 : 0; }
+      localStorage['settings.Glow'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
       map.updateSystems();
-      if ( localStorage ) { localStorage['settings.Labels'] = ( this.checked ) ? 1 : 0; }
+      localStorage['settings.Labels'] = ( this.checked ) ? '1' : '0';
    });
    $('#toggle-label-icons').on( 'change', function() {
       SCMAP.settings.labelIcons = this.checked;
       map.updateSystems();
-      if ( localStorage ) { localStorage['settings.LabelIcons'] = ( this.checked ) ? 1 : 0; }
+      localStorage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
    });
 
    $('#resetCamera').on( 'click', function() {
@@ -2383,7 +2726,7 @@ function init()
 
    $('#map_ui').on( 'click', "a[data-goto='system']", function() {
       var $this = $(this);
-      var system = SCMAP.data.systemsById[ $this.data('system') ];
+      var system = SCMAP.System.getById( $this.data('system') );
       system.displayInfo();
       controls.moveTo( system );
    });
@@ -2488,12 +2831,12 @@ function buildDisplayModeFSM ( initialState )
       callbacks: {
          onenter2d: function() {
             $('#3d-mode').prop( 'checked', false );
-            if ( localStorage ) { localStorage.mode = '2d'; }
+            localStorage.mode = '2d';
          },
 
          onenter3d: function() {
             $('#3d-mode').prop( 'checked', true );
-            if ( localStorage ) { localStorage.mode = '3d'; }
+            localStorage.mode = '3d';
          },
 
          onleave2d: function() {

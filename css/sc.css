@@ -41,6 +41,25 @@ a:hover {
    color: #0080ff;
 }
 
+a.system-link span.icons {
+   margin-left: 0.35em;
+   margin-right: 0.35em;
+}
+
+#info p.user label[for="comments"] {
+   font-size: 1.2em;
+}
+#info textarea#comments {
+   width: 90%;
+   height: 5em;
+   max-width: 90%;
+   margin-left: 1em;
+   margin-top: 0.5em;
+   font-family: Electrolize, sans-serif;
+   background: #333;
+   color: white;
+}
+
 #appinfo {
    position: absolute;
    top: 10px; width: 100%;
@@ -177,6 +196,11 @@ a:hover {
 #map_ui li dl {
    margin-top: 1em;
    margin-bottom: 1em;
+}
+#map_ui p.impossible {
+   color: #FF6666;
+   font-size: 1.3em;
+   font-weight: bold;
 }
 
 #stats #fpsText { color: #6ABBCF !important; font-family: Electrolize, Helvetica, Arial, sans-serif !important; }

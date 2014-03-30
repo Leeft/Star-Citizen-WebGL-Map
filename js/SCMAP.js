@@ -32,8 +32,15 @@ SCMAP.Symbols.DANGER = {
    code: "\uf071",
    scale: 0.9,
    faClass: 'fa-warning',
-   description: 'Danger, hostile environment!',
+   description: 'Danger, hostile faction',
    color: 'rgba(255,50,50,0.95)'
+};
+SCMAP.Symbols.WARNING = {
+   code: "\uf071",
+   scale: 0.9,
+   faClass: 'fa-warning',
+   description: 'Warning, hostile environment',
+   color: 'rgba(255,117,25,0.95)'
 };
 SCMAP.Symbols.HANGAR = {
    code: "\uf015",
@@ -41,7 +48,7 @@ SCMAP.Symbols.HANGAR = {
    faClass: 'fa-home',
    description: 'Hangar location',
    color: 'rgba(255,255,255,0.95)',
-   offset: new THREE.Vector2( 0, 2 )
+   offset: new THREE.Vector2( -0.25, 2 )
 };
 SCMAP.Symbols.INFO = {
    code: "\uf05a",
@@ -57,7 +64,7 @@ SCMAP.Symbols.TRADE = {
    faClass: 'fa-exchange',
    description: 'Major trade hub',
    color: 'rgba(255,255,0,0.95)',
-   offset: new THREE.Vector2( -2, -2 )
+   offset: new THREE.Vector2( 0, -3 )
 };
 //SCMAP.Symbols.TRADE = {
 //   code: "\uf0d1",
@@ -76,19 +83,33 @@ SCMAP.Symbols.BANNED = {
 };
 SCMAP.Symbols.COMMENTS = {
    code: "\uf075",
-   scale: 0.9,
+   scale: 1.0,
    faClass: 'fa-comment',
    description: 'Your comments',
-   color: 'rgba(106, 187, 207, 0.95)'
+   color: 'rgba(106, 187, 207, 0.95)',
+   offset: new THREE.Vector2( 0, -3 )
 };
-SCMAP.Symbols.BOOKMARKED = {
+SCMAP.Symbols.BOOKMARK = {
    code: "\uf02e",
-   scale: 0.9,
+   scale: 1.05,
    faClass: 'fa-bookmark',
    description: 'Bookmarked',
-   color: 'rgba(102, 153, 0, 0.95)'
+   color: 'rgba(102, 193, 0, 0.95)',
+   offset: new THREE.Vector2( -2, 1 )
+};
+
+SCMAP.travelTimeAU = function ( distanceAU ) {
+   return( SCMAP.approximateTraveltimePerAU * distanceAU );
+};
+
+SCMAP.usersFaction = function ( ) {
+   // TODO: allow users to set their faction, if ever needed
+   return SCMAP.data.factionsByName.UEE;
 };
 
 // constants here
-// SCMAP.Foo = 'bar'
 
+SCMAP.LYtoAU = 63241.077;
+SCMAP.approximateTraveltimePerAU = ( ( 8 * 60 ) + 19 ) * 5; // 8:19 at 1c, but autopilot speed is 0.2c
+
+// EOF

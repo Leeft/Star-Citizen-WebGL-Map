@@ -59,7 +59,7 @@ SCMAP.System.prototype = {
       this.sceneObject.add( label );
 
       position = this.position.clone();
-      if ( localStorage && localStorage.mode === '2d' ) {
+      if ( localStorage.mode === '2d' ) {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
@@ -76,6 +76,14 @@ SCMAP.System.prototype = {
             object.visible = SCMAP.settings.labels;
          } else if ( object.isGlow ) {
             object.visible = SCMAP.settings.glow;
+         }
+      }
+   },
+
+   setLabelScale: function ( vector ) {
+      for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
+         if ( this.sceneObject.children[i].isLabel ) {
+            this.sceneObject.children[i].scale.copy( vector );
          }
       }
    },
@@ -162,14 +170,8 @@ SCMAP.System.prototype = {
       context.fillStyle = this.faction.color.getStyle();
       context.fillText( text, textX, textY );
 
-      if ( drawSymbols )
-      {
-         var mySymbols = [];
-         if ( this.faction.name === 'Vanduul' ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
-         if ( this.name === 'Sol' ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
-         if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
-         if ( Math.random() > 0.8 ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
-         this._drawSymbols( context, textX, textY - 50, mySymbols );
+      if ( drawSymbols ) {
+         this._drawSymbols( context, textX, textY - 50, this.getIcons() );
       }
 
       return canvas;
@@ -178,11 +180,15 @@ SCMAP.System.prototype = {
    // Draws the icon(s) on a label
    _drawSymbols: function ( context, x, y, symbols ) {
       var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
+      var offX, offY;
       x -= totalWidth / 2;
 
       for ( i = 0; i < symbols.length; i++ )
       {
          symbol = symbols[ i ];
+
+         offX = 0;
+         offY = 0;
 
          context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
 
@@ -195,33 +201,76 @@ SCMAP.System.prototype = {
          }
 
          if ( symbol.offset ) {
-            x += symbol.offset.x;
-            y += symbol.offset.y;
+            offX = symbol.offset.x;
+            offY = symbol.offset.y;
          }
 
          context.strokeStyle = 'rgba(0,0,0,0.95)';
          context.textAlign = 'center';
          context.lineWidth = 5;
-         context.strokeText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
+         context.strokeText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
 
          context.fillStyle = symbol.color;
-         context.fillText( symbol.code, x + ( SCMAP.Symbol.SIZE / 2 ), y );
+         context.fillText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
 
          x += SCMAP.Symbol.SIZE + SCMAP.Symbol.SPACING;
       }
    },
 
-   createInfoLink: function () {
+   createInfoLink: function ( noIcons ) {
       var _this = this, $line = $( '<a></a>' );
       if ( typeof _this.faction !== 'undefined' && typeof _this.faction !== 'undefined' ) {
          $line.css( 'color', _this.faction.color.getStyle() );
       }
+      $line.addClass('system-link');
       $line.attr( 'data-goto', 'system' );
       $line.attr( 'data-system', _this.id );
       $line.attr( 'href', '#system='+encodeURI( _this.name ) );
       $line.attr( 'title', 'Show information on '+_this.name );
       $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + _this.name );
+
+      if ( !noIcons )
+      {
+         var icons = this.getIcons();
+         if ( icons.length )
+         {
+            var $span = $('<span class="icons"></span>');
+            var $icon, icon;
+            for ( var i = 0; i < icons.length; i++ ) {
+               icon = icons[i]; 
+               $icon = $( '<i title="'+icon.description+'" class="fa fa-fw '+icon.faClass+'"></i>' );
+               $icon.css( 'color', icon.color );
+               $span.append( $icon );
+            }
+            $line.append( $span );
+         }
+      }
+
       return $line;
+   },
+
+   getIcons: function () {
+      var mySymbols = [];
+      if ( false && this.name === 'Sol' ) {
+         mySymbols.push( SCMAP.Symbols.DANGER );
+         mySymbols.push( SCMAP.Symbols.WARNING );
+         mySymbols.push( SCMAP.Symbols.HANGAR );
+         mySymbols.push( SCMAP.Symbols.INFO );
+         mySymbols.push( SCMAP.Symbols.TRADE );
+         mySymbols.push( SCMAP.Symbols.BANNED );
+         mySymbols.push( SCMAP.Symbols.COMMENTS );
+         mySymbols.push( SCMAP.Symbols.BOOKMARK );
+         return mySymbols;
+      }
+      if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
+      if ( this.hasWarning() ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
+      if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
+      if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
+      if ( this.isMajorTradeHub() ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
+      if ( this.isOffLimits() ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
+      if ( this.hasComments() ) { mySymbols.push( SCMAP.Symbols.COMMENTS ); }
+      if ( this.isBookmarked() ) { mySymbols.push( SCMAP.Symbols.BOOKMARK ); }
+      return mySymbols;
    },
 
    displayInfo: function ( system ) {
@@ -326,6 +375,23 @@ SCMAP.System.prototype = {
          $blurb.find('dd.faction').css( 'color', system.faction.color.getStyle() );
       }
 
+      $blurb.append( '<p class="user"></p>' );
+
+      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="hangar-location"><label class="fa-lg" for="hangar-location">Hangar Location</label></span>' );
+      $blurb.find('#hangar-location')
+         .prop( 'checked', system.hasHangar() )
+         .attr( 'data-system', system.id );
+
+      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="bookmark"><label class="fa-lg" for="bookmark">Bookmarked</label></span></p>' );
+      $blurb.find('#bookmark')
+         .prop( 'checked', system.isBookmarked() )
+         .attr( 'data-system', system.id );
+
+      $blurb.find('p.user').append('<label for="comments">Your comments:</label><br><textarea id="comments"></textarea>');
+      if ( localStorage['comments.'+system.id] ) {
+         $blurb.find('#comments').append( localStorage['comments.'+system.id] );
+      }
+
       if ( system.blob.length ) {
          var $md = $(markdown.toHTML( system.blob ));
          $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
@@ -340,6 +406,36 @@ SCMAP.System.prototype = {
 
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
+
+      $('#systemblurb #bookmark').on( 'change', function() {
+         if ( this.checked ) {
+            localStorage['bookmarks.'+system.id] = '1';
+         } else {
+            delete localStorage['bookmarks.'+system.id];
+         }
+         system.updateSceneObject( scene );
+      });
+      $('#systemblurb #hangar-location').on( 'change', function() {
+         if ( this.checked ) {
+            localStorage['hangarLocation.'+system.id] = '1';
+         } else {
+            delete localStorage['hangarLocation.'+system.id];
+         }
+         system.updateSceneObject( scene );
+      });
+      var getComments = function( event ) {
+         event.preventDefault();
+         var text = $(this).val();
+         if ( typeof text === 'string' && text.length > 0 ) {
+            localStorage['comments.'+system.id] = $(this).val();
+         } else {
+            delete localStorage['comments.'+system.id];
+         }
+         system.updateSceneObject( scene );
+      };
+      $('#systemblurb #comments').on( 'keyup', getComments );
+      $('#systemblurb #comments').on( 'blur', getComments );
+      $('#systemblurb #comments').on( 'change', getComments );
 
       $('#map_ui').tabs( 'option', 'active', 2 );
       $('#map_ui').data( 'jsp' ).reinitialise();
@@ -366,6 +462,42 @@ SCMAP.System.prototype = {
       for ( var j = 0; j < this._routeObjects.length; j++ ) {
          this._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
+   },
+
+   // Returns the jumppoint leading to the given destination
+   jumpPointTo: function ( destination ) {
+      for ( var i = 0; i < this.jumpPoints.length; i++ ) {
+         if ( this.jumpPoints[i].destination === destination ) {
+            return this.jumpPoints[i];
+         }
+      }
+   },
+
+   isBookmarked: function ( ) {
+      return localStorage[ 'bookmarks.' + this.id ] === '1';
+   },
+
+   hasHangar: function ( ) {
+      return localStorage[ 'hangarLocation.' + this.id ] === '1';
+   },
+
+   hasComments: function ( ) {
+      return localStorage[ 'comments.' + this.id ];
+   },
+
+   isOffLimits: function ( ) {
+      // TODO this needs to come from the DB
+      return ( this.id === 90 || this.id === 97 );
+   },
+
+   hasWarning: function ( ) {
+      // TODO this needs to come from the DB
+      return ( this.id === 81 || this.id === 94 );
+   },
+
+   isMajorTradeHub: function ( ) {
+      // TODO this needs to come from the DB
+      return ( this.id === 82 || this.id === 95 || this.id === 80 || this.id === 102 || this.id === 100 || this.id === 108 || this.id === 96 || this.id === 85 || this.id === 83 || this.id === 106 || this.id === 15 || this.id === 84 || this.id === 88 || this.id === 19 || this.id === 92 );
    },
 
    getValue: function ( key ) {

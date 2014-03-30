@@ -102,6 +102,7 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    var endObject;   // drag end
 
    var scope = this;
+   var labelScale = '15.0';
 
    var state = StateMachine.create({
       initial: { state: 'idle', event: 'init', defer: true },
@@ -519,8 +520,21 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
 
       $('#debug-angle').html(
          'Camera heading: '+THREE.Math.radToDeg( theta ).toFixed(1)+'&deg;<br>'+
-         'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg;'
+         'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg;<br>'+
+         'Camera distance: '+radius.toFixed(1)
       );
+
+      var newLabelScale = radius - 20;
+      newLabelScale /= 10;
+      if ( newLabelScale < 17 ) {
+         newLabelScale = 17;
+      } else if ( newLabelScale > 22 ) {
+         newLabelScale = 22;
+      }
+      if ( newLabelScale.toFixed(1) !== labelScale ) {
+         this.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
+         labelScale = newLabelScale.toFixed(1);
+      }
 
       // restrict radius to be between desired limits
       radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );
@@ -679,6 +693,14 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       if ( scope.noKeys === true ) { return; }
       if ( scope.noPan === true ) { return; }
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
+
+      var $activeElement = $( document.activeElement );
+      if ( $activeElement.attr( 'id' ) === 'comments' ) {
+         if ( event.keyCode == scope.keys.ESCAPE || event.keyCode == scope.keys.TAB ) {
+            $activeElement.blur();
+         }
+         return;
+      }
 
       // This doesn't need the state machine, as there's no conflict between
       // various possible actions here

@@ -86,6 +86,13 @@ SCMAP.Map.prototype = {
       }
    },
 
+   setAllLabelSizes: function ( vector ) {
+      for ( var i = 0; i < SCMAP.System.List.length; i++ ) {
+         var system = SCMAP.System.List[i];
+         SCMAP.System.List[i].setLabelScale( vector );
+      }
+   },
+
    moveSelectorTo: function ( system ) {
       var tween, newPosition, position, _this = this, poi;
 
@@ -99,7 +106,10 @@ SCMAP.Map.prototype = {
 
       newPosition = system.sceneObject.position.clone();
       var graph = new SCMAP.Dijkstra( SCMAP.System.List );
-      graph.buildGraph( _this._selected );
+      graph.buildGraph({
+         source: _this._selected,
+         destination: system
+      });
       var route = graph.routeArray( system );
 
       if ( route.length <= 1 ) {
@@ -254,10 +264,27 @@ SCMAP.Map.prototype = {
       return currentStep;
    },
 
+   rebuildCurrentRoute: function () {
+      var source, destination;
+      if ( this._routeObject ) {
+         scene.remove( this._routeObject );
+      }
+      $('#routelist').empty();
+      if ( this._graph.rebuildGraph() ) {
+         console.log( "have new graph" );
+         destination = this._graph.destination();
+         if ( destination ) {
+         console.log( "have existing destination, updating route" );
+            this.updateRoute( destination );
+         }
+      }
+   },
+
    destroyCurrentRoute: function () {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
+      $('#routelist').empty();
    },
 
    updateRoute: function ( destination ) {
@@ -280,16 +307,23 @@ SCMAP.Map.prototype = {
          this.scene.add( this._routeObject );
          this._destination = destination;
          route = this._graph.routeArray( destination );
-
          $('#routelist').empty();
-         $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink().outerHtml()+' to ' +
-            route[route.length-1].system.createInfoLink().outerHtml()+' along <strong>' + (route.length - 1) +
-            '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
+         if ( route.length > 1 )
+         {
+            $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink( true ).outerHtml()+' to ' +
+               route[route.length-1].system.createInfoLink( true ).outerHtml()+' along <strong>' + (route.length - 1) +
+               '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
 
-         for ( i = 0; i < route.length; i++ ) {
-            system = route[i+0].system;
-            $entry = $('<li></li>').append( system.createInfoLink() );
-            $('#routelist ol').append( $entry );
+            for ( i = 0; i < route.length; i++ ) {
+               system = route[i+0].system;
+               $entry = $('<li></li>').append( system.createInfoLink() );
+               $('#routelist ol').append( $entry );
+            }
+         }
+         else
+         {
+            $('#routelist').append('<p class="impossible">No route available to '+
+               route[0].system.createInfoLink().outerHtml()+' with your current settings</p>');
          }
 
          $('#map_ui').tabs( 'option', 'active', 3 );
