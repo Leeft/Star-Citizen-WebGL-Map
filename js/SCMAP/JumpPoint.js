@@ -3,9 +3,9 @@
 */
 
 SCMAP.JumpPoint = function ( data ) {
-   this.name = typeof data.name === 'string' && data.name.length > 1 ? data.name : undefined;
-   this.source = data.source instanceof SCMAP.System ? data.source : undefined;
-   this.destination = data.destination instanceof SCMAP.System ? data.destination : undefined;
+   this.name = ( typeof data.name === 'string' && data.name.length > 1 ) ? data.name : undefined;
+   this.source = ( data.source instanceof SCMAP.System ) ? data.source : undefined;
+   this.destination = ( data.destination instanceof SCMAP.System ) ? data.destination : undefined;
    this.drawn = false;
    this.typeId = ( typeof data.typeId === 'number' ) ? data.typeId : 4;
    this.entryAU = new THREE.Vector3(
@@ -47,40 +47,42 @@ SCMAP.JumpPoint.prototype = {
    },
 
    buildSceneObject: function() {
-      var i, jumppoint, geometry, midColour;
+      var oppositeJumppoint, geometry;
+
       if ( this.drawn ) {
          return;
       }
 
       // Check if the opposite jumppoint has already been drawn
-      for ( i = 0; i < this.destination.jumpPoints.length; i++ ) {
-         jumppoint = this.destination.jumpPoints[i];
-         if ( jumppoint.destination == this.source ) {
-            if ( jumppoint.drawn ) {
-               return;
-            }
-         }
+      oppositeJumppoint = this.getOppositeJumppoint();
+      if ( oppositeJumppoint instanceof SCMAP.JumpPoint && oppositeJumppoint.drawn ) {
+         return;
       }
 
       geometry = new THREE.Geometry();
-      //geometry.dynamic = true;
       geometry.colors.push( this.source.faction.lineColor );
       geometry.vertices.push( this.source.sceneObject.position );
       geometry.colors.push( this.destination.faction.lineColor );
       geometry.vertices.push( this.destination.sceneObject.position );
 
+      // Set both the jumppoints as drawn
       this.setDrawn();
-
-      // set the opposite jumppoint as drawn
-      for ( i = 0; i < this.destination.jumpPoints.length; i++ ) {
-         jumppoint = this.destination.jumpPoints[i];
-         if ( jumppoint.destination == this.source ) {
-            jumppoint.setDrawn();
-         }
+      if ( oppositeJumppoint instanceof SCMAP.JumpPoint ) {
+         oppositeJumppoint.setDrawn();
       }
 
+      // This is apparently needed for dashed lines
       geometry.computeLineDistances();
       return new THREE.Line( geometry, this.getMaterial(), THREE.LinePieces );
+   },
+
+   getOppositeJumppoint: function() {
+      for ( var i = 0; i < this.destination.jumpPoints.length; i++ ) {
+         var jumppoint = this.destination.jumpPoints[i];
+         if ( jumppoint.destination == this.source ) {
+            return jumppoint;
+         }
+      }
    },
 
    getMaterial: function() {
