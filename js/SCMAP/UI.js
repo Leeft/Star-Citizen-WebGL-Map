@@ -43,18 +43,18 @@ function initUI () {
                   system = systems[ i ];
                   var link = system.createInfoLink().outerHtml();
 
-                  if ( localStorage && localStorage[ 'hangarLocation.' + system.id ] === '1' ) {
+                  if ( storage && storage[ 'hangarLocation.' + system.id ] === '1' ) {
                      hangarCount += 1;
                      $('#hangar-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( localStorage && localStorage[ 'bookmarks.' + system.id ] === '1' ) {
+                  if ( storage && storage[ 'bookmarks.' + system.id ] === '1' ) {
                      bookmarkCount += 1;
                      $('#bookmark-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( localStorage ) {
-                     if ( 'comments.'+system.id in localStorage ) {
+                  if ( storage ) {
+                     if ( 'comments.'+system.id in storage ) {
                         commentedCount += 1;
                         $('#commented-list').append( $('<li>'+link+'</li>') );
                      }
@@ -114,9 +114,9 @@ function initUI () {
    $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
    $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-   $('#avoid-hostile').prop( 'checked', ( localStorage && localStorage['route.avoidHostile'] === '1' ) );
-   $('#avoid-off-limits').prop( 'checked', ( localStorage && localStorage['route.avoidOffLimits'] === '1' ) );
-   $('#avoid-unknown-jumppoints').prop( 'checked', ( localStorage && localStorage['route.avoidUnknownJumppoints'] === '1' ) );
+   $('#avoid-hostile').prop( 'checked', ( storage && storage['route.avoidHostile'] === '1' ) );
+   $('#avoid-off-limits').prop( 'checked', ( storage && storage['route.avoidOffLimits'] === '1' ) );
+   $('#avoid-unknown-jumppoints').prop( 'checked', ( storage && storage['route.avoidUnknownJumppoints'] === '1' ) );
 
    for ( var icon in SCMAP.Symbols ) {
       icon = SCMAP.Symbols[ icon ];
@@ -127,74 +127,74 @@ function initUI () {
 
    // Event handlers
 
-   $('#toggle-fxaa').prop( 'checked', ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false );
-   $('#toggle-bloom').prop( 'checked', ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false );
+   $('#toggle-fxaa').prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false );
+   $('#toggle-bloom').prop( 'checked', ( storage && storage['effect.Bloom'] === '1' ) ? true : false );
 
-   $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
+   $('#3d-mode').prop( 'checked', storage && storage.mode === '3d' );
 
    // Some simple UI stuff
 
-   $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
+   $('#lock-rotation').prop( 'checked', storage && storage['control.rotationLocked'] === '1' );
 
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
    $('#avoid-hostile').on( 'change', function() {
-      if ( localStorage ) {
-         localStorage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
       }
       map.rebuildCurrentRoute();
    });
    $('#avoid-off-limits').on( 'change', function() {
-      if ( localStorage ) {
-         localStorage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
          map.rebuildCurrentRoute();
       }
    });
    $('#avoid-unknown-jumppoints').on( 'change', function() {
-      if ( localStorage ) {
-         localStorage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
          map.rebuildCurrentRoute();
       }
    });
 
    $('#lock-rotation').on( 'change', function() {
       controls.noRotate = this.checked;
-      if ( localStorage ) {
-         localStorage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-fxaa').on( 'change', function() {
       effectFXAA.enabled = this.checked;
-      if ( localStorage ) {
-         localStorage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-bloom').on( 'change', function() {
       effectBloom.enabled = this.checked;
-      if ( localStorage ) {
-         localStorage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
       }
    });
 
    $('#toggle-glow').on( 'change', function() {
       SCMAP.settings.glow = this.checked;
       map.updateSystems();
-      if ( localStorage ) {
-         localStorage['settings.Glow'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['settings.Glow'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
       map.updateSystems();
-      if ( localStorage ) {
-         localStorage['settings.Labels'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-label-icons').on( 'change', function() {
       SCMAP.settings.labelIcons = this.checked;
       map.updateSystems();
-      if ( localStorage ) {
-         localStorage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
       }
    });
 
@@ -257,16 +257,16 @@ function initUI () {
 
    var updateComments = function( event ) {
       event.preventDefault();
-      if ( !localStorage ) { return; }
-      var system = SCMAP.System.getById( $(this).data('system-id') );
+      if ( !storage ) { return; }
+      var system = SCMAP.System.getById( $(this).data('system') );
       var text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
-         localStorage['comments.'+system.id] = text;
+         storage['comments.'+system.id] = text;
          //$md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
          var $commentmd = $(markdown.toHTML( text ));
          $('#comments-md').html( $commentmd );
       } else {
-         delete localStorage['comments.'+system.id];
+         delete storage['comments.'+system.id];
          $('#comments-md').empty();
       }
       system.updateSceneObject( scene );
@@ -276,23 +276,23 @@ function initUI () {
    $('#comments').on( 'change', updateComments );
 
    $('#bookmark').on( 'change', function() {
-      var system = SCMAP.System.getById( $(this).data('system-id') );
-      if ( !localStorage ) { return; }
+      var system = SCMAP.System.getById( $(this).data('system') );
+      if ( !storage ) { return; }
       if ( this.checked ) {
-         localStorage['bookmarks.'+system.id] = '1';
+         storage['bookmarks.'+system.id] = '1';
       } else {
-         delete localStorage['bookmarks.'+system.id];
+         delete storage['bookmarks.'+system.id];
       }
       system.updateSceneObject( scene );
    });
 
    $('#hangar-location').on( 'change', function() {
-      var system = SCMAP.System.getById( $(this).data('system-id') );
-      if ( !localStorage ) { return; }
+      var system = SCMAP.System.getById( $(this).data('system') );
+      if ( !storage ) { return; }
       if ( this.checked ) {
-         localStorage['hangarLocation.'+system.id] = '1';
+         storage['hangarLocation.'+system.id] = '1';
       } else {
-         delete localStorage['hangarLocation.'+system.id];
+         delete storage['hangarLocation.'+system.id];
       }
       system.updateSceneObject( scene );
    });

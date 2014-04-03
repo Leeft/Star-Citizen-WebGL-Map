@@ -77,7 +77,7 @@ SCMAP.System.prototype = {
       this.sceneObject.add( label );
 
       position = this.position.clone();
-      if ( localStorage && localStorage.mode === '2d' ) {
+      if ( storage && storage.mode === '2d' ) {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
@@ -396,18 +396,18 @@ SCMAP.System.prototype = {
       $('#hangar-location').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
       $('#bookmark').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
 
-      if ( localStorage && localStorage['comments.'+this.id] ) {
-         $('#comments').empty().val( localStorage['comments.'+this.id] );
-         var $commentmd = $( markdown.toHTML( localStorage['comments.'+this.id] ) );
+      if ( storage && storage['comments.'+this.id] ) {
+         $('#comments').empty().val( storage['comments.'+this.id] );
+         var $commentmd = $( markdown.toHTML( storage['comments.'+this.id] ) );
          $('#comments-md').html( $commentmd );
       } else {
          $('#comments').empty().val('');
          $('#comments-md').empty();
       }
 
-      $('#comments').data( 'this-id', this.id );
-      $('#bookmark').data( 'this-id', this.id );
-      $('#hangar-location').data( 'this-id', this.id );
+      $('#comments').data( 'system', this.id );
+      $('#bookmark').data( 'system', this.id );
+      $('#hangar-location').data( 'system', this.id );
 
       if ( this.blob.length ) {
          var $md = $(markdown.toHTML( this.blob ));
@@ -465,15 +465,15 @@ SCMAP.System.prototype = {
    },
 
    isBookmarked: function ( ) {
-      return localStorage && localStorage[ 'bookmarks.' + this.id ] === '1';
+      return storage && storage[ 'bookmarks.' + this.id ] === '1';
    },
 
    hasHangar: function ( ) {
-      return localStorage && localStorage[ 'hangarLocation.' + this.id ] === '1';
+      return storage && storage[ 'hangarLocation.' + this.id ] === '1';
    },
 
    hasComments: function ( ) {
-      return localStorage && localStorage[ 'comments.' + this.id ];
+      return storage && storage[ 'comments.' + this.id ];
    },
 
    isOffLimits: function ( ) {

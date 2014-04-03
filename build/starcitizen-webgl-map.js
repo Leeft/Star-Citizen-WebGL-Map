@@ -815,7 +815,7 @@ SCMAP.System.prototype = {
       this.sceneObject.add( label );
 
       position = this.position.clone();
-      if ( localStorage && localStorage.mode === '2d' ) {
+      if ( storage && storage.mode === '2d' ) {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
@@ -1134,18 +1134,18 @@ SCMAP.System.prototype = {
       $('#hangar-location').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
       $('#bookmark').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
 
-      if ( localStorage && localStorage['comments.'+this.id] ) {
-         $('#comments').empty().val( localStorage['comments.'+this.id] );
-         var $commentmd = $( markdown.toHTML( localStorage['comments.'+this.id] ) );
+      if ( storage && storage['comments.'+this.id] ) {
+         $('#comments').empty().val( storage['comments.'+this.id] );
+         var $commentmd = $( markdown.toHTML( storage['comments.'+this.id] ) );
          $('#comments-md').html( $commentmd );
       } else {
          $('#comments').empty().val('');
          $('#comments-md').empty();
       }
 
-      $('#comments').data( 'this-id', this.id );
-      $('#bookmark').data( 'this-id', this.id );
-      $('#hangar-location').data( 'this-id', this.id );
+      $('#comments').data( 'system', this.id );
+      $('#bookmark').data( 'system', this.id );
+      $('#hangar-location').data( 'system', this.id );
 
       if ( this.blob.length ) {
          var $md = $(markdown.toHTML( this.blob ));
@@ -1203,15 +1203,15 @@ SCMAP.System.prototype = {
    },
 
    isBookmarked: function ( ) {
-      return localStorage && localStorage[ 'bookmarks.' + this.id ] === '1';
+      return storage && storage[ 'bookmarks.' + this.id ] === '1';
    },
 
    hasHangar: function ( ) {
-      return localStorage && localStorage[ 'hangarLocation.' + this.id ] === '1';
+      return storage && storage[ 'hangarLocation.' + this.id ] === '1';
    },
 
    hasComments: function ( ) {
-      return localStorage && localStorage[ 'comments.' + this.id ];
+      return storage && storage[ 'comments.' + this.id ];
    },
 
    isOffLimits: function ( ) {
@@ -1538,15 +1538,15 @@ var distAU;
             jumpPoint = currentNode.system.jumpPoints[i];
             otherNode = this._mapping[ jumpPoint.destination.id ];
 
-            if ( jumpPoint.isUnconfirmed() && localStorage && localStorage['route.avoidUnknownJumppoints'] === '1' ) {
+            if ( jumpPoint.isUnconfirmed() && storage && storage['route.avoidUnknownJumppoints'] === '1' ) {
                continue;
             }
 
             // Don't go into "hostile" nodes, unless we already are in one
-            if ( localStorage && localStorage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( storage && storage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                continue;
             }
-            if ( localStorage && localStorage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
+            if ( storage && storage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
                continue;
             }
 
@@ -1580,7 +1580,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
             }
 
             // Get out of "never" nodes asap by increasing the cost massively
-            if ( localStorage && localStorage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( storage && storage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                distance *= 15;
             }
 
@@ -2548,18 +2548,18 @@ function initUI () {
                   system = systems[ i ];
                   var link = system.createInfoLink().outerHtml();
 
-                  if ( localStorage && localStorage[ 'hangarLocation.' + system.id ] === '1' ) {
+                  if ( storage && storage[ 'hangarLocation.' + system.id ] === '1' ) {
                      hangarCount += 1;
                      $('#hangar-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( localStorage && localStorage[ 'bookmarks.' + system.id ] === '1' ) {
+                  if ( storage && storage[ 'bookmarks.' + system.id ] === '1' ) {
                      bookmarkCount += 1;
                      $('#bookmark-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( localStorage ) {
-                     if ( 'comments.'+system.id in localStorage ) {
+                  if ( storage ) {
+                     if ( 'comments.'+system.id in storage ) {
                         commentedCount += 1;
                         $('#commented-list').append( $('<li>'+link+'</li>') );
                      }
@@ -2619,9 +2619,9 @@ function initUI () {
    $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
    $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-   $('#avoid-hostile').prop( 'checked', ( localStorage && localStorage['route.avoidHostile'] === '1' ) );
-   $('#avoid-off-limits').prop( 'checked', ( localStorage && localStorage['route.avoidOffLimits'] === '1' ) );
-   $('#avoid-unknown-jumppoints').prop( 'checked', ( localStorage && localStorage['route.avoidUnknownJumppoints'] === '1' ) );
+   $('#avoid-hostile').prop( 'checked', ( storage && storage['route.avoidHostile'] === '1' ) );
+   $('#avoid-off-limits').prop( 'checked', ( storage && storage['route.avoidOffLimits'] === '1' ) );
+   $('#avoid-unknown-jumppoints').prop( 'checked', ( storage && storage['route.avoidUnknownJumppoints'] === '1' ) );
 
    for ( var icon in SCMAP.Symbols ) {
       icon = SCMAP.Symbols[ icon ];
@@ -2632,74 +2632,74 @@ function initUI () {
 
    // Event handlers
 
-   $('#toggle-fxaa').prop( 'checked', ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false );
-   $('#toggle-bloom').prop( 'checked', ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false );
+   $('#toggle-fxaa').prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false );
+   $('#toggle-bloom').prop( 'checked', ( storage && storage['effect.Bloom'] === '1' ) ? true : false );
 
-   $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
+   $('#3d-mode').prop( 'checked', storage && storage.mode === '3d' );
 
    // Some simple UI stuff
 
-   $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
+   $('#lock-rotation').prop( 'checked', storage && storage['control.rotationLocked'] === '1' );
 
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
    $('#avoid-hostile').on( 'change', function() {
-      if ( localStorage ) {
-         localStorage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
       }
       map.rebuildCurrentRoute();
    });
    $('#avoid-off-limits').on( 'change', function() {
-      if ( localStorage ) {
-         localStorage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
          map.rebuildCurrentRoute();
       }
    });
    $('#avoid-unknown-jumppoints').on( 'change', function() {
-      if ( localStorage ) {
-         localStorage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
          map.rebuildCurrentRoute();
       }
    });
 
    $('#lock-rotation').on( 'change', function() {
       controls.noRotate = this.checked;
-      if ( localStorage ) {
-         localStorage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-fxaa').on( 'change', function() {
       effectFXAA.enabled = this.checked;
-      if ( localStorage ) {
-         localStorage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-bloom').on( 'change', function() {
       effectBloom.enabled = this.checked;
-      if ( localStorage ) {
-         localStorage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
       }
    });
 
    $('#toggle-glow').on( 'change', function() {
       SCMAP.settings.glow = this.checked;
       map.updateSystems();
-      if ( localStorage ) {
-         localStorage['settings.Glow'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['settings.Glow'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
       map.updateSystems();
-      if ( localStorage ) {
-         localStorage['settings.Labels'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
       }
    });
    $('#toggle-label-icons').on( 'change', function() {
       SCMAP.settings.labelIcons = this.checked;
       map.updateSystems();
-      if ( localStorage ) {
-         localStorage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
+      if ( storage ) {
+         storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
       }
    });
 
@@ -2762,16 +2762,16 @@ function initUI () {
 
    var updateComments = function( event ) {
       event.preventDefault();
-      if ( !localStorage ) { return; }
-      var system = SCMAP.System.getById( $(this).data('system-id') );
+      if ( !storage ) { return; }
+      var system = SCMAP.System.getById( $(this).data('system') );
       var text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
-         localStorage['comments.'+system.id] = text;
+         storage['comments.'+system.id] = text;
          //$md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
          var $commentmd = $(markdown.toHTML( text ));
          $('#comments-md').html( $commentmd );
       } else {
-         delete localStorage['comments.'+system.id];
+         delete storage['comments.'+system.id];
          $('#comments-md').empty();
       }
       system.updateSceneObject( scene );
@@ -2781,23 +2781,23 @@ function initUI () {
    $('#comments').on( 'change', updateComments );
 
    $('#bookmark').on( 'change', function() {
-      var system = SCMAP.System.getById( $(this).data('system-id') );
-      if ( !localStorage ) { return; }
+      var system = SCMAP.System.getById( $(this).data('system') );
+      if ( !storage ) { return; }
       if ( this.checked ) {
-         localStorage['bookmarks.'+system.id] = '1';
+         storage['bookmarks.'+system.id] = '1';
       } else {
-         delete localStorage['bookmarks.'+system.id];
+         delete storage['bookmarks.'+system.id];
       }
       system.updateSceneObject( scene );
    });
 
    $('#hangar-location').on( 'change', function() {
-      var system = SCMAP.System.getById( $(this).data('system-id') );
-      if ( !localStorage ) { return; }
+      var system = SCMAP.System.getById( $(this).data('system') );
+      if ( !storage ) { return; }
       if ( this.checked ) {
-         localStorage['hangarLocation.'+system.id] = '1';
+         storage['hangarLocation.'+system.id] = '1';
       } else {
-         delete localStorage['hangarLocation.'+system.id];
+         delete storage['hangarLocation.'+system.id];
       }
       system.updateSceneObject( scene );
    });
@@ -2819,7 +2819,7 @@ function makeSafeForCSS( name ) {
 
 var effectFXAA, camera, scene, renderer, composer, map, dpr,
    shift, ctrl, alt, controls, editor, stats, displayState,
-   localStorage, cameraDefaults = {
+   storage, cameraDefaults = {
       x: 0,
       y: 80,
       z: 100,
@@ -2843,7 +2843,7 @@ function init()
    var container, renderModel, effectCopy, effectBloom, width, height, i;
 
    if ( hasLocalStorage() ) {
-      localStorage = window.localStorage;
+      storage = window.localStorage;
       console.log( "We have localStorage" );
    } else {
       console.log( "We don't have localStorage :(" );
@@ -2854,9 +2854,9 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
+   SCMAP.settings.glow = ( storage && storage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( storage && storage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( storage && storage['settings.LabelIcons'] === '0' ) ? false : true;
 
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
@@ -2887,7 +2887,7 @@ function init()
    controls.maxDistance = 800;
    controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
-   controls.noRotate = ( localStorage && localStorage['control.rotationLocked'] === '1' ) ? true : false;
+   controls.noRotate = ( storage && storage['control.rotationLocked'] === '1' ) ? true : false;
 
    scene = new THREE.Scene();
 
@@ -2932,8 +2932,8 @@ function init()
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
-   effectFXAA.enabled  = ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false;
+   effectFXAA.enabled  = ( storage && storage['effect.FXAA'] === '1' ) ? true : false;
+   effectBloom.enabled = ( storage && storage['effect.Bloom'] === '1' ) ? true : false;
 
    composer = new THREE.EffectComposer( renderer );
    composer.setSize( width * dpr, height * dpr );
@@ -2942,7 +2942,7 @@ function init()
    composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
-   displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage && localStorage.mode : '2d' );
+   displayState = buildDisplayModeFSM( ( storage && storage.mode ) ? storage && storage.mode : '2d' );
 
 //var smokeParticles = new THREE.Geometry();
 //for (i = 0; i < 25; i++) {
@@ -3053,12 +3053,12 @@ function buildDisplayModeFSM ( initialState )
       callbacks: {
          onenter2d: function() {
             $('#3d-mode').prop( 'checked', false );
-            if ( localStorage ) { localStorage.mode = '2d'; }
+            if ( storage ) { storage.mode = '2d'; }
          },
 
          onenter3d: function() {
             $('#3d-mode').prop( 'checked', true );
-            if ( localStorage ) { localStorage.mode = '3d'; }
+            if ( storage ) { storage.mode = '3d'; }
          },
 
          onleave2d: function() {
@@ -3115,8 +3115,8 @@ function render() {
 
 function hasLocalStorage() {
    try {
-      return 'localStorage' in window && window.localStorage !== null && window.localStorage !== undefined;
-   } catch (e) {
+      return 'localStorage' in window && window.localStorage !== null;
+   } catch(e) {
       return false;
    }
 }

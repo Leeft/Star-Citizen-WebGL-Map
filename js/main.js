@@ -1,6 +1,6 @@
 var effectFXAA, camera, scene, renderer, composer, map, dpr,
    shift, ctrl, alt, controls, editor, stats, displayState,
-   localStorage, cameraDefaults = {
+   storage, cameraDefaults = {
       x: 0,
       y: 80,
       z: 100,
@@ -24,7 +24,7 @@ function init()
    var container, renderModel, effectCopy, effectBloom, width, height, i;
 
    if ( hasLocalStorage() ) {
-      localStorage = window.localStorage;
+      storage = window.localStorage;
       console.log( "We have localStorage" );
    } else {
       console.log( "We don't have localStorage :(" );
@@ -35,9 +35,9 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
+   SCMAP.settings.glow = ( storage && storage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( storage && storage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( storage && storage['settings.LabelIcons'] === '0' ) ? false : true;
 
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
@@ -68,7 +68,7 @@ function init()
    controls.maxDistance = 800;
    controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
-   controls.noRotate = ( localStorage && localStorage['control.rotationLocked'] === '1' ) ? true : false;
+   controls.noRotate = ( storage && storage['control.rotationLocked'] === '1' ) ? true : false;
 
    scene = new THREE.Scene();
 
@@ -113,8 +113,8 @@ function init()
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
-   effectFXAA.enabled  = ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false;
+   effectFXAA.enabled  = ( storage && storage['effect.FXAA'] === '1' ) ? true : false;
+   effectBloom.enabled = ( storage && storage['effect.Bloom'] === '1' ) ? true : false;
 
    composer = new THREE.EffectComposer( renderer );
    composer.setSize( width * dpr, height * dpr );
@@ -123,7 +123,7 @@ function init()
    composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
-   displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage && localStorage.mode : '2d' );
+   displayState = buildDisplayModeFSM( ( storage && storage.mode ) ? storage && storage.mode : '2d' );
 
 //var smokeParticles = new THREE.Geometry();
 //for (i = 0; i < 25; i++) {
@@ -234,12 +234,12 @@ function buildDisplayModeFSM ( initialState )
       callbacks: {
          onenter2d: function() {
             $('#3d-mode').prop( 'checked', false );
-            if ( localStorage ) { localStorage.mode = '2d'; }
+            if ( storage ) { storage.mode = '2d'; }
          },
 
          onenter3d: function() {
             $('#3d-mode').prop( 'checked', true );
-            if ( localStorage ) { localStorage.mode = '3d'; }
+            if ( storage ) { storage.mode = '3d'; }
          },
 
          onleave2d: function() {
@@ -296,8 +296,8 @@ function render() {
 
 function hasLocalStorage() {
    try {
-      return 'localStorage' in window && window.localStorage !== null && window.localStorage !== undefined;
-   } catch (e) {
+      return 'localStorage' in window && window.localStorage !== null;
+   } catch(e) {
       return false;
    }
 }

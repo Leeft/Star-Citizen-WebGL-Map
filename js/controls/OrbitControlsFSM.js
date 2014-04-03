@@ -334,25 +334,25 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    };
 
    this.rememberCurrentPosition = function () {
-      if ( localStorage ) {
+      if ( storage ) {
          var positions = this.getCurrentPosition();
-         localStorage['camera.x'] = positions.cameraX;
-         localStorage['camera.y'] = positions.cameraY;
-         localStorage['camera.z'] = positions.cameraZ;
-         localStorage['target.x'] = positions.targetX;
-         localStorage['target.y'] = positions.targetY;
-         localStorage['target.z'] = positions.targetZ;
+         storage['camera.x'] = positions.cameraX;
+         storage['camera.y'] = positions.cameraY;
+         storage['camera.z'] = positions.cameraZ;
+         storage['target.x'] = positions.targetX;
+         storage['target.y'] = positions.targetY;
+         storage['target.z'] = positions.targetZ;
       }
    };
 
    this.restoreOldPosition = function () {
-      if ( localStorage && typeof localStorage['camera.x'] !== 'undefined' ) {
-         this.object.position.setX( Number( localStorage['camera.x'] ) );
-         this.object.position.setY( Number( localStorage['camera.y'] ) );
-         this.object.position.setZ( Number( localStorage['camera.z'] ) );
-         this.target.setX( Number( localStorage['target.x'] ) );
-         this.target.setY( Number( localStorage['target.y'] ) );
-         this.target.setZ( Number( localStorage['target.z'] ) );
+      if ( storage && typeof storage['camera.x'] !== 'undefined' ) {
+         this.object.position.setX( Number( storage['camera.x'] ) );
+         this.object.position.setY( Number( storage['camera.y'] ) );
+         this.object.position.setZ( Number( storage['camera.z'] ) );
+         this.target.setX( Number( storage['target.x'] ) );
+         this.target.setY( Number( storage['target.y'] ) );
+         this.target.setZ( Number( storage['target.z'] ) );
       }
    };
 
