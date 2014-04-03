@@ -28,6 +28,12 @@ SCMAP.Symbols = {};
 SCMAP.Symbol.SIZE = 24;
 SCMAP.Symbol.SPACING = 9;
 
+SCMAP.Symbol.getTag = function ( icon ) {
+   var $icon = $( '<i title="'+icon.description+'" class="fa fa-fw '+icon.faClass+'"></i>' );
+   $icon.css( 'color', icon.color );
+   return $icon;
+};
+
 SCMAP.Symbols.DANGER = {
    code: "\uf071",
    scale: 0.9,

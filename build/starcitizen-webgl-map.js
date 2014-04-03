@@ -36,6 +36,12 @@ SCMAP.Symbols = {};
 SCMAP.Symbol.SIZE = 24;
 SCMAP.Symbol.SPACING = 9;
 
+SCMAP.Symbol.getTag = function ( icon ) {
+   var $icon = $( '<i title="'+icon.description+'" class="fa fa-fw '+icon.faClass+'"></i>' );
+   $icon.css( 'color', icon.color );
+   return $icon;
+};
+
 SCMAP.Symbols.DANGER = {
    code: "\uf071",
    scale: 0.9,
@@ -333,9 +339,9 @@ SCMAP.SelectedSystemGeometry = SCMAP.SelectedSystemGeometry || _build_selected_s
 */
 
 SCMAP.JumpPoint = function ( data ) {
-   this.name = typeof data.name === 'string' && data.name.length > 1 ? data.name : undefined;
-   this.source = data.source instanceof SCMAP.System ? data.source : undefined;
-   this.destination = data.destination instanceof SCMAP.System ? data.destination : undefined;
+   this.name = ( typeof data.name === 'string' && data.name.length > 1 ) ? data.name : undefined;
+   this.source = ( data.source instanceof SCMAP.System ) ? data.source : undefined;
+   this.destination = ( data.destination instanceof SCMAP.System ) ? data.destination : undefined;
    this.drawn = false;
    this.typeId = ( typeof data.typeId === 'number' ) ? data.typeId : 4;
    this.entryAU = new THREE.Vector3(
@@ -377,40 +383,42 @@ SCMAP.JumpPoint.prototype = {
    },
 
    buildSceneObject: function() {
-      var i, jumppoint, geometry, midColour;
+      var oppositeJumppoint, geometry;
+
       if ( this.drawn ) {
          return;
       }
 
       // Check if the opposite jumppoint has already been drawn
-      for ( i = 0; i < this.destination.jumpPoints.length; i++ ) {
-         jumppoint = this.destination.jumpPoints[i];
-         if ( jumppoint.destination == this.source ) {
-            if ( jumppoint.drawn ) {
-               return;
-            }
-         }
+      oppositeJumppoint = this.getOppositeJumppoint();
+      if ( oppositeJumppoint instanceof SCMAP.JumpPoint && oppositeJumppoint.drawn ) {
+         return;
       }
 
       geometry = new THREE.Geometry();
-      //geometry.dynamic = true;
       geometry.colors.push( this.source.faction.lineColor );
       geometry.vertices.push( this.source.sceneObject.position );
       geometry.colors.push( this.destination.faction.lineColor );
       geometry.vertices.push( this.destination.sceneObject.position );
 
+      // Set both the jumppoints as drawn
       this.setDrawn();
-
-      // set the opposite jumppoint as drawn
-      for ( i = 0; i < this.destination.jumpPoints.length; i++ ) {
-         jumppoint = this.destination.jumpPoints[i];
-         if ( jumppoint.destination == this.source ) {
-            jumppoint.setDrawn();
-         }
+      if ( oppositeJumppoint instanceof SCMAP.JumpPoint ) {
+         oppositeJumppoint.setDrawn();
       }
 
+      // This is apparently needed for dashed lines
       geometry.computeLineDistances();
       return new THREE.Line( geometry, this.getMaterial(), THREE.LinePieces );
+   },
+
+   getOppositeJumppoint: function() {
+      for ( var i = 0; i < this.destination.jumpPoints.length; i++ ) {
+         var jumppoint = this.destination.jumpPoints[i];
+         if ( jumppoint.destination == this.source ) {
+            return jumppoint;
+         }
+      }
    },
 
    getMaterial: function() {
@@ -765,12 +773,30 @@ SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
    buildSceneObject: function () {
-      var star, label, glow, position;
+      var star, label, glow, position, lod, boxSize;
 
       this.sceneObject = new THREE.Object3D();
-      star = new THREE.Mesh( SCMAP.System.MESH, this.starMaterial() );
-      star.scale.set( this.scale, this.scale, this.scale );
+
+      // To make systems easier to click, we add an invisible cube to them
+      // (probably also easier for the raycaster)
+      star = new THREE.Mesh( SCMAP.System.CUBE, SCMAP.System.CUBE_MATERIAL );
+      star.visible = false;
+      boxSize = Math.min( 5.75, Math.max( 3.5, 5 * this.scale ) );
+      star.scale.set( boxSize, boxSize, boxSize );
       this.sceneObject.add( star );
+
+      // LOD for the systems to make them properly round up close
+      lod = new THREE.LOD();
+      for ( i = 0; i < SCMAP.System.LODMESH.length; i++ ) {
+         star = new THREE.Mesh( SCMAP.System.LODMESH[ i ][ 0 ], this.starMaterial() );
+         star.scale.set( this.scale, this.scale, this.scale );
+         star.updateMatrix();
+         star.matrixAutoUpdate = false;
+         lod.addLevel( star, SCMAP.System.LODMESH[ i ][ 1 ] );
+      }
+      lod.updateMatrix();
+      lod.matrixAutoUpdate = false;
+      this.sceneObject.add( lod );
 
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
@@ -789,7 +815,7 @@ SCMAP.System.prototype = {
       this.sceneObject.add( label );
 
       position = this.position.clone();
-      if ( localStorage.mode === '2d' ) {
+      if ( localStorage && localStorage.mode === '2d' ) {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
@@ -948,16 +974,18 @@ SCMAP.System.prototype = {
    },
 
    createInfoLink: function ( noIcons ) {
-      var _this = this, $line = $( '<a></a>' );
-      if ( typeof _this.faction !== 'undefined' && typeof _this.faction !== 'undefined' ) {
-         $line.css( 'color', _this.faction.color.getStyle() );
+      var $line = $( '<a></a>' );
+
+      if ( typeof this.faction !== 'undefined' && typeof this.faction !== 'undefined' ) {
+         $line.css( 'color', this.faction.color.getStyle() );
       }
+
       $line.addClass('system-link');
       $line.attr( 'data-goto', 'system' );
-      $line.attr( 'data-system', _this.id );
-      $line.attr( 'href', '#system='+encodeURI( _this.name ) );
-      $line.attr( 'title', 'Show information on '+_this.name );
-      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + _this.name );
+      $line.attr( 'data-system', this.id );
+      $line.attr( 'href', '#system='+encodeURI( this.name ) );
+      $line.attr( 'title', 'Show information on '+this.name );
+      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
 
       if ( !noIcons )
       {
@@ -965,12 +993,8 @@ SCMAP.System.prototype = {
          if ( icons.length )
          {
             var $span = $('<span class="icons"></span>');
-            var $icon, icon;
             for ( var i = 0; i < icons.length; i++ ) {
-               icon = icons[i]; 
-               $icon = $( '<i title="'+icon.description+'" class="fa fa-fw '+icon.faClass+'"></i>' );
-               $icon.css( 'color', icon.color );
-               $span.append( $icon );
+               $span.append( SCMAP.Symbol.getTag( icons[i] ) );
             }
             $line.append( $span );
          }
@@ -1003,9 +1027,7 @@ SCMAP.System.prototype = {
       return mySymbols;
    },
 
-   displayInfo: function ( system ) {
-      if ( typeof system === 'undefined' ) { system = this; }
-
+   displayInfo: function () {
       var worlds = '(No information)';
       var _import = '&mdash;';
       var _export = '&mdash;';
@@ -1014,16 +1036,18 @@ SCMAP.System.prototype = {
       var crimeStatus = 'Unknown';
       var i;
       var tmp = [];
-      var $blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
-      var currentStep = window.map.indexOfCurrentRoute( system );
+      var $blurb = $('<div class="sc_system_info" '+makeSafeForCSS(this.name)+'"></div>');
+      var currentStep = window.map.indexOfCurrentRoute( this );
 
       $('#systemname')
-         .attr( 'class', makeSafeForCSS( system.faction.name ) )
-         .css( 'color', system.faction.color.getStyle() )
-         .text( 'System: ' + system.name );
+         .attr( 'class', makeSafeForCSS( this.faction.name ) )
+         .css( 'color', this.faction.color.getStyle() )
+         .text( 'System: ' + this.name );
 
-      if ( typeof system.nickname === 'string' && system.nickname.length ) {
-         $blurb.append( '<h2 class="nickname">'+system.nickname+'</h2>' );
+      if ( typeof this.nickname === 'string' && this.nickname.length ) {
+         $('#systemnickname').text( this.nickname ).show();
+      } else {
+         $('#systemnickname').text( '' ).hide();
       }
 
       if ( typeof currentStep === 'number' )
@@ -1051,124 +1075,99 @@ SCMAP.System.prototype = {
             header.push( $('<i class="right fa fa-fw"></i>') );
          }
 
-         header.push( system.name );
+         header.push( this.name );
 
-         $('#systemname').empty().attr( 'class', makeSafeForCSS( system.faction.name ) ).append( header );
+         $('#systemname').empty().attr( 'class', makeSafeForCSS( this.faction.name ) ).append( header );
       }
 
-      if ( system.planetaryRotation.length ) {
-         worlds = system.planetaryRotation.join( ', ' );
+      if ( this.planetaryRotation.length ) {
+         worlds = this.planetaryRotation.join( ', ' );
       }
 
-      if ( system.import.length ) {
-         _import = $.map( system.import, function( elem, i ) {
+      if ( this.import.length ) {
+         _import = $.map( this.import, function( elem, i ) {
             return SCMAP.data.goods[ elem ].name;
          }).join( ', ' );
       }
 
-      if ( system.export.length ) {
-         _export = $.map( system.export, function( elem, i ) {
+      if ( this.export.length ) {
+         _export = $.map( this.export, function( elem, i ) {
             return SCMAP.data.goods[ elem ].name;
          }).join( ', ' );
       }
 
-      if ( system.blackMarket.length ) {
-         blackMarket = $.map( system.blackMarket, function( elem, i ) {
+      if ( this.blackMarket.length ) {
+         blackMarket = $.map( this.blackMarket, function( elem, i ) {
             return SCMAP.data.goods[ elem ].name;
          }).join( ', ' );
       }
 
-      //if ( typeof system.planets === 'string' || typeof system.planets === 'number' ) {
-      //   planets = system.planets;
+      //if ( typeof this.planets === 'string' || typeof this.planets === 'number' ) {
+      //   planets = this.planets;
       //}
 
-      if ( typeof system.crimeStatus === 'object' ) {
-         crimeStatus = system.crimeStatus.name;
+      if ( typeof this.crimeStatus === 'object' ) {
+         crimeStatus = this.crimeStatus.name;
       }
 
-      if ( typeof system.ueeStrategicValue === 'object' ) {
-         strategicValue = system.ueeStrategicValue.color;
+      if ( typeof this.ueeStrategicValue === 'object' ) {
+         strategicValue = this.ueeStrategicValue.color;
       }
 
-      $blurb.append( '<dl>' +
-         '<dt class="faction">Faction</dt><dd class="faction">'+system.faction.name+'</dd>' +
-         //'<dt class="planets">Planets</dt><dd class="planets">'+planets+'</dd>' +
-         '<dt class="rotation">Planetary rotation</dt><dd class="rotation">'+worlds+'</dd>' +
-         '<dt class="import">Import</dt><dd class="import">'+_import+'</dd>' +
-         '<dt class="export">Export</dt><dd class="export">'+_export+'</dd>' +
-         '<dt class="blackMarket">Black market</dt><dd class="crime">'+blackMarket+'</dd>' +
-         '<dt class="crime_'+crimeStatus.toLowerCase()+'">Crime status</dt><dd class="crime">'+crimeStatus+'</dd>' +
-         '<dt class="strategic_value_'+strategicValue.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+strategicValue+'</dd>' +
-      '</dl>' );
+      $("dl.basic-system dd.faction").text( this.faction.name );
+      //$("dl.basic-system dd.planets").text( planets );
+      $("dl.basic-system dd.rotation").html( worlds );
+      $("dl.basic-system dd.import").html( _import );
+      $("dl.basic-system dd.export").html( _export );
+      $("dl.basic-system dd.blackMarket").html( blackMarket );
+      $("dl.basic-system dt.crime").addClass( 'crime_'+crimeStatus.toLowerCase() );
+      $("dl.basic-system dd.crime").text( crimeStatus );
+      $("dl.basic-system dt.strategic").addClass( 'strategic_value_'+strategicValue.toLowerCase() );
+      $("dl.basic-system dd.strategic").text( strategicValue );
 
-      if ( system.faction.name !== 'Unclaimed' ) {
-         $blurb.find('dd.faction').css( 'color', system.faction.color.getStyle() );
+      if ( this.faction.name !== 'Unclaimed' ) {
+         $('dl.basic-system dd.faction').css( 'color', this.faction.color.getStyle() );
       }
 
-      $blurb.append( '<p class="user"></p>' );
+      // User's notes and bookmarks
 
-      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="hangar-location"><label class="fa-lg" for="hangar-location">Hangar Location</label></span>' );
-      $blurb.find('#hangar-location')
-         .prop( 'checked', system.hasHangar() )
-         .attr( 'data-system', system.id );
+      $('#hangar-location').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
+      $('#bookmark').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
 
-      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="bookmark"><label class="fa-lg" for="bookmark">Bookmarked</label></span></p>' );
-      $blurb.find('#bookmark')
-         .prop( 'checked', system.isBookmarked() )
-         .attr( 'data-system', system.id );
-
-      $blurb.find('p.user').append('<label for="comments">Your comments:</label><br><textarea id="comments"></textarea>');
-      if ( localStorage['comments.'+system.id] ) {
-         $blurb.find('#comments').append( localStorage['comments.'+system.id] );
+      if ( localStorage && localStorage['comments.'+this.id] ) {
+         $('#comments').empty().val( localStorage['comments.'+this.id] );
+         var $commentmd = $( markdown.toHTML( localStorage['comments.'+this.id] ) );
+         $('#comments-md').html( $commentmd );
+      } else {
+         $('#comments').empty().val('');
+         $('#comments-md').empty();
       }
 
-      if ( system.blob.length ) {
-         var $md = $(markdown.toHTML( system.blob ));
+      $('#comments').data( 'this-id', this.id );
+      $('#bookmark').data( 'this-id', this.id );
+      $('#hangar-location').data( 'this-id', this.id );
+
+      if ( this.blob.length ) {
+         var $md = $(markdown.toHTML( this.blob ));
          $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
          $blurb.append( '<div id="systemInfo">', $md, '</div>' );
+         $('#system-background-info').show();
+      } else {
+         $('#system-background-info').hide();
       }
 
-      if ( system.source ) {
-         $blurb.append( '<p><a class="system-source-url" href="' + system.source + '" target="_blank">(source)</a></p>' );
+      if ( this.source ) {
+         $blurb.append( '<p><a class="system-source-url" href="' + this.source + '" target="_blank">(source)</a></p>' );
       }
-
-      $blurb.append( '<div id="destinations">' );
 
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
 
-      $('#systemblurb #bookmark').on( 'change', function() {
-         if ( this.checked ) {
-            localStorage['bookmarks.'+system.id] = '1';
-         } else {
-            delete localStorage['bookmarks.'+system.id];
-         }
-         system.updateSceneObject( scene );
-      });
-      $('#systemblurb #hangar-location').on( 'change', function() {
-         if ( this.checked ) {
-            localStorage['hangarLocation.'+system.id] = '1';
-         } else {
-            delete localStorage['hangarLocation.'+system.id];
-         }
-         system.updateSceneObject( scene );
-      });
-      var getComments = function( event ) {
-         event.preventDefault();
-         var text = $(this).val();
-         if ( typeof text === 'string' && text.length > 0 ) {
-            localStorage['comments.'+system.id] = $(this).val();
-         } else {
-            delete localStorage['comments.'+system.id];
-         }
-         system.updateSceneObject( scene );
-      };
-      $('#systemblurb #comments').on( 'keyup', getComments );
-      $('#systemblurb #comments').on( 'blur', getComments );
-      $('#systemblurb #comments').on( 'change', getComments );
-
+      $('#map_ui #system-selected').show();
+      $('#map_ui #system-not-selected').hide();
       $('#map_ui').tabs( 'option', 'active', 2 );
       $('#map_ui').data( 'jsp' ).reinitialise();
+      $('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
    },
 
    // 2d/3d tween callback
@@ -1204,15 +1203,15 @@ SCMAP.System.prototype = {
    },
 
    isBookmarked: function ( ) {
-      return localStorage[ 'bookmarks.' + this.id ] === '1';
+      return localStorage && localStorage[ 'bookmarks.' + this.id ] === '1';
    },
 
    hasHangar: function ( ) {
-      return localStorage[ 'hangarLocation.' + this.id ] === '1';
+      return localStorage && localStorage[ 'hangarLocation.' + this.id ] === '1';
    },
 
    hasComments: function ( ) {
-      return localStorage[ 'comments.' + this.id ];
+      return localStorage && localStorage[ 'comments.' + this.id ];
    },
 
    isOffLimits: function ( ) {
@@ -1374,6 +1373,16 @@ SCMAP.System.preprocessSystems = function () {
 
 SCMAP.System.List = [];
 
+SCMAP.System.SortedList = function() {
+   var array = [];
+   var i = SCMAP.System.List.length;
+   while( i-- ) {
+      array[i] = SCMAP.System.List[i];
+   }
+   var sorted = array.sort( humanSort );
+   return sorted;
+};
+
 SCMAP.System.getByName = function ( name ) {
    return SCMAP.data.systems[ name ];
 };
@@ -1395,23 +1404,36 @@ SCMAP.System.COLORS = {
    UNKNOWN: 0xFFFFFF //0xC0FFC0
 };
 SCMAP.System.LABEL_SCALE = 0.06;
-SCMAP.System.GLOW_SCALE = 6;
-SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
+SCMAP.System.GLOW_SCALE = 6.5;
+
+SCMAP.System.CUBE = new THREE.CubeGeometry( 1, 1, 1 );
+//SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
+
+SCMAP.System.LODMESH = [
+   [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],
+   [ new THREE.IcosahedronGeometry( 1, 2 ), 50 ],
+   [ new THREE.IcosahedronGeometry( 1, 1 ), 150 ]
+];
+
 //
-SCMAP.System.STAR_MATERIAL_RED = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.RED, name: 'STAR_MATERIAL_RED' });
-SCMAP.System.STAR_MATERIAL_BLUE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.BLUE, name: 'STAR_MATERIAL_BLUE' });
+//SCMAP.System.STAR_MATERIAL_RED = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.RED, name: 'STAR_MATERIAL_RED' });
+//SCMAP.System.STAR_MATERIAL_BLUE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.BLUE, name: 'STAR_MATERIAL_BLUE' });
 SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
-SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.YELLOW, name: 'STAR_MATERIAL_YELLOW' });
-SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
-SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
+//SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.YELLOW, name: 'STAR_MATERIAL_YELLOW' });
+//SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
+//SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
+//
+SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0 });
+SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
+SCMAP.System.CUBE_MATERIAL.transparent = true;
 //
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
-SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
-SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
-SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
-SCMAP.System.GLOW_MATERIAL_YELLOW =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.YELLOW  });
-SCMAP.System.GLOW_MATERIAL_ORANGE =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.ORANGE  });
-SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.UNKNOWN });
+//SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
+//SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
+//SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
+//SCMAP.System.GLOW_MATERIAL_YELLOW =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.YELLOW  });
+//SCMAP.System.GLOW_MATERIAL_ORANGE =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.ORANGE  });
+//SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.UNKNOWN });
 // EOF
 
 /**
@@ -1516,15 +1538,15 @@ var distAU;
             jumpPoint = currentNode.system.jumpPoints[i];
             otherNode = this._mapping[ jumpPoint.destination.id ];
 
-            if ( jumpPoint.isUnconfirmed() && localStorage['route.avoidUnknownJumppoints'] === '1' ) {
+            if ( jumpPoint.isUnconfirmed() && localStorage && localStorage['route.avoidUnknownJumppoints'] === '1' ) {
                continue;
             }
 
             // Don't go into "hostile" nodes, unless we already are in one
-            if ( localStorage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( localStorage && localStorage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                continue;
             }
-            if ( localStorage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
+            if ( localStorage && localStorage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
                continue;
             }
 
@@ -1558,7 +1580,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
             }
 
             // Get out of "never" nodes asap by increasing the cost massively
-            if ( localStorage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( localStorage && localStorage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                distance *= 15;
             }
 
@@ -1594,7 +1616,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
       var source = this._result.source;
       var destination = this._result.destination;
 
-console.log( "rebuildGraph from", source, 'to', destination );
+      //console.log( "rebuildGraph from", source, 'to', destination );
       this.destroyGraph();
 
       if ( source instanceof SCMAP.System ) {
@@ -1724,7 +1746,7 @@ SCMAP.Map = function ( scene ) {
    this.canEdit = false;
    $('#map_ui li.editor').hide();
 
-   this.populateScene();
+   this.preprocessScene();
    this._graph = new SCMAP.Dijkstra( SCMAP.System.List );
    this._routeObject = undefined;
 };
@@ -1776,6 +1798,8 @@ SCMAP.Map.prototype = {
    deselect: function ( ) {
       this._selectorObject.visible = false;
       this._selected = undefined;
+      $('#system-selected').hide();
+      $('#system-not-selected').show();
    },
 
    animateSelector: function ( ) {
@@ -1994,7 +2018,10 @@ SCMAP.Map.prototype = {
    updateRoute: function ( destination ) {
       var _this = this, i, route, material, system, $entry;
 
-      material = new THREE.LineBasicMaterial( { color: 0xFF00FF, linewidth: 2.5 } );
+      material = new THREE.MeshBasicMaterial( { color: 0xDD3322 } );
+      material.opacity = 0.8;
+      material.transparent = true;
+      //material.blending = THREE.AdditiveBlending;
 
       this.destroyCurrentRoute();
 
@@ -2002,7 +2029,7 @@ SCMAP.Map.prototype = {
       // the constructRouteObject method will iterate for us here with the callback
       this._routeObject = _this._graph.constructRouteObject( _this._selected, destination, function ( from, to ) {
          var mesh = _this.createRouteMesh( from, to );
-         var line = new THREE.Line( mesh, material );
+         var line = new THREE.Mesh( mesh, material );
          line.position = from.sceneObject.position.clone();
          line.lookAt( to.sceneObject.position );
          return line;
@@ -2027,7 +2054,7 @@ SCMAP.Map.prototype = {
          else
          {
             $('#routelist').append('<p class="impossible">No route available to '+
-               route[0].system.createInfoLink().outerHtml()+' with your current settings</p>');
+               route[0].system.createInfoLink( true ).outerHtml()+' with your current settings</p>');
          }
 
          $('#map_ui').tabs( 'option', 'active', 3 );
@@ -2035,6 +2062,28 @@ SCMAP.Map.prototype = {
    },
 
    createRouteMesh: function ( source, destination ) {
+      var step = 2 * Math.PI / 16,
+          zstep = 0.5,
+          radius = 0.5,
+          geometry, // = new THREE.Geometry(),
+          distance = source.sceneObject.position.distanceTo( destination.sceneObject.position ),
+          z = 0, theta, x, y;
+
+      geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
+      geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, distance / 2, 0 ) );
+      geometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
+
+      //for ( theta = 0; z < distance; theta += step )
+      //{
+      //   x = radius * Math.cos( theta );
+      //   y = 0 - radius * Math.sin( theta );
+      //   geometry.vertices.push( new THREE.Vector3( x, y, z ) );
+      //   z += zstep;
+      //}
+      return geometry;
+   },
+
+   createRouteMeshTwirl: function ( source, destination ) {
       var step = 2 * Math.PI / 16,
           zstep = 0.5,
           radius = 0.5,
@@ -2052,6 +2101,12 @@ SCMAP.Map.prototype = {
       return geometry;
    },
 
+   preprocessScene: function () {
+      SCMAP.Faction.preprocessFactions();
+      SCMAP.Goods.preprocessGoods();
+      SCMAP.System.preprocessSystems();
+   },
+
    populateScene: function () {
       var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
@@ -2063,10 +2118,6 @@ SCMAP.Map.prototype = {
 
       // TODO: clean up the existing scene and map data when populating with
       // new data
-
-      SCMAP.Faction.preprocessFactions();
-      SCMAP.Goods.preprocessGoods();
-      SCMAP.System.preprocessSystems();
 
       // First we go through the data to build the basic systems so
       // the routes can be built as well
@@ -2452,6 +2503,320 @@ if ( arr[0] <= 45 && arr[1] ) {
 };
 
 
+function initUI () {
+
+   $('#bookmark-list-header a').append( SCMAP.Symbol.getTag( SCMAP.Symbols.BOOKMARK ).addClass('fa-lg') );
+   $('#hangar-list-header a').append( SCMAP.Symbol.getTag( SCMAP.Symbols.HANGAR ).addClass('fa-lg') );
+   $('#commented-list-header a').append( SCMAP.Symbol.getTag( SCMAP.Symbols.COMMENTS ).addClass('fa-lg') );
+
+   $('#faction-list').empty();
+   for ( var factionId in SCMAP.data.factions ) {
+      var faction = SCMAP.data.factions[factionId];
+      var $factionHeader = $('<h3><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>'+faction.name+'</a></h3>');
+          $factionHeader.find('a').css( 'color', faction.color.getStyle() );
+      var $factionSystems = $('<ul style="display: none;" id="list-faction-'+faction.id+'" class="fa-ul ui-section"></ul>');
+      $('#faction-list').append( $factionHeader ).append( $factionSystems );
+   }
+
+   $( "#map_ui" ).tabs({
+      active: 0,
+      activate: function( event, ui ) {
+         event.preventDefault();
+         var clicked_on = ui.newTab.find('a').attr('href');
+
+         switch ( clicked_on ) {
+
+            case '#editor':
+               if ( map.canEdit ) {
+                  $('#webgl-container').removeClass().addClass( 'noselect webgl-container-edit' );
+                  window.editor.enabled = true;
+                  window.controls.requireAlt = true;
+               }
+               break;
+
+            case '#listing':
+               var systems = SCMAP.System.SortedList();
+               var bookmarkCount = 0, hangarCount = 0, commentedCount = 0;
+               var system;
+
+               $('#hangar-list').empty();
+               $('#bookmark-list').empty();
+               $('#commented-list').empty();
+               $('#a-z-list').empty();
+
+               for ( var i = 0; i < systems.length; i += 1 ) {
+                  system = systems[ i ];
+                  var link = system.createInfoLink().outerHtml();
+
+                  if ( localStorage && localStorage[ 'hangarLocation.' + system.id ] === '1' ) {
+                     hangarCount += 1;
+                     $('#hangar-list').append( $('<li>'+link+'</li>') );
+                  }
+
+                  if ( localStorage && localStorage[ 'bookmarks.' + system.id ] === '1' ) {
+                     bookmarkCount += 1;
+                     $('#bookmark-list').append( $('<li>'+link+'</li>') );
+                  }
+
+                  if ( localStorage ) {
+                     if ( 'comments.'+system.id in localStorage ) {
+                        commentedCount += 1;
+                        $('#commented-list').append( $('<li>'+link+'</li>') );
+                     }
+                  }
+
+                  $('#a-z-list').append( $('<li>'+link+'</li>') );
+               }
+
+               if ( bookmarkCount > 0 ) {
+                  $('#bookmark-list-wrapper').show();
+               } else {
+                  $('#bookmark-list-wrapper').hide();
+               }
+
+               if ( hangarCount > 0 ) {
+                  $('#hangar-list-wrapper').show();
+               } else {
+                  $('#hangar-list-wrapper').hide();
+               }
+
+               if ( commentedCount > 0 ) {
+                  $('#commented-list-wrapper').show();
+               } else {
+                  $('#commented-list-wrapper').hide();
+               }
+
+               for ( var factionId in SCMAP.data.factions ) {
+                  var faction = SCMAP.data.factions[factionId];
+                  $('#list-faction-'+faction.id).empty();
+                  for ( i = 0; i < systems.length; i += 1 ) {
+                     system = systems[i];
+                     if ( system.faction.id === faction.id ) {
+                        $('#list-faction-'+faction.id).append( '<li>'+system.createInfoLink().outerHtml()+'</li>' );
+                     }
+                  }
+               }
+
+               break;
+
+            default:
+               $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
+               window.editor.enabled = false;
+               window.controls.requireAlt = false;
+               //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
+               //   map.selected().displayInfo();
+               //}
+               break;
+         }
+
+         $('#map_ui').data( 'jsp' ).reinitialise();
+      }
+   });
+
+   /* jScrollPane */
+   $('#map_ui').jScrollPane({ showArrows: true });
+
+   $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
+   $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
+   $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
+   $('#avoid-hostile').prop( 'checked', ( localStorage && localStorage['route.avoidHostile'] === '1' ) );
+   $('#avoid-off-limits').prop( 'checked', ( localStorage && localStorage['route.avoidOffLimits'] === '1' ) );
+   $('#avoid-unknown-jumppoints').prop( 'checked', ( localStorage && localStorage['route.avoidUnknownJumppoints'] === '1' ) );
+
+   for ( var icon in SCMAP.Symbols ) {
+      icon = SCMAP.Symbols[ icon ];
+      var $li = $('<li><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</li>' );
+      $li.css( 'color', icon.color );
+      $('#map_ui ul.legend').append( $li );
+   }
+
+   // Event handlers
+
+   $('#toggle-fxaa').prop( 'checked', ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false );
+   $('#toggle-bloom').prop( 'checked', ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false );
+
+   $('#3d-mode').prop( 'checked', localStorage && localStorage.mode === '3d' );
+
+   // Some simple UI stuff
+
+   $('#lock-rotation').prop( 'checked', localStorage && localStorage['control.rotationLocked'] === '1' );
+
+   $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
+
+   $('#avoid-hostile').on( 'change', function() {
+      if ( localStorage ) {
+         localStorage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
+      }
+      map.rebuildCurrentRoute();
+   });
+   $('#avoid-off-limits').on( 'change', function() {
+      if ( localStorage ) {
+         localStorage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
+         map.rebuildCurrentRoute();
+      }
+   });
+   $('#avoid-unknown-jumppoints').on( 'change', function() {
+      if ( localStorage ) {
+         localStorage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
+         map.rebuildCurrentRoute();
+      }
+   });
+
+   $('#lock-rotation').on( 'change', function() {
+      controls.noRotate = this.checked;
+      if ( localStorage ) {
+         localStorage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+      }
+   });
+   $('#toggle-fxaa').on( 'change', function() {
+      effectFXAA.enabled = this.checked;
+      if ( localStorage ) {
+         localStorage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
+      }
+   });
+   $('#toggle-bloom').on( 'change', function() {
+      effectBloom.enabled = this.checked;
+      if ( localStorage ) {
+         localStorage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
+      }
+   });
+
+   $('#toggle-glow').on( 'change', function() {
+      SCMAP.settings.glow = this.checked;
+      map.updateSystems();
+      if ( localStorage ) {
+         localStorage['settings.Glow'] = ( this.checked ) ? '1' : '0';
+      }
+   });
+   $('#toggle-labels').on( 'change', function() {
+      SCMAP.settings.labels = this.checked;
+      map.updateSystems();
+      if ( localStorage ) {
+         localStorage['settings.Labels'] = ( this.checked ) ? '1' : '0';
+      }
+   });
+   $('#toggle-label-icons').on( 'change', function() {
+      SCMAP.settings.labelIcons = this.checked;
+      map.updateSystems();
+      if ( localStorage ) {
+         localStorage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
+      }
+   });
+
+   $('#resetCamera').on( 'click', function() {
+      controls.cameraTo( cameraDefaults.target, cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+   });
+   $('#centreCamera').on( 'click', function() {
+      controls.moveTo( cameraDefaults.target );
+   });
+   $('#northCamera').on( 'click', function() {
+      controls.rotateTo( 0, undefined, undefined );
+   });
+   $('#topCamera').on( 'click', function() {
+      controls.rotateTo( 0, 0, 180 );
+   });
+   $('#top2D').on( 'click', function() {
+      controls.noRotate = true;
+      $('#lock-rotation').prop( 'checked', true );
+      displayState.to2d();
+      controls.rotateTo( 0, 0, 180 );
+   });
+   $('.quick-button.with-checkbox').on( 'click', function ( event ) {
+      var $this = $(this);
+      $this.find('input[type=checkbox]').click();
+   });
+
+   $('#map_ui').on( 'click', 'a[data-toggle-next]', function ( event ) {
+      var $this = $(this);
+      event.preventDefault();
+      var $element = $this.parent().next();
+      $element.toggle();
+      if ( $element.is(':visible') ) {
+         $this.parent().find('> a > i').first().removeClass('fa-caret-right').addClass('fa-caret-down');
+      } else {
+         $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
+      }
+      $('#map_ui').data( 'jsp' ).reinitialise();
+   });
+
+   $('#map_ui').on( 'click', 'a[data-toggle-child]', function ( event ) {
+      var $this = $(this);
+      event.preventDefault();
+      var $element = $this.parent().find( $this.data('toggle-child') );
+      $element.toggle();
+      if ( $element.is(':visible') ) {
+         $this.parent().find('> a > i').removeClass('fa-caret-right').addClass('fa-caret-down');
+      } else {
+         $this.parent().find('> a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
+      }
+      $('#map_ui').data( 'jsp' ).reinitialise();
+   });
+
+   $('#map_ui').on( 'click', "a[data-goto='system']", function( event ) {
+      event.preventDefault();
+      var $this = $(this);
+      var system = SCMAP.System.getById( $this.data('system') );
+      system.displayInfo();
+      controls.moveTo( system );
+   });
+
+   var updateComments = function( event ) {
+      event.preventDefault();
+      if ( !localStorage ) { return; }
+      var system = SCMAP.System.getById( $(this).data('system-id') );
+      var text = $(this).val();
+      if ( typeof text === 'string' && text.length > 0 ) {
+         localStorage['comments.'+system.id] = text;
+         //$md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
+         var $commentmd = $(markdown.toHTML( text ));
+         $('#comments-md').html( $commentmd );
+      } else {
+         delete localStorage['comments.'+system.id];
+         $('#comments-md').empty();
+      }
+      system.updateSceneObject( scene );
+   };
+   $('#comments').on( 'keyup', updateComments );
+   $('#comments').on( 'blur', updateComments );
+   $('#comments').on( 'change', updateComments );
+
+   $('#bookmark').on( 'change', function() {
+      var system = SCMAP.System.getById( $(this).data('system-id') );
+      if ( !localStorage ) { return; }
+      if ( this.checked ) {
+         localStorage['bookmarks.'+system.id] = '1';
+      } else {
+         delete localStorage['bookmarks.'+system.id];
+      }
+      system.updateSceneObject( scene );
+   });
+
+   $('#hangar-location').on( 'change', function() {
+      var system = SCMAP.System.getById( $(this).data('system-id') );
+      if ( !localStorage ) { return; }
+      if ( this.checked ) {
+         localStorage['hangarLocation.'+system.id] = '1';
+      } else {
+         delete localStorage['hangarLocation.'+system.id];
+      }
+      system.updateSceneObject( scene );
+   });
+}
+
+function makeSafeForCSS( name ) {
+   if ( typeof name !== 'string' ) {
+      return;
+   }
+   return name.replace( /[^a-zA-Z0-9]/g, function(s) {
+      var c = s.charCodeAt(0);
+      if (c == 32) return '-';
+      if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
+      return (c.toString(16)).slice(-4);
+   });
+}
+
+// End of file
+
 var effectFXAA, camera, scene, renderer, composer, map, dpr,
    shift, ctrl, alt, controls, editor, stats, displayState,
    localStorage, cameraDefaults = {
@@ -2465,31 +2830,6 @@ var effectFXAA, camera, scene, renderer, composer, map, dpr,
    };
 
 $(function() {
-   //$( "#map_ui menubar" ).on( 'click', function ( event ) { event.preventDefault(); } );
-   $( "#map_ui" ).tabs({
-      active: 0,
-      activate: function( event, ui ) {
-         event.preventDefault();
-         var clicked_on = ui.newTab.find('a').attr('href');
-         if ( clicked_on === '#editor' && map.canEdit ) {
-            $('#webgl-container').removeClass().addClass( 'noselect webgl-container-edit' );
-            window.editor.enabled = true;
-            window.controls.requireAlt = true;
-         } else {
-            $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
-            window.editor.enabled = false;
-            window.controls.requireAlt = false;
-            //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
-            //   map.selected().displayInfo();
-            //}
-         }
-         $('#map_ui').data( 'jsp' ).reinitialise();
-      }
-   });
-
-   /* jScrollPane */
-   $('#map_ui').jScrollPane({ showArrows: true });
-
    if ( ! Detector.webgl ) {
       Detector.addGetWebGLMessage();
    }
@@ -2504,8 +2844,9 @@ function init()
 
    if ( hasLocalStorage() ) {
       localStorage = window.localStorage;
+      console.log( "We have localStorage" );
    } else {
-      localStorage = {};
+      console.log( "We don't have localStorage :(" );
    }
 
    dpr = 1;
@@ -2513,15 +2854,9 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( localStorage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( localStorage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( localStorage['settings.LabelIcons'] === '0' ) ? false : true;
-   $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
-   $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
-   $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-   $('#avoid-hostile').prop( 'checked', ( localStorage['route.avoidHostile'] === '1' ) );
-   $('#avoid-off-limits').prop( 'checked', ( localStorage['route.avoidOffLimits'] === '1' ) );
-   $('#avoid-unknown-jumppoints').prop( 'checked', ( localStorage['route.avoidUnknownJumppoints'] === '1' ) );
+   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
 
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
@@ -2552,6 +2887,7 @@ function init()
    controls.maxDistance = 800;
    controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
+   controls.noRotate = ( localStorage && localStorage['control.rotationLocked'] === '1' ) ? true : false;
 
    scene = new THREE.Scene();
 
@@ -2563,24 +2899,13 @@ function init()
    map = new SCMAP.Map( scene );
    controls.map = map;
 
-   var arr = []; for ( var system in SCMAP.data.systems ) { arr.push( system ); }
-   var arr2 = arr.sort( humanSort );
-   var $li;
-   for ( i = 0; i < arr2.length; i++ ) {
-      system = SCMAP.data.systems[ arr[i] ];
-      $('#system-list ul').append( $('<li>'+system.createInfoLink().outerHtml()+'</li>') );
-   }
-
-   for ( var icon in SCMAP.Symbols ) {
-      icon = SCMAP.Symbols[ icon ];
-      $li = $('<li><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</li>' );
-      $li.css( 'color', icon.color );
-      $('#map_ui ul.legend').append( $li );
-   }
-
    editor = new SCMAP.Editor( map, camera );
    editor.panSpeed = 0.6;
    document.addEventListener( 'change', render );
+
+   initUI();
+
+   map.populateScene();
 
    // Stats
 
@@ -2607,10 +2932,8 @@ function init()
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
-   effectFXAA.enabled  = ( localStorage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( localStorage['effect.Bloom'] === '1' ) ? true : false;
-   $('#toggle-fxaa').prop( 'checked', effectFXAA.enabled );
-   $('#toggle-bloom').prop( 'checked', effectBloom.enabled );
+   effectFXAA.enabled  = ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false;
+   effectBloom.enabled = ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false;
 
    composer = new THREE.EffectComposer( renderer );
    composer.setSize( width * dpr, height * dpr );
@@ -2619,8 +2942,7 @@ function init()
    composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
-   displayState = buildDisplayModeFSM( ( localStorage.mode ) ? localStorage.mode : '2d' );
-   $('#3d-mode').prop( 'checked', localStorage.mode === '3d' );
+   displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage && localStorage.mode : '2d' );
 
 //var smokeParticles = new THREE.Geometry();
 //for (i = 0; i < 25; i++) {
@@ -2642,94 +2964,6 @@ function init()
 //
 //scene.add(smoke);
 
-   // Some simple UI stuff
-
-   $('#lock-rotation').prop( 'checked', localStorage['control.rotationLocked'] === '1' );
-   controls.noRotate = localStorage['control.rotationLocked'] === '1';
-
-   $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
-
-   $('#avoid-hostile').on( 'change', function() {
-      localStorage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
-      map.rebuildCurrentRoute();
-   });
-   $('#avoid-off-limits').on( 'change', function() {
-      localStorage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
-      map.rebuildCurrentRoute();
-   });
-   $('#avoid-unknown-jumppoints').on( 'change', function() {
-      localStorage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
-      map.rebuildCurrentRoute();
-   });
-
-   $('#lock-rotation').on( 'change', function() {
-      controls.noRotate = this.checked;
-      localStorage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-fxaa').on( 'change', function() {
-      effectFXAA.enabled = this.checked;
-      localStorage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-bloom').on( 'change', function() {
-      effectBloom.enabled = this.checked;
-      localStorage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
-   });
-
-   $('#toggle-glow').on( 'change', function() {
-      SCMAP.settings.glow = this.checked;
-      map.updateSystems();
-      localStorage['settings.Glow'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-labels').on( 'change', function() {
-      SCMAP.settings.labels = this.checked;
-      map.updateSystems();
-      localStorage['settings.Labels'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-label-icons').on( 'change', function() {
-      SCMAP.settings.labelIcons = this.checked;
-      map.updateSystems();
-      localStorage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
-   });
-
-   $('#resetCamera').on( 'click', function() {
-      controls.cameraTo( cameraDefaults.target, cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
-   });
-   $('#centreCamera').on( 'click', function() {
-      controls.moveTo( cameraDefaults.target );
-   });
-   $('#northCamera').on( 'click', function() {
-      controls.rotateTo( 0, undefined, undefined );
-   });
-   $('#topCamera').on( 'click', function() {
-      controls.rotateTo( 0, 0, 180 );
-   });
-   $('#top2D').on( 'click', function() {
-      controls.noRotate = true;
-      $('#lock-rotation').prop( 'checked', true );
-      displayState.to2d();
-      controls.rotateTo( 0, 0, 180 );
-   });
-   $('.quick-button.with-checkbox').on( 'click', function ( event ) {
-      var $this = $(this);
-      $this.find('input[type=checkbox]').click();
-   });
-   $('#keyboard-shortcuts').on( 'click', function ( event ) {
-      var $this = $(this);
-      //$.toggle(!$('#keyboard-shortcuts dl').is(':visible')); // or:
-      $('#keyboard-shortcuts dl').toggle();
-      if ( $('#keyboard-shortcuts dl').is(':visible') ) {
-         $('#keyboard-shortcuts > a > i').removeClass('fa-caret-right').addClass('fa-caret-down');
-      } else {
-         $('#keyboard-shortcuts > a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
-      }
-   });
-
-   $('#map_ui').on( 'click', "a[data-goto='system']", function() {
-      var $this = $(this);
-      var system = SCMAP.System.getById( $this.data('system') );
-      system.displayInfo();
-      controls.moveTo( system );
-   });
 }
 
 function buildCross () {
@@ -2776,18 +3010,6 @@ function onWindowResize() {
    composer.reset();
 }
 
-function makeSafeForCSS( name ) {
-   if ( typeof name !== 'string' ) {
-      return;
-   }
-   return name.replace( /[^a-zA-Z0-9]/g, function(s) {
-      var c = s.charCodeAt(0);
-      if (c == 32) return '-';
-      if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
-      return (c.toString(16)).slice(-4);
-   });
-}
-
 function buildDisplayModeFSM ( initialState )
 {
    var tweenTo2d, tweenTo3d, position, fsm;
@@ -2831,12 +3053,12 @@ function buildDisplayModeFSM ( initialState )
       callbacks: {
          onenter2d: function() {
             $('#3d-mode').prop( 'checked', false );
-            localStorage.mode = '2d';
+            if ( localStorage ) { localStorage.mode = '2d'; }
          },
 
          onenter3d: function() {
             $('#3d-mode').prop( 'checked', true );
-            localStorage.mode = '3d';
+            if ( localStorage ) { localStorage.mode = '3d'; }
          },
 
          onleave2d: function() {
@@ -2880,6 +3102,12 @@ function animate() {
 }
 
 function render() {
+   scene.updateMatrixWorld();
+   scene.traverse( function ( object ) {
+      if ( object instanceof THREE.LOD ) {
+         object.update( camera );
+      }
+   } );
    map.animateSelector();
    renderer.clear();
    composer.render();
@@ -2887,7 +3115,7 @@ function render() {
 
 function hasLocalStorage() {
    try {
-      return 'localStorage' in window && window.localStorage !== null;
+      return 'localStorage' in window && window.localStorage !== null && window.localStorage !== undefined;
    } catch (e) {
       return false;
    }
@@ -2899,8 +3127,8 @@ jQuery.fn.outerHtml = function() {
 
 function humanSort( a, b ) {
    var x, cmp1, cmp2;
-   var aa = a.split(/(\d+)/);
-   var bb = b.split(/(\d+)/);
+   var aa = a.name.split(/(\d+)/);
+   var bb = b.name.split(/(\d+)/);
 
    for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
    {
@@ -2921,4 +3149,3 @@ function humanSort( a, b ) {
 }
 
 // End of file
-

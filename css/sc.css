@@ -47,14 +47,14 @@ a.system-link span.icons {
 }
 
 #info p.user label[for="comments"] {
-   font-size: 1.2em;
+   font-size: 1.5em;
 }
 #info textarea#comments {
-   width: 90%;
+   width: 100%;
    height: 5em;
-   max-width: 90%;
-   margin-left: 1em;
-   margin-top: 0.5em;
+   max-width: 100%;
+   /* margin-left: 1em;
+   margin-top: 0.5em; */
    font-family: Electrolize, sans-serif;
    background: #333;
    color: white;
@@ -134,13 +134,21 @@ a.system-link span.icons {
    display: inline-block;
 }
 
-#map_ui h1 {
+#map_ui h1, #map_ui h2, #map_ui h3, #map_ui h4, #map_ui h5, #map_ui h6 {
+   width: 100%;
    color: #6ABBCF;
+   width: 99%;
+}
+#map_ui h1 a, #map_ui h2 a, #map_ui h3 a, #map_ui h4 a, #map_ui h5 a, #map_ui h6 a {
+   width: auto;
+   display: block;
+}
+
+#map_ui h1 {
    font-size: 20px;
    padding: 0px;
    margin: 0px;
    margin-top: 10px;
-   width: 99%;
 }
 #map_ui h1 i {
    height: 20px;
@@ -148,35 +156,46 @@ a.system-link span.icons {
 #map_ui h1 a.right {
    float: right;
 }
+#map_ui h1 + h2 {
+   padding-left: 0.4em;
+}
 #map_ui h2 {
-   color: #6ABBCF;
    font-size: 16px;
    padding: 0px;
-   margin: 0px;
    margin-top: 4px;
-   width: 99%;
 }
-#map_ui h2.nickname:before { content: "“"; }
-#map_ui h2.nickname:after { content: "”"; }
+#map_ui img { max-width: 100%; height: auto; }
+#map_ui .quote:before { content: "“"; }
+#map_ui .quote:after { content: "”"; }
 
 #map_ui p {
    clear: both;
    padding-top: 0.5em;
 }
-#map_ui p a {
+#map_ui h1#blurbheader { margin-bottom: 1em; }
+#map_ui #systemblurb { margin-bottom: 3em; }
+#map_ui div.user p, #map_ui .sc_system_info p {
+   line-height: 20px;
 }
 #map_ui .blurb_hidden {
    display: none;
 }
-
-#map_ui ul + h1 {
-   margin-top: 1.2em;
+#map_ui h1 {
+   float: none;
+   clear: both;
+   margin-top: 0.5em;
 }
+#map_ui h1#systemname, #map_ui h1.padleft {
+   margin-left: 0.25em;
+}
+#map_ui h1#systemname a {
+   display: inline;
+}
+
 #map_ui ul.instructions li, #map_ui ul.legend li {
    margin-top: 0.5em;
    margin-bottom: 0.5em;
 }
-#map_ui p + h1 { margin-top: 1.2em; }
 
 #map_ui button {
    -webkit-border-radius: 5px;
@@ -197,9 +216,15 @@ a.system-link span.icons {
    margin-top: 1em;
    margin-bottom: 1em;
 }
+#map_ui .ui-section {
+   padding-left: 1.5em;
+   padding-right: 1em;
+   margin-top: 0.5em;
+   margin-bottom: 0.5em;
+}
 #map_ui p.impossible {
    color: #FF6666;
-   font-size: 1.3em;
+   font-size: 1.2em;
    font-weight: bold;
 }
 
@@ -233,28 +258,68 @@ span.quick-button {
 dl {
    border: none;
    padding: 0;
+   margin-left: 2em;
 }
 dt {
    float: left;
    clear: left;
-   width: 140px;
    text-align: right;
    font-weight: bold;
    color: #6ABBCF;
 }
-dt:after {
-   content: ": ";
+dl.wide {
+   margin-left: 0;
+   padding-left: 0;
+   padding-right: 0;
 }
-#keyboard-shortcuts dt {
-   width: 25px;
+dl.wide dt {
+   width: 140px;
 }
-dd {
+
+dl.wide dd {
    margin: 0 0 0 145px;
    padding: 0 0 0.4em 0;
 }
+/*
 #keyboard-shortcuts dd {
    width: 250px;
    margin: 0 0 0 35px;
+}
+*/
+
+dt:after {
+   content: ": ";
+}
+
+#map_ui #listing h1 {
+   margin-bottom: 0.5em;
+}
+#map_ui #listing ul {
+   margin-left: 0;
+   margin-bottom: 1.5em;
+}
+#map_ui #listing ul li, #map_ui #routelist {
+   font-size: 1.2em;
+   line-height: 1.5em;
+}
+#map_ui #listing ul li a:hover {
+   background: #444444;
+}
+
+#map_ui a[data-toggle-next] {
+   margin-top: 1em;
+}
+#map_ui .quick-button label {
+   cursor: pointer;
+   margin-top: 0.5em;
+}
+#map_ui .quick-button label .label-info {
+   font-size: 0.8em;
+   line-height: 1.2em;
+   color: #ddd;
+   display: block;
+   margin-top: 0.5em;
+   margin-bottom: 1.5em;
 }
 
 /*

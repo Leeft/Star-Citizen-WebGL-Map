@@ -11,31 +11,6 @@ var effectFXAA, camera, scene, renderer, composer, map, dpr,
    };
 
 $(function() {
-   //$( "#map_ui menubar" ).on( 'click', function ( event ) { event.preventDefault(); } );
-   $( "#map_ui" ).tabs({
-      active: 0,
-      activate: function( event, ui ) {
-         event.preventDefault();
-         var clicked_on = ui.newTab.find('a').attr('href');
-         if ( clicked_on === '#editor' && map.canEdit ) {
-            $('#webgl-container').removeClass().addClass( 'noselect webgl-container-edit' );
-            window.editor.enabled = true;
-            window.controls.requireAlt = true;
-         } else {
-            $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
-            window.editor.enabled = false;
-            window.controls.requireAlt = false;
-            //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
-            //   map.selected().displayInfo();
-            //}
-         }
-         $('#map_ui').data( 'jsp' ).reinitialise();
-      }
-   });
-
-   /* jScrollPane */
-   $('#map_ui').jScrollPane({ showArrows: true });
-
    if ( ! Detector.webgl ) {
       Detector.addGetWebGLMessage();
    }
@@ -50,8 +25,9 @@ function init()
 
    if ( hasLocalStorage() ) {
       localStorage = window.localStorage;
+      console.log( "We have localStorage" );
    } else {
-      localStorage = {};
+      console.log( "We don't have localStorage :(" );
    }
 
    dpr = 1;
@@ -59,15 +35,9 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( localStorage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( localStorage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( localStorage['settings.LabelIcons'] === '0' ) ? false : true;
-   $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
-   $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
-   $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-   $('#avoid-hostile').prop( 'checked', ( localStorage['route.avoidHostile'] === '1' ) );
-   $('#avoid-off-limits').prop( 'checked', ( localStorage['route.avoidOffLimits'] === '1' ) );
-   $('#avoid-unknown-jumppoints').prop( 'checked', ( localStorage['route.avoidUnknownJumppoints'] === '1' ) );
+   SCMAP.settings.glow = ( localStorage && localStorage['settings.Glow'] === '0' ) ? false : true;
+   SCMAP.settings.labels = ( localStorage && localStorage['settings.Labels'] === '0' ) ? false : true;
+   SCMAP.settings.labelIcons = ( localStorage && localStorage['settings.LabelIcons'] === '0' ) ? false : true;
 
    container = document.createElement( 'div' );
    container.id = 'webgl-container';
@@ -98,6 +68,7 @@ function init()
    controls.maxDistance = 800;
    controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
+   controls.noRotate = ( localStorage && localStorage['control.rotationLocked'] === '1' ) ? true : false;
 
    scene = new THREE.Scene();
 
@@ -109,24 +80,13 @@ function init()
    map = new SCMAP.Map( scene );
    controls.map = map;
 
-   var arr = []; for ( var system in SCMAP.data.systems ) { arr.push( system ); }
-   var arr2 = arr.sort( humanSort );
-   var $li;
-   for ( i = 0; i < arr2.length; i++ ) {
-      system = SCMAP.data.systems[ arr[i] ];
-      $('#system-list ul').append( $('<li>'+system.createInfoLink().outerHtml()+'</li>') );
-   }
-
-   for ( var icon in SCMAP.Symbols ) {
-      icon = SCMAP.Symbols[ icon ];
-      $li = $('<li><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</li>' );
-      $li.css( 'color', icon.color );
-      $('#map_ui ul.legend').append( $li );
-   }
-
    editor = new SCMAP.Editor( map, camera );
    editor.panSpeed = 0.6;
    document.addEventListener( 'change', render );
+
+   initUI();
+
+   map.populateScene();
 
    // Stats
 
@@ -153,10 +113,8 @@ function init()
    effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
 
-   effectFXAA.enabled  = ( localStorage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( localStorage['effect.Bloom'] === '1' ) ? true : false;
-   $('#toggle-fxaa').prop( 'checked', effectFXAA.enabled );
-   $('#toggle-bloom').prop( 'checked', effectBloom.enabled );
+   effectFXAA.enabled  = ( localStorage && localStorage['effect.FXAA'] === '1' ) ? true : false;
+   effectBloom.enabled = ( localStorage && localStorage['effect.Bloom'] === '1' ) ? true : false;
 
    composer = new THREE.EffectComposer( renderer );
    composer.setSize( width * dpr, height * dpr );
@@ -165,8 +123,7 @@ function init()
    composer.addPass( effectBloom );
    composer.addPass( effectCopy );
 
-   displayState = buildDisplayModeFSM( ( localStorage.mode ) ? localStorage.mode : '2d' );
-   $('#3d-mode').prop( 'checked', localStorage.mode === '3d' );
+   displayState = buildDisplayModeFSM( ( localStorage && localStorage.mode ) ? localStorage && localStorage.mode : '2d' );
 
 //var smokeParticles = new THREE.Geometry();
 //for (i = 0; i < 25; i++) {
@@ -188,94 +145,6 @@ function init()
 //
 //scene.add(smoke);
 
-   // Some simple UI stuff
-
-   $('#lock-rotation').prop( 'checked', localStorage['control.rotationLocked'] === '1' );
-   controls.noRotate = localStorage['control.rotationLocked'] === '1';
-
-   $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
-
-   $('#avoid-hostile').on( 'change', function() {
-      localStorage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
-      map.rebuildCurrentRoute();
-   });
-   $('#avoid-off-limits').on( 'change', function() {
-      localStorage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
-      map.rebuildCurrentRoute();
-   });
-   $('#avoid-unknown-jumppoints').on( 'change', function() {
-      localStorage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
-      map.rebuildCurrentRoute();
-   });
-
-   $('#lock-rotation').on( 'change', function() {
-      controls.noRotate = this.checked;
-      localStorage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-fxaa').on( 'change', function() {
-      effectFXAA.enabled = this.checked;
-      localStorage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-bloom').on( 'change', function() {
-      effectBloom.enabled = this.checked;
-      localStorage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
-   });
-
-   $('#toggle-glow').on( 'change', function() {
-      SCMAP.settings.glow = this.checked;
-      map.updateSystems();
-      localStorage['settings.Glow'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-labels').on( 'change', function() {
-      SCMAP.settings.labels = this.checked;
-      map.updateSystems();
-      localStorage['settings.Labels'] = ( this.checked ) ? '1' : '0';
-   });
-   $('#toggle-label-icons').on( 'change', function() {
-      SCMAP.settings.labelIcons = this.checked;
-      map.updateSystems();
-      localStorage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
-   });
-
-   $('#resetCamera').on( 'click', function() {
-      controls.cameraTo( cameraDefaults.target, cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
-   });
-   $('#centreCamera').on( 'click', function() {
-      controls.moveTo( cameraDefaults.target );
-   });
-   $('#northCamera').on( 'click', function() {
-      controls.rotateTo( 0, undefined, undefined );
-   });
-   $('#topCamera').on( 'click', function() {
-      controls.rotateTo( 0, 0, 180 );
-   });
-   $('#top2D').on( 'click', function() {
-      controls.noRotate = true;
-      $('#lock-rotation').prop( 'checked', true );
-      displayState.to2d();
-      controls.rotateTo( 0, 0, 180 );
-   });
-   $('.quick-button.with-checkbox').on( 'click', function ( event ) {
-      var $this = $(this);
-      $this.find('input[type=checkbox]').click();
-   });
-   $('#keyboard-shortcuts').on( 'click', function ( event ) {
-      var $this = $(this);
-      //$.toggle(!$('#keyboard-shortcuts dl').is(':visible')); // or:
-      $('#keyboard-shortcuts dl').toggle();
-      if ( $('#keyboard-shortcuts dl').is(':visible') ) {
-         $('#keyboard-shortcuts > a > i').removeClass('fa-caret-right').addClass('fa-caret-down');
-      } else {
-         $('#keyboard-shortcuts > a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
-      }
-   });
-
-   $('#map_ui').on( 'click', "a[data-goto='system']", function() {
-      var $this = $(this);
-      var system = SCMAP.System.getById( $this.data('system') );
-      system.displayInfo();
-      controls.moveTo( system );
-   });
 }
 
 function buildCross () {
@@ -322,18 +191,6 @@ function onWindowResize() {
    composer.reset();
 }
 
-function makeSafeForCSS( name ) {
-   if ( typeof name !== 'string' ) {
-      return;
-   }
-   return name.replace( /[^a-zA-Z0-9]/g, function(s) {
-      var c = s.charCodeAt(0);
-      if (c == 32) return '-';
-      if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
-      return (c.toString(16)).slice(-4);
-   });
-}
-
 function buildDisplayModeFSM ( initialState )
 {
    var tweenTo2d, tweenTo3d, position, fsm;
@@ -377,12 +234,12 @@ function buildDisplayModeFSM ( initialState )
       callbacks: {
          onenter2d: function() {
             $('#3d-mode').prop( 'checked', false );
-            localStorage.mode = '2d';
+            if ( localStorage ) { localStorage.mode = '2d'; }
          },
 
          onenter3d: function() {
             $('#3d-mode').prop( 'checked', true );
-            localStorage.mode = '3d';
+            if ( localStorage ) { localStorage.mode = '3d'; }
          },
 
          onleave2d: function() {
@@ -426,6 +283,12 @@ function animate() {
 }
 
 function render() {
+   scene.updateMatrixWorld();
+   scene.traverse( function ( object ) {
+      if ( object instanceof THREE.LOD ) {
+         object.update( camera );
+      }
+   } );
    map.animateSelector();
    renderer.clear();
    composer.render();
@@ -433,7 +296,7 @@ function render() {
 
 function hasLocalStorage() {
    try {
-      return 'localStorage' in window && window.localStorage !== null;
+      return 'localStorage' in window && window.localStorage !== null && window.localStorage !== undefined;
    } catch (e) {
       return false;
    }
@@ -445,8 +308,8 @@ jQuery.fn.outerHtml = function() {
 
 function humanSort( a, b ) {
    var x, cmp1, cmp2;
-   var aa = a.split(/(\d+)/);
-   var bb = b.split(/(\d+)/);
+   var aa = a.name.split(/(\d+)/);
+   var bb = b.name.split(/(\d+)/);
 
    for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
    {
@@ -467,4 +330,3 @@ function humanSort( a, b ) {
 }
 
 // End of file
-

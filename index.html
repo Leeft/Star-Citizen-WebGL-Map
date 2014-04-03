@@ -10,6 +10,7 @@
    </head>
    <body>
       <div id="map_ui" class="noselect">
+
          <ul class="menubar">
             <li class="home"><a title="Usage" href="#home"><i class="fa fa-home fa-fw fa-2x"></i></a></li>
             <li class="listing"><a title="Systems" href="#listing"><i class="fa fa-list fa-fw fa-2x"></i></a></li>
@@ -20,28 +21,34 @@
             <li class="debug"><a title="Debug Information" href="#debug"><i class="fa fa-bug fa-fw fa-2x"></i></a></li>
             <li class="about"><a title="About this map" href="#about"><i class="fa fa-comment fa-fw fa-2x"></i></a></li>
          </ul>
+
          <div class="home" id="home">
-            <h1>Basic usage</h1>
-            <ul class="fa-ul instructions">
+
+            <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Instructions</a></h1>
+            <ul class="fa-ul instructions ui-section" style="display: none;">
                <li><i class="fa-li fa fa-circle-o"></i>Left-click and release to select a system.</li>
                <li><i class="fa-li fa fa-circle-o"></i>Left-click and drag from system to system to map a route.</li>
                <li><i class="fa-li fa fa-circle-o"></i>Left-click and drag on the map to rotate the camera around the center of the map.</li>
                <li><i class="fa-li fa fa-circle-o"></i>Middle-click and drag or mousewheel to zoom in and out.</li>
                <li><i class="fa-li fa fa-circle-o"></i>Right-click to pan the camera around the map.</li>
-               <li id="keyboard-shortcuts"><a href="#"><i class="fa-li fa fa-lg fa-caret-right"></i>Keyboard shortcuts:</a>
-                  <dl style="display: none;">
-                     <dt>R</dt><dd>Reset camera orientation</dd>
-                     <dt>C</dt><dd>Camera to center (Sol)</dd>
-                     <dt>T</dt><dd>Top-down camera</dd>
-                     <dt>L</dt><dd>Lock/unlock camera rotation</dd>
-                     <dt>2</dt><dd>Switch to 2D mode</dd>
-                     <dt>3</dt><dd>Switch to 3D mode</dd>
-                     <dt>Esc</dt><dd>Deselect target</dd>
-                  </dl>
-               </li>
             </ul>
-            <h1>Quick functions</h1>
-            <p>
+
+            <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Keyboard shortcuts</a></h1>
+            <dl class="ui-section" style="display: none;">
+               <dt>R</dt><dd>Reset camera orientation</dd>
+               <dt>C</dt><dd>Camera to center (Sol)</dd>
+               <dt>T</dt><dd>Top-down camera</dd>
+               <dt>L</dt><dd>Lock/unlock camera rotation</dd>
+               <dt>2</dt><dd>Switch to 2D mode</dd>
+               <dt>3</dt><dd>Switch to 3D mode</dd>
+               <dt>Esc</dt><dd>Deselect target</dd>
+            </dl>
+
+            <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Icon legend</a></h1>
+            <ul class="fa-ul legend ui-section" style="display: none;"></ul>
+
+            <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Quick functions</a></h1>
+            <p class="ui-section instructions">
                <button class="quick-button" id="resetCamera"><i class="fa fa-camera fa-fw fa-lg"></i> Reset view</button><br>
                <button class="quick-button" id="centreCamera"><i class="fa fa-home fa-fw fa-lg"></i> Centre view [C]</button><br>
                <button class="quick-button" id="northCamera"><i class="fa fa-compass fa-fw fa-lg"></i> Reset orientation [R]</button><br>
@@ -50,35 +57,112 @@
                <span class="quick-button"><input type="checkbox" id="3d-mode"><label class="fa-lg" for="3d-mode">3D mode [3]</label></span>
                <span class="quick-button"><input type="checkbox" id="lock-rotation"><label class="fa-lg" for="lock-rotation">Lock map rotation [L]</label></span>
             </p>
-            <h1>Icon Legend</h1>
-            <ul class="fa-ul legend"></ul>
+
          </div>
+
          <div class="listing" id="listing" style="display: none;">
-            <h1 id="systems">Systems</h1>
-            <div id="system-list"><ul class="fa-ul"></ul></div>
+
+            <h1 class="padleft">Systems</h1>
+
+            <div id="hangar-list-wrapper">
+               <h2 id="hangar-list-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Hangar locations&nbsp;</a></h2>
+               <ul id="hangar-list" style="display: none;" class="ui-section fa-ul"></ul>
+            </div>
+
+            <div id="bookmark-list-wrapper">
+               <h2 id="bookmark-list-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Bookmarked&nbsp;</a></h2>
+               <ul id="bookmark-list" style="display: none;" class="ui-section fa-ul"></ul>
+            </div>
+
+            <div id="commented-list-wrapper">
+               <h2 id="commented-list-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>With your comments&nbsp;</a></h2>
+               <ul id="commented-list" style="display: none;" class="ui-section fa-ul"></ul>
+            </div>
+
+            <div id="faction-list-wrapper">
+               <h2 id="faction-list-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>By faction&nbsp;</a></h2>
+               <div id="faction-list" style="display: none;" class="ui-section"></div>
+            </div>
+
+            <div id="a-z-list-wrapper">
+               <h2 id="a-z-list-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Everything</a></h2>
+               <ul id="a-z-list" style="display: none;" class="ui-section fa-ul"></ul>
+            </div>
+
          </div>
+
          <div class="info" id="info" style="display: none;">
-            <h1 id="systemname"></h1>
-            <div id="systemblurb"><strong>No system selected</strong></div>
+
+            <div id="system-selected" style="display: none;">
+
+               <h1 id="systemname"></h1>
+               <h2 id="systemnickname" class="nickname quote"></h2>
+
+               <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Basic info</a></h1>
+               <dl class="wide basic-system">
+                  <dt class="faction">Faction</dt><dd class="faction"></dd>
+                  <!-- <dt class="planets">Planets</dt><dd class="planets">'+planets+'</dd> -->
+                  <dt class="rotation">Planetary rotation</dt><dd class="rotation"></dd>
+                  <dt class="import">Import</dt><dd class="import"></dd>
+                  <dt class="export">Export</dt><dd class="export"></dd>
+                  <dt class="blackMarket">Black market</dt><dd class="blackMarket"></dd>
+                  <dt class="crime crime_'+crimeStatus.toLowerCase()+'">Crime status</dt><dd class="crime"></dd>
+                  <dt class="strategic strategic_value_'+strategicValue.toLowerCase()+'">UEE strategic value</dt><dd class="strategic"></dd>
+               </dl>
+
+               <h1 id="your-info-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Comments and settings</a></h1>
+               <div class="user ui-section" style="display: none;">
+                  <span class="quick-button">
+                     <input type="checkbox" id="hangar-location">
+                     <label class="fa-lg" for="hangar-location">My hangar location</label>
+                  </span>
+                  <span class="quick-button">
+                     <input type="checkbox" id="bookmark">
+                     <label class="fa-lg" for="bookmark">Bookmarked</label>
+                  </span>
+                  <label for="comments">Your comments:</label>
+                  <textarea id="comments"></textarea>
+                  <p id="comments-md"></p>
+               </div>
+
+               <div id="system-background-info">
+                  <h1 id="blurbheader"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Background info</a></h1>
+                  <div id="systemblurb" class="ui-section"></div>
+               </div>
+
+            </div>
+
+            <div id="system-not-selected">
+               <p class="impossible ui-section">No system selected</p>
+            </div>
+
          </div>
+
          <div class="route" id="route" style="display: none;">
-            <h1>Route Planner</h1>
-            <p>
+            <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Routing options</a></h1>
+            <p class="ui-section">
                <span class="quick-button">
                   <input type="checkbox" id="avoid-hostile">
-                  <label class="fa-lg" for="avoid-hostile">Don't enter hostile territory</label>
+                  <label class="fa-lg" for="avoid-hostile">Don't enter hostile territory
+                     <span class="label-info">But do try to get out of it quickly</span>
+                  </label>
                </span>
                <span class="quick-button">
                   <input type="checkbox" id="avoid-unknown-jumppoints">
-                  <label class="fa-lg" for="avoid-unknown-jumppoints">Avoid unconfirmed jumppoints</label><br>
-                  (Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines)
+                  <label class="fa-lg" for="avoid-unknown-jumppoints">
+                     Avoid unconfirmed jumppoints
+                     <span class="label-info">Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines</span>
+                  </label>
                </span>
                <span class="quick-button"><input type="checkbox" id="avoid-off-limits">
-                  <label class="fa-lg" for="avoid-off-limits">Avoid 'off limits' systems</label><br>
-                  (But not all of the system marked as such has to be off-limit)
+                  <label class="fa-lg" for="avoid-off-limits">
+                     Avoid 'off limits' systems
+                     <span class="label-info">Note though that not all of the system marked as such is necessarily off-limits</span>
+                  </label>
                </span>
             </p>
-            <div id="routelist">
+            <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Calculated route</a></h1>
+            <div id="routelist" class="ui-section">
                <p>Click and drag from system to system to calculate a route
                   between the two systems. Use the options here to configure
                   the routing. More functionality for this will become
@@ -86,18 +170,20 @@
                </p>
             </div>
          </div>
+
          <div class="editor" id="editor" style="display: none;">
-            <h1>Editor Mode</h1>
-            <p>The map editor is a feature for the future, when I get around to it :)</p>
+            <h1 class="padleft">Editor Mode</h1>
+            <p class="ui-section">The map editor is a feature for the future, when I get around to it :)</p>
          </div>
+
          <div class="config" id="config" style="display: none;">
-            <h1>Settings</h1>
-            <p><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
-            <p>
+            <h1 class="padleft">Settings</h1>
+            <p class="ui-section"><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
+            <p class="ui-section">
                <span class="quick-button"><input type="checkbox" id="toggle-fxaa"><label class="fa-lg" for="toggle-fxaa">FXAA</label></span>
                <span class="quick-button"><input type="checkbox" id="toggle-bloom"><label class="fa-lg" for="toggle-bloom">Bloom</label></span>
             </p>
-            <p>
+            <p class="ui-section">
                <span class="quick-button">
                   <input type="checkbox" id="toggle-glow" checked>
                   <label class="fa-lg" for="toggle-glow">Enable star glow</label>
@@ -113,9 +199,10 @@
                </span>
             </p>
          </div>
+
          <div class="debug" id="debug" style="display: none;">
-            <h1>Debug Information</h1>
-            <div id="debugstuff" class="debug">
+            <h1 class="padleft">Debug Information</h1>
+            <div id="debugstuff" class="debug ui-section">
                <p id="debug-systems"></p>
                <p id="debug-state"></p>
                <p id="debug-angle"></p>
@@ -123,24 +210,25 @@
                <p id="debug-axis"></p>
             </div>
          </div>
+
          <div class="about" id="about" style="display: none;">
-            <h1>About this map</h1>
-            <p>
+            <h1 class="padleft">About this map</h1>
+            <p class="ui-section">
                A 3D (and 2D) interactive galaxy map of the currently being developed space simulation game
                <a href="https://robertsspaceindustries.com/about-the-game" target="_blank">Star Citizen</a>.
             </p>
-            <p>
+            <p class="ui-section">
                Map data was kindly provided for use by me by
                <a href="https://forums.robertsspaceindustries.com/profile/149083/Zuur" target="_blank">Zuur</a>,
                see <a href="http://mobiglas.com/StarMap/" target="_blank">the MobiGlas Star Map</a>
                for his original map.
             </p>
-            <p>
+            <p class="ui-section">
                Created by <a href="https://forums.robertsspaceindustries.com/profile/51803/Shiari" title="My profile on the Roberts Space Industries forums" target="_blank">Daughter of Sol [Shiari]</a>
                on the RSI forums using <a href="http://get.webgl.org/">WebGL</a>. This map was announced in
                <a href="https://forums.robertsspaceindustries.com/discussion/54931/browser-based-3d-system-map-wip" target="_blank">this forum thread</a>.
             </p>
-            <p>
+            <p class="ui-section">
                The sourcecode which drives this map is available under the MIT license on its
                <a href="https://github.com/Leeft/Star-Citizen-WebGL-Map" target="_blank">GitHub project page</a>,
                and aside from my own code uses the also freely available
@@ -148,12 +236,15 @@
                <a href="http://jquery.com/" target="_blank">jQuery</a> and
                <a href="http://jqueryui.com/" target="_blank">jQuery UI</a>.
             </p>
-            <p>
+            <p class="ui-section">
                The icons are from <a href="http://fontawesome.io/" target="_blank">Font Awesome 4.0.3</a>.
             </p>
+
          </div>
       </div>
+
       <div id="gl-info" data-glow-image="images/glow.png" data-smoke-image="images/smoke.png" data-rotate-speed="0.4" data-zoom-speed="1.0" data-pan-speed="0.6"></div>
+
       <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
       <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
       <script src="build/three.min.js"></script>

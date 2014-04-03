@@ -62,10 +62,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    this.mapMode = false; // map mode pans on x,z
    this.requireAlt = false; // to allow soft-disable of this control temporarily
 
-   // Set to true to automatically rotate around the target
-   this.autoRotate = false;
-   this.autoRotateSpeed = 1.5; // 30 seconds per round when fps is 60
-
    // How far you can orbit vertically, upper and lower limits.
    // Range is 0 to Math.PI radians.
    this.minPolarAngle = 0; // radians
@@ -493,10 +489,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       // angle from y-axis
       var phi = Math.atan2( Math.sqrt( offset.x * offset.x + offset.z * offset.z ), offset.y );
 
-      //if ( this.autoRotate ) {
-      //   this.rotateLeft( getAutoRotationAngle() );
-      //}
-
       theta += thetaDelta;
       phi += phiDelta;
 
@@ -560,10 +552,6 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
       this.showState();
       this.rememberCurrentPosition();
    };
-
-   function getAutoRotationAngle() {
-      return 2 * Math.PI / 60 / 60 * scope.autoRotateSpeed;
-   }
 
    function getZoomScale() {
       return Math.pow( 0.95, scope.zoomSpeed );

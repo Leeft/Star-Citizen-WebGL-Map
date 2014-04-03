@@ -20,7 +20,7 @@ SCMAP.Map = function ( scene ) {
    this.canEdit = false;
    $('#map_ui li.editor').hide();
 
-   this.populateScene();
+   this.preprocessScene();
    this._graph = new SCMAP.Dijkstra( SCMAP.System.List );
    this._routeObject = undefined;
 };
@@ -72,6 +72,8 @@ SCMAP.Map.prototype = {
    deselect: function ( ) {
       this._selectorObject.visible = false;
       this._selected = undefined;
+      $('#system-selected').hide();
+      $('#system-not-selected').show();
    },
 
    animateSelector: function ( ) {
@@ -290,7 +292,10 @@ SCMAP.Map.prototype = {
    updateRoute: function ( destination ) {
       var _this = this, i, route, material, system, $entry;
 
-      material = new THREE.LineBasicMaterial( { color: 0xFF00FF, linewidth: 2.5 } );
+      material = new THREE.MeshBasicMaterial( { color: 0xDD3322 } );
+      material.opacity = 0.8;
+      material.transparent = true;
+      //material.blending = THREE.AdditiveBlending;
 
       this.destroyCurrentRoute();
 
@@ -298,7 +303,7 @@ SCMAP.Map.prototype = {
       // the constructRouteObject method will iterate for us here with the callback
       this._routeObject = _this._graph.constructRouteObject( _this._selected, destination, function ( from, to ) {
          var mesh = _this.createRouteMesh( from, to );
-         var line = new THREE.Line( mesh, material );
+         var line = new THREE.Mesh( mesh, material );
          line.position = from.sceneObject.position.clone();
          line.lookAt( to.sceneObject.position );
          return line;
@@ -323,7 +328,7 @@ SCMAP.Map.prototype = {
          else
          {
             $('#routelist').append('<p class="impossible">No route available to '+
-               route[0].system.createInfoLink().outerHtml()+' with your current settings</p>');
+               route[0].system.createInfoLink( true ).outerHtml()+' with your current settings</p>');
          }
 
          $('#map_ui').tabs( 'option', 'active', 3 );
@@ -331,6 +336,28 @@ SCMAP.Map.prototype = {
    },
 
    createRouteMesh: function ( source, destination ) {
+      var step = 2 * Math.PI / 16,
+          zstep = 0.5,
+          radius = 0.5,
+          geometry, // = new THREE.Geometry(),
+          distance = source.sceneObject.position.distanceTo( destination.sceneObject.position ),
+          z = 0, theta, x, y;
+
+      geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
+      geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, distance / 2, 0 ) );
+      geometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
+
+      //for ( theta = 0; z < distance; theta += step )
+      //{
+      //   x = radius * Math.cos( theta );
+      //   y = 0 - radius * Math.sin( theta );
+      //   geometry.vertices.push( new THREE.Vector3( x, y, z ) );
+      //   z += zstep;
+      //}
+      return geometry;
+   },
+
+   createRouteMeshTwirl: function ( source, destination ) {
       var step = 2 * Math.PI / 16,
           zstep = 0.5,
           radius = 0.5,
@@ -348,6 +375,12 @@ SCMAP.Map.prototype = {
       return geometry;
    },
 
+   preprocessScene: function () {
+      SCMAP.Faction.preprocessFactions();
+      SCMAP.Goods.preprocessGoods();
+      SCMAP.System.preprocessSystems();
+   },
+
    populateScene: function () {
       var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
@@ -359,10 +392,6 @@ SCMAP.Map.prototype = {
 
       // TODO: clean up the existing scene and map data when populating with
       // new data
-
-      SCMAP.Faction.preprocessFactions();
-      SCMAP.Goods.preprocessGoods();
-      SCMAP.System.preprocessSystems();
 
       // First we go through the data to build the basic systems so
       // the routes can be built as well

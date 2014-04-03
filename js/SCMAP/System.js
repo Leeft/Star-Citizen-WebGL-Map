@@ -35,12 +35,30 @@ SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
    buildSceneObject: function () {
-      var star, label, glow, position;
+      var star, label, glow, position, lod, boxSize;
 
       this.sceneObject = new THREE.Object3D();
-      star = new THREE.Mesh( SCMAP.System.MESH, this.starMaterial() );
-      star.scale.set( this.scale, this.scale, this.scale );
+
+      // To make systems easier to click, we add an invisible cube to them
+      // (probably also easier for the raycaster)
+      star = new THREE.Mesh( SCMAP.System.CUBE, SCMAP.System.CUBE_MATERIAL );
+      star.visible = false;
+      boxSize = Math.min( 5.75, Math.max( 3.5, 5 * this.scale ) );
+      star.scale.set( boxSize, boxSize, boxSize );
       this.sceneObject.add( star );
+
+      // LOD for the systems to make them properly round up close
+      lod = new THREE.LOD();
+      for ( i = 0; i < SCMAP.System.LODMESH.length; i++ ) {
+         star = new THREE.Mesh( SCMAP.System.LODMESH[ i ][ 0 ], this.starMaterial() );
+         star.scale.set( this.scale, this.scale, this.scale );
+         star.updateMatrix();
+         star.matrixAutoUpdate = false;
+         lod.addLevel( star, SCMAP.System.LODMESH[ i ][ 1 ] );
+      }
+      lod.updateMatrix();
+      lod.matrixAutoUpdate = false;
+      this.sceneObject.add( lod );
 
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
@@ -59,7 +77,7 @@ SCMAP.System.prototype = {
       this.sceneObject.add( label );
 
       position = this.position.clone();
-      if ( localStorage.mode === '2d' ) {
+      if ( localStorage && localStorage.mode === '2d' ) {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
@@ -218,16 +236,18 @@ SCMAP.System.prototype = {
    },
 
    createInfoLink: function ( noIcons ) {
-      var _this = this, $line = $( '<a></a>' );
-      if ( typeof _this.faction !== 'undefined' && typeof _this.faction !== 'undefined' ) {
-         $line.css( 'color', _this.faction.color.getStyle() );
+      var $line = $( '<a></a>' );
+
+      if ( typeof this.faction !== 'undefined' && typeof this.faction !== 'undefined' ) {
+         $line.css( 'color', this.faction.color.getStyle() );
       }
+
       $line.addClass('system-link');
       $line.attr( 'data-goto', 'system' );
-      $line.attr( 'data-system', _this.id );
-      $line.attr( 'href', '#system='+encodeURI( _this.name ) );
-      $line.attr( 'title', 'Show information on '+_this.name );
-      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + _this.name );
+      $line.attr( 'data-system', this.id );
+      $line.attr( 'href', '#system='+encodeURI( this.name ) );
+      $line.attr( 'title', 'Show information on '+this.name );
+      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
 
       if ( !noIcons )
       {
@@ -235,12 +255,8 @@ SCMAP.System.prototype = {
          if ( icons.length )
          {
             var $span = $('<span class="icons"></span>');
-            var $icon, icon;
             for ( var i = 0; i < icons.length; i++ ) {
-               icon = icons[i]; 
-               $icon = $( '<i title="'+icon.description+'" class="fa fa-fw '+icon.faClass+'"></i>' );
-               $icon.css( 'color', icon.color );
-               $span.append( $icon );
+               $span.append( SCMAP.Symbol.getTag( icons[i] ) );
             }
             $line.append( $span );
          }
@@ -273,9 +289,7 @@ SCMAP.System.prototype = {
       return mySymbols;
    },
 
-   displayInfo: function ( system ) {
-      if ( typeof system === 'undefined' ) { system = this; }
-
+   displayInfo: function () {
       var worlds = '(No information)';
       var _import = '&mdash;';
       var _export = '&mdash;';
@@ -284,16 +298,18 @@ SCMAP.System.prototype = {
       var crimeStatus = 'Unknown';
       var i;
       var tmp = [];
-      var $blurb = $('<div class="sc_system_info '+makeSafeForCSS(system.name)+'"></div>');
-      var currentStep = window.map.indexOfCurrentRoute( system );
+      var $blurb = $('<div class="sc_system_info" '+makeSafeForCSS(this.name)+'"></div>');
+      var currentStep = window.map.indexOfCurrentRoute( this );
 
       $('#systemname')
-         .attr( 'class', makeSafeForCSS( system.faction.name ) )
-         .css( 'color', system.faction.color.getStyle() )
-         .text( 'System: ' + system.name );
+         .attr( 'class', makeSafeForCSS( this.faction.name ) )
+         .css( 'color', this.faction.color.getStyle() )
+         .text( 'System: ' + this.name );
 
-      if ( typeof system.nickname === 'string' && system.nickname.length ) {
-         $blurb.append( '<h2 class="nickname">'+system.nickname+'</h2>' );
+      if ( typeof this.nickname === 'string' && this.nickname.length ) {
+         $('#systemnickname').text( this.nickname ).show();
+      } else {
+         $('#systemnickname').text( '' ).hide();
       }
 
       if ( typeof currentStep === 'number' )
@@ -321,124 +337,99 @@ SCMAP.System.prototype = {
             header.push( $('<i class="right fa fa-fw"></i>') );
          }
 
-         header.push( system.name );
+         header.push( this.name );
 
-         $('#systemname').empty().attr( 'class', makeSafeForCSS( system.faction.name ) ).append( header );
+         $('#systemname').empty().attr( 'class', makeSafeForCSS( this.faction.name ) ).append( header );
       }
 
-      if ( system.planetaryRotation.length ) {
-         worlds = system.planetaryRotation.join( ', ' );
+      if ( this.planetaryRotation.length ) {
+         worlds = this.planetaryRotation.join( ', ' );
       }
 
-      if ( system.import.length ) {
-         _import = $.map( system.import, function( elem, i ) {
+      if ( this.import.length ) {
+         _import = $.map( this.import, function( elem, i ) {
             return SCMAP.data.goods[ elem ].name;
          }).join( ', ' );
       }
 
-      if ( system.export.length ) {
-         _export = $.map( system.export, function( elem, i ) {
+      if ( this.export.length ) {
+         _export = $.map( this.export, function( elem, i ) {
             return SCMAP.data.goods[ elem ].name;
          }).join( ', ' );
       }
 
-      if ( system.blackMarket.length ) {
-         blackMarket = $.map( system.blackMarket, function( elem, i ) {
+      if ( this.blackMarket.length ) {
+         blackMarket = $.map( this.blackMarket, function( elem, i ) {
             return SCMAP.data.goods[ elem ].name;
          }).join( ', ' );
       }
 
-      //if ( typeof system.planets === 'string' || typeof system.planets === 'number' ) {
-      //   planets = system.planets;
+      //if ( typeof this.planets === 'string' || typeof this.planets === 'number' ) {
+      //   planets = this.planets;
       //}
 
-      if ( typeof system.crimeStatus === 'object' ) {
-         crimeStatus = system.crimeStatus.name;
+      if ( typeof this.crimeStatus === 'object' ) {
+         crimeStatus = this.crimeStatus.name;
       }
 
-      if ( typeof system.ueeStrategicValue === 'object' ) {
-         strategicValue = system.ueeStrategicValue.color;
+      if ( typeof this.ueeStrategicValue === 'object' ) {
+         strategicValue = this.ueeStrategicValue.color;
       }
 
-      $blurb.append( '<dl>' +
-         '<dt class="faction">Faction</dt><dd class="faction">'+system.faction.name+'</dd>' +
-         //'<dt class="planets">Planets</dt><dd class="planets">'+planets+'</dd>' +
-         '<dt class="rotation">Planetary rotation</dt><dd class="rotation">'+worlds+'</dd>' +
-         '<dt class="import">Import</dt><dd class="import">'+_import+'</dd>' +
-         '<dt class="export">Export</dt><dd class="export">'+_export+'</dd>' +
-         '<dt class="blackMarket">Black market</dt><dd class="crime">'+blackMarket+'</dd>' +
-         '<dt class="crime_'+crimeStatus.toLowerCase()+'">Crime status</dt><dd class="crime">'+crimeStatus+'</dd>' +
-         '<dt class="strategic_value_'+strategicValue.toLowerCase()+'">UEE strategic value</dt><dd class="strategic">'+strategicValue+'</dd>' +
-      '</dl>' );
+      $("dl.basic-system dd.faction").text( this.faction.name );
+      //$("dl.basic-system dd.planets").text( planets );
+      $("dl.basic-system dd.rotation").html( worlds );
+      $("dl.basic-system dd.import").html( _import );
+      $("dl.basic-system dd.export").html( _export );
+      $("dl.basic-system dd.blackMarket").html( blackMarket );
+      $("dl.basic-system dt.crime").addClass( 'crime_'+crimeStatus.toLowerCase() );
+      $("dl.basic-system dd.crime").text( crimeStatus );
+      $("dl.basic-system dt.strategic").addClass( 'strategic_value_'+strategicValue.toLowerCase() );
+      $("dl.basic-system dd.strategic").text( strategicValue );
 
-      if ( system.faction.name !== 'Unclaimed' ) {
-         $blurb.find('dd.faction').css( 'color', system.faction.color.getStyle() );
+      if ( this.faction.name !== 'Unclaimed' ) {
+         $('dl.basic-system dd.faction').css( 'color', this.faction.color.getStyle() );
       }
 
-      $blurb.append( '<p class="user"></p>' );
+      // User's notes and bookmarks
 
-      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="hangar-location"><label class="fa-lg" for="hangar-location">Hangar Location</label></span>' );
-      $blurb.find('#hangar-location')
-         .prop( 'checked', system.hasHangar() )
-         .attr( 'data-system', system.id );
+      $('#hangar-location').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
+      $('#bookmark').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
 
-      $blurb.find('p.user').append( '<span class="quick-button"><input type="checkbox" id="bookmark"><label class="fa-lg" for="bookmark">Bookmarked</label></span></p>' );
-      $blurb.find('#bookmark')
-         .prop( 'checked', system.isBookmarked() )
-         .attr( 'data-system', system.id );
-
-      $blurb.find('p.user').append('<label for="comments">Your comments:</label><br><textarea id="comments"></textarea>');
-      if ( localStorage['comments.'+system.id] ) {
-         $blurb.find('#comments').append( localStorage['comments.'+system.id] );
+      if ( localStorage && localStorage['comments.'+this.id] ) {
+         $('#comments').empty().val( localStorage['comments.'+this.id] );
+         var $commentmd = $( markdown.toHTML( localStorage['comments.'+this.id] ) );
+         $('#comments-md').html( $commentmd );
+      } else {
+         $('#comments').empty().val('');
+         $('#comments-md').empty();
       }
 
-      if ( system.blob.length ) {
-         var $md = $(markdown.toHTML( system.blob ));
+      $('#comments').data( 'this-id', this.id );
+      $('#bookmark').data( 'this-id', this.id );
+      $('#hangar-location').data( 'this-id', this.id );
+
+      if ( this.blob.length ) {
+         var $md = $(markdown.toHTML( this.blob ));
          $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
          $blurb.append( '<div id="systemInfo">', $md, '</div>' );
+         $('#system-background-info').show();
+      } else {
+         $('#system-background-info').hide();
       }
 
-      if ( system.source ) {
-         $blurb.append( '<p><a class="system-source-url" href="' + system.source + '" target="_blank">(source)</a></p>' );
+      if ( this.source ) {
+         $blurb.append( '<p><a class="system-source-url" href="' + this.source + '" target="_blank">(source)</a></p>' );
       }
-
-      $blurb.append( '<div id="destinations">' );
 
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
 
-      $('#systemblurb #bookmark').on( 'change', function() {
-         if ( this.checked ) {
-            localStorage['bookmarks.'+system.id] = '1';
-         } else {
-            delete localStorage['bookmarks.'+system.id];
-         }
-         system.updateSceneObject( scene );
-      });
-      $('#systemblurb #hangar-location').on( 'change', function() {
-         if ( this.checked ) {
-            localStorage['hangarLocation.'+system.id] = '1';
-         } else {
-            delete localStorage['hangarLocation.'+system.id];
-         }
-         system.updateSceneObject( scene );
-      });
-      var getComments = function( event ) {
-         event.preventDefault();
-         var text = $(this).val();
-         if ( typeof text === 'string' && text.length > 0 ) {
-            localStorage['comments.'+system.id] = $(this).val();
-         } else {
-            delete localStorage['comments.'+system.id];
-         }
-         system.updateSceneObject( scene );
-      };
-      $('#systemblurb #comments').on( 'keyup', getComments );
-      $('#systemblurb #comments').on( 'blur', getComments );
-      $('#systemblurb #comments').on( 'change', getComments );
-
+      $('#map_ui #system-selected').show();
+      $('#map_ui #system-not-selected').hide();
       $('#map_ui').tabs( 'option', 'active', 2 );
       $('#map_ui').data( 'jsp' ).reinitialise();
+      $('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
    },
 
    // 2d/3d tween callback
@@ -474,15 +465,15 @@ SCMAP.System.prototype = {
    },
 
    isBookmarked: function ( ) {
-      return localStorage[ 'bookmarks.' + this.id ] === '1';
+      return localStorage && localStorage[ 'bookmarks.' + this.id ] === '1';
    },
 
    hasHangar: function ( ) {
-      return localStorage[ 'hangarLocation.' + this.id ] === '1';
+      return localStorage && localStorage[ 'hangarLocation.' + this.id ] === '1';
    },
 
    hasComments: function ( ) {
-      return localStorage[ 'comments.' + this.id ];
+      return localStorage && localStorage[ 'comments.' + this.id ];
    },
 
    isOffLimits: function ( ) {
@@ -644,6 +635,16 @@ SCMAP.System.preprocessSystems = function () {
 
 SCMAP.System.List = [];
 
+SCMAP.System.SortedList = function() {
+   var array = [];
+   var i = SCMAP.System.List.length;
+   while( i-- ) {
+      array[i] = SCMAP.System.List[i];
+   }
+   var sorted = array.sort( humanSort );
+   return sorted;
+};
+
 SCMAP.System.getByName = function ( name ) {
    return SCMAP.data.systems[ name ];
 };
@@ -665,21 +666,34 @@ SCMAP.System.COLORS = {
    UNKNOWN: 0xFFFFFF //0xC0FFC0
 };
 SCMAP.System.LABEL_SCALE = 0.06;
-SCMAP.System.GLOW_SCALE = 6;
-SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
+SCMAP.System.GLOW_SCALE = 6.5;
+
+SCMAP.System.CUBE = new THREE.CubeGeometry( 1, 1, 1 );
+//SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
+
+SCMAP.System.LODMESH = [
+   [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],
+   [ new THREE.IcosahedronGeometry( 1, 2 ), 50 ],
+   [ new THREE.IcosahedronGeometry( 1, 1 ), 150 ]
+];
+
 //
-SCMAP.System.STAR_MATERIAL_RED = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.RED, name: 'STAR_MATERIAL_RED' });
-SCMAP.System.STAR_MATERIAL_BLUE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.BLUE, name: 'STAR_MATERIAL_BLUE' });
+//SCMAP.System.STAR_MATERIAL_RED = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.RED, name: 'STAR_MATERIAL_RED' });
+//SCMAP.System.STAR_MATERIAL_BLUE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.BLUE, name: 'STAR_MATERIAL_BLUE' });
 SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
-SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.YELLOW, name: 'STAR_MATERIAL_YELLOW' });
-SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
-SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
+//SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.YELLOW, name: 'STAR_MATERIAL_YELLOW' });
+//SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
+//SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
+//
+SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0 });
+SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
+SCMAP.System.CUBE_MATERIAL.transparent = true;
 //
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
-SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
-SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
-SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
-SCMAP.System.GLOW_MATERIAL_YELLOW =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.YELLOW  });
-SCMAP.System.GLOW_MATERIAL_ORANGE =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.ORANGE  });
-SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.UNKNOWN });
+//SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
+//SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
+//SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
+//SCMAP.System.GLOW_MATERIAL_YELLOW =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.YELLOW  });
+//SCMAP.System.GLOW_MATERIAL_ORANGE =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.ORANGE  });
+//SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.UNKNOWN });
 // EOF

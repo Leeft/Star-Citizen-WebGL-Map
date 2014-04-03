@@ -80,6 +80,7 @@ module.exports = function(grunt) {
           'js/SCMAP/System.js',
           'js/SCMAP/Dijkstra.js',
           'js/SCMAP/Map.js',
+          'js/SCMAP/UI.js',
           'js/main.js'
         ],
         dest: 'build/<%= pkg.name %>.js'

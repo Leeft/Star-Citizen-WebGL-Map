@@ -100,15 +100,15 @@ var distAU;
             jumpPoint = currentNode.system.jumpPoints[i];
             otherNode = this._mapping[ jumpPoint.destination.id ];
 
-            if ( jumpPoint.isUnconfirmed() && localStorage['route.avoidUnknownJumppoints'] === '1' ) {
+            if ( jumpPoint.isUnconfirmed() && localStorage && localStorage['route.avoidUnknownJumppoints'] === '1' ) {
                continue;
             }
 
             // Don't go into "hostile" nodes, unless we already are in one
-            if ( localStorage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( localStorage && localStorage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                continue;
             }
-            if ( localStorage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
+            if ( localStorage && localStorage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
                continue;
             }
 
@@ -142,7 +142,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
             }
 
             // Get out of "never" nodes asap by increasing the cost massively
-            if ( localStorage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( localStorage && localStorage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                distance *= 15;
             }
 
@@ -178,7 +178,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
       var source = this._result.source;
       var destination = this._result.destination;
 
-console.log( "rebuildGraph from", source, 'to', destination );
+      //console.log( "rebuildGraph from", source, 'to', destination );
       this.destroyGraph();
 
       if ( source instanceof SCMAP.System ) {
