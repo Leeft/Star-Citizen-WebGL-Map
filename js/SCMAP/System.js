@@ -22,13 +22,15 @@ SCMAP.System = function ( data ) {
    this.blackMarket = [];
    this.ueeStrategicValue = undefined;
    this.blob = [];
+   this.scale = 1.0;
+   this.binary = false;
 
    this.setValues( data );
 
-   // Generated
+   // Generated, internal
    this._routeObjects = [];
-   this.scale = 1.0;
-   this.binary = false;
+   this._drawnText = '';
+   this._drawnSymbols = '';
 };
 
 SCMAP.System.prototype = {
@@ -127,7 +129,8 @@ SCMAP.System.prototype = {
    labelSprite: function ( drawIcons ) {
       var canvas, texture, material;
 
-      canvas = this.drawSystemText( drawIcons );
+      var icons = ( drawIcons ) ? this.getIcons() : [];
+      canvas = this.drawSystemText( this.name, icons );
 
       texture = new THREE.Texture( canvas ) ;
       texture.needsUpdate = true;
@@ -144,15 +147,19 @@ SCMAP.System.prototype = {
    // Refreshes the text and icons on the system's label
    updateLabelSprite: function ( spriteMaterial, drawLabels ) {
       var canvas, texture;
-      canvas = this.drawSystemText( drawLabels );
-      texture = new THREE.Texture( canvas ) ;
-      texture.needsUpdate = true;
-      spriteMaterial.map = texture;
+      var icons = ( drawLabels ) ? this.getIcons() : [];
+      var iconsKey = this.iconsToKey( icons );
+      if ( this._drawnText !== this.name || this._drawnSymbols !== iconsKey ) {
+         canvas = this.drawSystemText( this.name, icons );
+         texture = new THREE.Texture( canvas );
+         texture.needsUpdate = true;
+         spriteMaterial.map = texture;
+      }
    },
 
    // Draws the text on a label
-   drawSystemText: function ( drawSymbols ) {
-      var canvas, context, texture, text = this.name, actualWidth;
+   drawSystemText: function ( text, icons ) {
+      var canvas, context, texture, actualWidth;
       var textX, textY;
 
       canvas = document.createElement('canvas');
@@ -170,11 +177,13 @@ SCMAP.System.prototype = {
          canvas.height *= 2;
       }
 
-      //context.beginPath();
-      //context.rect( 0, 0, canvas.width, canvas.height );
-      //context.lineWidth = 5;
-      //context.strokeStyle = 'yellow';
-      //context.stroke();
+      if ( false ) {
+         context.beginPath();
+         context.rect( 0, 0, canvas.width, canvas.height );
+         context.lineWidth = 5;
+         context.strokeStyle = 'yellow';
+         context.stroke();
+      }
 
       textX = canvas.width / 2;
       textY = canvas.height / 2;
@@ -188,8 +197,12 @@ SCMAP.System.prototype = {
       context.fillStyle = this.faction.color.getStyle();
       context.fillText( text, textX, textY );
 
-      if ( drawSymbols ) {
-         this._drawSymbols( context, textX, textY - 50, this.getIcons() );
+      this._drawnText = text;
+      this._drawnSymbols = '';
+
+      if ( icons && icons.length ) {
+         this._drawnSymbols = this.iconsToKey( icons );
+         this._drawSymbols( context, textX, textY - 50, icons );
       }
 
       return canvas;
@@ -208,8 +221,6 @@ SCMAP.System.prototype = {
          offX = 0;
          offY = 0;
 
-         context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
-
          if ( false ) {
             context.beginPath();
             context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
@@ -223,6 +234,7 @@ SCMAP.System.prototype = {
             offY = symbol.offset.y;
          }
 
+         context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
          context.strokeStyle = 'rgba(0,0,0,0.95)';
          context.textAlign = 'center';
          context.lineWidth = 5;
@@ -263,6 +275,14 @@ SCMAP.System.prototype = {
       }
 
       return $line;
+   },
+
+   iconsToKey: function ( icons ) {
+      var list = [];
+      for ( var i = 0; i < icons.length; i++ ) {
+         list.push( icons[i].code );
+      }
+      return list.join( ';' );
    },
 
    getIcons: function () {
