@@ -309,7 +309,7 @@ SCMAP.System.prototype = {
       return mySymbols;
    },
 
-   displayInfo: function () {
+   displayInfo: function ( doNotSwitch ) {
       var worlds = '(No information)';
       var _import = '&mdash;';
       var _export = '&mdash;';
@@ -447,9 +447,11 @@ SCMAP.System.prototype = {
 
       $('#map_ui #system-selected').show();
       $('#map_ui #system-not-selected').hide();
-      $('#map_ui').tabs( 'option', 'active', 2 );
-      $('#map_ui').data( 'jsp' ).reinitialise();
-      $('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
+      if ( !doNotSwitch ) {
+         $('#map_ui').tabs( 'option', 'active', 2 );
+         $('#map_ui').data( 'jsp' ).reinitialise();
+         $('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
+      }
    },
 
    // 2d/3d tween callback

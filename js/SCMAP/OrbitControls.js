@@ -15,18 +15,12 @@
 //    Orbit - left mouse / touch: one finger move
 //    Zoom - middle mouse, or mousewheel / touch: two finger spread or squish
 //    Pan - right mouse, or arrow keys / touch: three finter swipe
-//
-// This is a drop-in replacement for (most) TrackballControls used in examples.
-// That is, include this js file and wherever you see:
-//       controls = new THREE.TrackballControls( camera );
-//      controls.target.z = 150;
-// Simple substitute "OrbitControlsFSM" and the control should work as-is.
 
-// More advanced version of OrbitControls.js by Leeft with a finite
+// Heavily modified version of OrbitControls.js (by Leeft) with a finite
 // state machine for dealing with the user's input (I needed more than
 // just basic control).
 
-THREE.OrbitControlsFSM = function ( object, domElement ) {
+SCMAP.OrbitControls = function ( object, domElement ) {
 
    this.object = object;
    this.domElement = ( domElement !== undefined ) ? domElement : document;
@@ -125,7 +119,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
             if ( scope.enabled === false ) { return; }
             if ( scope.requireAlt === true && event.altKey === false ) { return; }
             event.preventDefault();
-            scope.debug && console.log( stateEvent, ": entered state", to, "from", from );
+            if ( scope.debug ) {
+               console.log( stateEvent, ": entered state", to, "from", from );
+            }
 
             var intersect;
 
@@ -137,8 +133,11 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
                intersect = scope.getIntersect( event );
                if ( intersect && intersect.object.parent.system ) {
                   startObject = intersect.object.parent.system;
-                  scope.debug && console.log( 'Click at "' + intersect.object.parent.system.name + '"' );
+                  if ( scope.debug ) {
+                     console.log( 'Click at "' + intersect.object.parent.system.name + '"' );
+                  }
                   scope.map.updateSelectorObject( startObject );
+                  startObject.displayInfo( 'doNotSwitch' );
                   this.touchtodrag( event );
                }
                else if ( ! scope.noRotate )
@@ -169,7 +168,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
          },
 
          onenteridle: function( stateEvent, from, to, event ) {
-            scope.debug && console.log( stateEvent, ": idling after", from );
+            if ( scope.debug ) {
+               console.log( stateEvent, ": idling after", from );
+            }
             if ( from === 'drag' ) {
                var intersect = scope.getIntersect( event );
                if ( intersect && intersect.object.parent.system ) {
@@ -177,12 +178,16 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
                   if ( scope.map.selected() === endObject ) {
                      endObject.displayInfo();
                   }
-                  scope.debug && console.log( 'Ended dragging at "' + intersect.object.parent.system.name + '"' );
+                  if ( scope.debug ) {
+                     console.log( 'Ended dragging at "' + intersect.object.parent.system.name + '"' );
+                  }
                }
             }
             startObject = undefined;
             endObject = undefined;
-            scope.debug && console.log( 'idling ...' );
+            if ( scope.debug ) {
+               console.log( 'idling ...' );
+            }
          },
 
       },
@@ -214,9 +219,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    var lastPosition = new THREE.Vector3();
    var targetTween;
    var rotationTween;
-   var rotationLeft = undefined;
-   var rotationUp = undefined;
-   var rotationRadius = undefined;
+   var rotationLeft;
+   var rotationUp;
+   var rotationRadius;
 
    // events
 
@@ -399,7 +404,7 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
 
    this.cameraTo = function ( target, theta, phi, radius ) {
       this.rotateTo( theta, phi, radius );
-      this.moveTo( target )
+      this.moveTo( target );
    };
 
 
@@ -591,7 +596,9 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
                if ( !endObject || endObject !== intersect.object.parent.system ) {
                   endObject = intersect.object.parent.system;
                   scope.map.updateRoute( endObject );
-                  scope.debug && console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
+                  if ( scope.debug ) {
+                     console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
+                  }
                }
             } else {
                endObject = undefined;
@@ -884,4 +891,4 @@ THREE.OrbitControlsFSM = function ( object, domElement ) {
    this.domElement.addEventListener( 'touchmove', touchmove, false );
 };
 
-THREE.OrbitControlsFSM.prototype = Object.create( THREE.EventDispatcher.prototype );
+SCMAP.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );

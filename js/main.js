@@ -53,7 +53,7 @@ function init()
    camera.position.z = cameraDefaults.z;
    camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
 
-   controls = new THREE.OrbitControlsFSM( camera, $('#webgl-container')[0] );
+   controls = new SCMAP.OrbitControls( camera, $('#webgl-container')[0] );
 	controls.target = cameraDefaults.target.clone();
    controls.restoreOldPosition();
    controls.minPolarAngle = 0;

@@ -81,6 +81,7 @@ module.exports = function(grunt) {
           'js/SCMAP/Dijkstra.js',
           'js/SCMAP/Map.js',
           'js/SCMAP/UI.js',
+          'js/SCMAP/OrbitControls.js',
           'js/main.js'
         ],
         dest: 'build/<%= pkg.name %>.js'
@@ -111,7 +112,6 @@ module.exports = function(grunt) {
           'js/three.js/examples/js/postprocessing/BloomPass.js',
           'js/three.js/examples/js/Detector.js',
           'js/three.js/examples/js/libs/stats.min.js',
-          'js/controls/OrbitControlsFSM.js',
           'build/jquery.jscrollpane.min.js',
           'build/jquery.mousewheel.min.js',
           'build/markdown.min.js',
