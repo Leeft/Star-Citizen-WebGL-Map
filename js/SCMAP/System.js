@@ -64,7 +64,7 @@ SCMAP.System.prototype = {
 
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
-      glow.isGlow = true;
+      glow.userData.isGlow = true;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
       this.sceneObject.add( glow );
@@ -73,7 +73,7 @@ SCMAP.System.prototype = {
       label.position.set( 0, 3.5, 0 );
       label.position.set( 0, this.scale * 3, 0 );
       label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
-      label.isLabel = true;
+      label.userData.isLabel = true;
       label.sortParticles = true;
       label.visible = SCMAP.settings.labels;
       this.sceneObject.add( label );
@@ -83,18 +83,18 @@ SCMAP.System.prototype = {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
-      this.sceneObject.system = this;
-      this.sceneObject.scaleY = this.scaleY;
+      this.sceneObject.userData.system = this;
+      this.sceneObject.userData.scaleY = this.scaleY;
       return this.sceneObject;
    },
 
    updateSceneObject: function ( scene ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          var object = this.sceneObject.children[i];
-         if ( object.isLabel ) {
+         if ( object.userData.isLabel ) {
             this.updateLabelSprite( object.material, SCMAP.settings.labelIcons );
             object.visible = SCMAP.settings.labels;
-         } else if ( object.isGlow ) {
+         } else if ( object.userData.isGlow ) {
             object.visible = SCMAP.settings.glow;
          }
       }
@@ -102,7 +102,7 @@ SCMAP.System.prototype = {
 
    setLabelScale: function ( vector ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
-         if ( this.sceneObject.children[i].isLabel ) {
+         if ( this.sceneObject.children[i].userData.isLabel ) {
             this.sceneObject.children[i].scale.copy( vector );
          }
       }
@@ -455,10 +455,10 @@ SCMAP.System.prototype = {
    },
 
    // 2d/3d tween callback
-   scaleY: function scaleY( scalar ) {
-      var wantedY = this.system.position.y * ( scalar / 100 );
-      this.system.sceneObject.translateY( wantedY - this.system.sceneObject.position.y );
-      this.system.routeNeedsUpdate();
+   scaleY: function scaleY( object, scalar ) {
+      var wantedY = object.userData.system.position.y * ( scalar / 100 );
+      object.userData.system.sceneObject.translateY( wantedY - object.userData.system.sceneObject.position.y );
+      object.userData.system.routeNeedsUpdate();
    },
 
    moveTo: function moveTo( vector ) {
@@ -699,23 +699,12 @@ SCMAP.System.LODMESH = [
    [ new THREE.IcosahedronGeometry( 1, 1 ), 150 ]
 ];
 
-//
-//SCMAP.System.STAR_MATERIAL_RED = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.RED, name: 'STAR_MATERIAL_RED' });
-//SCMAP.System.STAR_MATERIAL_BLUE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.BLUE, name: 'STAR_MATERIAL_BLUE' });
 SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
-//SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.YELLOW, name: 'STAR_MATERIAL_YELLOW' });
-//SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
-//SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
-//
+
 SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0 });
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
-//
+
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
-//SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
-//SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
-//SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
-//SCMAP.System.GLOW_MATERIAL_YELLOW =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.YELLOW  });
-//SCMAP.System.GLOW_MATERIAL_ORANGE =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.ORANGE  });
-//SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.UNKNOWN });
+
 // EOF

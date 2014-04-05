@@ -802,7 +802,7 @@ SCMAP.System.prototype = {
 
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
-      glow.isGlow = true;
+      glow.userData.isGlow = true;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
       this.sceneObject.add( glow );
@@ -811,7 +811,7 @@ SCMAP.System.prototype = {
       label.position.set( 0, 3.5, 0 );
       label.position.set( 0, this.scale * 3, 0 );
       label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
-      label.isLabel = true;
+      label.userData.isLabel = true;
       label.sortParticles = true;
       label.visible = SCMAP.settings.labels;
       this.sceneObject.add( label );
@@ -821,18 +821,18 @@ SCMAP.System.prototype = {
          position.setY( position.y * 0.005 );
       }
       this.sceneObject.position = position;
-      this.sceneObject.system = this;
-      this.sceneObject.scaleY = this.scaleY;
+      this.sceneObject.userData.system = this;
+      this.sceneObject.userData.scaleY = this.scaleY;
       return this.sceneObject;
    },
 
    updateSceneObject: function ( scene ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          var object = this.sceneObject.children[i];
-         if ( object.isLabel ) {
+         if ( object.userData.isLabel ) {
             this.updateLabelSprite( object.material, SCMAP.settings.labelIcons );
             object.visible = SCMAP.settings.labels;
-         } else if ( object.isGlow ) {
+         } else if ( object.userData.isGlow ) {
             object.visible = SCMAP.settings.glow;
          }
       }
@@ -840,7 +840,7 @@ SCMAP.System.prototype = {
 
    setLabelScale: function ( vector ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
-         if ( this.sceneObject.children[i].isLabel ) {
+         if ( this.sceneObject.children[i].userData.isLabel ) {
             this.sceneObject.children[i].scale.copy( vector );
          }
       }
@@ -1193,10 +1193,10 @@ SCMAP.System.prototype = {
    },
 
    // 2d/3d tween callback
-   scaleY: function scaleY( scalar ) {
-      var wantedY = this.system.position.y * ( scalar / 100 );
-      this.system.sceneObject.translateY( wantedY - this.system.sceneObject.position.y );
-      this.system.routeNeedsUpdate();
+   scaleY: function scaleY( object, scalar ) {
+      var wantedY = object.userData.system.position.y * ( scalar / 100 );
+      object.userData.system.sceneObject.translateY( wantedY - object.userData.system.sceneObject.position.y );
+      object.userData.system.routeNeedsUpdate();
    },
 
    moveTo: function moveTo( vector ) {
@@ -1437,25 +1437,14 @@ SCMAP.System.LODMESH = [
    [ new THREE.IcosahedronGeometry( 1, 1 ), 150 ]
 ];
 
-//
-//SCMAP.System.STAR_MATERIAL_RED = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.RED, name: 'STAR_MATERIAL_RED' });
-//SCMAP.System.STAR_MATERIAL_BLUE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.BLUE, name: 'STAR_MATERIAL_BLUE' });
 SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
-//SCMAP.System.STAR_MATERIAL_YELLOW = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.YELLOW, name: 'STAR_MATERIAL_YELLOW' });
-//SCMAP.System.STAR_MATERIAL_ORANGE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.ORANGE, name: 'STAR_MATERIAL_ORANGE' });
-//SCMAP.System.STAR_MATERIAL_UNKNOWN = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.UNKNOWN, name: 'STAR_MATERIAL_UNKNOWN' });
-//
+
 SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0 });
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
-//
+
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
-//SCMAP.System.GLOW_MATERIAL_RED =     new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.RED     });
-//SCMAP.System.GLOW_MATERIAL_BLUE =    new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.BLUE    });
-//SCMAP.System.GLOW_MATERIAL_WHITE =   new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.WHITE   });
-//SCMAP.System.GLOW_MATERIAL_YELLOW =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.YELLOW  });
-//SCMAP.System.GLOW_MATERIAL_ORANGE =  new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.ORANGE  });
-//SCMAP.System.GLOW_MATERIAL_UNKNOWN = new THREE.SpriteMaterial({ map: SCMAP.System.GLOW_MAP, blending: THREE.AdditiveBlending, color: SCMAP.System.COLORS.UNKNOWN });
+
 // EOF
 
 /**
@@ -1753,7 +1742,7 @@ function isInfinite ( num ) {
 SCMAP.Route = function ( start, end ) {
    this.start = ( start instanceof SCMAP.System ) ? start : null;
    this.end = ( this.start && end instanceof SCMAP.System ) ? end : null;
-   //this.waypoints = [];
+   this.waypoints = [];
 
    this._graph = new SCMAP.Dijkstra( SCMAP.System.List );
    this._routeObject = undefined;
@@ -1790,11 +1779,10 @@ SCMAP.Route.prototype = {
    },
 
    rebuildCurrentRoute: function () {
-      var destination;
-      this.destroy();
+      this.removeFromScene();
       if ( this._graph.rebuildGraph() ) {
          console.log( "Have new graph" );
-         destination = this._graph.destination();
+         var destination = this._graph.destination();
          if ( destination ) {
             console.log( "Have existing destination, updating route" );
             this.update( destination );
@@ -1803,6 +1791,13 @@ SCMAP.Route.prototype = {
    },
 
    destroy: function () {
+      this.remove();
+      this.start = null;
+      this.end = null;
+      this.waypoints = [];
+   },
+
+   removeFromScene: function () {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
@@ -1820,16 +1815,16 @@ SCMAP.Route.prototype = {
       material.opacity = 0.8;
       material.transparent = true;
 
-      this.destroy();
+      this.removeFromScene();
 
       // building all the parts of the route together in a single geometry group
       // the constructRouteObject method will iterate for us here with the callback
       this._routeObject = _this._graph.constructRouteObject( _this.start, destination, function ( from, to ) {
-         var mesh = _this.createRouteGeometry( from, to );
-         var line = new THREE.Mesh( mesh, material );
-         line.position = from.sceneObject.position.clone();
-         line.lookAt( to.sceneObject.position );
-         return line;
+         var geometry = _this.createRouteGeometry( from, to );
+         var mesh = new THREE.Mesh( geometry, material );
+         mesh.position = from.sceneObject.position.clone();
+         mesh.lookAt( to.sceneObject.position );
+         return mesh;
       });
 
       if ( this._routeObject ) {
@@ -1919,18 +1914,14 @@ SCMAP.Map.prototype = {
    },
 
    __createSelectorObject: function __createSelectorObject ( color ) {
-      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({
-         color: color
-         //transparent: true,
-         //blending: THREE.AdditiveBlending
-      }) );
+      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({ color: color }) );
       mesh.scale.set( 4.2, 4.2, 4.2 );
       mesh.visible = false;
-      mesh.systemPosition = new THREE.Vector3( 0, 0, 0 );
+      mesh.userData.systemPosition = new THREE.Vector3( 0, 0, 0 );
       // 2d/3d tween callback
-      mesh.scaleY = function ( scalar ) {
-         var wantedY = this.systemPosition.y * ( scalar / 100 );
-         this.translateY( wantedY - this.position.y );
+      mesh.userData.scaleY = function ( object, scalar ) {
+         var wantedY = object.userData.systemPosition.y * ( scalar / 100 );
+         object.translateY( wantedY - object.position.y );
       };
       return mesh;
    },
@@ -1938,7 +1929,7 @@ SCMAP.Map.prototype = {
    __updateSelectorObject: function __updateSelectorObject ( system ) {
       if ( system instanceof SCMAP.System ) {
          this._selectorObject.visible = true;
-         this._selectorObject.systemPosition.copy( system.position );
+         this._selectorObject.userData.systemPosition.copy( system.position );
          //this._selectorObject.position.copy( system.sceneObject.position );
          this.moveSelectorTo( system );
          this.setSelected( system );
@@ -2002,10 +1993,11 @@ SCMAP.Map.prototype = {
    },
 
    moveSelectorTo: function moveSelectorTo ( system ) {
-      var tween, newPosition, position, _this = this, poi, graph;
+      var tween, newPosition, position, _this = this, poi, graph, route;
+      var tweens = [];
 
       if ( !(_this._selectorObject.visible) || !(_this.getSelected() instanceof SCMAP.System) ) {
-         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.userData.systemPosition.copy( system.position );
          _this._selectorObject.position.copy( system.sceneObject.position );
          _this._selectorObject.visible = true;
          _this.getSelected( system );
@@ -2018,25 +2010,21 @@ SCMAP.Map.prototype = {
          source: _this.getSelected(),
          destination: system
       });
-      var route = graph.routeArray( system );
 
+      route = graph.routeArray( system );
       if ( route.length <= 1 ) {
-         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.userData.systemPosition.copy( system.position );
          _this._selectorObject.position.copy( system.sceneObject.position );
          _this._selectorObject.visible = true;
          _this.setSelected( system );
          return;
       }
 
-      _this._selectorObject.position.copy( _this._selectorObject.position );
-
       position = {
          x: _this._selectorObject.position.x,
          y: _this._selectorObject.position.y,
          z: _this._selectorObject.position.z
       };
-
-      var tweens = [];
 
       /* jshint ignore:start */
       for ( i = 0; i < route.length - 1; i++ ) {
@@ -2050,9 +2038,7 @@ SCMAP.Map.prototype = {
             }, 800 / ( route.length - 1 ) )
             .easing( TWEEN.Easing.Linear.None )
             .onUpdate( function () {
-               _this._selectorObject.position.setX( this.x );
-               _this._selectorObject.position.setY( this.y );
-               _this._selectorObject.position.setZ( this.z );
+               _this._selectorObject.position.set( this.x, this.y, this.z );
             } );
 
          if ( i == 0 ) {
@@ -2070,7 +2056,7 @@ SCMAP.Map.prototype = {
          if ( i == route.length - 2 ) {
             tween.easing( TWEEN.Easing.Cubic.Out );
             tween.onComplete( function() {
-               _this._selectorObject.systemPosition.copy( poi.position );
+               _this._selectorObject.userData.systemPosition.copy( poi.position );
                _this._selectorObject.position.copy( poi.sceneObject.position );
                _this.setSelected( system );
             } );
@@ -2992,10 +2978,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                // that object (possibly to another object) so we take
                // note of that object and switch to the drag state
                intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.system ) {
-                  startObject = intersect.object.parent.system;
+               if ( intersect && intersect.object.parent.userData.system ) {
+                  startObject = intersect.object.parent.userData.system;
                   if ( scope.debug ) {
-                     console.log( 'Click at "' + intersect.object.parent.system.name + '"' );
+                     console.log( 'Click at "' + intersect.object.parent.userData.system.name + '"' );
                   }
                   scope.map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
@@ -3034,13 +3020,13 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             }
             if ( from === 'drag' ) {
                var intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.system ) {
-                  endObject = intersect.object.parent.system;
+               if ( intersect && intersect.object.parent.userData.system ) {
+                  endObject = intersect.object.parent.userData.system;
                   if ( scope.map.selected() === endObject ) {
                      endObject.displayInfo();
                   }
                   if ( scope.debug ) {
-                     console.log( 'Ended dragging at "' + intersect.object.parent.system.name + '"' );
+                     console.log( 'Ended dragging at "' + intersect.object.parent.userData.system.name + '"' );
                   }
                }
             }
@@ -3449,12 +3435,12 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
          if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
             intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== mouseOver ) {
-               mouseOver = intersect.object.parent.system;
+            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
+               mouseOver = intersect.object.parent.userData.system;
                map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
                map._mouseOverObject.visible = true;
             } else {
-               if ( !intersect || !intersect.object.parent.system ) {
+               if ( !intersect || !intersect.object.parent.userData.system ) {
                   if ( mouseOver !== undefined ) {
                      map._mouseOverObject.position.set( 0, 0, 0 );
                      map._mouseOverObject.visible = false;
@@ -3481,9 +3467,9 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
          if ( startObject ) {
             intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== startObject ) {
-               if ( !endObject || endObject !== intersect.object.parent.system ) {
-                  endObject = intersect.object.parent.system;
+            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== startObject ) {
+               if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
+                  endObject = intersect.object.parent.userData.system;
                   route = scope.map.route();
                   route.start = startObject;
                   route.end = endObject;
@@ -3993,11 +3979,11 @@ function buildDisplayModeFSM ( initialState )
       .to( { y: 0.5 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-         map.route().destroy(); // TODO: find a way to animate
+         map.route().removeFromScene(); // TODO: find a way to animate
          for ( var i = 0; i < scene.children.length; i++ ) {
             var child = scene.children[i];
-            if ( typeof child.scaleY === 'function' ) {
-               child.scaleY( this.y );
+            if ( typeof child.userData.scaleY === 'function' ) {
+               child.userData.scaleY( child, this.y );
             }
          }
       } );
@@ -4006,11 +3992,11 @@ function buildDisplayModeFSM ( initialState )
       .to( { y: 100.0 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-         map.route().destroy(); // TODO: find a way to animate
+         map.route().removeFromScene(); // TODO: find a way to animate
          for ( var i = 0; i < scene.children.length; i++ ) {
             var child = scene.children[i];
-            if ( typeof child.scaleY === 'function' ) {
-               child.scaleY( this.y );
+            if ( typeof child.userData.scaleY === 'function' ) {
+               child.userData.scaleY( child, this.y );
             }
          }
       } );

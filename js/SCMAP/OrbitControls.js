@@ -133,10 +133,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                // that object (possibly to another object) so we take
                // note of that object and switch to the drag state
                intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.system ) {
-                  startObject = intersect.object.parent.system;
+               if ( intersect && intersect.object.parent.userData.system ) {
+                  startObject = intersect.object.parent.userData.system;
                   if ( scope.debug ) {
-                     console.log( 'Click at "' + intersect.object.parent.system.name + '"' );
+                     console.log( 'Click at "' + intersect.object.parent.userData.system.name + '"' );
                   }
                   scope.map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
@@ -175,13 +175,13 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             }
             if ( from === 'drag' ) {
                var intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.system ) {
-                  endObject = intersect.object.parent.system;
+               if ( intersect && intersect.object.parent.userData.system ) {
+                  endObject = intersect.object.parent.userData.system;
                   if ( scope.map.selected() === endObject ) {
                      endObject.displayInfo();
                   }
                   if ( scope.debug ) {
-                     console.log( 'Ended dragging at "' + intersect.object.parent.system.name + '"' );
+                     console.log( 'Ended dragging at "' + intersect.object.parent.userData.system.name + '"' );
                   }
                }
             }
@@ -590,12 +590,12 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
          if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
             intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== mouseOver ) {
-               mouseOver = intersect.object.parent.system;
+            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
+               mouseOver = intersect.object.parent.userData.system;
                map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
                map._mouseOverObject.visible = true;
             } else {
-               if ( !intersect || !intersect.object.parent.system ) {
+               if ( !intersect || !intersect.object.parent.userData.system ) {
                   if ( mouseOver !== undefined ) {
                      map._mouseOverObject.position.set( 0, 0, 0 );
                      map._mouseOverObject.visible = false;
@@ -622,9 +622,9 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
          if ( startObject ) {
             intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== startObject ) {
-               if ( !endObject || endObject !== intersect.object.parent.system ) {
-                  endObject = intersect.object.parent.system;
+            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== startObject ) {
+               if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
+                  endObject = intersect.object.parent.userData.system;
                   route = scope.map.route();
                   route.start = startObject;
                   route.end = endObject;

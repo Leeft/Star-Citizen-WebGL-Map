@@ -47,18 +47,14 @@ SCMAP.Map.prototype = {
    },
 
    __createSelectorObject: function __createSelectorObject ( color ) {
-      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({
-         color: color
-         //transparent: true,
-         //blending: THREE.AdditiveBlending
-      }) );
+      var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({ color: color }) );
       mesh.scale.set( 4.2, 4.2, 4.2 );
       mesh.visible = false;
-      mesh.systemPosition = new THREE.Vector3( 0, 0, 0 );
+      mesh.userData.systemPosition = new THREE.Vector3( 0, 0, 0 );
       // 2d/3d tween callback
-      mesh.scaleY = function ( scalar ) {
-         var wantedY = this.systemPosition.y * ( scalar / 100 );
-         this.translateY( wantedY - this.position.y );
+      mesh.userData.scaleY = function ( object, scalar ) {
+         var wantedY = object.userData.systemPosition.y * ( scalar / 100 );
+         object.translateY( wantedY - object.position.y );
       };
       return mesh;
    },
@@ -66,7 +62,7 @@ SCMAP.Map.prototype = {
    __updateSelectorObject: function __updateSelectorObject ( system ) {
       if ( system instanceof SCMAP.System ) {
          this._selectorObject.visible = true;
-         this._selectorObject.systemPosition.copy( system.position );
+         this._selectorObject.userData.systemPosition.copy( system.position );
          //this._selectorObject.position.copy( system.sceneObject.position );
          this.moveSelectorTo( system );
          this.setSelected( system );
@@ -130,10 +126,11 @@ SCMAP.Map.prototype = {
    },
 
    moveSelectorTo: function moveSelectorTo ( system ) {
-      var tween, newPosition, position, _this = this, poi, graph;
+      var tween, newPosition, position, _this = this, poi, graph, route;
+      var tweens = [];
 
       if ( !(_this._selectorObject.visible) || !(_this.getSelected() instanceof SCMAP.System) ) {
-         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.userData.systemPosition.copy( system.position );
          _this._selectorObject.position.copy( system.sceneObject.position );
          _this._selectorObject.visible = true;
          _this.getSelected( system );
@@ -146,25 +143,21 @@ SCMAP.Map.prototype = {
          source: _this.getSelected(),
          destination: system
       });
-      var route = graph.routeArray( system );
 
+      route = graph.routeArray( system );
       if ( route.length <= 1 ) {
-         _this._selectorObject.systemPosition.copy( system.position );
+         _this._selectorObject.userData.systemPosition.copy( system.position );
          _this._selectorObject.position.copy( system.sceneObject.position );
          _this._selectorObject.visible = true;
          _this.setSelected( system );
          return;
       }
 
-      _this._selectorObject.position.copy( _this._selectorObject.position );
-
       position = {
          x: _this._selectorObject.position.x,
          y: _this._selectorObject.position.y,
          z: _this._selectorObject.position.z
       };
-
-      var tweens = [];
 
       /* jshint ignore:start */
       for ( i = 0; i < route.length - 1; i++ ) {
@@ -178,9 +171,7 @@ SCMAP.Map.prototype = {
             }, 800 / ( route.length - 1 ) )
             .easing( TWEEN.Easing.Linear.None )
             .onUpdate( function () {
-               _this._selectorObject.position.setX( this.x );
-               _this._selectorObject.position.setY( this.y );
-               _this._selectorObject.position.setZ( this.z );
+               _this._selectorObject.position.set( this.x, this.y, this.z );
             } );
 
          if ( i == 0 ) {
@@ -198,7 +189,7 @@ SCMAP.Map.prototype = {
          if ( i == route.length - 2 ) {
             tween.easing( TWEEN.Easing.Cubic.Out );
             tween.onComplete( function() {
-               _this._selectorObject.systemPosition.copy( poi.position );
+               _this._selectorObject.userData.systemPosition.copy( poi.position );
                _this._selectorObject.position.copy( poi.sceneObject.position );
                _this.setSelected( system );
             } );

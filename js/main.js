@@ -204,11 +204,11 @@ function buildDisplayModeFSM ( initialState )
       .to( { y: 0.5 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-         map.route().destroy(); // TODO: find a way to animate
+         map.route().removeFromScene(); // TODO: find a way to animate
          for ( var i = 0; i < scene.children.length; i++ ) {
             var child = scene.children[i];
-            if ( typeof child.scaleY === 'function' ) {
-               child.scaleY( this.y );
+            if ( typeof child.userData.scaleY === 'function' ) {
+               child.userData.scaleY( child, this.y );
             }
          }
       } );
@@ -217,11 +217,11 @@ function buildDisplayModeFSM ( initialState )
       .to( { y: 100.0 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-         map.route().destroy(); // TODO: find a way to animate
+         map.route().removeFromScene(); // TODO: find a way to animate
          for ( var i = 0; i < scene.children.length; i++ ) {
             var child = scene.children[i];
-            if ( typeof child.scaleY === 'function' ) {
-               child.scaleY( this.y );
+            if ( typeof child.userData.scaleY === 'function' ) {
+               child.userData.scaleY( child, this.y );
             }
          }
       } );

@@ -5,7 +5,7 @@
 SCMAP.Route = function ( start, end ) {
    this.start = ( start instanceof SCMAP.System ) ? start : null;
    this.end = ( this.start && end instanceof SCMAP.System ) ? end : null;
-   //this.waypoints = [];
+   this.waypoints = [];
 
    this._graph = new SCMAP.Dijkstra( SCMAP.System.List );
    this._routeObject = undefined;
@@ -42,11 +42,10 @@ SCMAP.Route.prototype = {
    },
 
    rebuildCurrentRoute: function () {
-      var destination;
-      this.destroy();
+      this.removeFromScene();
       if ( this._graph.rebuildGraph() ) {
          console.log( "Have new graph" );
-         destination = this._graph.destination();
+         var destination = this._graph.destination();
          if ( destination ) {
             console.log( "Have existing destination, updating route" );
             this.update( destination );
@@ -55,6 +54,13 @@ SCMAP.Route.prototype = {
    },
 
    destroy: function () {
+      this.remove();
+      this.start = null;
+      this.end = null;
+      this.waypoints = [];
+   },
+
+   removeFromScene: function () {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
@@ -72,16 +78,16 @@ SCMAP.Route.prototype = {
       material.opacity = 0.8;
       material.transparent = true;
 
-      this.destroy();
+      this.removeFromScene();
 
       // building all the parts of the route together in a single geometry group
       // the constructRouteObject method will iterate for us here with the callback
       this._routeObject = _this._graph.constructRouteObject( _this.start, destination, function ( from, to ) {
-         var mesh = _this.createRouteGeometry( from, to );
-         var line = new THREE.Mesh( mesh, material );
-         line.position = from.sceneObject.position.clone();
-         line.lookAt( to.sceneObject.position );
-         return line;
+         var geometry = _this.createRouteGeometry( from, to );
+         var mesh = new THREE.Mesh( geometry, material );
+         mesh.position = from.sceneObject.position.clone();
+         mesh.lookAt( to.sceneObject.position );
+         return mesh;
       });
 
       if ( this._routeObject ) {
