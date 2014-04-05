@@ -178,7 +178,6 @@
 
          <div class="config" id="config" style="display: none;">
             <h1 class="padleft">Settings</h1>
-            <p class="ui-section"><a href="#" onclick="$('#stats').toggle();">Toggle framerate statistics display</a></p>
             <p class="ui-section">
                <span class="quick-button"><input type="checkbox" id="toggle-fxaa"><label class="fa-lg" for="toggle-fxaa">FXAA</label></span>
                <span class="quick-button"><input type="checkbox" id="toggle-bloom"><label class="fa-lg" for="toggle-bloom">Bloom</label></span>
@@ -202,6 +201,9 @@
 
          <div class="debug" id="debug" style="display: none;">
             <h1 class="padleft">Debug Information</h1>
+            <p class="ui-section">
+               <span class="quick-button"><input type="checkbox" id="toggle-stats"><label class="fa-lg" for="toggle-stats">Framerate statistics</label></span>
+            </p>
             <div id="debugstuff" class="debug ui-section">
                <p id="debug-systems"></p>
                <p id="debug-state"></p>

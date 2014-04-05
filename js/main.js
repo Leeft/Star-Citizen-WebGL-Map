@@ -97,6 +97,9 @@ function init()
    stats.domElement.style.display = 'none';
    stats.domElement.style.zIndex = '100';
    container.appendChild( stats.domElement );
+   if ( storage && storage['renderer.Stats'] === '1' ) {
+      $('#stats').show();
+   }
 
    // Event handlers
 

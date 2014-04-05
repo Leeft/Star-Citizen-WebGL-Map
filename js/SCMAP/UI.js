@@ -161,6 +161,19 @@ function initUI () {
       }
    });
 
+   $('#toggle-stats')
+      .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
+      .on( 'change', function() {
+         if ( this.checked ) {
+            $('#stats').show();
+         } else {
+            $('#stats').hide();
+         }
+         if ( storage ) {
+            storage['renderer.Stats'] = ( this.checked ) ? '1' : '0';
+         }
+      });
+
    $('#toggle-fxaa')
       .prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false )
       .on( 'change', function() {

@@ -2739,6 +2739,19 @@ function initUI () {
       }
    });
 
+   $('#toggle-stats')
+      .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
+      .on( 'change', function() {
+         if ( this.checked ) {
+            $('#stats').show();
+         } else {
+            $('#stats').hide();
+         }
+         if ( storage ) {
+            storage['renderer.Stats'] = ( this.checked ) ? '1' : '0';
+         }
+      });
+
    $('#toggle-fxaa')
       .prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false )
       .on( 'change', function() {
@@ -2996,6 +3009,9 @@ function init()
    stats.domElement.style.display = 'none';
    stats.domElement.style.zIndex = '100';
    container.appendChild( stats.domElement );
+   if ( storage && storage['renderer.Stats'] === '1' ) {
+      $('#stats').show();
+   }
 
    // Event handlers
 
