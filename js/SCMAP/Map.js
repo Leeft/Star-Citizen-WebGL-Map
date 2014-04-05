@@ -13,8 +13,13 @@ SCMAP.Map = function ( scene ) {
    this._interactables = [];
    this.referencePlane = undefined;
 
-   this._selectorObject = this.createSelectorObject();
+   this._selectorObject = this.createSelectorObject( 0xCCCC99 );
    this.scene.add( this._selectorObject );
+
+   this._mouseOverObject = this.createSelectorObject( 0x8844FF );
+   this._mouseOverObject.visible = true;
+   this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
+   this.scene.add( this._mouseOverObject );
 
    // No editing available for the moment (doesn't work yet)
    this.canEdit = false;
@@ -28,11 +33,11 @@ SCMAP.Map = function ( scene ) {
 SCMAP.Map.prototype = {
    constructor: SCMAP.Map,
 
-   createSelectorObject: function () {
+   createSelectorObject: function ( color ) {
       var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({
-         color: 0xCCCCCC,
-         transparent: true,
-         blending: THREE.AdditiveBlending
+         color: color
+         //transparent: true,
+         //blending: THREE.AdditiveBlending
       }) );
       mesh.scale.set( 4.2, 4.2, 4.2 );
       mesh.visible = false;
@@ -79,6 +84,9 @@ SCMAP.Map.prototype = {
    animateSelector: function ( ) {
       if ( this._selectorObject.visible ) {
          this._selectorObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
+      }
+      if ( this._mouseOverObject.visible ) {
+         this._mouseOverObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
       }
    },
 

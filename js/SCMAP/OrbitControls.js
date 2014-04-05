@@ -91,6 +91,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    var startObject; // drag start
    var endObject;   // drag end
 
+   var mouseOver; // where the mouse is at
+
    var scope = this;
    var labelScale = '15.0';
 
@@ -210,6 +212,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    var dollyStart = new THREE.Vector2();
    var dollyEnd = new THREE.Vector2();
    var dollyDelta = new THREE.Vector2();
+
+   var mousePrevious = new THREE.Vector2();
 
    var phiDelta = 0;
    var thetaDelta = 0;
@@ -567,7 +571,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
       event.preventDefault();
       state.starttouch( event );
-      scope.domElement.addEventListener( 'mousemove', onMouseMove, false );
+      //scope.domElement.addEventListener( 'mousemove', onMouseMove, false );
       scope.domElement.addEventListener( 'mouseup', onMouseUp, false );
    }
 
@@ -576,9 +580,34 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
       event.preventDefault();
 
+      var intersect;
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-      if ( state.current === 'touch' ) {
+      if ( state.current === 'idle' ) {
+
+         // Mouse move on idle handling: highlighting systems, dragging routes
+
+         if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
+            intersect = scope.getIntersect( event );
+            if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== mouseOver ) {
+               mouseOver = intersect.object.parent.system;
+               map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+               map._mouseOverObject.visible = true;
+            } else {
+               if ( !intersect || !intersect.object.parent.system ) {
+                  if ( mouseOver !== undefined ) {
+                     map._mouseOverObject.position.set( 0, 0, 0 );
+                     map._mouseOverObject.visible = false;
+                  }
+                  mouseOver = undefined;
+               }
+            }
+         }
+
+         mousePrevious.set( event.clientX, event.clientY );
+         return;
+
+      } else if ( state.current === 'touch' ) {
 
          if ( event.button === 0 ) { // left mouse
             state.touchtorotate( event );
@@ -591,7 +620,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       } else if ( state.current === 'drag' ) {
 
          if ( startObject ) {
-            var intersect = scope.getIntersect( event );
+            intersect = scope.getIntersect( event );
             if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== startObject ) {
                if ( !endObject || endObject !== intersect.object.parent.system ) {
                   endObject = intersect.object.parent.system;
@@ -653,7 +682,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       if ( scope.enabled === false ) return;
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
 
-      scope.domElement.removeEventListener( 'mousemove', onMouseMove, false );
+      //scope.domElement.removeEventListener( 'mousemove', onMouseMove, false );
       scope.domElement.removeEventListener( 'mouseup', onMouseUp, false );
 
       state.idle( event );
@@ -889,6 +918,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    this.domElement.addEventListener( 'touchstart', touchstart, false );
    this.domElement.addEventListener( 'touchend', touchend, false );
    this.domElement.addEventListener( 'touchmove', touchmove, false );
+
+   this.domElement.addEventListener( 'mousemove', onMouseMove, false );
 };
 
 SCMAP.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
