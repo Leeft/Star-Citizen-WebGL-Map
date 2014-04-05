@@ -127,9 +127,6 @@ function initUI () {
 
    // Event handlers
 
-   $('#toggle-fxaa').prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false );
-   $('#toggle-bloom').prop( 'checked', ( storage && storage['effect.Bloom'] === '1' ) ? true : false );
-
    $('#3d-mode').prop( 'checked', storage && storage.mode === '3d' );
 
    // Some simple UI stuff
@@ -163,18 +160,28 @@ function initUI () {
          storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
       }
    });
-   $('#toggle-fxaa').on( 'change', function() {
-      effectFXAA.enabled = this.checked;
-      if ( storage ) {
-         storage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
-      }
-   });
-   $('#toggle-bloom').on( 'change', function() {
-      effectBloom.enabled = this.checked;
-      if ( storage ) {
-         storage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
-      }
-   });
+
+   $('#toggle-fxaa')
+      .prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false )
+      .on( 'change', function() {
+         effectFXAA.enabled = this.checked;
+         if ( storage ) {
+            storage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
+         }
+      });
+
+   $('#toggle-bloom')
+      .prop( 'checked', ( storage && storage['effect.Bloom'] === '1' ) ? true : false )
+      .on( 'change', function() {
+         for ( var i = 0; i < composer.passes.length; i++ ) {
+            if ( composer.passes[i] instanceof THREE.BloomPass ) {
+               composer.passes[i].enabled = this.checked;
+            }
+         }
+         if ( storage ) {
+            storage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
+         }
+      });
 
    $('#toggle-glow').on( 'change', function() {
       SCMAP.settings.glow = this.checked;
