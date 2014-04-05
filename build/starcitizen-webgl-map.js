@@ -2182,7 +2182,7 @@ SCMAP.Map.prototype = {
 
       $('#debug-systems').html( systemCount + ' systems loaded' );
 
-      this.buildReferencePlane();
+      scene.add( this.buildReferenceGrid() );
       //this.referencePlaneSolidColor( new THREE.Color( 0x000000 ) );
       //this.referencePlaneTerritoryColor();
    },
@@ -2221,10 +2221,11 @@ SCMAP.Map.prototype = {
       return [ closest, closestPOI ];
    },
 
+   // Get a quick list of systems nearby (within a square)
    withinApproxDistance: function ( vector, distance ) {
       var systems = [];
-      for ( var systemname in SCMAP.data.systems ) {
-         system = SCMAP.System.getByName( systemname );
+      for ( var i = 0; i < SCMAP.System.List.length; i += 1 ) {
+         var system = SCMAP.System.List[i];
          if ( system.position.x < ( vector.x - distance ) ) { continue; }
          if ( system.position.x > ( vector.x + distance ) ) { continue; }
          if ( system.position.z < ( vector.z - distance ) ) { continue; }
@@ -2307,117 +2308,166 @@ SCMAP.Map.prototype = {
       return mesh;
    },
 
-   buildReferencePlane: function()
+   buildReferenceGrid: function()
    {
-      var segmentWidth = 10.0, i, position, systemname,
-         minX = 0, minZ = 0, maxX = 0, maxZ = 0,
-         endTime, startTime;
+      var segmentSize = 10, i, j, k, x, z, position;
+      var minX = 0, minZ = 0, maxX = 0, maxZ = 0;
+      var endTime, startTime;
+      var uniqueColours = {};
+      var left, right, above, below;
+      var vertices, vertexColours;
+      var geo = new THREE.Geometry();
+      var color;
+      var grid = {};
+      var alongX = {};
 
       endTime = startTime = new Date();
 
-      for ( systemname in SCMAP.data.systems ) {
-         position = SCMAP.System.getByName( systemname ).position;
-         if ( position.x < minX ) { minX = position.x; }
-         if ( position.x > maxX ) { maxX = position.x; }
-         if ( position.z < minZ ) { minZ = position.z; }
-         if ( position.z > maxZ ) { maxZ = position.z; }
+      // First we compute rough outer bounds based on all the systems on the map
+      // (plus a bit extra because we want to fade to black as well)
+      for ( i = 0; i < SCMAP.System.List.length; i += 1 ) {
+         position = SCMAP.System.List[i].position;
+         if ( position.x < minX ) { minX = position.x - (  6 * 10 ); }
+         if ( position.x > maxX ) { maxX = position.x + (  8 * 10 ); }
+         if ( position.z < minZ ) { minZ = position.z - (  6 * 10 ); }
+         if ( position.z > maxZ ) { maxZ = position.z + ( 10 * 10 ); }
       }
-      minX -= segmentWidth * 4;
-      minZ -= segmentWidth * 4;
-      maxX += segmentWidth * 4;
-      maxZ += segmentWidth * 4;
-      minX = Math.floor( minX / segmentWidth ) * segmentWidth;
-      minZ = Math.floor( minZ / segmentWidth ) * segmentWidth;
-      maxX = Math.floor( maxX / segmentWidth ) * segmentWidth;
-      maxZ = Math.floor( maxZ / segmentWidth ) * segmentWidth;
 
-      var startX = Math.floor( minX / segmentWidth );
-      var startZ = Math.floor( minZ / segmentWidth );
-      var gridX = Math.floor( maxX / segmentWidth );
-      var gridZ = Math.floor( maxZ / segmentWidth );
+      // Now round those numbers to a multiple of segmentSize
+      minX = Math.floor( minX / segmentSize ) * segmentSize;
+      minZ = Math.floor( minZ / segmentSize ) * segmentSize;
+      maxX = Math.floor( maxX / segmentSize ) * segmentSize;
+      maxZ = Math.floor( maxZ / segmentSize ) * segmentSize;
 
-      var geo = new THREE.Geometry();
+      // With the boundaries established, go through each coordinate
+      // on the map, and set the colour for each gridpoint on the
+      // map with the nearest system's faction being used for that
+      // colour. We also take note of each X coordinate visited.
+      // There is a bit of room for optimisation left here; the
+      // systems could be sorted by a X or Z coordinate, sort of like
+      // in an octree, and could possibly be found quicker that way.
+      for ( var iz = minZ; iz <= maxZ; iz += segmentSize ) {
 
-var redcolor = new THREE.Color( 0x000000 );
-var color;
-      //var plane = new THREE.Object3D();
-      var lineMaterial = new THREE.LineBasicMaterial({
-         //color: 0x6060A0,
-         linewidth: 1.5,
-         wireframe: true,
-         vertexColors: THREE.VertexColors
-      });
+         grid[ iz ] = {};
 
-      for ( var iz = startZ; iz <= gridZ; iz ++ ) {
+         for ( var ix = minX; ix <= maxX; ix += segmentSize ) {
 
-         var z1 = iz * segmentWidth;
-         var z2 = ( iz + 1 ) * segmentWidth;
+            alongX[ ix ] = true;
 
-         for ( var ix = startX; ix <= gridX; ix ++ ) {
+            var vector = new THREE.Vector3( ix, 0, iz );
+            var systems = this.withinApproxDistance( vector, 6.5 * segmentSize );
 
-            var x1 = ix * segmentWidth;
-            var x2 = ( ix + 1 ) * segmentWidth;
+            color = this.colorForVector( vector, systems, segmentSize );
 
-            var vec1 = new THREE.Vector3( x1, 0, z1 );
-            var vec2 = new THREE.Vector3( x2, 0, z1 );
-            var vec3 = new THREE.Vector3( x2, 0, z2 );
+            if ( color !== SCMAP.Map.BLACK )
+            {
+               grid[ iz ][ ix ] = color.getHexString();
+               if ( uniqueColours[ grid[iz][ix] ] === undefined ) {
+                  uniqueColours[ grid[iz][ix] ] = color;
+               }
+            }
+            else
+            {
+               grid[ iz ][ ix ] = null;
+               uniqueColours[ null ] = SCMAP.Map.BLACK;
+            }
 
-            geo.vertices.push( vec1 );
-            geo.vertices.push( vec2 );
-            geo.vertices.push( vec2 );
-            geo.vertices.push( vec3 );
-
-            var systems = this.withinApproxDistance( vec2, 55 );
-
-var arr = this.closestFromArray( vec1, systems );
-if ( arr[0] <= 45 && arr[1] ) {
-   color = arr[1].faction.planeColor.clone();
-   if ( arr[0] >= 40 ) {
-      color.multiplyScalar( 0.5 );
-   } else if ( arr[0] >= 30 ) {
-      color.multiplyScalar( 0.8 );
-   }
-} else {
-   color = redcolor;
-}
-geo.colors.push( color );
-
-arr = this.closestFromArray( vec2, systems );
-if ( arr[0] <= 45 && arr[1] ) {
-   color = arr[1].faction.planeColor.clone();
-   if ( arr[0] >= 40 ) {
-      color.multiplyScalar( 0.5 );
-   } else if ( arr[0] >= 30 ) {
-      color.multiplyScalar( 0.8 );
-   }
-} else {
-   color = redcolor;
-}
-            geo.colors.push( color, color );
-
-arr = this.closestFromArray( vec3, systems );
-if ( arr[0] <= 45 && arr[1] ) {
-   color = arr[1].faction.planeColor.clone();
-   if ( arr[0] >= 40 ) {
-      color.multiplyScalar( 0.5 );
-   } else if ( arr[0] >= 30 ) {
-      color.multiplyScalar( 0.8 );
-   }
-} else {
-   color = redcolor;
-}
-            geo.colors.push( color );
          }
 
       }
 
-      // and create the ground reference plane
-      var referenceLines = new THREE.Line( geo, lineMaterial, THREE.LinePieces );
-      scene.add( referenceLines );
+      // Now for both X and Z we build a sorted list of each of
+      // those coordinates seen, allowing for quick iteration.
+      var alongX2 = []; for ( j in alongX ) { alongX2.push( j ); }
+      alongX2.sort( function ( a, b ) { return a - b; } );
+      alongX = alongX2;
+
+      var alongZ = []; for ( j in grid ) { alongZ.push( j ); }
+      alongZ.sort( function ( a, b ) { return a - b; } );
+
+      // Now we got most data worked out, and we can start drawing
+      // the horizontal lines. We draw a line from start vertex to
+      // end vertex for each section where the colour doesn't
+      // change. This gives us the fewest number of lines drawn.
+      for ( i = 1; i < alongZ.length; i += 1 ) {
+         z = alongZ[i];
+         vertices = [];
+         vertexColours = [];
+
+         for ( j = 1; j < alongX.length; j += 1 ) {
+            x = alongX[ j ];
+            left = Math.floor( Number( x ) - segmentSize );
+            right = Math.floor( Number( x ) + segmentSize );
+
+            vertexColor = grid[ z ][ x ];
+
+            if ( (vertexColor !== grid[z][left]  && grid[z][left] ) ||
+                 (vertexColor !== grid[z][right] && grid[z][right])    ) {
+               vertices.push( new THREE.Vector3( x, 0, z ) );
+               vertexColours.push( uniqueColours[ vertexColor ] );
+            }
+         }
+
+         for ( k = 0; k < vertices.length - 1; k++ ) {
+            geo.vertices.push( vertices[k] );
+            geo.colors.push( vertexColours[k] );
+            geo.vertices.push( vertices[k+1] );
+            geo.colors.push( vertexColours[k+1] );
+         }
+      }
+
+      // And do the same for the vertical lines in a separate pass
+      for ( i = 1; i < alongX.length; i += 1 ) {
+         x = alongX[i];
+         vertices = [];
+         vertexColours = [];
+
+         for ( j = 1; j < alongZ.length; j += 1 ) {
+            z = alongZ[j];
+            above = Math.floor( Number( z ) - segmentSize );
+            below = Math.floor( Number( z ) + segmentSize );
+
+            vertexColor = grid[ z ][ x ];
+
+            if ( ( grid[above] && grid[above][x] && vertexColor !== grid[above][x] ) ||
+                 ( grid[below] && grid[below][x] && vertexColor !== grid[below][x] )    ) {
+               vertices.push( new THREE.Vector3( x, 0, z ) );
+               vertexColours.push( uniqueColours[ vertexColor ] );
+            }
+         }
+
+         for ( k = 0; k < vertices.length - 1; k++ ) {
+            geo.vertices.push( vertices[k] );
+            geo.colors.push( vertexColours[k] );
+            geo.vertices.push( vertices[k+1] );
+            geo.colors.push( vertexColours[k+1] );
+         }
+      }
+
+      // Finally create the object with the geometry just built
+      var referenceLines = new THREE.Line( geo, new THREE.LineBasicMaterial({
+         linewidth: 1.5, wireframe: true, vertexColors: THREE.VertexColors
+      }), THREE.LinePieces );
 
       endTime = new Date();
-      console.log( "Building the territory reference plane took " +
+      console.log( "Building the grid reference plane took " +
          (endTime.getTime() - startTime.getTime()) + " msec" );
+
+      return referenceLines;
+   },
+
+   colorForVector: function ( vector, systems, segmentSize ) {
+      var color = SCMAP.Map.BLACK;
+      var arr = this.closestFromArray( vector, systems );
+      if ( arr[0] <= 4.5 * segmentSize && arr[1] ) {
+         color = arr[1].faction.planeColor.clone();
+         if ( arr[0] >= 4.0 * segmentSize ) {
+            color.multiplyScalar( 0.5 );
+         } else if ( arr[0] >= 3.0 * segmentSize ) {
+            color.multiplyScalar( 0.8 );
+         }
+      }
+      return color;
    },
 
    buildOldReferencePlane: function()
@@ -2522,6 +2572,9 @@ if ( arr[0] <= 45 && arr[1] ) {
    }
 };
 
+SCMAP.Map.BLACK = new THREE.Color( 0x000000 );
+
+// EOF
 
 function initUI () {
 
