@@ -204,26 +204,26 @@ function buildDisplayModeFSM ( initialState )
       .to( { y: 0.5 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            map.destroyCurrentRoute(); // TODO: find a way to update
-            for ( var i = 0; i < scene.children.length; i++ ) {
-               var child = scene.children[i];
-               if ( typeof child.scaleY === 'function' ) {
-                  child.scaleY( this.y );
-               }
+         map.route().destroy(); // TODO: find a way to animate
+         for ( var i = 0; i < scene.children.length; i++ ) {
+            var child = scene.children[i];
+            if ( typeof child.scaleY === 'function' ) {
+               child.scaleY( this.y );
             }
+         }
       } );
 
    tweenTo3d = new TWEEN.Tween( position )
       .to( { y: 100.0 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            map.destroyCurrentRoute(); // TODO: find a way to update
-            for ( var i = 0; i < scene.children.length; i++ ) {
-               var child = scene.children[i];
-               if ( typeof child.scaleY === 'function' ) {
-                  child.scaleY( this.y );
-               }
+         map.route().destroy(); // TODO: find a way to animate
+         for ( var i = 0; i < scene.children.length; i++ ) {
+            var child = scene.children[i];
+            if ( typeof child.scaleY === 'function' ) {
+               child.scaleY( this.y );
             }
+         }
       } );
 
    fsm = StateMachine.create({
@@ -248,6 +248,7 @@ function buildDisplayModeFSM ( initialState )
          onleave2d: function() {
             tweenTo3d.onComplete( function() {
                fsm.transition();
+               map.route().update();
             });
             tweenTo3d.start();
             return StateMachine.ASYNC;
@@ -256,6 +257,7 @@ function buildDisplayModeFSM ( initialState )
          onleave3d: function() {
             tweenTo2d.onComplete( function() {
                fsm.transition();
+               map.route().update();
             });
             tweenTo2d.start();
             return StateMachine.ASYNC;

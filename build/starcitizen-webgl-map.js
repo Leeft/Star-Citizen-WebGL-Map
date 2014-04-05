@@ -1057,7 +1057,7 @@ SCMAP.System.prototype = {
       var i;
       var tmp = [];
       var $blurb = $('<div class="sc_system_info" '+makeSafeForCSS(this.name)+'"></div>');
-      var currentStep = window.map.indexOfCurrentRoute( this );
+      var currentStep = window.map.route().indexOfCurrentRoute( this );
 
       $('#systemname')
          .attr( 'class', makeSafeForCSS( this.faction.name ) )
@@ -1072,7 +1072,7 @@ SCMAP.System.prototype = {
 
       if ( typeof currentStep === 'number' )
       {
-         var currentRoute = window.map.currentRoute();
+         var currentRoute = window.map.route().currentRoute();
          var header = [];
 
          if ( currentStep > 0 ) {
@@ -1193,23 +1193,23 @@ SCMAP.System.prototype = {
    },
 
    // 2d/3d tween callback
-   scaleY: function ( scalar ) {
+   scaleY: function scaleY( scalar ) {
       var wantedY = this.system.position.y * ( scalar / 100 );
       this.system.sceneObject.translateY( wantedY - this.system.sceneObject.position.y );
-      for ( var j = 0; j < this.system._routeObjects.length; j++ ) {
-         this.system._routeObjects[j].geometry.verticesNeedUpdate = true;
-      }
+      this.system.routeNeedsUpdate();
    },
 
-   moveTo: function ( vector ) {
-      this.sceneObject.position.copy( vector );
-      for ( var j = 0; j < this._routeObjects.length; j++ ) {
-         this._routeObjects[j].geometry.verticesNeedUpdate = true;
-      }
+   moveTo: function moveTo( vector ) {
+      this.system.sceneObject.position.copy( vector );
+      this.system.routeNeedsUpdate();
    },
 
-   translateVector: function ( vector ) {
-      this.sceneObject.add( vector );
+   translateVector: function translateVector( vector ) {
+      this.system.sceneObject.add( vector );
+      this.system.routeNeedsUpdate();
+   },
+
+   routeNeedsUpdate: function () {
       for ( var j = 0; j < this._routeObjects.length; j++ ) {
          this._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
@@ -1747,41 +1747,178 @@ function isInfinite ( num ) {
 
 
 /**
+  * @author Lianna Eeftinck / https://github.com/Leeft
+  */
+
+SCMAP.Route = function ( start, end ) {
+   this.start = ( start instanceof SCMAP.System ) ? start : null;
+   this.end = ( this.start && end instanceof SCMAP.System ) ? end : null;
+   //this.waypoints = [];
+
+   this._graph = new SCMAP.Dijkstra( SCMAP.System.List );
+   this._routeObject = undefined;
+};
+
+SCMAP.Route.prototype = {
+   constructor: SCMAP.Route,
+
+   currentRoute: function () {
+      if ( this.end instanceof SCMAP.System ) {
+         return this._graph.routeArray( this.end );
+      }
+      return [];
+   },
+
+   indexOfCurrentRoute: function ( system ) {
+      if ( ! system instanceof SCMAP.System ) {
+         return;
+      }
+
+      var currentStep;
+      var currentRoute = this.currentRoute();
+
+      if ( currentRoute.length ) {
+         for ( var i = 0; i < currentRoute.length; i++ ) {
+            if ( currentRoute[i].system === system ) {
+               currentStep = i;
+               break;
+            }
+         }
+      }
+
+      return currentStep;
+   },
+
+   rebuildCurrentRoute: function () {
+      var destination;
+      this.destroy();
+      if ( this._graph.rebuildGraph() ) {
+         console.log( "Have new graph" );
+         destination = this._graph.destination();
+         if ( destination ) {
+            console.log( "Have existing destination, updating route" );
+            this.update( destination );
+         }
+      }
+   },
+
+   destroy: function () {
+      if ( this._routeObject ) {
+         scene.remove( this._routeObject );
+      }
+      $('#routelist').empty();
+   },
+
+   update: function update( destination ) {
+      var _this = this, i, route, material, system, $entry;
+
+      if ( !( destination instanceof SCMAP.System ) ) {
+         destination = this.end;
+      }
+
+      material = new THREE.MeshBasicMaterial( { color: 0xDD3322 } );
+      material.opacity = 0.8;
+      material.transparent = true;
+
+      this.destroy();
+
+      // building all the parts of the route together in a single geometry group
+      // the constructRouteObject method will iterate for us here with the callback
+      this._routeObject = _this._graph.constructRouteObject( _this.start, destination, function ( from, to ) {
+         var mesh = _this.createRouteGeometry( from, to );
+         var line = new THREE.Mesh( mesh, material );
+         line.position = from.sceneObject.position.clone();
+         line.lookAt( to.sceneObject.position );
+         return line;
+      });
+
+      if ( this._routeObject ) {
+         scene.add( this._routeObject );
+         this.end = destination;
+         route = this._graph.routeArray( destination );
+         $('#routelist').empty();
+         if ( route.length > 1 )
+         {
+            $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink( true ).outerHtml()+' to ' +
+               route[route.length-1].system.createInfoLink( true ).outerHtml()+' along <strong>' + (route.length - 1) +
+               '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
+
+            for ( i = 0; i < route.length; i++ ) {
+               system = route[i+0].system;
+               $entry = $('<li></li>').append( system.createInfoLink() );
+               $('#routelist ol').append( $entry );
+            }
+         }
+         else
+         {
+            $('#routelist').append('<p class="impossible">No route available to '+
+               route[0].system.createInfoLink( true ).outerHtml()+' with your current settings</p>');
+         }
+
+         $('#map_ui').tabs( 'option', 'active', 3 );
+      }
+   },
+
+   createRouteGeometry: function ( source, destination ) {
+      var distance = source.sceneObject.position.distanceTo( destination.sceneObject.position );
+      var geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
+      geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, distance / 2, 0 ) );
+      geometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
+      return geometry;
+   }
+};
+
+// EOF
+
+/**
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
 SCMAP.Map = function ( scene ) {
-   this.name = "Star Citizen 'Verse";
+   this.name = "Star Citizen Persistent Universe";
    this.scene = scene;
-   this.goods = {};
-
-   this._selected = undefined;
-   this._destination = undefined;
-   this.group = undefined;
-   this._interactables = [];
-   this.referencePlane = undefined;
-
-   this._selectorObject = this.createSelectorObject( 0xCCCC99 );
-   this.scene.add( this._selectorObject );
-
-   this._mouseOverObject = this.createSelectorObject( 0x8844FF );
-   this._mouseOverObject.visible = true;
-   this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
-   this.scene.add( this._mouseOverObject );
 
    // No editing available for the moment (doesn't work yet)
    this.canEdit = false;
    $('#map_ui li.editor').hide();
 
-   this.preprocessScene();
-   this._graph = new SCMAP.Dijkstra( SCMAP.System.List );
-   this._routeObject = undefined;
+   this._interactables = [];
+   this._route = null; // The main route the user can set
+
+   this._selectorObject = this.__createSelectorObject( 0xCCCC99 );
+   scene.add( this._selectorObject );
+
+   this._mouseOverObject = this.__createSelectorObject( 0x8844FF );
+   this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
+   scene.add( this._mouseOverObject );
+
+   SCMAP.Faction.preprocessFactions();
+   SCMAP.Goods.preprocessGoods();
+   SCMAP.System.preprocessSystems();
+
+   this.__currentlySelected = null;
 };
 
 SCMAP.Map.prototype = {
    constructor: SCMAP.Map,
 
-   createSelectorObject: function ( color ) {
+   getSelected: function getSelected () {
+      return this.__currentlySelected;
+   },
+
+   selected: function selected() {
+      return this.getSelected();
+   },
+
+   setSelected: function setSelected ( system ) {
+      if ( system !== null && !(system instanceof SCMAP.System) ) {
+         throw new Error( system, "is not an instance of SCMAP.System" );
+      }
+      this.__currentlySelected = system;
+      return system;
+   },
+
+   __createSelectorObject: function __createSelectorObject ( color ) {
       var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({
          color: color
          //transparent: true,
@@ -1797,39 +1934,52 @@ SCMAP.Map.prototype = {
       };
       return mesh;
    },
-   updateSelectorObject: function ( system ) {
+
+   __updateSelectorObject: function __updateSelectorObject ( system ) {
       if ( system instanceof SCMAP.System ) {
          this._selectorObject.visible = true;
          this._selectorObject.systemPosition.copy( system.position );
          //this._selectorObject.position.copy( system.sceneObject.position );
          this.moveSelectorTo( system );
-         this._selected = system;
+         this.setSelected( system );
       } else {
          this._selectorObject.visible = false;
-         this._selected = undefined;
+         this.setSelected( null );
       }
    },
 
-   system: function ( name ) {
+   // Lazy builds the route
+   route: function route () {
+      if ( !( this._route instanceof SCMAP.Route ) ) {
+         this._route = new SCMAP.Route();
+         console.log( "Created new route", this._route );
+      }
+      return this._route;
+   },
+
+   setSelectionTo: function setSelectionTo ( system ) {
+      return this.__updateSelectorObject( system );
+   },
+
+   clearSelection: function clearSelection () {
+      return this.__updateSelectorObject();
+   },
+
+   getSystemByName: function getSystemByName ( name ) {
       return SCMAP.System.getByName( name );
    },
 
-   selected: function () {
-      return this._selected;
-   },
-
-   interactables: function () {
+   interactables: function interactables () {
       return this._interactables;
    },
 
-   deselect: function ( ) {
-      this._selectorObject.visible = false;
-      this._selected = undefined;
+   deselect: function deselect () {
+      this.clearSelection();
       $('#system-selected').hide();
       $('#system-not-selected').show();
    },
 
-   animateSelector: function ( ) {
+   animateSelector: function animateSelector () {
       if ( this._selectorObject.visible ) {
          this._selectorObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
       }
@@ -1838,34 +1988,34 @@ SCMAP.Map.prototype = {
       }
    },
 
-   updateSystems: function ( ) {
+   updateSystems: function updateSystems () {
       for ( var i = 0; i < SCMAP.System.List.length; i++ ) {
          SCMAP.System.List[i].updateSceneObject( this.scene );
       }
    },
 
-   setAllLabelSizes: function ( vector ) {
+   setAllLabelSizes: function setAllLabelSizes ( vector ) {
       for ( var i = 0; i < SCMAP.System.List.length; i++ ) {
          var system = SCMAP.System.List[i];
          SCMAP.System.List[i].setLabelScale( vector );
       }
    },
 
-   moveSelectorTo: function ( system ) {
-      var tween, newPosition, position, _this = this, poi;
+   moveSelectorTo: function moveSelectorTo ( system ) {
+      var tween, newPosition, position, _this = this, poi, graph;
 
-      if ( !(_this._selectorObject.visible) || !(_this._selected instanceof SCMAP.System) ) {
+      if ( !(_this._selectorObject.visible) || !(_this.getSelected() instanceof SCMAP.System) ) {
          _this._selectorObject.systemPosition.copy( system.position );
          _this._selectorObject.position.copy( system.sceneObject.position );
          _this._selectorObject.visible = true;
-         _this._selected = system;
+         _this.getSelected( system );
          return;
       }
 
       newPosition = system.sceneObject.position.clone();
-      var graph = new SCMAP.Dijkstra( SCMAP.System.List );
+      graph = new SCMAP.Dijkstra( SCMAP.System.List );
       graph.buildGraph({
-         source: _this._selected,
+         source: _this.getSelected(),
          destination: system
       });
       var route = graph.routeArray( system );
@@ -1874,7 +2024,7 @@ SCMAP.Map.prototype = {
          _this._selectorObject.systemPosition.copy( system.position );
          _this._selectorObject.position.copy( system.sceneObject.position );
          _this._selectorObject.visible = true;
-         _this._selected = system;
+         _this.setSelected( system );
          return;
       }
 
@@ -1922,7 +2072,7 @@ SCMAP.Map.prototype = {
             tween.onComplete( function() {
                _this._selectorObject.systemPosition.copy( poi.position );
                _this._selectorObject.position.copy( poi.sceneObject.position );
-               _this._selected = system;
+               _this.setSelected( system );
             } );
          }
 
@@ -1934,210 +2084,7 @@ SCMAP.Map.prototype = {
 
    },
 
-   // TODO: move to control class
-   handleSelection: function ( event, intersect ) {
-
-      if ( typeof intersect !== 'object' ) {
-         return;
-      }
-
-      var modifierPressed = ( event.shiftKey || event.ctrlKey ) ? true : false;
-
-      if ( event.type === 'mousedown' )
-      {
-         //if ( window.editor.enabled )
-         //{
-         //   if ( ! event.altKey && typeof intersect.object.parent.system === 'object' ) {
-
-         //      // if in edit mode, and the targeted object is already selected, start dragging
-         //      // otherwise, select it
-         //      if ( this._selected instanceof SCMAP.System &&
-         //           intersect.object.parent.system instanceof SCMAP.System &&
-         //           this._selected == intersect.object.parent.system
-         //      ) {
-         //         window.controls.editDrag = true;
-         //      } else {
-         //         this.updateSelectorObject( intersect.object.parent.system );
-         //         window.controls.editDrag = false;
-         //      }
-         //   }
-         //}
-         //else
-         {
-            if ( modifierPressed ) {
-               this._destination = intersect.object.parent.system;
-            } else {
-               this.moveSelectorTo( intersect.object.parent.system );
-            }
-         }
-      }
-      else if ( event.type === 'mouseup' )
-      {
-         if ( ! window.editor.enabled )
-         {
-            if ( ! modifierPressed )
-            {
-               if ( this._selected instanceof SCMAP.System && intersect.object.parent.system instanceof SCMAP.System ) {
-                  if ( intersect.object.parent.system === this._selected ) {
-                     //if ( $('#systemname').text() != intersect.object.parent.system.name ) {
-                        this.updateSelectorObject( intersect.object.parent.system );
-                        intersect.object.parent.system.displayInfo();
-                     //}
-                  }
-               }
-            }
-            else
-            {
-               this.updateRoute( intersect.object.parent.system );
-            }
-         }
-      }
-   },
-
-   currentRoute: function () {
-      if ( this._destination instanceof SCMAP.System ) {
-         return this._graph.routeArray( this._destination );
-      }
-      return [];
-   },
-
-   // TODO: separate Route class
-   indexOfCurrentRoute: function ( system ) {
-      if ( ! system instanceof SCMAP.System ) {
-         return;
-      }
-
-      var currentStep;
-      var currentRoute = this.currentRoute();
-
-      if ( currentRoute.length ) {
-         for ( i = 0; i < currentRoute.length; i++ ) {
-            if ( currentRoute[i].system === system ) {
-               currentStep = i;
-               break;
-            }
-         }
-      }
-
-      return currentStep;
-   },
-
-   rebuildCurrentRoute: function () {
-      var source, destination;
-      if ( this._routeObject ) {
-         scene.remove( this._routeObject );
-      }
-      $('#routelist').empty();
-      if ( this._graph.rebuildGraph() ) {
-         console.log( "have new graph" );
-         destination = this._graph.destination();
-         if ( destination ) {
-         console.log( "have existing destination, updating route" );
-            this.updateRoute( destination );
-         }
-      }
-   },
-
-   destroyCurrentRoute: function () {
-      if ( this._routeObject ) {
-         scene.remove( this._routeObject );
-      }
-      $('#routelist').empty();
-   },
-
-   updateRoute: function ( destination ) {
-      var _this = this, i, route, material, system, $entry;
-
-      material = new THREE.MeshBasicMaterial( { color: 0xDD3322 } );
-      material.opacity = 0.8;
-      material.transparent = true;
-      //material.blending = THREE.AdditiveBlending;
-
-      this.destroyCurrentRoute();
-
-      // building all the parts of the route together in a single geometry group
-      // the constructRouteObject method will iterate for us here with the callback
-      this._routeObject = _this._graph.constructRouteObject( _this._selected, destination, function ( from, to ) {
-         var mesh = _this.createRouteMesh( from, to );
-         var line = new THREE.Mesh( mesh, material );
-         line.position = from.sceneObject.position.clone();
-         line.lookAt( to.sceneObject.position );
-         return line;
-      });
-      if ( this._routeObject ) {
-         this.scene.add( this._routeObject );
-         this._destination = destination;
-         route = this._graph.routeArray( destination );
-         $('#routelist').empty();
-         if ( route.length > 1 )
-         {
-            $('#routelist').append('<p>The shortest route from '+route[0].system.createInfoLink( true ).outerHtml()+' to ' +
-               route[route.length-1].system.createInfoLink( true ).outerHtml()+' along <strong>' + (route.length - 1) +
-               '</strong> jump points:</p>').append( '<ol class="routelist"></ol>' );
-
-            for ( i = 0; i < route.length; i++ ) {
-               system = route[i+0].system;
-               $entry = $('<li></li>').append( system.createInfoLink() );
-               $('#routelist ol').append( $entry );
-            }
-         }
-         else
-         {
-            $('#routelist').append('<p class="impossible">No route available to '+
-               route[0].system.createInfoLink( true ).outerHtml()+' with your current settings</p>');
-         }
-
-         $('#map_ui').tabs( 'option', 'active', 3 );
-      }
-   },
-
-   createRouteMesh: function ( source, destination ) {
-      var step = 2 * Math.PI / 16,
-          zstep = 0.5,
-          radius = 0.5,
-          geometry, // = new THREE.Geometry(),
-          distance = source.sceneObject.position.distanceTo( destination.sceneObject.position ),
-          z = 0, theta, x, y;
-
-      geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
-      geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, distance / 2, 0 ) );
-      geometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
-
-      //for ( theta = 0; z < distance; theta += step )
-      //{
-      //   x = radius * Math.cos( theta );
-      //   y = 0 - radius * Math.sin( theta );
-      //   geometry.vertices.push( new THREE.Vector3( x, y, z ) );
-      //   z += zstep;
-      //}
-      return geometry;
-   },
-
-   createRouteMeshTwirl: function ( source, destination ) {
-      var step = 2 * Math.PI / 16,
-          zstep = 0.5,
-          radius = 0.5,
-          geometry = new THREE.Geometry(),
-          distance = source.sceneObject.position.distanceTo( destination.sceneObject.position ),
-          z = 0, theta, x, y;
-
-      for ( theta = 0; z < distance; theta += step )
-      {
-         x = radius * Math.cos( theta );
-         y = 0 - radius * Math.sin( theta );
-         geometry.vertices.push( new THREE.Vector3( x, y, z ) );
-         z += zstep;
-      }
-      return geometry;
-   },
-
-   preprocessScene: function () {
-      SCMAP.Faction.preprocessFactions();
-      SCMAP.Goods.preprocessGoods();
-      SCMAP.System.preprocessSystems();
-   },
-
-   populateScene: function () {
+   populateScene: function populateScene () {
       var territory, territoryName, routeMaterial, system, systemName,
          source, destinations, destination, geometry,
          data, jumpPoint, jumpPointObject, faction, systemObject,
@@ -2152,18 +2099,12 @@ SCMAP.Map.prototype = {
       // First we go through the data to build the basic systems so
       // the routes can be built as well
 
-      for ( systemName in SCMAP.data.systems )
-      {
-
+      for ( systemName in SCMAP.data.systems ) {
          system = SCMAP.System.getByName( systemName );
          sceneObject = system.buildSceneObject();
          this.scene.add( sceneObject );
          this._interactables.push( sceneObject.children[0] );
-         //this._interactables.push( sceneObject.children[1] ); // Glow too big for now, disabled
-         //this._interactables.push( sceneObject.children[2] ); // Even a properly sized label is too big :(
-
          systemCount++;
-
       }
 
       // Then we go through again and add the routes
@@ -2193,12 +2134,10 @@ SCMAP.Map.prototype = {
       $('#debug-systems').html( systemCount + ' systems loaded' );
 
       scene.add( this.buildReferenceGrid() );
-      //this.referencePlaneSolidColor( new THREE.Color( 0x000000 ) );
-      //this.referencePlaneTerritoryColor();
    },
 
-   closestPOI: function ( vector ) {
-      var closest = Infinity, closestPOI, system, length, systemname, xd, zd;
+   closestPOI: function closestPOI ( vector ) {
+      var closest = Infinity, _closestPOI, system, length, systemname, xd, zd;
 
       for ( systemname in SCMAP.data.systems ) {
          system = SCMAP.System.getByName( systemname );
@@ -2207,14 +2146,14 @@ SCMAP.Map.prototype = {
          length = Math.sqrt( xd * xd + zd * zd );
          if ( length < closest ) {
             closest = length;
-            closestPOI = system;
+            _closestPOI = system;
          }
       }
 
-      return [ closest, closestPOI ];
+      return [ closest, _closestPOI ];
    },
 
-   closestFromArray: function ( vector, systems ) {
+   closestFromArray: function closestFromArray ( vector, systems ) {
       var closest = Infinity, closestPOI, system, length, systemname, xd, zd;
 
       for ( var i = 0; i < systems.length; i++ ) {
@@ -2232,7 +2171,7 @@ SCMAP.Map.prototype = {
    },
 
    // Get a quick list of systems nearby (within a square)
-   withinApproxDistance: function ( vector, distance ) {
+   withinApproxDistance: function withinApproxDistance ( vector, distance ) {
       var systems = [];
       for ( var i = 0; i < SCMAP.System.List.length; i += 1 ) {
          var system = SCMAP.System.List[i];
@@ -2245,8 +2184,8 @@ SCMAP.Map.prototype = {
       return systems;
    },
 
-   furthestPOI: function ( vector ) {
-      var furthest = 0, furthestPOI, system, length, systemname, xd, zd;
+   furthestPOI: function furthestPOI ( vector ) {
+      var furthest = 0, _furthestPOI, system, length, systemname, xd, zd;
 
       for ( systemname in SCMAP.data.systems ) {
          system = SCMAP.System.getByName[ systemname ];
@@ -2255,13 +2194,13 @@ SCMAP.Map.prototype = {
          length = Math.sqrt( xd * xd + zd * zd );
          if ( length > furthest ) {
             furthest = length;
-            furthestPOI = system;
+            _furthestPOI = system;
          }
       }
-      return [ furthest, furthestPOI ];
+      return [ furthest, _furthestPOI ];
    },
 
-   referencePlaneTerritoryColor: function() {
+   referencePlaneTerritoryColor: function referencePlaneTerritoryColor () {
       if ( ! this.referencePlane instanceof THREE.Object3D ) {
          return;
       }
@@ -2288,7 +2227,7 @@ SCMAP.Map.prototype = {
       }
    },
 
-   referencePlaneSolidColor: function( color ) {
+   referencePlaneSolidColor: function referencePlaneSolidColor( color ) {
       var geometry = this.referencePlane.geometry,
          i, point;
       if ( ! this.referencePlane instanceof THREE.Object3D ) {
@@ -2300,12 +2239,11 @@ SCMAP.Map.prototype = {
       }
    },
 
-   pointAtPlane: function( theta, radius, y ) {
+   pointAtPlane: function pointAtPlane( theta, radius, y ) {
       return new THREE.Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
    },
 
-   referencePlaneTerritoryColourMesh: function( material, prevTheta, nextTheta, innerRadius, outerRadius )
-   {
+   referencePlaneTerritoryColourMesh: function referencePlaneTerritoryColourMesh( material, prevTheta, nextTheta, innerRadius, outerRadius ) {
       var geo, mesh;
       geo = new THREE.Geometry();
       geo.vertices.push( this.pointAtPlane( prevTheta, innerRadius, -0.04 ) );
@@ -2318,8 +2256,7 @@ SCMAP.Map.prototype = {
       return mesh;
    },
 
-   buildReferenceGrid: function()
-   {
+   buildReferenceGrid: function buildReferenceGrid() {
       var segmentSize = 10, i, j, k, x, z, position;
       var minX = 0, minZ = 0, maxX = 0, maxZ = 0;
       var endTime, startTime;
@@ -2466,7 +2403,7 @@ SCMAP.Map.prototype = {
       return referenceLines;
    },
 
-   colorForVector: function ( vector, systems, segmentSize ) {
+   colorForVector: function colorForVector( vector, systems, segmentSize ) {
       var color = SCMAP.Map.BLACK;
       var arr = this.closestFromArray( vector, systems );
       if ( arr[0] <= 4.5 * segmentSize && arr[1] ) {
@@ -2480,7 +2417,7 @@ SCMAP.Map.prototype = {
       return color;
    },
 
-   buildOldReferencePlane: function()
+   buildOldReferencePlane: function buildOldReferencePlane()
    {
       var ringWidth = 10.0, // plane circle scaling factor to match the map video
          step = 2 * Math.PI / 36, // 36 radial segments
@@ -2727,18 +2664,18 @@ function initUI () {
       if ( storage ) {
          storage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
       }
-      map.rebuildCurrentRoute();
+      map.route().rebuildCurrentRoute();
    });
    $('#avoid-off-limits').on( 'change', function() {
       if ( storage ) {
          storage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
-         map.rebuildCurrentRoute();
+         map.route().rebuildCurrentRoute();
       }
    });
    $('#avoid-unknown-jumppoints').on( 'change', function() {
       if ( storage ) {
          storage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
-         map.rebuildCurrentRoute();
+         map.route().rebuildCurrentRoute();
       }
    });
 
@@ -3060,7 +2997,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                   if ( scope.debug ) {
                      console.log( 'Click at "' + intersect.object.parent.system.name + '"' );
                   }
-                  scope.map.updateSelectorObject( startObject );
+                  scope.map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
                   this.touchtodrag( event );
                }
@@ -3230,7 +3167,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       if ( destination instanceof SCMAP.System ) {
-         _this.map.updateSelectorObject( destination );
+         _this.map.setSelectionTo( destination );
       }
 
       if ( targetTween ) {
@@ -3370,7 +3307,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       } else {
 
          // camera neither orthographic or perspective - warn user
-         console.warn( 'WARNING: OrbitControlsFSM.js encountered an unknown camera type - pan disabled.' );
+         console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.' );
 
       }
 
@@ -3503,11 +3440,12 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       event.preventDefault();
 
       var intersect;
+      var route;
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
       if ( state.current === 'idle' ) {
 
-         // Mouse move on idle handling: highlighting systems, dragging routes
+         // Mouse move on idle handling: highlighting systems, dragging waypoints on route
 
          if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
             intersect = scope.getIntersect( event );
@@ -3546,7 +3484,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== startObject ) {
                if ( !endObject || endObject !== intersect.object.parent.system ) {
                   endObject = intersect.object.parent.system;
-                  scope.map.updateRoute( endObject );
+                  route = scope.map.route();
+                  route.start = startObject;
+                  route.end = endObject;
+                  route.update( endObject );
                   if ( scope.debug ) {
                      console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
                   }
@@ -3699,7 +3640,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             $('#lock-rotation').click();
             break;
          default:
-//console.log( "onkeydown", event.keyCode ); // TODO: REMOVE ME
+            //console.log( "onkeydown", event.keyCode );
             break;
       }
 
@@ -4052,26 +3993,26 @@ function buildDisplayModeFSM ( initialState )
       .to( { y: 0.5 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            map.destroyCurrentRoute(); // TODO: find a way to update
-            for ( var i = 0; i < scene.children.length; i++ ) {
-               var child = scene.children[i];
-               if ( typeof child.scaleY === 'function' ) {
-                  child.scaleY( this.y );
-               }
+         map.route().destroy(); // TODO: find a way to animate
+         for ( var i = 0; i < scene.children.length; i++ ) {
+            var child = scene.children[i];
+            if ( typeof child.scaleY === 'function' ) {
+               child.scaleY( this.y );
             }
+         }
       } );
 
    tweenTo3d = new TWEEN.Tween( position )
       .to( { y: 100.0 }, 1000 )
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
-            map.destroyCurrentRoute(); // TODO: find a way to update
-            for ( var i = 0; i < scene.children.length; i++ ) {
-               var child = scene.children[i];
-               if ( typeof child.scaleY === 'function' ) {
-                  child.scaleY( this.y );
-               }
+         map.route().destroy(); // TODO: find a way to animate
+         for ( var i = 0; i < scene.children.length; i++ ) {
+            var child = scene.children[i];
+            if ( typeof child.scaleY === 'function' ) {
+               child.scaleY( this.y );
             }
+         }
       } );
 
    fsm = StateMachine.create({
@@ -4096,6 +4037,7 @@ function buildDisplayModeFSM ( initialState )
          onleave2d: function() {
             tweenTo3d.onComplete( function() {
                fsm.transition();
+               map.route().update();
             });
             tweenTo3d.start();
             return StateMachine.ASYNC;
@@ -4104,6 +4046,7 @@ function buildDisplayModeFSM ( initialState )
          onleave3d: function() {
             tweenTo2d.onComplete( function() {
                fsm.transition();
+               map.route().update();
             });
             tweenTo2d.start();
             return StateMachine.ASYNC;

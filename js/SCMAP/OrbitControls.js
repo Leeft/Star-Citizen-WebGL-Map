@@ -138,7 +138,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                   if ( scope.debug ) {
                      console.log( 'Click at "' + intersect.object.parent.system.name + '"' );
                   }
-                  scope.map.updateSelectorObject( startObject );
+                  scope.map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
                   this.touchtodrag( event );
                }
@@ -308,7 +308,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       if ( destination instanceof SCMAP.System ) {
-         _this.map.updateSelectorObject( destination );
+         _this.map.setSelectionTo( destination );
       }
 
       if ( targetTween ) {
@@ -448,7 +448,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       } else {
 
          // camera neither orthographic or perspective - warn user
-         console.warn( 'WARNING: OrbitControlsFSM.js encountered an unknown camera type - pan disabled.' );
+         console.warn( 'WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.' );
 
       }
 
@@ -581,11 +581,12 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       event.preventDefault();
 
       var intersect;
+      var route;
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
       if ( state.current === 'idle' ) {
 
-         // Mouse move on idle handling: highlighting systems, dragging routes
+         // Mouse move on idle handling: highlighting systems, dragging waypoints on route
 
          if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
             intersect = scope.getIntersect( event );
@@ -624,7 +625,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             if ( intersect && intersect.object.parent.system && intersect.object.parent.system !== startObject ) {
                if ( !endObject || endObject !== intersect.object.parent.system ) {
                   endObject = intersect.object.parent.system;
-                  scope.map.updateRoute( endObject );
+                  route = scope.map.route();
+                  route.start = startObject;
+                  route.end = endObject;
+                  route.update( endObject );
                   if ( scope.debug ) {
                      console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
                   }
@@ -777,7 +781,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             $('#lock-rotation').click();
             break;
          default:
-//console.log( "onkeydown", event.keyCode ); // TODO: REMOVE ME
+            //console.log( "onkeydown", event.keyCode );
             break;
       }
 

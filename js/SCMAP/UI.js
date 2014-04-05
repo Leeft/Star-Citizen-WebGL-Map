@@ -139,18 +139,18 @@ function initUI () {
       if ( storage ) {
          storage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
       }
-      map.rebuildCurrentRoute();
+      map.route().rebuildCurrentRoute();
    });
    $('#avoid-off-limits').on( 'change', function() {
       if ( storage ) {
          storage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
-         map.rebuildCurrentRoute();
+         map.route().rebuildCurrentRoute();
       }
    });
    $('#avoid-unknown-jumppoints').on( 'change', function() {
       if ( storage ) {
          storage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
-         map.rebuildCurrentRoute();
+         map.route().rebuildCurrentRoute();
       }
    });
 

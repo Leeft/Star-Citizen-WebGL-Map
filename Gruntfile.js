@@ -79,6 +79,7 @@ module.exports = function(grunt) {
           'js/SCMAP/Goods.js',
           'js/SCMAP/System.js',
           'js/SCMAP/Dijkstra.js',
+          'js/SCMAP/Route.js',
           'js/SCMAP/Map.js',
           'js/SCMAP/UI.js',
           'js/SCMAP/OrbitControls.js',

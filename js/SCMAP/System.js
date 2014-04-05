@@ -319,7 +319,7 @@ SCMAP.System.prototype = {
       var i;
       var tmp = [];
       var $blurb = $('<div class="sc_system_info" '+makeSafeForCSS(this.name)+'"></div>');
-      var currentStep = window.map.indexOfCurrentRoute( this );
+      var currentStep = window.map.route().indexOfCurrentRoute( this );
 
       $('#systemname')
          .attr( 'class', makeSafeForCSS( this.faction.name ) )
@@ -334,7 +334,7 @@ SCMAP.System.prototype = {
 
       if ( typeof currentStep === 'number' )
       {
-         var currentRoute = window.map.currentRoute();
+         var currentRoute = window.map.route().currentRoute();
          var header = [];
 
          if ( currentStep > 0 ) {
@@ -455,23 +455,23 @@ SCMAP.System.prototype = {
    },
 
    // 2d/3d tween callback
-   scaleY: function ( scalar ) {
+   scaleY: function scaleY( scalar ) {
       var wantedY = this.system.position.y * ( scalar / 100 );
       this.system.sceneObject.translateY( wantedY - this.system.sceneObject.position.y );
-      for ( var j = 0; j < this.system._routeObjects.length; j++ ) {
-         this.system._routeObjects[j].geometry.verticesNeedUpdate = true;
-      }
+      this.system.routeNeedsUpdate();
    },
 
-   moveTo: function ( vector ) {
-      this.sceneObject.position.copy( vector );
-      for ( var j = 0; j < this._routeObjects.length; j++ ) {
-         this._routeObjects[j].geometry.verticesNeedUpdate = true;
-      }
+   moveTo: function moveTo( vector ) {
+      this.system.sceneObject.position.copy( vector );
+      this.system.routeNeedsUpdate();
    },
 
-   translateVector: function ( vector ) {
-      this.sceneObject.add( vector );
+   translateVector: function translateVector( vector ) {
+      this.system.sceneObject.add( vector );
+      this.system.routeNeedsUpdate();
+   },
+
+   routeNeedsUpdate: function () {
       for ( var j = 0; j < this._routeObjects.length; j++ ) {
          this._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
