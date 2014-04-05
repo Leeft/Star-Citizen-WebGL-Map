@@ -667,7 +667,7 @@ SCMAP.data.systems = {
    "Bremen" : {
       "black_market" : [],
       "blob" : "",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          -50.77,
          23.85,
@@ -1161,7 +1161,7 @@ SCMAP.data.systems = {
    "Croshaw" : {
       "black_market" : [],
       "blob" : "",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          1.83,
          2.78,
@@ -1238,7 +1238,7 @@ SCMAP.data.systems = {
    "Davien" : {
       "black_market" : [],
       "blob" : "",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          30.28,
          27.04,
@@ -1379,7 +1379,7 @@ SCMAP.data.systems = {
    "Elysium" : {
       "black_market" : [],
       "blob" : "",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          -46.9,
          16.96,
@@ -1476,7 +1476,7 @@ SCMAP.data.systems = {
          6
       ],
       "blob" : "**Fora** is, for lack of a better description, a known pirate system in UEE space – the only of its kind. Home to Hyperion, a dusty outpost planet, Fora has evolved into a safe zone in an area of space littered with Outsiders and Banu. Pirates, smugglers and worse frequently call the place their home and are largely ignored by the local police garrison.\r\n\r\nTerraforming problems left the world awash in perpetual HyperClay dust storms. The stuff coats nearly every surface and has such a low silica content as to be useless for mining purposes. Hyperion has a single landing area, Shoel, and no practical exports. If you’re on the run, though, it’s a good place to hide – bounties rarely reach this area of space.\r\n\r\nOther worlds in the system are completely dead, although they make a good hiding place for larger spacecraft. Fora does have one additional point of interest: it is probably the safest area to cross into Banu space undetected. As a result, you are likely to encounter plenty of smugglers in the system’s environs… as well as the occasional UEE special operations team.",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          27.33,
          26.57,
@@ -1690,7 +1690,7 @@ SCMAP.data.systems = {
          12
       ],
       "blob" : "Generally regarded as one of the most visually stunning systems in the Empire, the **Goss** System is a binary star system situated in the forefront of a massive emission nebula. Permanent bands of turqouise, gold and deep orange paint the sky from any location in the system.\r\n\r\nAll three of Goss’ planets are inhabitable. The bulk of the system’s economy comes from tourism, but Gossians pride themselves on being self sufficient. Long-haul traders will find few bargains here, as the system produces little worthy of export and gathers its raw materials internally, mining and harvesting resources from the inner planets as needed.\r\n\r\nThe main destination is the lush, thriving resort world of Cassel (Goss II.) The surface is largely tropical rain forests dotted with stately pleasure domes constructed to support tourists and dozens of launch arcologies that house the descendants of the original Goss settlers. Goss I is a low-atmosphere world with abundant heavy metals. Scattered pockets of well-paid miners are a reasonable market for luxury goods and black market items, although the systems’ strict export policies prevent shipping raw materials out-system.\r\n\r\nThe Olympus Pool has dark side, too: the same nebula that delights tourists also acts as an effective curtain for several deep space pirate clans. Pirates are generally careful not to interfere in the tourism on Cassel… but the brilliantly colored sky is believed to hide multiple clan operations facilities and supply chain master points.\r\n\r\n**WARNING:** gravity effects of the binary star have rendered portions of the system untenable to starships not carrying Level 7 shields or above. Consult current gravity maps before attempting transit!",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          92.21,
          25.2,
@@ -2161,7 +2161,7 @@ SCMAP.data.systems = {
    "Kallis" : {
       "black_market" : [],
       "blob" : "**Kallis** is a system still in its infancy. All the planetary masses are still forming and cooling. It’s not ideal for colonists and with the exception of some rare metals in unusual concentrations it’s not great for merchants… but all eyes are on the system in the scientific community. As such, the system has no native population or representation in the UEE senate; it is officially governed by a panel of Imperial researchers.\r\n\r\nKalis IV, survey number DXP-55.7c, has attracted particular attention because of its believed similarity to Earth at this stage of a star system’s formation. Survey teams are observing the planet from orbital stations and spy-eye recon drones twenty-three hours a day and the work is less than thrilling. The potential for studying how an Earth-like planet is formed is exciting, but all parties involved know that it will take tens of thousands of years to gather the necessary data. Black market traders might be advised that the crews manning these posts will be looking for other forms of entertainment to fill their days.\r\n\r\nKallis’ 7th planet, a gas giant, has been identified as a potential refueling station, although only a small Lagrange platform currently exists there. The belief is that Kallis may become a jump hub as expansion into this region of the galaxy continues; canny real estate investors would be advised to purchase land deeds immediately.",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          40.52,
          19.55,
@@ -2719,7 +2719,7 @@ SCMAP.data.systems = {
    "Nexus" : {
       "black_market" : [],
       "blob" : "",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          74.22,
          18.97,
@@ -2867,7 +2867,7 @@ SCMAP.data.systems = {
          20
       ],
       "blob" : "**Oberon** IV, Gonn, is home to a robust mining community like those found in the most distant places on Earth: a group of humans seemingly unconcerned with their own welfare in an impossibly harsh environment. The world is not terraformed, and inhabitants must brave extreme heat and cold in order to survive… but the process is worthwhile, with massive exports of titanium, durasteel and tungsten. Countless robotic refineries allow the miners to offer processed alloys rather than simply raw ores.\r\n\r\nThe historical centerpiece of the system is Oberon V, Uriel. One of the saddest stories in modern terraforming, Uriel represents an attempt to raise the core temperature to make up for the lack of heat from Oberon’s neutron star. The attempt was considered a sure thing and its failure left three sloships of colonists bound for the world trapped and forced to either eke out a life underground or die of exposure. A competitive, family-based society has formed on the world, with seven major clans vying for control of scant few resources.\r\n\r\nSeveral above-ground settlements have sprung up in recent years, although they have a distinct expiration date. In five years, a swarm of 70-year cyclical insects will devour all organic matter above sea level. Attempts at extermination in advance of the deadline have thus far been unsuccessful. As the saying goes, the most valuable thing someone can ship in the Gonn system is Urielians away from it.",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          -11.15,
          9.58,
@@ -3126,7 +3126,7 @@ SCMAP.data.systems = {
          44
       ],
       "blob" : "**Oso** has been designated by the UEE as a developing system off-limits to interaction and trade. A small military garrison maintains this edict, although they are generally willing to look the other way for the right price. As such, Oso is regularly visited by traders of all stripes looking to ship between here and the Xi’An Empire.\r\n\r\nOsoians are the most developed of all the primitive species discovered by the UEE. A furry, multi-limbed race that communicates through flashes of color generated by chameleon cells that are patterned across their forehead-equivalents.\r\n\r\nHuman scientists find the natives to be endlessly fascinating, and Earth’s universities are full of graduate students suggesting new ways to study and attempt to communicate with the Osoians. The Xi’An, however, have a more tragic take on the species: they find them to be delicious.",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          53.5,
          26.98,
@@ -3690,7 +3690,7 @@ SCMAP.data.systems = {
          2
       ],
       "blob" : "**Tal** is a system on the edge of the Xi’An Empire and one which has been generally receptive to extended human presence. The entire planetary series is what the Xi’An call a ProductionSystem: every planet has been carefully planned and patterned as a specific work zone. Each inhabited world (Tal II through V) is filled with factories, refineries, food production domes and other facilities and each planet has a specific purpose in a larger production chain.\r\n\r\nOne visually surprising element of Tal is that the Xi’An love of large scale organization means that they have actually color coded their ProductionSystem worlds: EVERY structure on Tal II is a bright yellow, Tal III purple, Tal IV dark green and Tal V a burnt orange. Humans regularly express their disbelief that such a system is even possible, although it goes a long way to explaining why Xi’An frequently have trouble adapting to the chaos of human cities.\r\n\r\nAlthough the actual system is far more complex than a simple summary can provide, merchants should know that Tal II produces large scale space fabrication, Tal III food and textiles, Tal IV processes hydrogen and antimatter and Tal V is responsible for end-stage processing of weapons. The Xi’An are happy to purchase raw materials for use on their factory planets and they sell surplus production runs at fair prices. It’s not the best place in the galaxy to score a deal, but dealing with the Xi’An is as close to being able to guarantee a small profit as you can find.",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          220.83,
          30.26,
@@ -5399,7 +5399,7 @@ SCMAP.data.systems = {
    "Vega" : {
       "black_market" : [],
       "blob" : "",
-      "color" : "blue",
+      "color" : "cornflowerblue",
       "coords" : [
          -20.94,
          19.33,
