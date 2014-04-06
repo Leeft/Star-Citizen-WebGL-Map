@@ -245,6 +245,11 @@ input[type=checkbox] + label:before { letter-spacing: 10px; } /* space between c
 input[type=checkbox]:checked + label:before { content: "\f046"; color: #8f8; } /* checked icon */
 input[type=checkbox]:checked + label:before { letter-spacing: 8px; } /* allow space for check mark */
 
+input[type=checkbox][disabled] + label { color: #666; } /* disabled checkbox */
+input[type=checkbox][disabled] + label:before{ color: #666; } /* disabled checkbox */
+input[type=checkbox][disabled]:checked + label:before { content: "\f046"; } /* checked icon */
+
+
 input[type=checkbox] + label { font-size: 1.3em; }
 
 span.quick-button {

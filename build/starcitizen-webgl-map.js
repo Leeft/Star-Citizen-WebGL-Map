@@ -129,184 +129,85 @@ SCMAP.approximateTraveltimePerAU = ( ( 8 * 60 ) + 19 ) * 5; // 8:19 at 1c, but a
 // EOF
 
 /**
-* @author LiannaEeftinck / https://github.com/Leeft
+* @author Lianna Eeftinck / https://github.com/Leeft
 */
 
 SCMAP.Settings = function () {
-   this.glow = true;
-   this.labels = true;
-   this.labelIcons = true;
+   this.storage = null;
+   if ( hasLocalStorage() ) {
+      this.storage = window.localStorage;
+   }
+
+   this.glow = ( this.storage && this.storage['settings.Glow'] === '0' ) ? false : true;
+   this.labels = ( this.storage && this.storage['settings.Labels'] === '0' ) ? false : true;
+   this.labelIcons = ( this.storage && this.storage['settings.LabelIcons'] === '0' ) ? false : true;
+
+   this.camera = {
+      camera: new THREE.Vector3( 0, 80, 100 ),
+      target: new THREE.Vector3( 0, 10, 0 ),
+      orientation: {
+         theta: 0,
+         phi: 0.9616764178488756,
+         radius: 122.2
+      }
+   };
+   this.cameraDefaults = JSON.parse( JSON.stringify( this.camera ) );
+   this.cameraDefaults.camera = new THREE.Vector3();
+   this.cameraDefaults.camera.copy( this.camera.camera );
+   this.cameraDefaults.target = new THREE.Vector3();
+   this.cameraDefaults.target.copy( this.camera.target );
+   this.load( 'camera' );
+
+   this.effect = {
+      Antialias: true,
+      FXAA: false,
+      Bloom: false
+   };
+   this.load( 'effect' );
+
+   this.control = {
+      rotationLocked: ( this.storage && this.storage['control.rotationLocked'] === '1' ) ? true : false
+   };
+
+   this.renderer = {
+      Stats: ( this.storage && this.storage['renderer.Stats'] === '1' ) ? true : false
+   };
+
+   this.route = {
+      avoidHostile: false,
+      avoidOffLimits: false,
+      avoidUnknownJumppoints: false
+   };
+   if ( this.storage && 'route' in this.storage ) {
+      this.load( 'route' );
+   }
+
+   this.mode = ( this.storage && this.storage.mode ) ? this.storage.mode : '3d';
+};
+
+SCMAP.Settings.prototype = {
+
+   constructor: SCMAP.Settings,
+
+   load: function save( key ) {
+      if ( this.storage && ( key in this.storage ) ) {
+         try {
+            this[ key ] = JSON.parse( this.storage[ key ] );
+         } catch ( e ) {
+            console.error( "Error parsing 'localStorage." + key + "'; " + e.name + ": " + e.message );
+         }
+      }
+   },
+
+   save: function save( key ) {
+      if ( this.storage && ( key in this ) ) {
+         this.storage[ key ] = JSON.stringify( this[ key ] );
+      }
+   }
+
 };
 
 SCMAP.settings = new SCMAP.Settings();
-
-/**
- * @author Leeft / https://github.com/Leeft
- */
-/* Used OrbitControls.js as a template - But it doesn't do the same thing! */
-/*global THREE, console, window */
-
-SCMAP.Editor = function ( map, camera, domElement ) {
-
-   this.map = map;
-   this.camera = camera; // used to find our directions
-   this.domElement = ( domElement !== undefined ) ? domElement : document;
-
-   ///////////
-   // API
-
-   // Set to true to enable the editor while in edit mode
-   this.enabled = false;
-
-   ////////////
-   // internals
-
-   var scope = this;
-
-   var moveStart = new THREE.Vector2();
-   var moveEnd   = new THREE.Vector2();
-   var moveDelta = new THREE.Vector2();
-
-   var move = new THREE.Vector3();
-
-   var lastPosition = new THREE.Vector3();
-
-   var STATE = { NONE : -1, MOVE_XZ : 0, MOVE_Y : 1 };
-   var state = STATE.NONE;
-
-   // events
-
-   var changeEvent = { type: 'change' };
-
-   // pass in distance in world space to move left
-   this.moveLeft = function ( distance ) {
-      var sameLevelTarget = window.controls.target.clone().setY( this.camera.position.y );
-      var vectorBack = this.camera.position.clone().sub( sameLevelTarget ).negate().setLength( distance );
-      var axis = new THREE.Vector3( 0, 1, 0 );
-      vectorBack.applyAxisAngle( axis, THREE.Math.degToRad( 90 ) );
-      move.add( vectorBack );
-   };
-
-   // pass in distance in world space to move up
-   this.moveUp = function ( distance ) {
-      var moveOffset = new THREE.Vector3();
-      var te = this.map.selected.object.matrix.elements;
-      // get Y column of matrix
-      moveOffset.set( te[4], te[5], te[6] );
-      moveOffset.multiplyScalar(distance);
-      move.add( moveOffset );
-   };
-
-   // pass in distance in world space to move forward
-   this.moveBack = function ( distance ) {
-      var sameLevelTarget = window.controls.target.clone().setY( this.camera.position.y );
-      var vectorBack = this.camera.position.clone().sub( sameLevelTarget ).negate().setLength( distance );
-      move.add( vectorBack );
-   };
-
-   // main entry point; pass in Vector2 of change desired in pixel space,
-   // right and down are positive
-   this.move = function ( delta ) {
-      var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
-      var offset = scope.map.selected.object.position.clone().sub( scope.camera.position );
-      var targetDistance = offset.length();
-
-      // half of the fov is center to top of screen
-      targetDistance *= Math.tan( (scope.camera.fov/2) * Math.PI / 180.0 );
-      // we actually don't use screenWidth, since perspective camera is fixed to screen height
-      if ( state === STATE.MOVE_Y ) {
-         scope.moveUp( 2 * delta.y * targetDistance / element.clientHeight );
-      } else {
-         scope.moveLeft( 2 * delta.x * targetDistance / element.clientHeight );
-         scope.moveBack( 2 * delta.y * targetDistance / element.clientHeight );
-      }
-      //if ( this.mapMode ) {
-      //} else {
-         //scope.moveUp( 2 * delta.y * targetDistance / element.clientHeight );
-      //}
-   };
-
-   this.update = function () {
-      if ( scope.enabled === false ) { return; }
-      if ( this.map.selected === undefined ) { return; }
-
-      // move target to new location
-      this.map.selected.object.position.sub( move );
-      if ( this.map.selected.object.system.labelObject !== undefined ) {
-         this.map.selected.object.system.labelObject.position.sub( move );
-      }
-      for ( var i = 0; i < this.map.selected.object.system.routeObjects.length; i++ ) {
-         var routeObject = this.map.selected.object.system.routeObjects[i];
-         routeObject.geometry.verticesNeedUpdate = true;
-      }
-      //for ( var i = 0; i < this.map.selected.object.system.jumppoints.length; i++ ) {
-      //   var destination = this.map.selected.object.system.jumppoints[i].destination;
-      //   for ( var i = 0; i < destination.routeObjects.length; i++ ) {
-      //      var routeObject = destination.routeObjects[i];
-      //      routeObject.geometry.verticesNeedUpdate = true;
-      //   }
-      //}
-
-      move.set( 0, 0, 0 );
-
-      if ( lastPosition.distanceTo( this.map.selected.object.position ) > 0 ) {
-         this.dispatchEvent( changeEvent );
-         lastPosition.copy( this.map.selected.object.position );
-      }
-   };
-
-   function onMouseDown( event ) {
-      if ( scope.enabled === false ) { return; }
-      if ( scope.map.selected === undefined ) return;
-      if ( event.altKey ) { return; }
-
-      event.preventDefault();
-
-      if ( event.button === 0 ) {
-         state = STATE.MOVE_XZ;
-      } else if ( event.button === 2 ) {
-         state = STATE.MOVE_Y;
-      }
-
-      moveStart.set( event.clientX, event.clientY );
-
-      scope.domElement.addEventListener( 'mousemove', onMouseMove, false );
-      scope.domElement.addEventListener( 'mouseup', onMouseUp, false );
-   }
-
-   function onMouseMove( event ) {
-      if ( scope.enabled === false ) return;
-      if ( scope.map.selected === undefined ) return;
-      if ( event.altKey ) { return; }
-
-      event.preventDefault();
-
-      if ( state === STATE.MOVE_XZ || state === STATE.MOVE_Y ) {
-         moveEnd.set( event.clientX, event.clientY );
-         moveDelta.subVectors( moveEnd, moveStart );
-         scope.move( moveDelta );
-         moveStart.copy( moveEnd );
-      }
-
-      scope.update();
-
-   }
-
-   function onMouseUp( event ) {
-      if ( scope.enabled === false ) return;
-      if ( event.altKey ) { return; }
-
-      scope.domElement.removeEventListener( 'mousemove', onMouseMove, false );
-      scope.domElement.removeEventListener( 'mouseup', onMouseUp, false );
-
-      state = STATE.NONE;
-   }
-
-   this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
-   this.domElement.addEventListener( 'mousedown', onMouseDown, false );
-};
-
-SCMAP.Editor.prototype = Object.create( THREE.EventDispatcher.prototype );
 
 function _build_selected_system_object () {
    var object = new THREE.JSONLoader().parse( {
@@ -800,6 +701,14 @@ SCMAP.System.prototype = {
       lod.matrixAutoUpdate = false;
       this.sceneObject.add( lod );
 
+//if ( this.name === 'Nul' ) {
+      //var customMaterial = this.glowShaderMaterial( this.starColor );
+      //var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
+      //moonGlow.scale.multiplyScalar( 2.3 * this.scale );
+      //moonGlow.userData.isGlow = true;
+      //this.sceneObject.add( moonGlow );
+//}
+
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
       glow.userData.isGlow = true;
@@ -848,6 +757,12 @@ SCMAP.System.prototype = {
 
    starMaterial: function () {
       return SCMAP.System.STAR_MATERIAL_WHITE;
+   },
+
+   glowShaderMaterial: function ( color ) {
+      var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
+      material.uniforms.glowColor.value = color;
+      return material;
    },
 
    glowMaterial: function () {
@@ -1056,11 +971,11 @@ SCMAP.System.prototype = {
       var crimeStatus = 'Unknown';
       var i;
       var tmp = [];
-      var $blurb = $('<div class="sc_system_info" '+makeSafeForCSS(this.name)+'"></div>');
+      var $blurb = $('<div class="sc_system_info" '+SCMAP.UI.makeSafeForCSS(this.name)+'"></div>');
       var currentStep = window.map.route().indexOfCurrentRoute( this );
 
       $('#systemname')
-         .attr( 'class', makeSafeForCSS( this.faction.name ) )
+         .attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) )
          .css( 'color', this.faction.color.getStyle() )
          .text( 'System: ' + this.name );
 
@@ -1097,7 +1012,7 @@ SCMAP.System.prototype = {
 
          header.push( this.name );
 
-         $('#systemname').empty().attr( 'class', makeSafeForCSS( this.faction.name ) ).append( header );
+         $('#systemname').empty().attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) ).append( header );
       }
 
       if ( this.planetaryRotation.length ) {
@@ -1439,11 +1354,28 @@ SCMAP.System.LODMESH = [
 
 SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
 
-SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0 });
+SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true });
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
 
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
+
+// create custom material from the shader code in the html
+$(function() {
+   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
+      uniforms: { 
+         "c":   { type: "f", value: 0.05 },
+         "p":   { type: "f", value: 3.3 },
+         glowColor: { type: "c", value: SCMAP.Color.BLACK },
+         viewVector: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) }
+      },
+      vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+      fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+   });
+});
 
 // EOF
 
@@ -1549,15 +1481,15 @@ var distAU;
             jumpPoint = currentNode.system.jumpPoints[i];
             otherNode = this._mapping[ jumpPoint.destination.id ];
 
-            if ( jumpPoint.isUnconfirmed() && storage && storage['route.avoidUnknownJumppoints'] === '1' ) {
+            if ( jumpPoint.isUnconfirmed() && SCMAP.settings.route.avoidUnknownJumppoints ) {
                continue;
             }
 
             // Don't go into "hostile" nodes, unless we already are in one
-            if ( storage && storage['route.avoidHostile'] === '1' && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( SCMAP.settings.route.avoidHostile && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                continue;
             }
-            if ( storage && storage['route.avoidOffLimits'] === '1' && currentNode.system.isOffLimits() ) {
+            if ( SCMAP.settings.route.avoidOffLimits && currentNode.system.isOffLimits() ) {
                continue;
             }
 
@@ -1591,7 +1523,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
             }
 
             // Get out of "never" nodes asap by increasing the cost massively
-            if ( storage && storage['route.avoidHostile'] === '1' && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+            if ( SCMAP.settings.route.avoidHostile && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
                distance *= 15;
             }
 
@@ -2509,7 +2441,11 @@ SCMAP.Map.BLACK = new THREE.Color( 0x000000 );
 
 // EOF
 
-function initUI () {
+/**
+  * @author Lianna Eeftinck / https://github.com/Leeft
+  */
+
+SCMAP.UI = function () {
 
    $('#bookmark-list-header a').append( SCMAP.Symbol.getTag( SCMAP.Symbols.BOOKMARK ).addClass('fa-lg') );
    $('#hangar-list-header a').append( SCMAP.Symbol.getTag( SCMAP.Symbols.HANGAR ).addClass('fa-lg') );
@@ -2535,8 +2471,8 @@ function initUI () {
             case '#editor':
                if ( map.canEdit ) {
                   $('#webgl-container').removeClass().addClass( 'noselect webgl-container-edit' );
-                  window.editor.enabled = true;
-                  window.controls.requireAlt = true;
+                  //window.editor.enabled = true;
+                  //window.controls.requireAlt = true;
                }
                break;
 
@@ -2607,8 +2543,8 @@ function initUI () {
 
             default:
                $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
-               window.editor.enabled = false;
-               window.controls.requireAlt = false;
+               //window.editor.enabled = false;
+               //window.controls.requireAlt = false;
                //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
                //   map.selected().displayInfo();
                //}
@@ -2625,9 +2561,10 @@ function initUI () {
    $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
    $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-   $('#avoid-hostile').prop( 'checked', ( storage && storage['route.avoidHostile'] === '1' ) );
-   $('#avoid-off-limits').prop( 'checked', ( storage && storage['route.avoidOffLimits'] === '1' ) );
-   $('#avoid-unknown-jumppoints').prop( 'checked', ( storage && storage['route.avoidUnknownJumppoints'] === '1' ) );
+
+   $('#avoid-hostile').prop( 'checked', SCMAP.settings.route.avoidHostile );
+   $('#avoid-off-limits').prop( 'checked', SCMAP.settings.route.avoidOffLimits );
+   $('#avoid-unknown-jumppoints').prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints );
 
    for ( var icon in SCMAP.Symbols ) {
       icon = SCMAP.Symbols[ icon ];
@@ -2638,31 +2575,28 @@ function initUI () {
 
    // Event handlers
 
-   $('#3d-mode').prop( 'checked', storage && storage.mode === '3d' );
+   $('#3d-mode').prop( 'checked', SCMAP.settings.mode === '3d' );
 
    // Some simple UI stuff
 
-   $('#lock-rotation').prop( 'checked', storage && storage['control.rotationLocked'] === '1' );
+   $('#lock-rotation').prop( 'checked', SCMAP.settings.control.rotationLocked );
 
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
    $('#avoid-hostile').on( 'change', function() {
-      if ( storage ) {
-         storage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
-      }
+      SCMAP.settings.route.avoidHostile = this.checked;
+      SCMAP.settings.save( 'route' );
       map.route().rebuildCurrentRoute();
    });
    $('#avoid-off-limits').on( 'change', function() {
-      if ( storage ) {
-         storage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
-         map.route().rebuildCurrentRoute();
-      }
+      SCMAP.settings.route.avoidOffLimits = this.checked;
+      SCMAP.settings.save( 'route' );
+      map.route().rebuildCurrentRoute();
    });
    $('#avoid-unknown-jumppoints').on( 'change', function() {
-      if ( storage ) {
-         storage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
-         map.route().rebuildCurrentRoute();
-      }
+      SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
+      SCMAP.settings.save( 'route' );
+      map.route().rebuildCurrentRoute();
    });
 
    $('#lock-rotation').on( 'change', function() {
@@ -2685,25 +2619,40 @@ function initUI () {
          }
       });
 
-   $('#toggle-fxaa')
-      .prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false )
+   $('#toggle-antialias')
+      .prop( 'checked', SCMAP.settings.effect.Antialias )
       .on( 'change', function() {
-         effectFXAA.enabled = this.checked;
-         if ( storage ) {
-            storage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
+         SCMAP.settings.effect.Antialias = this.checked;
+         SCMAP.settings.save( 'effect' );
+         console.log( localStorage.effect );
+         window.location.reload( false );
+      });
+
+   $('#toggle-fxaa')
+      .prop( 'checked', SCMAP.settings.effect.FXAA )
+      .prop( 'disabled', SCMAP.settings.effect.Antialias )
+
+      .on( 'change', function() {
+         SCMAP.settings.effect.FXAA = this.checked;
+         SCMAP.settings.save( 'effect' );
+         if ( effectFXAA ) {
+            effectFXAA.enabled = this.checked;
          }
       });
 
    $('#toggle-bloom')
-      .prop( 'checked', ( storage && storage['effect.Bloom'] === '1' ) ? true : false )
+      .prop( 'checked', SCMAP.settings.effect.Bloom )
+      .prop( 'disabled', SCMAP.settings.effect.Antialias )
+
       .on( 'change', function() {
-         for ( var i = 0; i < composer.passes.length; i++ ) {
-            if ( composer.passes[i] instanceof THREE.BloomPass ) {
-               composer.passes[i].enabled = this.checked;
+         SCMAP.settings.effect.Bloom = this.checked;
+         SCMAP.settings.save( 'effect' );
+         if ( composer ) {
+            for ( var i = 0; i < composer.passes.length; i++ ) {
+               if ( composer.passes[i] instanceof THREE.BloomPass ) {
+                  composer.passes[i].enabled = this.checked;
+               }
             }
-         }
-         if ( storage ) {
-            storage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
          }
       });
 
@@ -2730,10 +2679,15 @@ function initUI () {
    });
 
    $('#resetCamera').on( 'click', function() {
-      controls.cameraTo( cameraDefaults.target, cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+      controls.cameraTo(
+         SCMAP.settings.cameraDefaults.target,
+         SCMAP.settings.cameraDefaults.orientation.theta,
+         SCMAP.settings.cameraDefaults.orientation.phi,
+         SCMAP.settings.cameraDefaults.orientation.radius
+      );
    });
    $('#centreCamera').on( 'click', function() {
-      controls.moveTo( cameraDefaults.target );
+      controls.moveTo( SCMAP.settings.cameraDefaults.target );
    });
    $('#northCamera').on( 'click', function() {
       controls.rotateTo( 0, undefined, undefined );
@@ -2827,9 +2781,15 @@ function initUI () {
       }
       system.updateSceneObject( scene );
    });
-}
+};
 
-function makeSafeForCSS( name ) {
+SCMAP.UI.prototype = {
+
+   constructor: SCMAP.UI
+
+};
+
+SCMAP.UI.makeSafeForCSS = function makeSafeForCSS( name ) {
    if ( typeof name !== 'string' ) {
       return;
    }
@@ -2839,7 +2799,7 @@ function makeSafeForCSS( name ) {
       if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
       return (c.toString(16)).slice(-4);
    });
-}
+};
 
 // End of file
 
@@ -2870,8 +2830,6 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    this.object = object;
    this.domElement = ( domElement !== undefined ) ? domElement : document;
 
-   this.map = undefined;
-
    // API
 
    // Set to false to disable this control
@@ -2888,8 +2846,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    this.noZoom = false;
    this.zoomSpeed = 1.0;
    // Limits to how far you can dolly in and out
-   this.minDistance = 0;
-   this.maxDistance = Infinity;
+   this.minDistance = 20;
+   this.maxDistance = 800;
 
    // Set to true to disable this control
    this.noRotate = false;
@@ -2897,14 +2855,14 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
    // Set to true to disable this control
    this.noPan = false;
-   this.keyPanSpeed = 7.0; // pixels moved per arrow key push
-   this.mapMode = false; // map mode pans on x,z
+   this.keyPanSpeed = 25; // pixels moved per arrow key push
+   this.mapMode = true; // map mode pans on x,z
    this.requireAlt = false; // to allow soft-disable of this control temporarily
 
    // How far you can orbit vertically, upper and lower limits.
    // Range is 0 to Math.PI radians.
    this.minPolarAngle = 0; // radians
-   this.maxPolarAngle = Math.PI; // radians
+   this.maxPolarAngle = THREE.Math.degToRad( 85 ); // radians
 
    // Set to true to disable use of the keys
    this.noKeys = false;
@@ -2983,7 +2941,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                   if ( scope.debug ) {
                      console.log( 'Click at "' + intersect.object.parent.userData.system.name + '"' );
                   }
-                  scope.map.setSelectionTo( startObject );
+                  window.map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
                   this.touchtodrag( event );
                }
@@ -3022,7 +2980,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                var intersect = scope.getIntersect( event );
                if ( intersect && intersect.object.parent.userData.system ) {
                   endObject = intersect.object.parent.userData.system;
-                  if ( scope.map.selected() === endObject ) {
+                  if ( window.map.selected() === endObject ) {
                      endObject.displayInfo();
                   }
                   if ( scope.debug ) {
@@ -3153,7 +3111,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       if ( destination instanceof SCMAP.System ) {
-         _this.map.setSelectionTo( destination );
+         window.map.setSelectionTo( destination );
       }
 
       if ( targetTween ) {
@@ -3175,39 +3133,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       targetTween.start();
    };
 
-   this.getCurrentPosition = function () {
-      var cameraSettings = {
-         cameraX: this.object.position.x,
-         cameraY: this.object.position.y,
-         cameraZ: this.object.position.z,
-         targetX: this.target.x,
-         targetY: this.target.y,
-         targetZ: this.target.z
-      };
-      return cameraSettings;
-   };
-
-   this.rememberCurrentPosition = function () {
-      if ( storage ) {
-         var positions = this.getCurrentPosition();
-         storage['camera.x'] = positions.cameraX;
-         storage['camera.y'] = positions.cameraY;
-         storage['camera.z'] = positions.cameraZ;
-         storage['target.x'] = positions.targetX;
-         storage['target.y'] = positions.targetY;
-         storage['target.z'] = positions.targetZ;
-      }
-   };
-
-   this.restoreOldPosition = function () {
-      if ( storage && typeof storage['camera.x'] !== 'undefined' ) {
-         this.object.position.setX( Number( storage['camera.x'] ) );
-         this.object.position.setY( Number( storage['camera.y'] ) );
-         this.object.position.setZ( Number( storage['camera.z'] ) );
-         this.target.setX( Number( storage['target.x'] ) );
-         this.target.setY( Number( storage['target.y'] ) );
-         this.target.setZ( Number( storage['target.z'] ) );
-      }
+   this.rememberPosition = function rememberPosition() {
+      SCMAP.settings.camera.camera = this.object.position;
+      SCMAP.settings.camera.target = this.target;
+      SCMAP.settings.save( 'camera' );
    };
 
    // assumes mapMode for now
@@ -3315,14 +3244,15 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       scale *= dollyScale;
    };
 
+   // TODO: Move to map
    this.getIntersect = function ( event ) {
-      if ( !scope.map.interactables() ) { return; }
+      if ( !window.map.interactables() ) { return; }
       var vector, projector, raycaster, intersects;
       vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
       projector = new THREE.Projector();
       projector.unprojectVector( vector, scope.object );
       raycaster = new THREE.Raycaster( scope.object.position, vector.sub( scope.object.position ).normalize() );
-      intersects = raycaster.intersectObjects( scope.map.interactables() );
+      intersects = raycaster.intersectObjects( window.map.interactables() );
       return intersects[0];
    };
 
@@ -3378,7 +3308,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          newLabelScale = 22;
       }
       if ( newLabelScale.toFixed(1) !== labelScale ) {
-         this.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
+         window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
          labelScale = newLabelScale.toFixed(1);
       }
 
@@ -3404,7 +3334,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       this.showState();
-      this.rememberCurrentPosition();
+      this.rememberPosition();
    };
 
    function getZoomScale() {
@@ -3429,7 +3359,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       var route;
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-      if ( state.current === 'idle' ) {
+      //if ( state.current === 'idle' ) {
 
          // Mouse move on idle handling: highlighting systems, dragging waypoints on route
 
@@ -3437,13 +3367,13 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             intersect = scope.getIntersect( event );
             if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
                mouseOver = intersect.object.parent.userData.system;
-               map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
-               map._mouseOverObject.visible = true;
+               window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+               window.map._mouseOverObject.visible = true;
             } else {
                if ( !intersect || !intersect.object.parent.userData.system ) {
                   if ( mouseOver !== undefined ) {
-                     map._mouseOverObject.position.set( 0, 0, 0 );
-                     map._mouseOverObject.visible = false;
+                     window.map._mouseOverObject.position.set( 0, 0, 0 );
+                     window.map._mouseOverObject.visible = false;
                   }
                   mouseOver = undefined;
                }
@@ -3451,9 +3381,11 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          }
 
          mousePrevious.set( event.clientX, event.clientY );
-         return;
+         //return;
 
-      } else if ( state.current === 'touch' ) {
+      //} else if ( state.current === 'touch' ) {
+
+      if ( state.current === 'touch' ) {
 
          if ( event.button === 0 ) { // left mouse
             state.touchtorotate( event );
@@ -3470,7 +3402,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== startObject ) {
                if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
                   endObject = intersect.object.parent.userData.system;
-                  route = scope.map.route();
+                  route = window.map.route();
                   route.start = startObject;
                   route.end = endObject;
                   route.update( endObject );
@@ -3566,6 +3498,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       if ( scope.noKeys === true ) { return; }
       if ( scope.noPan === true ) { return; }
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
+      // TODO: allow modifiers at all?
+      if ( event.altKey === true || event.shiftKey === true || event.ctrlKey === true || event.metaKey === true ) { return; }
 
       var $activeElement = $( document.activeElement );
       if ( $activeElement.attr( 'id' ) === 'comments' ) {
@@ -3598,16 +3532,16 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             needUpdate = true;
             break;
          case scope.keys.ESCAPE: // Deselect selected
-            scope.map.deselect();
+            window.map.deselect();
             break;
          case scope.keys.TAB: // Tab through route
             // TODO
             break;
          case scope.keys.R: // Reset orientation
-            scope.rotateTo( cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+            scope.rotateTo( 0, undefined, undefined );
             break;
          case scope.keys.C: // Center on default
-            scope.moveTo( cameraDefaults.target );
+            scope.moveTo( SCMAP.settings.camera.target );
             break;
          case scope.keys.T: // Top view
             scope.rotateTo( 0, 0, 200 );
@@ -3620,7 +3554,11 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             break;
          case scope.keys['3']: // 3D mode
             displayState.to3d();
-            scope.rotateTo( cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+            scope.rotateTo(
+               SCMAP.settings.cameraDefaults.orientation.theta,
+               SCMAP.settings.cameraDefaults.orientation.phi,
+               SCMAP.settings.cameraDefaults.orientation.radius
+            );
             break;
          case scope.keys.L: // Lock/unlock rotation
             $('#lock-rotation').click();
@@ -3774,16 +3712,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 SCMAP.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 
 var effectFXAA, camera, scene, renderer, composer, map, dpr,
-   shift, ctrl, alt, controls, editor, stats, displayState,
-   storage, cameraDefaults = {
-      x: 0,
-      y: 80,
-      z: 100,
-      target: new THREE.Vector3( 0, 10, 0 ),
-      theta: 0,
-      phi: THREE.Math.degToRad( 55.1 ),
-      radius: 122.2
-   };
+   shift, ctrl, alt, controls, editor, stats, displayState, ui,
+   storage;
 
 $(function() {
    if ( ! Detector.webgl ) {
@@ -3796,13 +3726,12 @@ $(function() {
 
 function init()
 {
-   var container, renderModel, effectCopy, effectBloom, width, height, i;
+   var container, renderModel, effectCopy, effectBloom;
+   var width = window.innerWidth;
+   var height = window.innerHeight;
 
    if ( hasLocalStorage() ) {
       storage = window.localStorage;
-      console.log( "We have localStorage" );
-   } else {
-      console.log( "We don't have localStorage :(" );
    }
 
    dpr = 1;
@@ -3810,58 +3739,35 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( storage && storage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( storage && storage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( storage && storage['settings.LabelIcons'] === '0' ) ? false : true;
+   container = document.getElementById( 'webgl-container' );
 
-   container = document.createElement( 'div' );
-   container.id = 'webgl-container';
-   container.className = 'noselect webgl-container-noedit';
-   document.body.appendChild( container );
-   width = window.innerWidth || 2;
-   height = window.innerHeight || 2;
-
-   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 1600 );
-
-   camera.position.x = cameraDefaults.x;
-   camera.position.y = cameraDefaults.y;
-   camera.position.z = cameraDefaults.z;
+   camera = new THREE.PerspectiveCamera( 45, width / height, 10, 1600 );
+   camera.position.copy( SCMAP.settings.camera.camera );
    camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
 
-   controls = new SCMAP.OrbitControls( camera, $('#webgl-container')[0] );
-	controls.target = cameraDefaults.target.clone();
-   controls.restoreOldPosition();
-   controls.minPolarAngle = 0;
-   controls.maxPolarAngle = THREE.Math.degToRad( 85 );
+   controls = new SCMAP.OrbitControls( camera, container );
+   controls.target.copy( SCMAP.settings.camera.target );
    controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
    controls.zoomSpeed = $('#gl-info').data('zoomSpeed');
    controls.panSpeed = $('#gl-info').data('panSpeed');
-   controls.noZoom = false;
-   controls.noPan = false;
-   controls.mapMode = true;
-   controls.minDistance = 20;
-   controls.maxDistance = 800;
-   controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
-   controls.noRotate = ( storage && storage['control.rotationLocked'] === '1' ) ? true : false;
+   controls.noRotate = SCMAP.settings.control.rotationLocked;
 
    scene = new THREE.Scene();
 
-   renderer = new THREE.WebGLRenderer( { clearColor: 0x000000, clearAlpha: 1, antialias: true } );
+   renderer = new THREE.WebGLRenderer( { antialias: true } );
+   if ( ! SCMAP.settings.effect.Antialias ) {
+      renderer.autoClear = false;
+   }
+   renderer.setClearColor( 0x000000, 1 );
    renderer.setSize( window.innerWidth, window.innerHeight );
-   renderer.autoClear = false;
+
    container.appendChild( renderer.domElement );
 
    map = new SCMAP.Map( scene );
-   controls.map = map;
-
-   editor = new SCMAP.Editor( map, camera );
-   editor.panSpeed = 0.6;
-   document.addEventListener( 'change', render );
-
-   initUI();
-
    map.populateScene();
+
+   ui = new SCMAP.UI();
 
    // Stats
 
@@ -3872,57 +3778,62 @@ function init()
    stats.domElement.style.display = 'none';
    stats.domElement.style.zIndex = '100';
    container.appendChild( stats.domElement );
-   if ( storage && storage['renderer.Stats'] === '1' ) {
+   if ( SCMAP.settings.renderer.Stats ) {
       $('#stats').show();
    }
 
    // Event handlers
 
    window.addEventListener( 'resize', onWindowResize, false );
+   document.addEventListener( 'change', render );
 
    // Rendering
 
-   renderModel = new THREE.RenderPass( scene, camera );
-   effectBloom = new THREE.BloomPass( 0.75 );
+   if ( ! SCMAP.settings.effect.Antialias )
+   {
+      renderModel = new THREE.RenderPass( scene, camera );
 
-   effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-   effectCopy.renderToScreen = true;
+      effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+      effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
+      effectFXAA.enabled = SCMAP.settings.effect.FXAA;
 
-   effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-   effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
+      effectBloom = new THREE.BloomPass( 0.6 );
+      effectBloom.enabled = SCMAP.settings.effect.Bloom;
 
-   effectFXAA.enabled  = ( storage && storage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( storage && storage['effect.Bloom'] === '1' ) ? true : false;
+      effectCopy = new THREE.ShaderPass( THREE.CopyShader );
+      effectCopy.renderToScreen = true;
 
-   composer = new THREE.EffectComposer( renderer );
-   composer.setSize( width * dpr, height * dpr );
-   composer.addPass( renderModel );
-   composer.addPass( effectFXAA );
-   composer.addPass( effectBloom );
-   composer.addPass( effectCopy );
+      composer = new THREE.EffectComposer( renderer );
+      composer.setSize( width * dpr, height * dpr );
+      composer.addPass( renderModel );
+      composer.addPass( effectFXAA );
+      composer.addPass( effectBloom );
+      composer.addPass( effectCopy );
+   }
 
-   displayState = buildDisplayModeFSM( ( storage && storage.mode ) ? storage && storage.mode : '2d' );
+   displayState = buildDisplayModeFSM( SCMAP.settings.mode );
+}
 
-//var smokeParticles = new THREE.Geometry();
-//for (i = 0; i < 25; i++) {
-//    var particle = new THREE.Vector3( Math.random() * 8, Math.random() * 10 + 5, Math.random() * 8 );
-//    smokeParticles.vertices.push( particle );
-//}
-//var smokeTexture = THREE.ImageUtils.loadTexture('images/smoke.png');
-//var smokeMaterial = new THREE.ParticleBasicMaterial({
-//   map: smokeTexture,
-//   transparent: true,
-//   blending: THREE.AdditiveBlending,
-//   size: 25,
-//   color: 0x111111
-//});
-//
-//var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
-//smoke.sortParticles = true;
-//smoke.position.x = 10;
-//
-//scene.add(smoke);
-
+function smokeTest () {
+   var smokeParticles = new THREE.Geometry();
+   for (i = 0; i < 25; i++) {
+       var particle = new THREE.Vector3( Math.random() * 8, Math.random() * 10 + 5, Math.random() * 8 );
+       smokeParticles.vertices.push( particle );
+   }
+   var smokeTexture = THREE.ImageUtils.loadTexture('images/smoke.png');
+   var smokeMaterial = new THREE.ParticleBasicMaterial({
+      map: smokeTexture,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      size: 25,
+      color: 0x111111
+   });
+   
+   var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
+   smoke.sortParticles = true;
+   smoke.position.x = 10;
+   
+   scene.add(smoke);
 }
 
 function buildCross () {
@@ -3959,14 +3870,16 @@ Object.values = function (obj ) {
 };
 
 function onWindowResize() {
-   var width = window.innerWidth || 2;
-   var height = window.innerHeight || 2;
+   var width = window.innerWidth;
+   var height = window.innerHeight;
    camera.aspect = width / height;
    camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
    camera.updateProjectionMatrix();
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
    renderer.setSize( width, height );
-   composer.reset();
+   if ( composer ) {
+      composer.reset();
+   }
 }
 
 function buildDisplayModeFSM ( initialState )
@@ -4063,15 +3976,26 @@ function animate() {
 }
 
 function render() {
+
    scene.updateMatrixWorld();
    scene.traverse( function ( object ) {
       if ( object instanceof THREE.LOD ) {
          object.update( camera );
       }
+      // Needed for the shader glow:
+      //if ( object.userData.isGlow ) {
+      //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
+      //}
    } );
+
    map.animateSelector();
-   renderer.clear();
-   composer.render();
+
+   if ( composer ) {
+      renderer.clear();
+      composer.render();
+   } else {
+      renderer.render( scene, camera );
+   }
 }
 
 function hasLocalStorage() {

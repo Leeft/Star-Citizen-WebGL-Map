@@ -1,14 +1,6 @@
 var effectFXAA, camera, scene, renderer, composer, map, dpr,
-   shift, ctrl, alt, controls, editor, stats, displayState,
-   storage, cameraDefaults = {
-      x: 0,
-      y: 80,
-      z: 100,
-      target: new THREE.Vector3( 0, 10, 0 ),
-      theta: 0,
-      phi: THREE.Math.degToRad( 55.1 ),
-      radius: 122.2
-   };
+   shift, ctrl, alt, controls, editor, stats, displayState, ui,
+   storage;
 
 $(function() {
    if ( ! Detector.webgl ) {
@@ -21,13 +13,12 @@ $(function() {
 
 function init()
 {
-   var container, renderModel, effectCopy, effectBloom, width, height, i;
+   var container, renderModel, effectCopy, effectBloom;
+   var width = window.innerWidth;
+   var height = window.innerHeight;
 
    if ( hasLocalStorage() ) {
       storage = window.localStorage;
-      console.log( "We have localStorage" );
-   } else {
-      console.log( "We don't have localStorage :(" );
    }
 
    dpr = 1;
@@ -35,58 +26,35 @@ function init()
       dpr = window.devicePixelRatio;
    }
 
-   SCMAP.settings.glow = ( storage && storage['settings.Glow'] === '0' ) ? false : true;
-   SCMAP.settings.labels = ( storage && storage['settings.Labels'] === '0' ) ? false : true;
-   SCMAP.settings.labelIcons = ( storage && storage['settings.LabelIcons'] === '0' ) ? false : true;
+   container = document.getElementById( 'webgl-container' );
 
-   container = document.createElement( 'div' );
-   container.id = 'webgl-container';
-   container.className = 'noselect webgl-container-noedit';
-   document.body.appendChild( container );
-   width = window.innerWidth || 2;
-   height = window.innerHeight || 2;
-
-   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 10, 1600 );
-
-   camera.position.x = cameraDefaults.x;
-   camera.position.y = cameraDefaults.y;
-   camera.position.z = cameraDefaults.z;
+   camera = new THREE.PerspectiveCamera( 45, width / height, 10, 1600 );
+   camera.position.copy( SCMAP.settings.camera.camera );
    camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
 
-   controls = new SCMAP.OrbitControls( camera, $('#webgl-container')[0] );
-	controls.target = cameraDefaults.target.clone();
-   controls.restoreOldPosition();
-   controls.minPolarAngle = 0;
-   controls.maxPolarAngle = THREE.Math.degToRad( 85 );
+   controls = new SCMAP.OrbitControls( camera, container );
+   controls.target.copy( SCMAP.settings.camera.target );
    controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
    controls.zoomSpeed = $('#gl-info').data('zoomSpeed');
    controls.panSpeed = $('#gl-info').data('panSpeed');
-   controls.noZoom = false;
-   controls.noPan = false;
-   controls.mapMode = true;
-   controls.minDistance = 20;
-   controls.maxDistance = 800;
-   controls.keyPanSpeed = 25;
    controls.addEventListener( 'change', render );
-   controls.noRotate = ( storage && storage['control.rotationLocked'] === '1' ) ? true : false;
+   controls.noRotate = SCMAP.settings.control.rotationLocked;
 
    scene = new THREE.Scene();
 
-   renderer = new THREE.WebGLRenderer( { clearColor: 0x000000, clearAlpha: 1, antialias: true } );
+   renderer = new THREE.WebGLRenderer( { antialias: true } );
+   if ( ! SCMAP.settings.effect.Antialias ) {
+      renderer.autoClear = false;
+   }
+   renderer.setClearColor( 0x000000, 1 );
    renderer.setSize( window.innerWidth, window.innerHeight );
-   renderer.autoClear = false;
+
    container.appendChild( renderer.domElement );
 
    map = new SCMAP.Map( scene );
-   controls.map = map;
-
-   editor = new SCMAP.Editor( map, camera );
-   editor.panSpeed = 0.6;
-   document.addEventListener( 'change', render );
-
-   initUI();
-
    map.populateScene();
+
+   ui = new SCMAP.UI();
 
    // Stats
 
@@ -97,57 +65,62 @@ function init()
    stats.domElement.style.display = 'none';
    stats.domElement.style.zIndex = '100';
    container.appendChild( stats.domElement );
-   if ( storage && storage['renderer.Stats'] === '1' ) {
+   if ( SCMAP.settings.renderer.Stats ) {
       $('#stats').show();
    }
 
    // Event handlers
 
    window.addEventListener( 'resize', onWindowResize, false );
+   document.addEventListener( 'change', render );
 
    // Rendering
 
-   renderModel = new THREE.RenderPass( scene, camera );
-   effectBloom = new THREE.BloomPass( 0.75 );
+   if ( ! SCMAP.settings.effect.Antialias )
+   {
+      renderModel = new THREE.RenderPass( scene, camera );
 
-   effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-   effectCopy.renderToScreen = true;
+      effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
+      effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
+      effectFXAA.enabled = SCMAP.settings.effect.FXAA;
 
-   effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-   effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
+      effectBloom = new THREE.BloomPass( 0.6 );
+      effectBloom.enabled = SCMAP.settings.effect.Bloom;
 
-   effectFXAA.enabled  = ( storage && storage['effect.FXAA'] === '1' ) ? true : false;
-   effectBloom.enabled = ( storage && storage['effect.Bloom'] === '1' ) ? true : false;
+      effectCopy = new THREE.ShaderPass( THREE.CopyShader );
+      effectCopy.renderToScreen = true;
 
-   composer = new THREE.EffectComposer( renderer );
-   composer.setSize( width * dpr, height * dpr );
-   composer.addPass( renderModel );
-   composer.addPass( effectFXAA );
-   composer.addPass( effectBloom );
-   composer.addPass( effectCopy );
+      composer = new THREE.EffectComposer( renderer );
+      composer.setSize( width * dpr, height * dpr );
+      composer.addPass( renderModel );
+      composer.addPass( effectFXAA );
+      composer.addPass( effectBloom );
+      composer.addPass( effectCopy );
+   }
 
-   displayState = buildDisplayModeFSM( ( storage && storage.mode ) ? storage && storage.mode : '2d' );
+   displayState = buildDisplayModeFSM( SCMAP.settings.mode );
+}
 
-//var smokeParticles = new THREE.Geometry();
-//for (i = 0; i < 25; i++) {
-//    var particle = new THREE.Vector3( Math.random() * 8, Math.random() * 10 + 5, Math.random() * 8 );
-//    smokeParticles.vertices.push( particle );
-//}
-//var smokeTexture = THREE.ImageUtils.loadTexture('images/smoke.png');
-//var smokeMaterial = new THREE.ParticleBasicMaterial({
-//   map: smokeTexture,
-//   transparent: true,
-//   blending: THREE.AdditiveBlending,
-//   size: 25,
-//   color: 0x111111
-//});
-//
-//var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
-//smoke.sortParticles = true;
-//smoke.position.x = 10;
-//
-//scene.add(smoke);
-
+function smokeTest () {
+   var smokeParticles = new THREE.Geometry();
+   for (i = 0; i < 25; i++) {
+       var particle = new THREE.Vector3( Math.random() * 8, Math.random() * 10 + 5, Math.random() * 8 );
+       smokeParticles.vertices.push( particle );
+   }
+   var smokeTexture = THREE.ImageUtils.loadTexture('images/smoke.png');
+   var smokeMaterial = new THREE.ParticleBasicMaterial({
+      map: smokeTexture,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      size: 25,
+      color: 0x111111
+   });
+   
+   var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
+   smoke.sortParticles = true;
+   smoke.position.x = 10;
+   
+   scene.add(smoke);
 }
 
 function buildCross () {
@@ -184,14 +157,16 @@ Object.values = function (obj ) {
 };
 
 function onWindowResize() {
-   var width = window.innerWidth || 2;
-   var height = window.innerHeight || 2;
+   var width = window.innerWidth;
+   var height = window.innerHeight;
    camera.aspect = width / height;
    camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
    camera.updateProjectionMatrix();
    effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
    renderer.setSize( width, height );
-   composer.reset();
+   if ( composer ) {
+      composer.reset();
+   }
 }
 
 function buildDisplayModeFSM ( initialState )
@@ -288,15 +263,26 @@ function animate() {
 }
 
 function render() {
+
    scene.updateMatrixWorld();
    scene.traverse( function ( object ) {
       if ( object instanceof THREE.LOD ) {
          object.update( camera );
       }
+      // Needed for the shader glow:
+      //if ( object.userData.isGlow ) {
+      //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
+      //}
    } );
+
    map.animateSelector();
-   renderer.clear();
-   composer.render();
+
+   if ( composer ) {
+      renderer.clear();
+      composer.render();
+   } else {
+      renderer.render( scene, camera );
+   }
 }
 
 function hasLocalStorage() {

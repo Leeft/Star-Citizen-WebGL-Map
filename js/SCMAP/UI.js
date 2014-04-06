@@ -1,4 +1,8 @@
-function initUI () {
+/**
+  * @author Lianna Eeftinck / https://github.com/Leeft
+  */
+
+SCMAP.UI = function () {
 
    $('#bookmark-list-header a').append( SCMAP.Symbol.getTag( SCMAP.Symbols.BOOKMARK ).addClass('fa-lg') );
    $('#hangar-list-header a').append( SCMAP.Symbol.getTag( SCMAP.Symbols.HANGAR ).addClass('fa-lg') );
@@ -24,8 +28,8 @@ function initUI () {
             case '#editor':
                if ( map.canEdit ) {
                   $('#webgl-container').removeClass().addClass( 'noselect webgl-container-edit' );
-                  window.editor.enabled = true;
-                  window.controls.requireAlt = true;
+                  //window.editor.enabled = true;
+                  //window.controls.requireAlt = true;
                }
                break;
 
@@ -96,8 +100,8 @@ function initUI () {
 
             default:
                $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
-               window.editor.enabled = false;
-               window.controls.requireAlt = false;
+               //window.editor.enabled = false;
+               //window.controls.requireAlt = false;
                //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
                //   map.selected().displayInfo();
                //}
@@ -114,9 +118,10 @@ function initUI () {
    $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
    $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-   $('#avoid-hostile').prop( 'checked', ( storage && storage['route.avoidHostile'] === '1' ) );
-   $('#avoid-off-limits').prop( 'checked', ( storage && storage['route.avoidOffLimits'] === '1' ) );
-   $('#avoid-unknown-jumppoints').prop( 'checked', ( storage && storage['route.avoidUnknownJumppoints'] === '1' ) );
+
+   $('#avoid-hostile').prop( 'checked', SCMAP.settings.route.avoidHostile );
+   $('#avoid-off-limits').prop( 'checked', SCMAP.settings.route.avoidOffLimits );
+   $('#avoid-unknown-jumppoints').prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints );
 
    for ( var icon in SCMAP.Symbols ) {
       icon = SCMAP.Symbols[ icon ];
@@ -127,31 +132,28 @@ function initUI () {
 
    // Event handlers
 
-   $('#3d-mode').prop( 'checked', storage && storage.mode === '3d' );
+   $('#3d-mode').prop( 'checked', SCMAP.settings.mode === '3d' );
 
    // Some simple UI stuff
 
-   $('#lock-rotation').prop( 'checked', storage && storage['control.rotationLocked'] === '1' );
+   $('#lock-rotation').prop( 'checked', SCMAP.settings.control.rotationLocked );
 
    $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
    $('#avoid-hostile').on( 'change', function() {
-      if ( storage ) {
-         storage['route.avoidHostile'] = ( this.checked ) ? '1' : '0';
-      }
+      SCMAP.settings.route.avoidHostile = this.checked;
+      SCMAP.settings.save( 'route' );
       map.route().rebuildCurrentRoute();
    });
    $('#avoid-off-limits').on( 'change', function() {
-      if ( storage ) {
-         storage['route.avoidOffLimits'] = ( this.checked ) ? '1' : '0';
-         map.route().rebuildCurrentRoute();
-      }
+      SCMAP.settings.route.avoidOffLimits = this.checked;
+      SCMAP.settings.save( 'route' );
+      map.route().rebuildCurrentRoute();
    });
    $('#avoid-unknown-jumppoints').on( 'change', function() {
-      if ( storage ) {
-         storage['route.avoidUnknownJumppoints'] = ( this.checked ) ? '1' : '0';
-         map.route().rebuildCurrentRoute();
-      }
+      SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
+      SCMAP.settings.save( 'route' );
+      map.route().rebuildCurrentRoute();
    });
 
    $('#lock-rotation').on( 'change', function() {
@@ -174,25 +176,40 @@ function initUI () {
          }
       });
 
-   $('#toggle-fxaa')
-      .prop( 'checked', ( storage && storage['effect.FXAA'] === '1' ) ? true : false )
+   $('#toggle-antialias')
+      .prop( 'checked', SCMAP.settings.effect.Antialias )
       .on( 'change', function() {
-         effectFXAA.enabled = this.checked;
-         if ( storage ) {
-            storage['effect.FXAA'] = ( this.checked ) ? '1' : '0';
+         SCMAP.settings.effect.Antialias = this.checked;
+         SCMAP.settings.save( 'effect' );
+         console.log( localStorage.effect );
+         window.location.reload( false );
+      });
+
+   $('#toggle-fxaa')
+      .prop( 'checked', SCMAP.settings.effect.FXAA )
+      .prop( 'disabled', SCMAP.settings.effect.Antialias )
+
+      .on( 'change', function() {
+         SCMAP.settings.effect.FXAA = this.checked;
+         SCMAP.settings.save( 'effect' );
+         if ( effectFXAA ) {
+            effectFXAA.enabled = this.checked;
          }
       });
 
    $('#toggle-bloom')
-      .prop( 'checked', ( storage && storage['effect.Bloom'] === '1' ) ? true : false )
+      .prop( 'checked', SCMAP.settings.effect.Bloom )
+      .prop( 'disabled', SCMAP.settings.effect.Antialias )
+
       .on( 'change', function() {
-         for ( var i = 0; i < composer.passes.length; i++ ) {
-            if ( composer.passes[i] instanceof THREE.BloomPass ) {
-               composer.passes[i].enabled = this.checked;
+         SCMAP.settings.effect.Bloom = this.checked;
+         SCMAP.settings.save( 'effect' );
+         if ( composer ) {
+            for ( var i = 0; i < composer.passes.length; i++ ) {
+               if ( composer.passes[i] instanceof THREE.BloomPass ) {
+                  composer.passes[i].enabled = this.checked;
+               }
             }
-         }
-         if ( storage ) {
-            storage['effect.Bloom'] = ( this.checked ) ? '1' : '0';
          }
       });
 
@@ -219,10 +236,15 @@ function initUI () {
    });
 
    $('#resetCamera').on( 'click', function() {
-      controls.cameraTo( cameraDefaults.target, cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+      controls.cameraTo(
+         SCMAP.settings.cameraDefaults.target,
+         SCMAP.settings.cameraDefaults.orientation.theta,
+         SCMAP.settings.cameraDefaults.orientation.phi,
+         SCMAP.settings.cameraDefaults.orientation.radius
+      );
    });
    $('#centreCamera').on( 'click', function() {
-      controls.moveTo( cameraDefaults.target );
+      controls.moveTo( SCMAP.settings.cameraDefaults.target );
    });
    $('#northCamera').on( 'click', function() {
       controls.rotateTo( 0, undefined, undefined );
@@ -316,9 +338,15 @@ function initUI () {
       }
       system.updateSceneObject( scene );
    });
-}
+};
 
-function makeSafeForCSS( name ) {
+SCMAP.UI.prototype = {
+
+   constructor: SCMAP.UI
+
+};
+
+SCMAP.UI.makeSafeForCSS = function makeSafeForCSS( name ) {
    if ( typeof name !== 'string' ) {
       return;
    }
@@ -328,6 +356,6 @@ function makeSafeForCSS( name ) {
       if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
       return (c.toString(16)).slice(-4);
    });
-}
+};
 
 // End of file

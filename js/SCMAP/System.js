@@ -62,6 +62,14 @@ SCMAP.System.prototype = {
       lod.matrixAutoUpdate = false;
       this.sceneObject.add( lod );
 
+//if ( this.name === 'Nul' ) {
+      //var customMaterial = this.glowShaderMaterial( this.starColor );
+      //var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
+      //moonGlow.scale.multiplyScalar( 2.3 * this.scale );
+      //moonGlow.userData.isGlow = true;
+      //this.sceneObject.add( moonGlow );
+//}
+
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
       glow.userData.isGlow = true;
@@ -110,6 +118,12 @@ SCMAP.System.prototype = {
 
    starMaterial: function () {
       return SCMAP.System.STAR_MATERIAL_WHITE;
+   },
+
+   glowShaderMaterial: function ( color ) {
+      var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
+      material.uniforms.glowColor.value = color;
+      return material;
    },
 
    glowMaterial: function () {
@@ -318,11 +332,11 @@ SCMAP.System.prototype = {
       var crimeStatus = 'Unknown';
       var i;
       var tmp = [];
-      var $blurb = $('<div class="sc_system_info" '+makeSafeForCSS(this.name)+'"></div>');
+      var $blurb = $('<div class="sc_system_info" '+SCMAP.UI.makeSafeForCSS(this.name)+'"></div>');
       var currentStep = window.map.route().indexOfCurrentRoute( this );
 
       $('#systemname')
-         .attr( 'class', makeSafeForCSS( this.faction.name ) )
+         .attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) )
          .css( 'color', this.faction.color.getStyle() )
          .text( 'System: ' + this.name );
 
@@ -359,7 +373,7 @@ SCMAP.System.prototype = {
 
          header.push( this.name );
 
-         $('#systemname').empty().attr( 'class', makeSafeForCSS( this.faction.name ) ).append( header );
+         $('#systemname').empty().attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) ).append( header );
       }
 
       if ( this.planetaryRotation.length ) {
@@ -701,10 +715,27 @@ SCMAP.System.LODMESH = [
 
 SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
 
-SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0 });
+SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true });
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
 
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
+
+// create custom material from the shader code in the html
+$(function() {
+   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
+      uniforms: { 
+         "c":   { type: "f", value: 0.05 },
+         "p":   { type: "f", value: 3.3 },
+         glowColor: { type: "c", value: SCMAP.Color.BLACK },
+         viewVector: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) }
+      },
+      vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+      fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+   });
+});
 
 // EOF

@@ -72,7 +72,6 @@ module.exports = function(grunt) {
         src: [
           'js/SCMAP.js',
           'js/SCMAP/Settings.js',
-          'js/SCMAP/Editor.js',
           'js/SCMAP/SelectedSystemGeometry.js',
           'js/SCMAP/JumpPoint.js',
           'js/SCMAP/Faction.js',

@@ -25,8 +25,6 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    this.object = object;
    this.domElement = ( domElement !== undefined ) ? domElement : document;
 
-   this.map = undefined;
-
    // API
 
    // Set to false to disable this control
@@ -43,8 +41,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    this.noZoom = false;
    this.zoomSpeed = 1.0;
    // Limits to how far you can dolly in and out
-   this.minDistance = 0;
-   this.maxDistance = Infinity;
+   this.minDistance = 20;
+   this.maxDistance = 800;
 
    // Set to true to disable this control
    this.noRotate = false;
@@ -52,14 +50,14 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
    // Set to true to disable this control
    this.noPan = false;
-   this.keyPanSpeed = 7.0; // pixels moved per arrow key push
-   this.mapMode = false; // map mode pans on x,z
+   this.keyPanSpeed = 25; // pixels moved per arrow key push
+   this.mapMode = true; // map mode pans on x,z
    this.requireAlt = false; // to allow soft-disable of this control temporarily
 
    // How far you can orbit vertically, upper and lower limits.
    // Range is 0 to Math.PI radians.
    this.minPolarAngle = 0; // radians
-   this.maxPolarAngle = Math.PI; // radians
+   this.maxPolarAngle = THREE.Math.degToRad( 85 ); // radians
 
    // Set to true to disable use of the keys
    this.noKeys = false;
@@ -138,7 +136,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                   if ( scope.debug ) {
                      console.log( 'Click at "' + intersect.object.parent.userData.system.name + '"' );
                   }
-                  scope.map.setSelectionTo( startObject );
+                  window.map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
                   this.touchtodrag( event );
                }
@@ -177,7 +175,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                var intersect = scope.getIntersect( event );
                if ( intersect && intersect.object.parent.userData.system ) {
                   endObject = intersect.object.parent.userData.system;
-                  if ( scope.map.selected() === endObject ) {
+                  if ( window.map.selected() === endObject ) {
                      endObject.displayInfo();
                   }
                   if ( scope.debug ) {
@@ -308,7 +306,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       if ( destination instanceof SCMAP.System ) {
-         _this.map.setSelectionTo( destination );
+         window.map.setSelectionTo( destination );
       }
 
       if ( targetTween ) {
@@ -330,39 +328,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       targetTween.start();
    };
 
-   this.getCurrentPosition = function () {
-      var cameraSettings = {
-         cameraX: this.object.position.x,
-         cameraY: this.object.position.y,
-         cameraZ: this.object.position.z,
-         targetX: this.target.x,
-         targetY: this.target.y,
-         targetZ: this.target.z
-      };
-      return cameraSettings;
-   };
-
-   this.rememberCurrentPosition = function () {
-      if ( storage ) {
-         var positions = this.getCurrentPosition();
-         storage['camera.x'] = positions.cameraX;
-         storage['camera.y'] = positions.cameraY;
-         storage['camera.z'] = positions.cameraZ;
-         storage['target.x'] = positions.targetX;
-         storage['target.y'] = positions.targetY;
-         storage['target.z'] = positions.targetZ;
-      }
-   };
-
-   this.restoreOldPosition = function () {
-      if ( storage && typeof storage['camera.x'] !== 'undefined' ) {
-         this.object.position.setX( Number( storage['camera.x'] ) );
-         this.object.position.setY( Number( storage['camera.y'] ) );
-         this.object.position.setZ( Number( storage['camera.z'] ) );
-         this.target.setX( Number( storage['target.x'] ) );
-         this.target.setY( Number( storage['target.y'] ) );
-         this.target.setZ( Number( storage['target.z'] ) );
-      }
+   this.rememberPosition = function rememberPosition() {
+      SCMAP.settings.camera.camera = this.object.position;
+      SCMAP.settings.camera.target = this.target;
+      SCMAP.settings.save( 'camera' );
    };
 
    // assumes mapMode for now
@@ -470,14 +439,15 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       scale *= dollyScale;
    };
 
+   // TODO: Move to map
    this.getIntersect = function ( event ) {
-      if ( !scope.map.interactables() ) { return; }
+      if ( !window.map.interactables() ) { return; }
       var vector, projector, raycaster, intersects;
       vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
       projector = new THREE.Projector();
       projector.unprojectVector( vector, scope.object );
       raycaster = new THREE.Raycaster( scope.object.position, vector.sub( scope.object.position ).normalize() );
-      intersects = raycaster.intersectObjects( scope.map.interactables() );
+      intersects = raycaster.intersectObjects( window.map.interactables() );
       return intersects[0];
    };
 
@@ -533,7 +503,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          newLabelScale = 22;
       }
       if ( newLabelScale.toFixed(1) !== labelScale ) {
-         this.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
+         window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
          labelScale = newLabelScale.toFixed(1);
       }
 
@@ -559,7 +529,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       this.showState();
-      this.rememberCurrentPosition();
+      this.rememberPosition();
    };
 
    function getZoomScale() {
@@ -584,7 +554,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       var route;
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-      if ( state.current === 'idle' ) {
+      //if ( state.current === 'idle' ) {
 
          // Mouse move on idle handling: highlighting systems, dragging waypoints on route
 
@@ -592,13 +562,13 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             intersect = scope.getIntersect( event );
             if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
                mouseOver = intersect.object.parent.userData.system;
-               map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
-               map._mouseOverObject.visible = true;
+               window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+               window.map._mouseOverObject.visible = true;
             } else {
                if ( !intersect || !intersect.object.parent.userData.system ) {
                   if ( mouseOver !== undefined ) {
-                     map._mouseOverObject.position.set( 0, 0, 0 );
-                     map._mouseOverObject.visible = false;
+                     window.map._mouseOverObject.position.set( 0, 0, 0 );
+                     window.map._mouseOverObject.visible = false;
                   }
                   mouseOver = undefined;
                }
@@ -606,9 +576,11 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          }
 
          mousePrevious.set( event.clientX, event.clientY );
-         return;
+         //return;
 
-      } else if ( state.current === 'touch' ) {
+      //} else if ( state.current === 'touch' ) {
+
+      if ( state.current === 'touch' ) {
 
          if ( event.button === 0 ) { // left mouse
             state.touchtorotate( event );
@@ -625,7 +597,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== startObject ) {
                if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
                   endObject = intersect.object.parent.userData.system;
-                  route = scope.map.route();
+                  route = window.map.route();
                   route.start = startObject;
                   route.end = endObject;
                   route.update( endObject );
@@ -721,6 +693,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       if ( scope.noKeys === true ) { return; }
       if ( scope.noPan === true ) { return; }
       if ( scope.requireAlt === true && event.altKey === false ) { return; }
+      // TODO: allow modifiers at all?
+      if ( event.altKey === true || event.shiftKey === true || event.ctrlKey === true || event.metaKey === true ) { return; }
 
       var $activeElement = $( document.activeElement );
       if ( $activeElement.attr( 'id' ) === 'comments' ) {
@@ -753,16 +727,16 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             needUpdate = true;
             break;
          case scope.keys.ESCAPE: // Deselect selected
-            scope.map.deselect();
+            window.map.deselect();
             break;
          case scope.keys.TAB: // Tab through route
             // TODO
             break;
          case scope.keys.R: // Reset orientation
-            scope.rotateTo( cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+            scope.rotateTo( 0, undefined, undefined );
             break;
          case scope.keys.C: // Center on default
-            scope.moveTo( cameraDefaults.target );
+            scope.moveTo( SCMAP.settings.camera.target );
             break;
          case scope.keys.T: // Top view
             scope.rotateTo( 0, 0, 200 );
@@ -775,7 +749,11 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             break;
          case scope.keys['3']: // 3D mode
             displayState.to3d();
-            scope.rotateTo( cameraDefaults.theta, cameraDefaults.phi, cameraDefaults.radius );
+            scope.rotateTo(
+               SCMAP.settings.cameraDefaults.orientation.theta,
+               SCMAP.settings.cameraDefaults.orientation.phi,
+               SCMAP.settings.cameraDefaults.orientation.radius
+            );
             break;
          case scope.keys.L: // Lock/unlock rotation
             $('#lock-rotation').click();
