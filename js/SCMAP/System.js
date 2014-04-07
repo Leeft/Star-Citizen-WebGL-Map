@@ -187,7 +187,7 @@ SCMAP.System.prototype = {
 
       context.font = '36pt Electrolize, Calibri, sans-serif';
       context.textAlign = 'center';
-      context.strokeStyle = 'rgba(0,0,0,0.95)';
+      context.strokeStyle = 'rgba(0,0,0,1.0)';
       context.lineWidth = 5;
       actualWidth = Math.ceil( context.measureText( text ).width + 1 );
       while ( actualWidth > canvas.width ) {
@@ -207,7 +207,7 @@ SCMAP.System.prototype = {
       textY = canvas.height / 2;
 
       context.font = '36pt Electrolize, Calibri, sans-serif';
-      context.strokeStyle = 'rgba(0,0,0,0.95)';
+      context.strokeStyle = 'rgba(0,0,0,1.0)';
       context.textAlign = 'center';
       context.lineWidth = 5;
       context.strokeText( text, textX, textY );
@@ -253,7 +253,7 @@ SCMAP.System.prototype = {
          }
 
          context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
-         context.strokeStyle = 'rgba(0,0,0,0.95)';
+         context.strokeStyle = 'rgba(0,0,0,1.0)';
          context.textAlign = 'center';
          context.lineWidth = 5;
          context.strokeText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
