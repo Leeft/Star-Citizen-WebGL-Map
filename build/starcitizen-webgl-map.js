@@ -782,6 +782,10 @@ SCMAP.System.prototype = {
    labelSprite: function ( drawIcons ) {
       var canvas, texture, material;
 
+      if ( !SCMAP.UI.fontAwesomeIsReady ) {
+         drawIcons = false;
+      }
+
       var icons = ( drawIcons ) ? this.getIcons() : [];
       canvas = this.drawSystemText( this.name, icons );
 
@@ -2051,7 +2055,8 @@ SCMAP.Map.prototype = {
 
       $('#debug-systems').html( systemCount + ' systems loaded' );
 
-      scene.add( this.buildReferenceGrid() );
+      var _this = this;
+      SCMAP.UI.waitForFontAwesome( function() { _this.updateSystems(); } );
    },
 
    closestPOI: function closestPOI ( vector ) {
@@ -2799,6 +2804,39 @@ SCMAP.UI.makeSafeForCSS = function makeSafeForCSS( name ) {
       if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
       return (c.toString(16)).slice(-4);
    });
+};
+
+SCMAP.UI.fontAwesomeIsReady = false;
+SCMAP.UI.waitForFontAwesome = function waitForFontAwesome( callback ) {
+   var retries = 5;
+
+   function checkReady () {
+      var canvas, context;
+      retries -= 1;
+      canvas = document.createElement('canvas');
+      canvas.width = 20;
+      canvas.height = 20;
+      context = canvas.getContext('2d');
+      context.font = '16pt FontAwesome';
+      context.textAlign = 'center';
+      context.fillStyle = 'rgba(255,255,255,1.0)';
+      context.fillText( '\uf0c8', 10, 18 );
+      var data = context.getImageData( 10, 10, 1, 1 ).data;
+      if ( data[0] === 0 && data[1] === 0 && data[2] === 0 ) {
+         console.log( "FontAwesome is not yet available, retrying ..." );
+         if ( retries > 0 ) {
+            setTimeout( checkReady, 200 );
+         }
+      } else {
+         console.log( "FontAwesome is loaded" );
+         SCMAP.UI.fontAwesomeIsReady = true;
+         if ( typeof callback === 'function' ) {
+            callback();
+         }
+      }
+   }
+
+   checkReady();
 };
 
 // End of file
@@ -3766,6 +3804,7 @@ function init()
 
    map = new SCMAP.Map( scene );
    map.populateScene();
+   scene.add( map.buildReferenceGrid() );
 
    ui = new SCMAP.UI();
 

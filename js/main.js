@@ -53,6 +53,7 @@ function init()
 
    map = new SCMAP.Map( scene );
    map.populateScene();
+   scene.add( map.buildReferenceGrid() );
 
    ui = new SCMAP.UI();
 

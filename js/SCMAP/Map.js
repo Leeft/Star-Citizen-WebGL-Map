@@ -252,7 +252,8 @@ SCMAP.Map.prototype = {
 
       $('#debug-systems').html( systemCount + ' systems loaded' );
 
-      scene.add( this.buildReferenceGrid() );
+      var _this = this;
+      SCMAP.UI.waitForFontAwesome( function() { _this.updateSystems(); } );
    },
 
    closestPOI: function closestPOI ( vector ) {

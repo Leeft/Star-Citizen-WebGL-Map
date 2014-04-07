@@ -143,6 +143,10 @@ SCMAP.System.prototype = {
    labelSprite: function ( drawIcons ) {
       var canvas, texture, material;
 
+      if ( !SCMAP.UI.fontAwesomeIsReady ) {
+         drawIcons = false;
+      }
+
       var icons = ( drawIcons ) ? this.getIcons() : [];
       canvas = this.drawSystemText( this.name, icons );
 
