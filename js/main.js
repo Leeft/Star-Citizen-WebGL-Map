@@ -163,7 +163,9 @@ function onWindowResize() {
    camera.aspect = width / height;
    camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
    camera.updateProjectionMatrix();
-   effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
+   if ( effectFXAA ) {
+      effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
+   }
    renderer.setSize( width, height );
    if ( composer ) {
       composer.reset();
