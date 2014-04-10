@@ -228,6 +228,8 @@ a.system-link span.icons {
    font-weight: bold;
 }
 
+#map_ui .text-danger { color: #c00; }
+
 #stats #fpsText { color: #6ABBCF !important; font-family: Electrolize, Helvetica, Arial, sans-serif !important; }
 #stats #fpsGraph { background-color: #6ABBCF !important; }
 

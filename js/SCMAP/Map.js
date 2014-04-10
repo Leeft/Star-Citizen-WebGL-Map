@@ -120,36 +120,32 @@ SCMAP.Map.prototype = {
 
    setAllLabelSizes: function setAllLabelSizes ( vector ) {
       for ( var i = 0; i < SCMAP.System.List.length; i++ ) {
-         var system = SCMAP.System.List[i];
          SCMAP.System.List[i].setLabelScale( vector );
       }
    },
 
-   moveSelectorTo: function moveSelectorTo ( system ) {
+   moveSelectorTo: function moveSelectorTo ( destination ) {
       var tween, newPosition, position, _this = this, poi, graph, route;
       var tweens = [];
 
       if ( !(_this._selectorObject.visible) || !(_this.getSelected() instanceof SCMAP.System) ) {
-         _this._selectorObject.userData.systemPosition.copy( system.position );
-         _this._selectorObject.position.copy( system.sceneObject.position );
+         _this._selectorObject.userData.systemPosition.copy( destination.position );
+         _this._selectorObject.position.copy( destination.sceneObject.position );
          _this._selectorObject.visible = true;
-         _this.getSelected( system );
+         _this.getSelected( destination );
          return;
       }
 
-      newPosition = system.sceneObject.position.clone();
-      graph = new SCMAP.Dijkstra( SCMAP.System.List );
-      graph.buildGraph({
-         source: _this.getSelected(),
-         destination: system
-      });
+      newPosition = destination.sceneObject.position.clone();
+      graph = new SCMAP.Dijkstra( SCMAP.System.List, _this.getSelected(), destination );
+      graph.buildGraph();
 
-      route = graph.routeArray( system );
+      route = graph.routeArray( destination );
       if ( route.length <= 1 ) {
-         _this._selectorObject.userData.systemPosition.copy( system.position );
-         _this._selectorObject.position.copy( system.sceneObject.position );
+         _this._selectorObject.userData.systemPosition.copy( destination.position );
+         _this._selectorObject.position.copy( destination.sceneObject.position );
          _this._selectorObject.visible = true;
-         _this.setSelected( system );
+         _this.setSelected( destination );
          return;
       }
 
@@ -191,7 +187,7 @@ SCMAP.Map.prototype = {
             tween.onComplete( function() {
                _this._selectorObject.userData.systemPosition.copy( poi.position );
                _this._selectorObject.position.copy( poi.sceneObject.position );
-               _this.setSelected( system );
+               _this.setSelected( destination );
             } );
          }
 
@@ -200,7 +196,6 @@ SCMAP.Map.prototype = {
       /* jshint ignore:end */
 
       tweens[0].start();
-
    },
 
    populateScene: function populateScene () {

@@ -2,11 +2,14 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-SCMAP.Dijkstra = function ( systems ) {
+SCMAP.Dijkstra = function ( systems, start, end ) {
    if ( ! ( typeof systems === 'object' && Array.isArray( systems ) ) ) {
       console.error( "No array specified to SCMAP.Dijkstra constructor!" );
       return;
    }
+
+   this.start = ( start instanceof SCMAP.System ) ? start : null;
+   this.end = ( this.start && end instanceof SCMAP.System ) ? end : null;
 
    // First build a list of all nodes in the graph and
    // map them by system.id so they can be found quickly
@@ -28,13 +31,12 @@ SCMAP.Dijkstra = function ( systems ) {
 SCMAP.Dijkstra.prototype = {
    constructor: SCMAP.Dijkstra,
 
-   buildGraph: function( parameters ) {
+   buildGraph: function buildGraph( priority, forceUpdate ) {
       var nodes, i, distance, system, currentNode, jumpPoint,
          otherNode, endTime, startTime = new Date();
 
-      if ( typeof parameters !== "object" ) { throw "No parameters object given"; }
-      if ( !parameters.source instanceof SCMAP.System ) { throw "No source given"; }
-      if ( parameters.destination !== undefined && !parameters.destination instanceof SCMAP.System ) { throw "Invalid destination given"; }
+      if ( !( this.start instanceof SCMAP.System ) ) { throw new Error( "No source given" ); }
+      if ( !( this.end instanceof SCMAP.System )   ) { throw new Error( "No or invalid destination given" ); }
 
       // This model allows for two priorities, time or fuel ... can't think
       // of any others which make sense (distance is really irrelevant for
@@ -45,26 +47,24 @@ SCMAP.Dijkstra.prototype = {
          priority = 'time';
       }
 
-      if ( !( parameters.source instanceof SCMAP.System ) ) { return; }
-
+      this._result.destination = this.end;
       // TODO: expiry, map may have changed
-      if ( this._result.source instanceof SCMAP.System && this._result.source === parameters.source && this._result.priority === priority ) {
-         console.log( 'Reusing generated graph starting at', parameters.source.name );
-         if ( parameters.destination instanceof SCMAP.System ) {
-            this._result.destination = parameters.destination;
-         }
+      if ( !forceUpdate && this._result.source instanceof SCMAP.System && this._result.source === this.start && this._result.priority === priority ) {
+         //console.log( 'Reusing generated graph starting at', this._result.source.name );
+         /////this._result.destination = this.end;
          return;
       }
 
-      if ( parameters.destination instanceof SCMAP.System ) {
-         console.log( 'Building graph, starting at', parameters.source.name, 'and ending at', parameters.destination.name );
-      } else {
-         console.log( 'Building graph, starting at', parameters.source.name );
-      }
+      //if ( parameters.destination instanceof SCMAP.System ) {
+      //   console.log( 'Building graph, starting at', parameters.source.name, 'and ending at', parameters.destination.name );
+      //} else {
+      //   console.log( 'Building graph, starting at', parameters.source.name );
+      //}
 
       this.destroyGraph();
-      this._result.source = parameters.source;
-      this._result.destination = parameters.destination;
+      this._result.source = this.start;
+      this._result.destination = this.end;
+      this._result.priority = priority;
 
       // Created using http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
 
@@ -73,7 +73,7 @@ SCMAP.Dijkstra.prototype = {
          this._nodes[ i ].previous = null;
       }
 
-      currentNode = this._mapping[ parameters.source.id ];
+      currentNode = this._mapping[ this.start.id ];
       currentNode.distance = 0; // distance from source to source
       currentNode.previous = null;
 
@@ -160,44 +160,49 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
       console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
    },
 
-   source: function() {
-      var source = this._result.source;
-      if ( source instanceof SCMAP.System ) {
-         return source;
+   firstNode: function firstNode() {
+      var routeArray = this.routeArray();
+      return routeArray[ 0 ];
+   },
+
+   lastNode: function firstNode() {
+      var routeArray = this.routeArray();
+      return routeArray[ routeArray.length - 1 ];
+   },
+
+   source: function source() {
+      if ( this.start instanceof SCMAP.System ) {
+         return this.start;
       }
    },
 
-   destination: function() {
-      var destination = this._result.destination;
-      if ( destination instanceof SCMAP.System ) {
-         return destination;
+   destination: function destination() {
+      if ( this.end instanceof SCMAP.System ) {
+         return this.end;
       }
    },
 
-   rebuildGraph: function() {
-      var source = this._result.source;
-      var destination = this._result.destination;
-
+   rebuildGraph: function rebuildGraph() {
       //console.log( "rebuildGraph from", source, 'to', destination );
       this.destroyGraph();
 
-      if ( source instanceof SCMAP.System ) {
-         this.buildGraph({
-            source: source,
-            destination: destination,
-         });
+      if ( this.start instanceof SCMAP.System ) {
+         this.buildGraph( 'time', true );
          return true;
       }
    },
 
-   destroyGraph: function() {
+   destroyGraph: function destroyGraph() {
       this._result = {};
    },
 
-   routeArray: function( destination ) {
+   routeArray: function routeArray( destination ) {
       if ( ! ( destination instanceof SCMAP.System ) ) {
-         console.error( 'No or invalid destination specified.' );
-         return;
+         if ( ! ( this._result.destination instanceof SCMAP.System ) ) {
+            console.error( 'No or invalid destination specified.' );
+            return;
+         }
+         destination = this._result.destination;
       }
 
       if ( this._result.nodes.length > 0 ) {
@@ -214,39 +219,10 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
          visited.reverse();
          return visited;
       }
-   },
-
-   constructRouteObject: function( from, to, callback ) {
-      var routeArray, i, object;
-
-      if ( !( from instanceof SCMAP.System ) || !( to instanceof SCMAP.System ) ) {
-         return;
-      }
-
-      if ( typeof callback !== 'function' ) {
-         console.error( "Callback not given or not a function" );
-         return;
-      }
-
-      this.buildGraph({
-         source: from,
-         destination: to,
-      });
-
-      routeArray = this.routeArray( to );
-      if ( typeof routeArray === 'object' && Array.isArray( routeArray ) ) {
-
-         object = new THREE.Object3D();
-         for ( i = 0; i < routeArray.length - 1; i++ ) {
-            object.add( callback( routeArray[i+0].system, routeArray[i+1].system ) );
-         }
-         return object;
-
-      }
    }
 };
 
-SCMAP.Dijkstra.quickSort = function ( nodes ) {
+SCMAP.Dijkstra.quickSort = function quickSort( nodes ) {
    // makes a copy, prevents overwriting
    var array = [];
    var i = nodes.length;

@@ -599,7 +599,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                   endObject = intersect.object.parent.userData.system;
                   route = window.map.route();
                   route.start = startObject;
-                  route.end = endObject;
+                  route.waypoints = [ endObject ];
+                  route.__syncGraphs();
                   route.update( endObject );
                   if ( scope.debug ) {
                      console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
