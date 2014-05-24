@@ -1,17 +1,18 @@
 module.exports = function(grunt) {
 
   grunt.initConfig({
+
     pkg: grunt.file.readJSON('package.json'),
+
     banner: '/*!\n' +
               ' * <%= pkg.name %> v<%= pkg.version %> by Lianna Eeftinck\n' +
               ' * Copyright <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n' +
               ' * https://github.com/Leeft/Star-Citizen-WebGL-Map\n' +
               ' * Licensed under <%= _.pluck(pkg.licenses, "url").join(", ") %>\n' +
               ' */\n',
+
     databanner: '/*!\n' +
-                ' * Sample map data (made up from a slightly randomised and limited data set\n' +
-                ' * of only known systems); to be replaced by online live data in the future.\n' +
-                ' * This data is thus not entirely accurate and incomplete.\n' +
+                ' * Sample map data to be replaced by online live data in the future.\n' +
                 ' *\n' +
                 ' * Copyright 2013-<%= grunt.template.today("yyyy") %> Lianna Eeftinck & Aaron Robinson. All Rights Reserved.\n' +
                 ' *\n' +
@@ -19,6 +20,7 @@ module.exports = function(grunt) {
                 ' * provided as an example only and is free to be used with this application\n' +
                 ' * in any form but may not be used elsewhere without explicit permission.\n' +
                 ' */\n',
+
     jqueryCheck: 'if (typeof jQuery === "undefined") { throw new Error("<%= pkg.name %> requires jQuery"); }\n',
     threejsCheck: 'if (typeof THREE === "undefined") { throw new Error("<%= pkg.name %> requires THREE.js"); }\n',
 
@@ -42,13 +44,13 @@ module.exports = function(grunt) {
 
       tweenjs: {
         files: [
-          { expand: false, src: 'js/tween.js/build/tween.min.js', dest: 'build/tween.min.js' },
+          { expand: false, src: 'js/tween.js/build/tween.min.js',                      dest: 'build/tween.min.js' },
         ]
       },
 
       fsmjs: {
         files: [
-          { expand: false, src: 'js/javascript-state-machine/state-machine.min.js', dest: 'build/state-machine.min.js' },
+          { expand: false, src: 'js/javascript-state-machine/state-machine.min.js',    dest: 'build/state-machine.min.js' },
         ]
       },
 
@@ -123,65 +125,104 @@ module.exports = function(grunt) {
 
     },
 
-    uglify: {
+      uglify: {
 
-      scmap: {
-        options: {
-          banner: '<%= banner %><%= jqueryCheck %><%= threejsCheck %>'
-        },
-        src: ['<%= concat.scmap.dest %>'],
-        dest: 'build/<%= pkg.name %>.min.js'
+         scmap: {
+            options: {
+               banner: '<%= banner %><%= jqueryCheck %><%= threejsCheck %>'
+            },
+            src: ['<%= concat.scmap.dest %>'],
+            dest: 'build/<%= pkg.name %>.min.js'
+         },
+
+         scdata: {
+            options: {
+               banner: '<%= databanner %>'
+            },
+            src: ['<%= concat.scdata.dest %>'],
+            dest: 'build/<%= pkg.name %>-data.min.js'
+         },
+
+         extlibs: {
+            src: ['<%= concat.extlibs.dest %>'],
+            dest: 'build/<%= pkg.name %>-libs.min.js'
+         }
+
       },
 
-      scdata: {
-        options: {
-          banner: '<%= databanner %>'
-        },
-        src: ['<%= concat.scdata.dest %>'],
-        dest: 'build/<%= pkg.name %>-data.min.js'
+      less: {
+         css: {
+            files: {
+               "css/sc.css": "styles.less"
+            },
+            options: {
+               compress: true,
+               cleancss: true
+            }
+         }
       },
 
-      extlibs: {
-        src: ['<%= concat.extlibs.dest %>'],
-        dest: 'build/<%= pkg.name %>-libs.min.js'
+      lesslint: {
+         src: ['*.less'],
+         options: {
+            csslint: {
+               'qualified-headings': false,
+               'fallback-colors': false,
+               'text-indent': false,
+               'outline-none': false,
+               'important': false,
+               'empty-rules': false,
+               'font-sizes': false,
+               'ids': false
+            }
+         }
+         /*
+            compress: true,
+            cleancss: true
+         } */
+      },
+
+      jshint: {
+         beforeconcat: ['js/main.js','js/SCMAP.js','js/SCMAP/**/*.js'],
+         afterconcat: ['<%= concat.scmap.dest %>'],
+      },
+
+      watch: {
+         scmap: {
+            files: ['<%= concat.scmap.src %>'],
+            tasks: ['dist-scmap']
+         },
+         scdata: {
+            files: ['<%= concat.scdata.src %>'],
+            tasks: ['dist-scdata']
+         },
+         extlibs: {
+            files: ['<%= concat.extlibs.src %>'],
+            tasks: ['dist-extlibs']
+         },
+         css: {
+            files: ['*.less'],
+            tasks: ['less-css']
+         }
       }
 
-    },
+   });
 
-    jshint: {
-      beforeconcat: ['js/main.js','js/SCMAP.js','js/SCMAP/**/*.js'],
-      afterconcat: ['<%= concat.scmap.dest %>'],
-    },
+   // These plugins provide necessary tasks
+   grunt.loadNpmTasks( 'grunt-contrib-concat' );
+   grunt.loadNpmTasks( 'grunt-contrib-uglify' );
+   grunt.loadNpmTasks( 'grunt-contrib-copy' );
+   grunt.loadNpmTasks( 'grunt-contrib-watch' );
+   grunt.loadNpmTasks( 'grunt-contrib-jshint' );
+   grunt.loadNpmTasks( 'grunt-contrib-less' );
+   grunt.loadNpmTasks( 'grunt-lesslint' );
 
-    watch: {
-      scmap: {
-        files: ['<%= concat.scmap.src %>'],
-        tasks: ['dist-scmap']
-      },
-      scdata: {
-        files: ['<%= concat.scdata.src %>'],
-        tasks: ['dist-scdata']
-      },
-      extlibs: {
-        files: ['<%= concat.extlibs.src %>'],
-        tasks: ['dist-extlibs']
-      }
-    }
+   grunt.registerTask( 'copy-extlibs', [ 'copy' ] );
+   grunt.registerTask( 'dist-scdata', [ 'concat:scdata', 'uglify:scdata' ] );
+   grunt.registerTask( 'dist-scmap', [ 'jshint:beforeconcat', 'concat:scmap', 'jshint:afterconcat','uglify:scmap' ] );
+   grunt.registerTask( 'dist-extlibs', [ 'concat:extlibs', 'uglify:extlibs' ] );
+   grunt.registerTask( 'less-css', [ 'less:css' ] );
 
-  });
-
-  // These plugins provide necessary tasks
-  grunt.loadNpmTasks( 'grunt-contrib-concat' );
-  grunt.loadNpmTasks( 'grunt-contrib-uglify' );
-  grunt.loadNpmTasks( 'grunt-contrib-copy' );
-  grunt.loadNpmTasks( 'grunt-contrib-watch' );
-  grunt.loadNpmTasks( 'grunt-contrib-jshint' );
-
-  grunt.registerTask( 'copy-extlibs', [ 'copy' ] );
-  grunt.registerTask( 'dist-scdata', [ 'concat:scdata', 'uglify:scdata' ] );
-  grunt.registerTask( 'dist-scmap', [ 'jshint:beforeconcat', 'concat:scmap', 'jshint:afterconcat','uglify:scmap' ] );
-  grunt.registerTask( 'dist-extlibs', [ 'concat:extlibs', 'uglify:extlibs' ] );
-
-  // Default task(s).
-  grunt.registerTask( 'default', [ 'copy-extlibs', 'dist-extlibs', 'dist-scdata', 'dist-scmap' ] );
+   // Default task(s).
+   grunt.registerTask( 'default', [ 'copy-extlibs', 'dist-extlibs', 'dist-scdata', 'dist-scmap', 'less-css' ] );
 };
