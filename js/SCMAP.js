@@ -87,6 +87,13 @@ SCMAP.Symbols.BANNED = {
    description: 'System off-limits',
    color: 'rgba(255, 117, 25, 1.0)'
 };
+SCMAP.Symbols.AVOID = {
+   code: "\uf00d",
+   scale: 1.2,
+   faClass: 'fa-times',
+   description: 'Avoid: do not route here',
+   color: 'rgba(255,50,50,1.0)'
+};
 SCMAP.Symbols.COMMENTS = {
    code: "\uf075",
    scale: 1.0,
@@ -101,7 +108,7 @@ SCMAP.Symbols.BOOKMARK = {
    faClass: 'fa-bookmark',
    description: 'Bookmarked',
    color: 'rgba(102, 193, 0, 1.0)',
-   offset: new THREE.Vector2( -2, 1 )
+   offset: new THREE.Vector2( -1, 1 )
 };
 
 SCMAP.travelTimeAU = function ( distanceAU ) {
