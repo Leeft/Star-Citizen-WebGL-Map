@@ -170,6 +170,7 @@ function onWindowResize() {
    if ( composer ) {
       composer.reset();
    }
+   $('#map_ui').data( 'jsp' ).reinitialise();
 }
 
 function buildDisplayModeFSM ( initialState )
@@ -298,6 +299,28 @@ function hasLocalStorage() {
 
 jQuery.fn.outerHtml = function() {
      return jQuery('<div />').append(this.eq(0).clone()).html();
+};
+
+String.prototype.toHMM = function () {
+    var sec_num = parseInt(this, 10);
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+
+    //if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    var time    = hours+':'+minutes;
+    return time;
+};
+
+Number.prototype.toHMM = function () {
+    var sec_num = parseInt(this, 10);
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+
+    //if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    var time    = hours+':'+minutes;
+    return time;
 };
 
 function humanSort( a, b ) {
