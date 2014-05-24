@@ -36,7 +36,7 @@ SCMAP.System = function ( data ) {
 SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
-   buildSceneObject: function () {
+   buildSceneObject: function buildSceneObject() {
       var star, label, glow, position, lod, boxSize;
 
       this.sceneObject = new THREE.Object3D();
@@ -96,7 +96,7 @@ SCMAP.System.prototype = {
       return this.sceneObject;
    },
 
-   updateSceneObject: function ( scene ) {
+   updateSceneObject: function updateSceneObject( scene ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          var object = this.sceneObject.children[i];
          if ( object.userData.isLabel ) {
@@ -108,7 +108,7 @@ SCMAP.System.prototype = {
       }
    },
 
-   setLabelScale: function ( vector ) {
+   setLabelScale: function setLabelScale( vector ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          if ( this.sceneObject.children[i].userData.isLabel ) {
             this.sceneObject.children[i].scale.copy( vector );
@@ -116,17 +116,17 @@ SCMAP.System.prototype = {
       }
    },
 
-   starMaterial: function () {
+   starMaterial: function starMaterial() {
       return SCMAP.System.STAR_MATERIAL_WHITE;
    },
 
-   glowShaderMaterial: function ( color ) {
+   glowShaderMaterial: function glowShaderMaterial( color ) {
       var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
       material.uniforms.glowColor.value = color;
       return material;
    },
 
-   glowMaterial: function () {
+   glowMaterial: function glowMaterial() {
       var color = this.starColor;
       if ( color.equals( SCMAP.Color.BLACK ) ) {
          color.copy( SCMAP.Color.UNSET );
@@ -140,7 +140,7 @@ SCMAP.System.prototype = {
       });
    },
 
-   labelSprite: function ( drawIcons ) {
+   labelSprite: function labelSprite( drawIcons ) {
       var canvas, texture, material;
 
       if ( !SCMAP.UI.fontAwesomeIsReady ) {
@@ -163,7 +163,7 @@ SCMAP.System.prototype = {
    },
 
    // Refreshes the text and icons on the system's label
-   updateLabelSprite: function ( spriteMaterial, drawLabels ) {
+   updateLabelSprite: function updateLabelSprite( spriteMaterial, drawLabels ) {
       var canvas, texture;
       var icons = ( drawLabels ) ? this.getIcons() : [];
       var iconsKey = this.iconsToKey( icons );
@@ -176,7 +176,7 @@ SCMAP.System.prototype = {
    },
 
    // Draws the text on a label
-   drawSystemText: function ( text, icons ) {
+   drawSystemText: function drawSystemText( text, icons ) {
       var canvas, context, texture, actualWidth;
       var textX, textY;
 
@@ -227,7 +227,7 @@ SCMAP.System.prototype = {
    },
 
    // Draws the icon(s) on a label
-   _drawSymbols: function ( context, x, y, symbols ) {
+   _drawSymbols: function _drawSymbols( context, x, y, symbols ) {
       var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
       var offX, offY;
       x -= totalWidth / 2;
@@ -241,7 +241,7 @@ SCMAP.System.prototype = {
 
          if ( false ) {
             context.beginPath();
-            context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
+            context.rect( x - 1, y - SCMAP.Symbol.SIZE - 1, SCMAP.Symbol.SIZE + 2, SCMAP.Symbol.SIZE + 2 );
             context.lineWidth = 5;
             context.strokeStyle = 'yellow';
             context.stroke();
@@ -265,7 +265,7 @@ SCMAP.System.prototype = {
       }
    },
 
-   createInfoLink: function ( noIcons ) {
+   createInfoLink: function createInfoLink( noIcons, noTarget ) {
       var $line = $( '<a></a>' );
 
       if ( typeof this.faction !== 'undefined' && typeof this.faction !== 'undefined' ) {
@@ -277,7 +277,11 @@ SCMAP.System.prototype = {
       $line.attr( 'data-system', this.id );
       $line.attr( 'href', '#system='+encodeURI( this.name ) );
       $line.attr( 'title', 'Show information on '+this.name );
-      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
+      if ( noTarget ) {
+         $line.text( this.name );
+      } else {
+         $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
+      }
 
       if ( !noIcons )
       {
@@ -295,7 +299,7 @@ SCMAP.System.prototype = {
       return $line;
    },
 
-   iconsToKey: function ( icons ) {
+   iconsToKey: function iconsToKey( icons ) {
       var list = [];
       for ( var i = 0; i < icons.length; i++ ) {
          list.push( icons[i].code );
@@ -303,31 +307,33 @@ SCMAP.System.prototype = {
       return list.join( ';' );
    },
 
-   getIcons: function () {
+   getIcons: function getIcons() {
       var mySymbols = [];
       if ( false && this.name === 'Sol' ) {
          mySymbols.push( SCMAP.Symbols.DANGER );
          mySymbols.push( SCMAP.Symbols.WARNING );
-         mySymbols.push( SCMAP.Symbols.HANGAR );
          mySymbols.push( SCMAP.Symbols.INFO );
          mySymbols.push( SCMAP.Symbols.TRADE );
          mySymbols.push( SCMAP.Symbols.BANNED );
-         mySymbols.push( SCMAP.Symbols.COMMENTS );
+         mySymbols.push( SCMAP.Symbols.HANGAR );
          mySymbols.push( SCMAP.Symbols.BOOKMARK );
+         mySymbols.push( SCMAP.Symbols.AVOID );
+         mySymbols.push( SCMAP.Symbols.COMMENTS );
          return mySymbols;
       }
       if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
       if ( this.hasWarning() ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
-      if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
       if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
       if ( this.isMajorTradeHub() ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
       if ( this.isOffLimits() ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
-      if ( this.hasComments() ) { mySymbols.push( SCMAP.Symbols.COMMENTS ); }
+      if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
       if ( this.isBookmarked() ) { mySymbols.push( SCMAP.Symbols.BOOKMARK ); }
+      if ( this.isToBeAvoided() ) { mySymbols.push( SCMAP.Symbols.AVOID ); }
+      if ( this.hasComments() ) { mySymbols.push( SCMAP.Symbols.COMMENTS ); }
       return mySymbols;
    },
 
-   displayInfo: function ( doNotSwitch ) {
+   displayInfo: function displayInfo( doNotSwitch ) {
       var worlds = '(No information)';
       var _import = '&mdash;';
       var _export = '&mdash;';
@@ -340,7 +346,6 @@ SCMAP.System.prototype = {
       var currentStep = window.map.route().indexOfCurrentRoute( this );
 
       $('#systemname')
-         .attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) )
          .css( 'color', this.faction.color.getStyle() )
          .text( 'System: ' + this.name );
 
@@ -377,7 +382,11 @@ SCMAP.System.prototype = {
 
          header.push( this.name );
 
-         $('#systemname').empty().attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) ).append( header );
+         $('#systemname').removeClass('padleft').empty().append( header );
+      }
+      else
+      {
+         $('#systemname').addClass('padleft');
       }
 
       if ( this.planetaryRotation.length ) {
@@ -433,18 +442,20 @@ SCMAP.System.prototype = {
 
       $('#hangar-location').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
       $('#bookmark').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
+      $('#avoid-system').prop( 'checked', this.isToBeAvoided() ).attr( 'data-system', this.id );
 
-      if ( storage && storage['comments.'+this.id] ) {
-         $('#comments').empty().val( storage['comments.'+this.id] );
-         var $commentmd = $( markdown.toHTML( storage['comments.'+this.id] ) );
-         $('#comments-md').html( $commentmd );
+      if ( this.hasComments() ) {
+         $('#comments').empty().val( this.getComments() );
+         $('#comments-md').html( $( markdown.toHTML( this.getComments() ) ) );
       } else {
          $('#comments').empty().val('');
          $('#comments-md').empty();
       }
 
       $('#comments').data( 'system', this.id );
+      $('#clear-comments').data( 'system', this.id );
       $('#bookmark').data( 'system', this.id );
+      $('#avoid-system').data( 'system', this.id );
       $('#hangar-location').data( 'system', this.id );
 
       if ( this.blob.length ) {
@@ -489,14 +500,14 @@ SCMAP.System.prototype = {
       this.system.routeNeedsUpdate();
    },
 
-   routeNeedsUpdate: function () {
+   routeNeedsUpdate: function routeNeedsUpdate() {
       for ( var j = 0; j < this._routeObjects.length; j++ ) {
          this._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
    },
 
    // Returns the jumppoint leading to the given destination
-   jumpPointTo: function ( destination ) {
+   jumpPointTo: function jumpPointTo( destination ) {
       for ( var i = 0; i < this.jumpPoints.length; i++ ) {
          if ( this.jumpPoints[i].destination === destination ) {
             return this.jumpPoints[i];
@@ -504,34 +515,81 @@ SCMAP.System.prototype = {
       }
    },
 
-   isBookmarked: function ( ) {
-      return storage && storage[ 'bookmarks.' + this.id ] === '1';
+   isBookmarked: function isBookmarked( ) {
+      return this.storedSettings().bookmarked === true;
    },
 
-   hasHangar: function ( ) {
-      return storage && storage[ 'hangarLocation.' + this.id ] === '1';
+   setBookmarkedState: function setBookmarkedState( state ) {
+      this.storedSettings().bookmarked = ( state ) ? true : false;
+      this.saveSettings();
    },
 
-   hasComments: function ( ) {
-      return storage && storage[ 'comments.' + this.id ];
+   hasHangar: function hasHangar( ) {
+      return this.storedSettings().hangarLocation === true;
    },
 
-   isOffLimits: function ( ) {
+   setHangarState: function setHangarState( state ) {
+      this.storedSettings().hangarLocation = ( state ) ? true : false;
+      this.saveSettings();
+   },
+
+   isToBeAvoided: function isToBeAvoided( ) {
+      return this.storedSettings().avoid === true;
+   },
+
+   setToBeAvoidedState: function setToBeAvoidedState( state ) {
+      this.storedSettings().avoid = ( state ) ? true : false;
+      this.saveSettings();
+   },
+
+   hasComments: function hasComments( ) {
+      return( ( typeof this.storedSettings().comments === 'string' ) && ( this.storedSettings().comments.length > 0 ) );
+   },
+
+   getComments: function getComments( ) {
+      return this.storedSettings().comments;
+   },
+
+   setComments: function setComments( comments ) {
+      if ( (typeof comments === 'string') && (comments.length > 1) ) {
+         this.storedSettings().comments = comments;
+      } else {
+         delete this.storedSettings().comments;
+      }
+      this.saveSettings();
+   },
+
+   storedSettings: function storedSettings() {
+      if ( !( this.id in SCMAP.settings.systems ) ) {
+         SCMAP.settings.systems[ this.id ] = {};
+      }
+      return SCMAP.settings.systems[ this.id ];
+   },
+
+   saveSettings: function saveSettings() {
+      SCMAP.settings.save('systems');
+   },
+
+   isOffLimits: function isOffLimits( ) {
       // TODO this needs to come from the DB
       return ( this.id === 90 || this.id === 97 );
    },
 
-   hasWarning: function ( ) {
+   hasWarning: function hasWarning( ) {
       // TODO this needs to come from the DB
       return ( this.id === 81 || this.id === 94 );
    },
 
-   isMajorTradeHub: function ( ) {
+   isMajorTradeHub: function isMajorTradeHub( ) {
       // TODO this needs to come from the DB
       return ( this.id === 82 || this.id === 95 || this.id === 80 || this.id === 102 || this.id === 100 || this.id === 108 || this.id === 96 || this.id === 85 || this.id === 83 || this.id === 106 || this.id === 15 || this.id === 84 || this.id === 88 || this.id === 19 || this.id === 92 );
    },
 
-   getValue: function ( key ) {
+   toString: function toString() {
+      return this.name;
+   },
+
+   getValue: function getValue( key ) {
       if ( key === undefined ) {
          return;
       }
@@ -539,7 +597,7 @@ SCMAP.System.prototype = {
       return value;
    },
 
-   setValues: function ( values ) {
+   setValues: function setValues( values ) {
       var key, currentValue, newValue, jumpPoint;
 
       if ( values === undefined ) {
@@ -675,7 +733,7 @@ SCMAP.System.preprocessSystems = function () {
 
 SCMAP.System.List = [];
 
-SCMAP.System.SortedList = function() {
+SCMAP.System.SortedList = function SortedList() {
    var array = [];
    var i = SCMAP.System.List.length;
    while( i-- ) {
@@ -685,11 +743,11 @@ SCMAP.System.SortedList = function() {
    return sorted;
 };
 
-SCMAP.System.getByName = function ( name ) {
+SCMAP.System.getByName = function getByName( name ) {
    return SCMAP.data.systems[ name ];
 };
 
-SCMAP.System.getById = function ( id ) {
+SCMAP.System.getById = function getById( id ) {
    return SCMAP.data.systemsById[ id ];
 };
 
@@ -709,7 +767,6 @@ SCMAP.System.LABEL_SCALE = 0.06;
 SCMAP.System.GLOW_SCALE = 6.5;
 
 SCMAP.System.CUBE = new THREE.CubeGeometry( 1, 1, 1 );
-//SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
 
 SCMAP.System.LODMESH = [
    [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],

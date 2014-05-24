@@ -47,21 +47,19 @@ SCMAP.UI = function () {
                   system = systems[ i ];
                   var link = system.createInfoLink().outerHtml();
 
-                  if ( storage && storage[ 'hangarLocation.' + system.id ] === '1' ) {
+                  if ( system.hasHangar() ) {
                      hangarCount += 1;
                      $('#hangar-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( storage && storage[ 'bookmarks.' + system.id ] === '1' ) {
+                  if ( system.isBookmarked() ) {
                      bookmarkCount += 1;
                      $('#bookmark-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( storage ) {
-                     if ( 'comments.'+system.id in storage ) {
-                        commentedCount += 1;
-                        $('#commented-list').append( $('<li>'+link+'</li>') );
-                     }
+                  if ( system.hasComments() ) {
+                     commentedCount += 1;
+                     $('#commented-list').append( $('<li>'+link+'</li>') );
                   }
 
                   $('#a-z-list').append( $('<li>'+link+'</li>') );
@@ -220,19 +218,25 @@ SCMAP.UI = function () {
          storage['settings.Glow'] = ( this.checked ) ? '1' : '0';
       }
    });
+
    $('#toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
+      $('#toggle-label-icons').prop( 'disabled', !SCMAP.settings.labels );
       map.updateSystems();
       if ( storage ) {
          storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
       }
    });
-   $('#toggle-label-icons').on( 'change', function() {
-      SCMAP.settings.labelIcons = this.checked;
-      map.updateSystems();
-      if ( storage ) {
-         storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
-      }
+
+   $('#toggle-label-icons')
+      .prop( 'disabled', !SCMAP.settings.labels )
+
+      .on( 'change', function() {
+         SCMAP.settings.labelIcons = this.checked;
+         map.updateSystems();
+         if ( storage ) {
+            storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
+         }
    });
 
    $('#resetCamera').on( 'click', function() {
@@ -297,47 +301,68 @@ SCMAP.UI = function () {
       controls.moveTo( system );
    });
 
+   $('#map_ui #routelist').on( 'click', "td.control a.remove-waypoint", function( event ) {
+      event.preventDefault();
+      var $this = $(this);
+      var system = SCMAP.System.getById( $this.data('system') );
+      map.route().removeWaypoint( system );
+      map.route().update();
+   });
+
+   $('#map_ui #routelist').on( 'click', 'button.delete-route', function( event ) {
+      map.route().destroy();
+   });
+
    var updateComments = function( event ) {
       event.preventDefault();
-      if ( !storage ) { return; }
       var system = SCMAP.System.getById( $(this).data('system') );
       var text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
-         storage['comments.'+system.id] = text;
-         //$md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
-         var $commentmd = $(markdown.toHTML( text ));
-         $('#comments-md').html( $commentmd );
+         system.setComments( text );
+         $('#comments-md').html( $(markdown.toHTML( text )) );
       } else {
-         delete storage['comments.'+system.id];
+         system.setComments();
          $('#comments-md').empty();
       }
       system.updateSceneObject( scene );
    };
+
    $('#comments').on( 'keyup', updateComments );
    $('#comments').on( 'blur', updateComments );
    $('#comments').on( 'change', updateComments );
 
+   $('#clear-comments').on( 'click', function( event ) {
+      event.preventDefault();
+      var system = SCMAP.System.getById( $(this).data('system') );
+      system.setComments();
+      $('#comments').empty().val('');
+      $('#comments-md').empty();
+      system.updateSceneObject( scene );
+   });
+
    $('#bookmark').on( 'change', function() {
       var system = SCMAP.System.getById( $(this).data('system') );
-      if ( !storage ) { return; }
-      if ( this.checked ) {
-         storage['bookmarks.'+system.id] = '1';
-      } else {
-         delete storage['bookmarks.'+system.id];
-      }
+      system.setBookmarkedState( this.checked );
       system.updateSceneObject( scene );
+      SCMAP.settings.save( 'systems' );
    });
 
    $('#hangar-location').on( 'change', function() {
       var system = SCMAP.System.getById( $(this).data('system') );
-      if ( !storage ) { return; }
-      if ( this.checked ) {
-         storage['hangarLocation.'+system.id] = '1';
-      } else {
-         delete storage['hangarLocation.'+system.id];
-      }
+      system.setHangarState( this.checked );
       system.updateSceneObject( scene );
+      SCMAP.settings.save( 'systems' );
    });
+
+   $('#avoid-system').on( 'change', function() {
+      var system = SCMAP.System.getById( $(this).data('system') );
+      system.setToBeAvoidedState( this.checked );
+      system.updateSceneObject( scene );
+      SCMAP.settings.save( 'systems' );
+      map.route().rebuildCurrentRoute();
+   });
+
+   $("a[href='#']").removeAttr('href');
 };
 
 SCMAP.UI.prototype = {
