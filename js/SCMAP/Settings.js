@@ -28,6 +28,9 @@ SCMAP.Settings = function () {
    this.cameraDefaults.target.copy( this.camera.target );
    this.load( 'camera' );
 
+   this.load( 'systems' );
+   if ( ! this.systems ) { this.systems = {}; }
+
    this.effect = {
       Antialias: true,
       FXAA: false,
@@ -65,6 +68,7 @@ SCMAP.Settings.prototype = {
             this[ key ] = JSON.parse( this.storage[ key ] );
          } catch ( e ) {
             console.error( "Error parsing 'localStorage." + key + "'; " + e.name + ": " + e.message );
+            this[ key ] = null;
          }
       }
    },
