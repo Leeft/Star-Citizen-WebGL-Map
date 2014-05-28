@@ -13,10 +13,10 @@ SCMAP.Map = function ( scene ) {
    this._interactables = [];
    this._route = null; // The main route the user can set
 
-   this._selectorObject = this.__createSelectorObject( 0xCCCC99 );
+   this._selectorObject = this.createSelectorObject( 0x99FF99 );
    scene.add( this._selectorObject );
 
-   this._mouseOverObject = this.__createSelectorObject( 0x8844FF );
+   this._mouseOverObject = this.createSelectorObject( 0x8844FF );
    this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
    scene.add( this._mouseOverObject );
 
@@ -46,11 +46,12 @@ SCMAP.Map.prototype = {
       return system;
    },
 
-   __createSelectorObject: function __createSelectorObject ( color ) {
+   createSelectorObject: function createSelectorObject ( color ) {
       var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({ color: color }) );
       mesh.scale.set( 4.2, 4.2, 4.2 );
       mesh.visible = false;
       mesh.userData.systemPosition = new THREE.Vector3( 0, 0, 0 );
+      mesh.userData.isSelector = true;
       // 2d/3d tween callback
       mesh.userData.scaleY = function ( object, scalar ) {
          var wantedY = object.userData.systemPosition.y * ( scalar / 100 );
@@ -76,7 +77,7 @@ SCMAP.Map.prototype = {
    route: function route () {
       if ( !( this._route instanceof SCMAP.Route ) ) {
          this._route = new SCMAP.Route();
-         console.log( "Created new route", this._route );
+         console.log( "Created new route", this._route.toString() );
       }
       return this._route;
    },
@@ -104,12 +105,12 @@ SCMAP.Map.prototype = {
    },
 
    animateSelector: function animateSelector () {
-      if ( this._selectorObject.visible ) {
-         this._selectorObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
-      }
-      if ( this._mouseOverObject.visible ) {
-         this._mouseOverObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
-      }
+      var rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
+      window.scene.traverse( function ( object ) {
+         if ( object.userData.isSelector ) {
+            object.rotation.y = rotationY;
+         }
+      });
    },
 
    updateSystems: function updateSystems () {

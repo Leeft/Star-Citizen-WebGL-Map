@@ -55,12 +55,6 @@ SCMAP.Dijkstra.prototype = {
          return;
       }
 
-      //if ( parameters.destination instanceof SCMAP.System ) {
-      //   console.log( 'Building graph, starting at', parameters.source.name, 'and ending at', parameters.destination.name );
-      //} else {
-      //   console.log( 'Building graph, starting at', parameters.source.name );
-      //}
-
       this.destroyGraph();
       this._result.source = this.start;
       this._result.destination = this.end;
@@ -100,45 +94,46 @@ var distAU;
             jumpPoint = currentNode.system.jumpPoints[i];
             otherNode = this._mapping[ jumpPoint.destination.id ];
 
+            // Don't take "unknown" and "undiscovered" jump points
             if ( jumpPoint.isUnconfirmed() && SCMAP.settings.route.avoidUnknownJumppoints ) {
                continue;
             }
 
-            // Don't go into "hostile" nodes, unless we already are in one
-            if ( SCMAP.settings.route.avoidHostile && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
-               continue;
-            }
-            if ( SCMAP.settings.route.avoidOffLimits && currentNode.system.isOffLimits() ) {
-               continue;
-            }
-
-//console.log( "  JP to", otherNode.system.name );
-
-            if ( priority === 'time' )
+            // These checks are only done if not an explicit part of the route we're building
+            if ( !this.isStartOrEnd( otherNode.system ) )
             {
-               // cost = half time to JP + JP time + half time from JP
-               // TODO: at start and end this can be from start and to dest rather than half
-               //distance = currentNode.distance + jumpPoint.length();
-               distance = currentNode.distance + jumpPoint.jumpTime();
-               if ( currentNode.previous === null ) {
+               // Don't go into "hostile" nodes, unless we already are in one
+               if ( SCMAP.settings.route.avoidHostile && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+                  continue;
+               }
+
+               // Don't go into "off limits" nodes
+               if ( SCMAP.settings.route.avoidOffLimits && otherNode.system.isOffLimits() ) {
+                  continue;
+               }
+
+               // Don't go into "avoid" nodes, unless we already are in one
+               if ( !currentNode.system.isToBeAvoided() && otherNode.system.isToBeAvoided() ) {
+                  continue;
+               }
+            }
+
+            // cost = half time to JP + JP time + half time from JP
+            // TODO: at start and end this can be from start and to dest rather than half
+            //distance = currentNode.distance + jumpPoint.length();
+            distance = currentNode.distance + jumpPoint.jumpTime();
+            if ( currentNode.previous === null ) {
 distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
-                  //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
-                  //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
-               }
-               else
-               {
-//                  distance += SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() );
-                  distance += SCMAP.travelTimeAU( 0.7 );
-                  //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
-                  //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
-                  //console.log( "would add", SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) );
-               }
+               //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
+               //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
             }
-            else // priority == 'fuel'
+            else
             {
-               // cost = half fuel to JP +         + half fuel from JP
-               // TODO: at start and end this can be from start and to dest rather than half
-               distance = currentNode.distance + jumpPoint.length();
+//                  distance += SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() );
+               distance += SCMAP.travelTimeAU( 0.7 );
+               //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
+               //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
+               //console.log( "would add", SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) );
             }
 
             // Get out of "never" nodes asap by increasing the cost massively
@@ -158,6 +153,13 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
       this._result.priority = priority;
       endTime = new Date();
       console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
+   },
+
+   isStartOrEnd: function isStartOrEnd( system ) {
+      if ( !( system instanceof SCMAP.System ) ) {
+         return false;
+      }
+      return( system === this.start || system === this.end );
    },
 
    firstNode: function firstNode() {

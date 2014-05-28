@@ -1,5 +1,5 @@
 /*!
- * starcitizen-webgl-map v0.2.0 by Lianna Eeftinck
+ * starcitizen-webgl-map v0.8.0 by Lianna Eeftinck
  * Copyright 2014 Lianna Eeftinck
  * https://github.com/Leeft/Star-Citizen-WebGL-Map
  * Licensed under http://opensource.org/licenses/MIT
@@ -95,6 +95,13 @@ SCMAP.Symbols.BANNED = {
    description: 'System off-limits',
    color: 'rgba(255, 117, 25, 1.0)'
 };
+SCMAP.Symbols.AVOID = {
+   code: "\uf00d",
+   scale: 1.2,
+   faClass: 'fa-times',
+   description: 'Avoid: do not route here',
+   color: 'rgba(255,50,50,1.0)'
+};
 SCMAP.Symbols.COMMENTS = {
    code: "\uf075",
    scale: 1.0,
@@ -109,7 +116,7 @@ SCMAP.Symbols.BOOKMARK = {
    faClass: 'fa-bookmark',
    description: 'Bookmarked',
    color: 'rgba(102, 193, 0, 1.0)',
-   offset: new THREE.Vector2( -2, 1 )
+   offset: new THREE.Vector2( -1, 1 )
 };
 
 SCMAP.travelTimeAU = function ( distanceAU ) {
@@ -158,6 +165,9 @@ SCMAP.Settings = function () {
    this.cameraDefaults.target.copy( this.camera.target );
    this.load( 'camera' );
 
+   this.load( 'systems' );
+   if ( ! this.systems ) { this.systems = {}; }
+
    this.effect = {
       Antialias: true,
       FXAA: false,
@@ -195,6 +205,7 @@ SCMAP.Settings.prototype = {
             this[ key ] = JSON.parse( this.storage[ key ] );
          } catch ( e ) {
             console.error( "Error parsing 'localStorage." + key + "'; " + e.name + ": " + e.message );
+            this[ key ] = null;
          }
       }
    },
@@ -675,7 +686,7 @@ SCMAP.System = function ( data ) {
 SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
-   buildSceneObject: function () {
+   buildSceneObject: function buildSceneObject() {
       var star, label, glow, position, lod, boxSize;
 
       this.sceneObject = new THREE.Object3D();
@@ -735,7 +746,7 @@ SCMAP.System.prototype = {
       return this.sceneObject;
    },
 
-   updateSceneObject: function ( scene ) {
+   updateSceneObject: function updateSceneObject( scene ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          var object = this.sceneObject.children[i];
          if ( object.userData.isLabel ) {
@@ -747,7 +758,7 @@ SCMAP.System.prototype = {
       }
    },
 
-   setLabelScale: function ( vector ) {
+   setLabelScale: function setLabelScale( vector ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          if ( this.sceneObject.children[i].userData.isLabel ) {
             this.sceneObject.children[i].scale.copy( vector );
@@ -755,17 +766,17 @@ SCMAP.System.prototype = {
       }
    },
 
-   starMaterial: function () {
+   starMaterial: function starMaterial() {
       return SCMAP.System.STAR_MATERIAL_WHITE;
    },
 
-   glowShaderMaterial: function ( color ) {
+   glowShaderMaterial: function glowShaderMaterial( color ) {
       var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
       material.uniforms.glowColor.value = color;
       return material;
    },
 
-   glowMaterial: function () {
+   glowMaterial: function glowMaterial() {
       var color = this.starColor;
       if ( color.equals( SCMAP.Color.BLACK ) ) {
          color.copy( SCMAP.Color.UNSET );
@@ -779,7 +790,7 @@ SCMAP.System.prototype = {
       });
    },
 
-   labelSprite: function ( drawIcons ) {
+   labelSprite: function labelSprite( drawIcons ) {
       var canvas, texture, material;
 
       if ( !SCMAP.UI.fontAwesomeIsReady ) {
@@ -802,7 +813,7 @@ SCMAP.System.prototype = {
    },
 
    // Refreshes the text and icons on the system's label
-   updateLabelSprite: function ( spriteMaterial, drawLabels ) {
+   updateLabelSprite: function updateLabelSprite( spriteMaterial, drawLabels ) {
       var canvas, texture;
       var icons = ( drawLabels ) ? this.getIcons() : [];
       var iconsKey = this.iconsToKey( icons );
@@ -815,7 +826,7 @@ SCMAP.System.prototype = {
    },
 
    // Draws the text on a label
-   drawSystemText: function ( text, icons ) {
+   drawSystemText: function drawSystemText( text, icons ) {
       var canvas, context, texture, actualWidth;
       var textX, textY;
 
@@ -866,7 +877,7 @@ SCMAP.System.prototype = {
    },
 
    // Draws the icon(s) on a label
-   _drawSymbols: function ( context, x, y, symbols ) {
+   _drawSymbols: function _drawSymbols( context, x, y, symbols ) {
       var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
       var offX, offY;
       x -= totalWidth / 2;
@@ -880,7 +891,7 @@ SCMAP.System.prototype = {
 
          if ( false ) {
             context.beginPath();
-            context.rect( x, y - SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE, SCMAP.Symbol.SIZE );
+            context.rect( x - 1, y - SCMAP.Symbol.SIZE - 1, SCMAP.Symbol.SIZE + 2, SCMAP.Symbol.SIZE + 2 );
             context.lineWidth = 5;
             context.strokeStyle = 'yellow';
             context.stroke();
@@ -904,7 +915,7 @@ SCMAP.System.prototype = {
       }
    },
 
-   createInfoLink: function ( noIcons ) {
+   createInfoLink: function createInfoLink( noIcons, noTarget ) {
       var $line = $( '<a></a>' );
 
       if ( typeof this.faction !== 'undefined' && typeof this.faction !== 'undefined' ) {
@@ -916,7 +927,11 @@ SCMAP.System.prototype = {
       $line.attr( 'data-system', this.id );
       $line.attr( 'href', '#system='+encodeURI( this.name ) );
       $line.attr( 'title', 'Show information on '+this.name );
-      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
+      if ( noTarget ) {
+         $line.text( this.name );
+      } else {
+         $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
+      }
 
       if ( !noIcons )
       {
@@ -934,7 +949,7 @@ SCMAP.System.prototype = {
       return $line;
    },
 
-   iconsToKey: function ( icons ) {
+   iconsToKey: function iconsToKey( icons ) {
       var list = [];
       for ( var i = 0; i < icons.length; i++ ) {
          list.push( icons[i].code );
@@ -942,31 +957,33 @@ SCMAP.System.prototype = {
       return list.join( ';' );
    },
 
-   getIcons: function () {
+   getIcons: function getIcons() {
       var mySymbols = [];
       if ( false && this.name === 'Sol' ) {
          mySymbols.push( SCMAP.Symbols.DANGER );
          mySymbols.push( SCMAP.Symbols.WARNING );
-         mySymbols.push( SCMAP.Symbols.HANGAR );
          mySymbols.push( SCMAP.Symbols.INFO );
          mySymbols.push( SCMAP.Symbols.TRADE );
          mySymbols.push( SCMAP.Symbols.BANNED );
-         mySymbols.push( SCMAP.Symbols.COMMENTS );
+         mySymbols.push( SCMAP.Symbols.HANGAR );
          mySymbols.push( SCMAP.Symbols.BOOKMARK );
+         mySymbols.push( SCMAP.Symbols.AVOID );
+         mySymbols.push( SCMAP.Symbols.COMMENTS );
          return mySymbols;
       }
       if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
       if ( this.hasWarning() ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
-      if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
       if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
       if ( this.isMajorTradeHub() ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
       if ( this.isOffLimits() ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
-      if ( this.hasComments() ) { mySymbols.push( SCMAP.Symbols.COMMENTS ); }
+      if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
       if ( this.isBookmarked() ) { mySymbols.push( SCMAP.Symbols.BOOKMARK ); }
+      if ( this.isToBeAvoided() ) { mySymbols.push( SCMAP.Symbols.AVOID ); }
+      if ( this.hasComments() ) { mySymbols.push( SCMAP.Symbols.COMMENTS ); }
       return mySymbols;
    },
 
-   displayInfo: function ( doNotSwitch ) {
+   displayInfo: function displayInfo( doNotSwitch ) {
       var worlds = '(No information)';
       var _import = '&mdash;';
       var _export = '&mdash;';
@@ -979,7 +996,6 @@ SCMAP.System.prototype = {
       var currentStep = window.map.route().indexOfCurrentRoute( this );
 
       $('#systemname')
-         .attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) )
          .css( 'color', this.faction.color.getStyle() )
          .text( 'System: ' + this.name );
 
@@ -1016,7 +1032,11 @@ SCMAP.System.prototype = {
 
          header.push( this.name );
 
-         $('#systemname').empty().attr( 'class', SCMAP.UI.makeSafeForCSS( this.faction.name ) ).append( header );
+         $('#systemname').removeClass('padleft').empty().append( header );
+      }
+      else
+      {
+         $('#systemname').addClass('padleft');
       }
 
       if ( this.planetaryRotation.length ) {
@@ -1072,18 +1092,20 @@ SCMAP.System.prototype = {
 
       $('#hangar-location').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
       $('#bookmark').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
+      $('#avoid-system').prop( 'checked', this.isToBeAvoided() ).attr( 'data-system', this.id );
 
-      if ( storage && storage['comments.'+this.id] ) {
-         $('#comments').empty().val( storage['comments.'+this.id] );
-         var $commentmd = $( markdown.toHTML( storage['comments.'+this.id] ) );
-         $('#comments-md').html( $commentmd );
+      if ( this.hasComments() ) {
+         $('#comments').empty().val( this.getComments() );
+         $('#comments-md').html( $( markdown.toHTML( this.getComments() ) ) );
       } else {
          $('#comments').empty().val('');
          $('#comments-md').empty();
       }
 
       $('#comments').data( 'system', this.id );
+      $('#clear-comments').data( 'system', this.id );
       $('#bookmark').data( 'system', this.id );
+      $('#avoid-system').data( 'system', this.id );
       $('#hangar-location').data( 'system', this.id );
 
       if ( this.blob.length ) {
@@ -1128,14 +1150,14 @@ SCMAP.System.prototype = {
       this.system.routeNeedsUpdate();
    },
 
-   routeNeedsUpdate: function () {
+   routeNeedsUpdate: function routeNeedsUpdate() {
       for ( var j = 0; j < this._routeObjects.length; j++ ) {
          this._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
    },
 
    // Returns the jumppoint leading to the given destination
-   jumpPointTo: function ( destination ) {
+   jumpPointTo: function jumpPointTo( destination ) {
       for ( var i = 0; i < this.jumpPoints.length; i++ ) {
          if ( this.jumpPoints[i].destination === destination ) {
             return this.jumpPoints[i];
@@ -1143,34 +1165,81 @@ SCMAP.System.prototype = {
       }
    },
 
-   isBookmarked: function ( ) {
-      return storage && storage[ 'bookmarks.' + this.id ] === '1';
+   isBookmarked: function isBookmarked( ) {
+      return this.storedSettings().bookmarked === true;
    },
 
-   hasHangar: function ( ) {
-      return storage && storage[ 'hangarLocation.' + this.id ] === '1';
+   setBookmarkedState: function setBookmarkedState( state ) {
+      this.storedSettings().bookmarked = ( state ) ? true : false;
+      this.saveSettings();
    },
 
-   hasComments: function ( ) {
-      return storage && storage[ 'comments.' + this.id ];
+   hasHangar: function hasHangar( ) {
+      return this.storedSettings().hangarLocation === true;
    },
 
-   isOffLimits: function ( ) {
+   setHangarState: function setHangarState( state ) {
+      this.storedSettings().hangarLocation = ( state ) ? true : false;
+      this.saveSettings();
+   },
+
+   isToBeAvoided: function isToBeAvoided( ) {
+      return this.storedSettings().avoid === true;
+   },
+
+   setToBeAvoidedState: function setToBeAvoidedState( state ) {
+      this.storedSettings().avoid = ( state ) ? true : false;
+      this.saveSettings();
+   },
+
+   hasComments: function hasComments( ) {
+      return( ( typeof this.storedSettings().comments === 'string' ) && ( this.storedSettings().comments.length > 0 ) );
+   },
+
+   getComments: function getComments( ) {
+      return this.storedSettings().comments;
+   },
+
+   setComments: function setComments( comments ) {
+      if ( (typeof comments === 'string') && (comments.length > 1) ) {
+         this.storedSettings().comments = comments;
+      } else {
+         delete this.storedSettings().comments;
+      }
+      this.saveSettings();
+   },
+
+   storedSettings: function storedSettings() {
+      if ( !( this.id in SCMAP.settings.systems ) ) {
+         SCMAP.settings.systems[ this.id ] = {};
+      }
+      return SCMAP.settings.systems[ this.id ];
+   },
+
+   saveSettings: function saveSettings() {
+      SCMAP.settings.save('systems');
+   },
+
+   isOffLimits: function isOffLimits( ) {
       // TODO this needs to come from the DB
       return ( this.id === 90 || this.id === 97 );
    },
 
-   hasWarning: function ( ) {
+   hasWarning: function hasWarning( ) {
       // TODO this needs to come from the DB
       return ( this.id === 81 || this.id === 94 );
    },
 
-   isMajorTradeHub: function ( ) {
+   isMajorTradeHub: function isMajorTradeHub( ) {
       // TODO this needs to come from the DB
       return ( this.id === 82 || this.id === 95 || this.id === 80 || this.id === 102 || this.id === 100 || this.id === 108 || this.id === 96 || this.id === 85 || this.id === 83 || this.id === 106 || this.id === 15 || this.id === 84 || this.id === 88 || this.id === 19 || this.id === 92 );
    },
 
-   getValue: function ( key ) {
+   toString: function toString() {
+      return this.name;
+   },
+
+   getValue: function getValue( key ) {
       if ( key === undefined ) {
          return;
       }
@@ -1178,7 +1247,7 @@ SCMAP.System.prototype = {
       return value;
    },
 
-   setValues: function ( values ) {
+   setValues: function setValues( values ) {
       var key, currentValue, newValue, jumpPoint;
 
       if ( values === undefined ) {
@@ -1314,7 +1383,7 @@ SCMAP.System.preprocessSystems = function () {
 
 SCMAP.System.List = [];
 
-SCMAP.System.SortedList = function() {
+SCMAP.System.SortedList = function SortedList() {
    var array = [];
    var i = SCMAP.System.List.length;
    while( i-- ) {
@@ -1324,11 +1393,11 @@ SCMAP.System.SortedList = function() {
    return sorted;
 };
 
-SCMAP.System.getByName = function ( name ) {
+SCMAP.System.getByName = function getByName( name ) {
    return SCMAP.data.systems[ name ];
 };
 
-SCMAP.System.getById = function ( id ) {
+SCMAP.System.getById = function getById( id ) {
    return SCMAP.data.systemsById[ id ];
 };
 
@@ -1348,7 +1417,6 @@ SCMAP.System.LABEL_SCALE = 0.06;
 SCMAP.System.GLOW_SCALE = 6.5;
 
 SCMAP.System.CUBE = new THREE.CubeGeometry( 1, 1, 1 );
-//SCMAP.System.MESH = new THREE.SphereGeometry( 1, 12, 12 );
 
 SCMAP.System.LODMESH = [
    [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],
@@ -1440,12 +1508,6 @@ SCMAP.Dijkstra.prototype = {
          return;
       }
 
-      //if ( parameters.destination instanceof SCMAP.System ) {
-      //   console.log( 'Building graph, starting at', parameters.source.name, 'and ending at', parameters.destination.name );
-      //} else {
-      //   console.log( 'Building graph, starting at', parameters.source.name );
-      //}
-
       this.destroyGraph();
       this._result.source = this.start;
       this._result.destination = this.end;
@@ -1485,45 +1547,46 @@ var distAU;
             jumpPoint = currentNode.system.jumpPoints[i];
             otherNode = this._mapping[ jumpPoint.destination.id ];
 
+            // Don't take "unknown" and "undiscovered" jump points
             if ( jumpPoint.isUnconfirmed() && SCMAP.settings.route.avoidUnknownJumppoints ) {
                continue;
             }
 
-            // Don't go into "hostile" nodes, unless we already are in one
-            if ( SCMAP.settings.route.avoidHostile && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
-               continue;
-            }
-            if ( SCMAP.settings.route.avoidOffLimits && currentNode.system.isOffLimits() ) {
-               continue;
-            }
-
-//console.log( "  JP to", otherNode.system.name );
-
-            if ( priority === 'time' )
+            // These checks are only done if not an explicit part of the route we're building
+            if ( !this.isStartOrEnd( otherNode.system ) )
             {
-               // cost = half time to JP + JP time + half time from JP
-               // TODO: at start and end this can be from start and to dest rather than half
-               //distance = currentNode.distance + jumpPoint.length();
-               distance = currentNode.distance + jumpPoint.jumpTime();
-               if ( currentNode.previous === null ) {
+               // Don't go into "hostile" nodes, unless we already are in one
+               if ( SCMAP.settings.route.avoidHostile && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+                  continue;
+               }
+
+               // Don't go into "off limits" nodes
+               if ( SCMAP.settings.route.avoidOffLimits && otherNode.system.isOffLimits() ) {
+                  continue;
+               }
+
+               // Don't go into "avoid" nodes, unless we already are in one
+               if ( !currentNode.system.isToBeAvoided() && otherNode.system.isToBeAvoided() ) {
+                  continue;
+               }
+            }
+
+            // cost = half time to JP + JP time + half time from JP
+            // TODO: at start and end this can be from start and to dest rather than half
+            //distance = currentNode.distance + jumpPoint.length();
+            distance = currentNode.distance + jumpPoint.jumpTime();
+            if ( currentNode.previous === null ) {
 distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
-                  //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
-                  //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
-               }
-               else
-               {
-//                  distance += SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() );
-                  distance += SCMAP.travelTimeAU( 0.7 );
-                  //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
-                  //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
-                  //console.log( "would add", SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) );
-               }
+               //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
+               //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
             }
-            else // priority == 'fuel'
+            else
             {
-               // cost = half fuel to JP +         + half fuel from JP
-               // TODO: at start and end this can be from start and to dest rather than half
-               distance = currentNode.distance + jumpPoint.length();
+//                  distance += SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() );
+               distance += SCMAP.travelTimeAU( 0.7 );
+               //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
+               //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
+               //console.log( "would add", SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) );
             }
 
             // Get out of "never" nodes asap by increasing the cost massively
@@ -1543,6 +1606,13 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
       this._result.priority = priority;
       endTime = new Date();
       console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
+   },
+
+   isStartOrEnd: function isStartOrEnd( system ) {
+      if ( !( system instanceof SCMAP.System ) ) {
+         return false;
+      }
+      return( system === this.start || system === this.end );
    },
 
    firstNode: function firstNode() {
@@ -1658,6 +1728,8 @@ SCMAP.Route = function ( start, waypoints ) {
    this._graphs = [];
    this._routeObject = undefined;
 
+   this._error = undefined;
+
    if ( waypoints instanceof SCMAP.System ) {
       this.waypoints = [ waypoints ];
    } else if ( Array.isArray( waypoints ) ) {
@@ -1708,37 +1780,6 @@ SCMAP.Route.prototype = {
       return graphs;
    },
 
-   //__findWaypoints: function __findWaypoints( waypoint ) {
-   //   var indexes = [];
-   //   var seen = {};
-
-   //   for ( var i = 0; i < this._graphs.length; i += 1 )
-   //   {
-   //      var route = [];
-   //      try {
-   //         route = this._graphs[i].routeArray();
-   //      } catch ( e ) {
-   //         console.error( "Error getting route array: "+e.message );
-   //      }
-
-   //      if ( graphs.length ) {
-   //         if ( route[0].system.id === waypoint.id ) {
-   //            indexes.push( i );
-   //            return graphs;
-   //         }
-   //      }
-
-   //      for ( var j = 0; j < route.length; j += 1 ) {
-   //         if ( route[j].system === waypoint && !(seen[ route[j].system.id ]) ) {
-   //            seen[ route[j].system.id ] = true;
-   //            graphs.push( this._graphs[i] );
-   //         }
-   //      }
-   //   }
-
-   //   return graphs;
-   //},
-
    splitAt: function splitAt( waypoint ) {
       var graphs = this.__findGraphs( waypoint );
       if ( graphs.length > 1 ) {
@@ -1768,6 +1809,19 @@ SCMAP.Route.prototype = {
          }
       }
       console.error( "Couldn't match graph to split" );
+   },
+
+   toString: function toString() {
+      var result = [];
+      if ( this.start instanceof SCMAP.System ) {
+         result.push( this.start.toString() );
+      }
+      $.each( this.waypoints, function( index, value ) {
+         if ( value instanceof SCMAP.System ) {
+            result.push( value );
+         }
+      });
+      return result.join( ' > ' );
    },
 
    removeWaypoint: function removeWaypoint( waypoint ) {
@@ -1805,11 +1859,23 @@ SCMAP.Route.prototype = {
    moveWaypoint: function moveWaypoint( waypoint, destination ) {
       var index;
 
+      if ( waypoint === destination ) {
+         return false;
+      }
+
+      if ( destination === this.start || this.waypoints.indexOf( destination ) >= 0 ) {
+         return false;
+      }
+
       // Easy case, moving start: update start and sync
       if ( waypoint === this.start ) {
-         this.start = destination;
-         this.__syncGraphs();
-         return true;
+         if ( this.waypoints.length !== 1 || destination !== this.waypoints[0] ) {
+            this.start = destination;
+            this.__syncGraphs();
+            return true;
+         } else {
+            return false;
+         }
       }
 
       // Slightly more difficult, moving any waypoint: update waypoint and sync
@@ -1830,7 +1896,7 @@ SCMAP.Route.prototype = {
          }
       }
 
-      console.error( "Couldn't find waypoint '"+waypoint.name+"'" );
+      //console.error( "Couldn't find waypoint '"+waypoint.name+"'" );
       return false;
    },
 
@@ -1857,29 +1923,59 @@ SCMAP.Route.prototype = {
    // the graphs where needed
    __syncGraphs: function __syncGraphs() {
       var newGraphs = [];
-      for ( var i = 0; i < this.waypoints.length; i += 1 ) {
-         var start = ( i === 0 ) ? this.start : this.waypoints[i - 1];
-         var end   = this.waypoints[i];
-         var graph;
-         if ( this._graphs[i] instanceof SCMAP.Dijkstra ) {
-            graph = this._graphs[i];
-            this._graphs[i].start = start;
-            this._graphs[i].end   = end;
-         } else {
-            graph = new SCMAP.Dijkstra( SCMAP.System.List, start, end );
-         }
-
-         try {
-            console.log( "Building graph from", start.name, "to", end.name );
-            graph.buildGraph( 'time', true );
-         } catch ( e ) {
-            console.error( "Error building graph: " + e.message );
-         }
-
-         newGraphs.push( graph );
-      }
       this._graphs = newGraphs;
-      console.log( "Synced and built all graphs" );
+      this._error = undefined;
+
+      try {
+
+         for ( var i = 0; i < this.waypoints.length; i += 1 )
+         {
+            var start = ( i === 0 ) ? this.start : this.waypoints[i - 1];
+            var end   = this.waypoints[i];
+            var graph;
+            if ( this._graphs[i] instanceof SCMAP.Dijkstra ) {
+               graph = this._graphs[i];
+               this._graphs[i].start = start;
+               this._graphs[i].end   = end;
+            } else {
+               graph = new SCMAP.Dijkstra( SCMAP.System.List, start, end );
+            }
+
+            graph.buildGraph( 'time', true );
+            newGraphs.push( graph );
+
+            var routeSegment = graph.routeArray();
+
+            if ( routeSegment.length <= 1 ) {
+               console.warn( "No route from "+start.name+" to "+end.name+" possible" );
+               throw new RouteSegmentFailed( "No route from "+start.name+" to "+end.name+" available" );
+               // TODO: could retry with fewer restrictions to indicate the user can change things
+               // to make the route possible, and indicate so in the error message
+            }
+
+         }
+
+         this._graphs = newGraphs;
+         if ( newGraphs.length > 0 ) {
+            console.log( "Synced and built "+newGraphs.length+" graphs" );
+         }
+      }
+      catch ( e )
+      {
+         this._error = e;
+         if ( !( e instanceof RouteSegmentFailed ) ) {
+            console.error( "Error building route: " + e.message );
+         }
+      }
+   },
+
+   lastError: function lastError() {
+      return this._error;
+   },
+
+   isSet: function isSet() {
+      var route = this.currentRoute();
+      return route.length > 1;
    },
 
    currentRoute: function currentRoute() {
@@ -1896,7 +1992,34 @@ SCMAP.Route.prototype = {
       return route;
    },
 
-   indexOfCurrentRoute: function ( system ) {
+   // Returns a float 0.0 to 1.0 to indicate where we are in
+   // the route; we can use this to establish the approximate
+   // colour of the given point
+   alphaOfSystem: function alphaOfSystem( system ) {
+      if ( ! system instanceof SCMAP.System ) {
+         return 0;
+      }
+
+      var currentStep = 0;
+      var currentRoute = this.currentRoute();
+
+      if ( currentRoute.length ) {
+         for ( var i = 0; i < currentRoute.length; i++ ) {
+            if ( currentRoute[i].system === system ) {
+               currentStep = i;
+               break;
+            }
+         }
+      }
+
+      if ( currentStep ) {
+         return( currentStep / currentRoute.length );
+      }
+
+      return 0;
+   },
+
+   indexOfCurrentRoute: function indexOfCurrentRoute( system ) {
       if ( ! system instanceof SCMAP.System ) {
          return;
       }
@@ -1929,13 +2052,13 @@ SCMAP.Route.prototype = {
       }
    },
 
-   destroy: function () {
-      this.remove();
+   destroy: function destroy() {
       this.start = null;
       this.waypoints = [];
+      this.update();
    },
 
-   removeFromScene: function () {
+   removeFromScene: function removeFromScene() {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
@@ -1944,28 +2067,43 @@ SCMAP.Route.prototype = {
 
    update: function update( destination ) {
       var _this = this, i, route, material, system, $entry;
+      var duration = 0, totalDuration = 0;
+      var before = this.toString();
+
+      this.__syncGraphs();
 
       if ( !( destination instanceof SCMAP.System ) ) {
          var numWaypoints = this.waypoints.length;
          destination = this.waypoints[numWaypoints-1];
       }
 
-      material = new THREE.MeshBasicMaterial( { color: 0xDD3322 } );
-      material.opacity = 0.8;
-      material.transparent = true;
-
       this.removeFromScene();
+
+      if ( this.lastError() ) {
+         $('#routelist').html(
+            '<p class="impossible">'+this.lastError().message+'</p>'
+         );
+         $('#map_ui').tabs( 'option', 'active', 3 );
+         return;
+      }
 
       this._routeObject = new THREE.Object3D();
 
+      //console.log( "Route updated: " + this.toString() ); // TODO remove
+
       // building all the parts of the route together in a single geometry group
       var entireRoute = this.currentRoute();
+      var startColour = new THREE.Color( 0xEEEE66 );
+      var endColour   = new THREE.Color( 0xFF3322 ); //new THREE.Color( 0xDD3322 );
 
-      for ( i = 0; i < ( entireRoute.length - 1 ); i++ ) {
+      for ( i = 0; i < ( entireRoute.length - 1 ); i += 1 ) {
          var from = entireRoute[i].system;
          var to = entireRoute[i+1].system;
          var geometry = this.createRouteGeometry( from, to );
          if ( geometry ) {
+               
+            material = new THREE.MeshBasicMaterial( { color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) } );
+
             var mesh = new THREE.Mesh( geometry, material );
             mesh.position = from.sceneObject.position.clone();
             mesh.lookAt( to.sceneObject.position );
@@ -1973,20 +2111,53 @@ SCMAP.Route.prototype = {
          }
       }
 
-      scene.add( this._routeObject );
+      if ( entireRoute.length === 0 )
+      {
+         $('#routelist').append(
+            '<p class="no-route">No route set.</p>'
+         );
+         return;
+      }
+
+      if ( typeof this.start.sceneObject === 'object' )
+      {
+         var waypointObject = window.map.createSelectorObject( startColour );
+         waypointObject.scale.set( 3.8, 3.8, 3.8 );
+         waypointObject.position.copy( this.start.sceneObject.position );
+         waypointObject.visible = true;
+         this._routeObject.add( waypointObject );
+
+         for ( i = 0; i < this.waypoints.length; i += 1 ) {
+            if ( typeof this.waypoints[i].sceneObject === 'object' ) {
+               //var selectorColour = 0xDD8844;
+               //if ( i === this.waypoints.length - 1 ) {
+               //   selectorColour = 0xDD3322;
+               //}
+               waypointObject = window.map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
+               waypointObject.scale.set( 3.8, 3.8, 3.8 );
+               waypointObject.position.copy( this.waypoints[i].sceneObject.position );
+               waypointObject.visible = true;
+               this._routeObject.add( waypointObject );
+            }
+         }
+
+         scene.add( this._routeObject );
+      }
 
       $('#routelist').empty();
 
       if ( entireRoute.length > 1 )
       {
          $('#routelist')
-            .append(
-               '<p>The shortest route from '+
+            .append( '<table class="routelist"><thead></thead><tbody></tbody></table>' );
+
+         $('#routelist table')
+            .append( '<caption>'+
+               'Route from '+
                entireRoute[0].system.createInfoLink( true ).outerHtml()+' to ' +
                entireRoute[entireRoute.length-1].system.createInfoLink( true ).outerHtml() +
-               ' along <strong class="route-count">' + (entireRoute.length - 1) +
-               '</strong> jump points:</p>' )
-            .append( '<ol class="routelist"></ol>' );
+               ' along <strong class="route-count">' +
+               '</strong> jump points:</caption>' );
 
          var routeCount = 0;
 
@@ -1995,40 +2166,75 @@ SCMAP.Route.prototype = {
             system = entireRoute[i].system;
 
             if ( i > 0 && system.id === entireRoute[i-1].system.id ) {
-               $('#routelist li').last().addClass('waypoint').css( 'font-weight', 'bold' )
-                  .find('i.fa').first().addClass('fa-lg').addClass('fa-times')
-                                       .addClass('text-danger').prop('title','Remove waypoint');
+               $('#routelist tr').last().addClass('waypoint').find('td.control i')
+                  .addClass('fa-lg').addClass('fa-times').addClass('text-danger')
+                  .removeClass('fa-long-arrow-down').prop('title','Remove waypoint')
+                  .wrap('<a href="#" class="remove-waypoint" data-system="'+system.id+'"></a>');
 
                continue;
             }
 
             routeCount += 1;
+            duration = 30 * 60;
             $entry = $(
-               '<li><a class="remove-waypoint" data-remove-waypoint="" href="#"><i class="fa fa-fw fa-lg"></a></i>&nbsp;' +
-               system.createInfoLink().outerHtml()+'</li>'
+               '<tr class="waypoint">'+
+                  '<th class="count muted">'+routeCount+'</th>'+
+                  '<td class="control muted"></td>'+ //<a class="remove-waypoint" href="#"><i class="fa fa-fw fa-lg"></i></a></td>'+
+                  '<td class="system">'+system.createInfoLink( false, true ).outerHtml()+'</td>'+
+                  '<td class="duration muted small"></td>'+
+               '</tr>'
             );
 
             if ( i === 0 ) {
-               $entry.addClass('waypoint').addClass('start').find('i.fa').first().addClass('fa-flag').prop('title','Start');
+
+               duration = 30 * 60 / 2; // TODO
+               $entry.addClass('start').find('td.control').html('<i class="fa fa-fw fa-lg fa-flag" title="Start"></i>');
+
             } else if ( i === ( entireRoute.length - 1 ) ) {
-               $entry.addClass('waypoint').addClass('end').find('i.fa').first().addClass('fa-flag-checkered').prop('title','Destination');
+
+               duration = 30 * 60 / 2; // TODO
+               $entry.addClass('end').find('td.control').html('<i class="fa fa-fw fa-lg fa-flag-checkered" title="Destination"></i>');
+
+            } else {
+
+               $entry.find('td.control').html('<i class="fa fa-fw fa-lg fa-long-arrow-down" title="Destination"></i>');
             }
 
-            $('#routelist ol').append( $entry );
+            $entry.find('td.duration').html( '&plusmn;' + duration.toHMM() );
+
+            totalDuration += duration;
+            $('#routelist tbody').append( $entry );
          }
 
-         $('#routelist .route-count').text( routeCount );
+         $('#routelist table').append(
+            '<tfoot>'+
+               '<tr>'+
+                  '<th class="count">&nbsp;</th>'+
+                  '<th class="control">&nbsp;</th>'+
+                  '<th class="system">&nbsp;</th>'+
+                  '<th class="duration small">&plusmn;'+totalDuration.toHMM()+'</th>'+
+               '</tr>'+
+            '</tfoot>'
+         );
+
+         $('#routelist .route-count').text( routeCount - 1 );
+
+         $('#routelist').append(
+            '<p><button class="delete-route" id="delete-route"><i class="fa fa-fw fa-trash-o"></i>Delete route</button></p>'
+         );
       }
       else
       {
          $('#routelist').append(
-            '<p class="impossible">No route available to '+
-            route[0].system.createInfoLink( true ).outerHtml() +
+            '<p class="impossible">No route available'+
             ' with your current settings</p>'
          );
       }
 
-      $('#map_ui').tabs( 'option', 'active', 3 );
+      if ( this.toString() !== before ) {
+         $('#map_ui').data( 'jsp' ).reinitialise();
+         $('#map_ui').tabs( 'option', 'active', 3 );
+      }
    },
 
    createRouteGeometry: function createRouteGeometry( source, destination ) {
@@ -2041,6 +2247,14 @@ SCMAP.Route.prototype = {
       return geometry;
    }
 };
+
+function RouteSegmentFailed( message ) {
+   this.message = message;
+   this.name = 'RouteSegmentFailed';
+}
+RouteSegmentFailed.prototype = new Error();
+RouteSegmentFailed.prototype.constructor = RouteSegmentFailed;
+
 
 // EOF
 
@@ -2059,10 +2273,10 @@ SCMAP.Map = function ( scene ) {
    this._interactables = [];
    this._route = null; // The main route the user can set
 
-   this._selectorObject = this.__createSelectorObject( 0xCCCC99 );
+   this._selectorObject = this.createSelectorObject( 0x99FF99 );
    scene.add( this._selectorObject );
 
-   this._mouseOverObject = this.__createSelectorObject( 0x8844FF );
+   this._mouseOverObject = this.createSelectorObject( 0x8844FF );
    this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
    scene.add( this._mouseOverObject );
 
@@ -2092,11 +2306,12 @@ SCMAP.Map.prototype = {
       return system;
    },
 
-   __createSelectorObject: function __createSelectorObject ( color ) {
+   createSelectorObject: function createSelectorObject ( color ) {
       var mesh = new THREE.Mesh( SCMAP.SelectedSystemGeometry, new THREE.MeshBasicMaterial({ color: color }) );
       mesh.scale.set( 4.2, 4.2, 4.2 );
       mesh.visible = false;
       mesh.userData.systemPosition = new THREE.Vector3( 0, 0, 0 );
+      mesh.userData.isSelector = true;
       // 2d/3d tween callback
       mesh.userData.scaleY = function ( object, scalar ) {
          var wantedY = object.userData.systemPosition.y * ( scalar / 100 );
@@ -2122,7 +2337,7 @@ SCMAP.Map.prototype = {
    route: function route () {
       if ( !( this._route instanceof SCMAP.Route ) ) {
          this._route = new SCMAP.Route();
-         console.log( "Created new route", this._route );
+         console.log( "Created new route", this._route.toString() );
       }
       return this._route;
    },
@@ -2150,12 +2365,12 @@ SCMAP.Map.prototype = {
    },
 
    animateSelector: function animateSelector () {
-      if ( this._selectorObject.visible ) {
-         this._selectorObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
-      }
-      if ( this._mouseOverObject.visible ) {
-         this._mouseOverObject.rotation.y = THREE.Math.degToRad( Date.now() * 0.00025 ) * 200;
-      }
+      var rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
+      window.scene.traverse( function ( object ) {
+         if ( object.userData.isSelector ) {
+            object.rotation.y = rotationY;
+         }
+      });
    },
 
    updateSystems: function updateSystems () {
@@ -2733,21 +2948,19 @@ SCMAP.UI = function () {
                   system = systems[ i ];
                   var link = system.createInfoLink().outerHtml();
 
-                  if ( storage && storage[ 'hangarLocation.' + system.id ] === '1' ) {
+                  if ( system.hasHangar() ) {
                      hangarCount += 1;
                      $('#hangar-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( storage && storage[ 'bookmarks.' + system.id ] === '1' ) {
+                  if ( system.isBookmarked() ) {
                      bookmarkCount += 1;
                      $('#bookmark-list').append( $('<li>'+link+'</li>') );
                   }
 
-                  if ( storage ) {
-                     if ( 'comments.'+system.id in storage ) {
-                        commentedCount += 1;
-                        $('#commented-list').append( $('<li>'+link+'</li>') );
-                     }
+                  if ( system.hasComments() ) {
+                     commentedCount += 1;
+                     $('#commented-list').append( $('<li>'+link+'</li>') );
                   }
 
                   $('#a-z-list').append( $('<li>'+link+'</li>') );
@@ -2906,19 +3119,25 @@ SCMAP.UI = function () {
          storage['settings.Glow'] = ( this.checked ) ? '1' : '0';
       }
    });
+
    $('#toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
+      $('#toggle-label-icons').prop( 'disabled', !SCMAP.settings.labels );
       map.updateSystems();
       if ( storage ) {
          storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
       }
    });
-   $('#toggle-label-icons').on( 'change', function() {
-      SCMAP.settings.labelIcons = this.checked;
-      map.updateSystems();
-      if ( storage ) {
-         storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
-      }
+
+   $('#toggle-label-icons')
+      .prop( 'disabled', !SCMAP.settings.labels )
+
+      .on( 'change', function() {
+         SCMAP.settings.labelIcons = this.checked;
+         map.updateSystems();
+         if ( storage ) {
+            storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
+         }
    });
 
    $('#resetCamera').on( 'click', function() {
@@ -2983,47 +3202,68 @@ SCMAP.UI = function () {
       controls.moveTo( system );
    });
 
+   $('#map_ui #routelist').on( 'click', "td.control a.remove-waypoint", function( event ) {
+      event.preventDefault();
+      var $this = $(this);
+      var system = SCMAP.System.getById( $this.data('system') );
+      map.route().removeWaypoint( system );
+      map.route().update();
+   });
+
+   $('#map_ui #routelist').on( 'click', 'button.delete-route', function( event ) {
+      map.route().destroy();
+   });
+
    var updateComments = function( event ) {
       event.preventDefault();
-      if ( !storage ) { return; }
       var system = SCMAP.System.getById( $(this).data('system') );
       var text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
-         storage['comments.'+system.id] = text;
-         //$md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
-         var $commentmd = $(markdown.toHTML( text ));
-         $('#comments-md').html( $commentmd );
+         system.setComments( text );
+         $('#comments-md').html( $(markdown.toHTML( text )) );
       } else {
-         delete storage['comments.'+system.id];
+         system.setComments();
          $('#comments-md').empty();
       }
       system.updateSceneObject( scene );
    };
+
    $('#comments').on( 'keyup', updateComments );
    $('#comments').on( 'blur', updateComments );
    $('#comments').on( 'change', updateComments );
 
+   $('#clear-comments').on( 'click', function( event ) {
+      event.preventDefault();
+      var system = SCMAP.System.getById( $(this).data('system') );
+      system.setComments();
+      $('#comments').empty().val('');
+      $('#comments-md').empty();
+      system.updateSceneObject( scene );
+   });
+
    $('#bookmark').on( 'change', function() {
       var system = SCMAP.System.getById( $(this).data('system') );
-      if ( !storage ) { return; }
-      if ( this.checked ) {
-         storage['bookmarks.'+system.id] = '1';
-      } else {
-         delete storage['bookmarks.'+system.id];
-      }
+      system.setBookmarkedState( this.checked );
       system.updateSceneObject( scene );
+      SCMAP.settings.save( 'systems' );
    });
 
    $('#hangar-location').on( 'change', function() {
       var system = SCMAP.System.getById( $(this).data('system') );
-      if ( !storage ) { return; }
-      if ( this.checked ) {
-         storage['hangarLocation.'+system.id] = '1';
-      } else {
-         delete storage['hangarLocation.'+system.id];
-      }
+      system.setHangarState( this.checked );
       system.updateSceneObject( scene );
+      SCMAP.settings.save( 'systems' );
    });
+
+   $('#avoid-system').on( 'change', function() {
+      var system = SCMAP.System.getById( $(this).data('system') );
+      system.setToBeAvoidedState( this.checked );
+      system.updateSceneObject( scene );
+      SCMAP.settings.save( 'systems' );
+      map.route().rebuildCurrentRoute();
+   });
+
+   $("a[href='#']").removeAttr('href');
 };
 
 SCMAP.UI.prototype = {
@@ -3159,7 +3399,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       TAB: 9
    };
 
-   this.debug = false;
+   this.debug = false; // TODO unset
 
    ////////////
    // internals
@@ -3248,24 +3488,48 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             }
          },
 
+         onenterdrag: function( stateEvent, from, to, event ) {
+            if ( scope.enabled === false ) { return; }
+            if ( scope.debug ) {
+               console.log( stateEvent, ": entered state", to, "from", from );
+            }
+         },
+
          onenteridle: function( stateEvent, from, to, event ) {
             if ( scope.debug ) {
                console.log( stateEvent, ": idling after", from );
             }
+
             if ( from === 'drag' ) {
+
                var intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.userData.system ) {
+               if ( intersect && intersect.object.parent.userData.system )
+               {
                   endObject = intersect.object.parent.userData.system;
-                  if ( window.map.selected() === endObject ) {
+                  if ( scope.debug ) {
+                     console.log( 'Ended dragging at "' + endObject.toString() + '"' );
+                  }
+
+                  if ( endObject === startObject ) {
+                     $('#map_ui').tabs( 'option', 'active', 2 );
                      endObject.displayInfo();
                   }
-                  if ( scope.debug ) {
-                     console.log( 'Ended dragging at "' + intersect.object.parent.userData.system.name + '"' );
+                  else
+                  {
+                     if ( window.map.selected() === endObject ) {
+                     }
+                     var route = window.map.route();
+                     if ( route.isSet() && startObject !== endObject ) {
+                        route.update( endObject );
+                        $('#map_ui').tabs( 'option', 'active', 3 );
+                     }
                   }
                }
             }
+
             startObject = undefined;
             endObject = undefined;
+
             if ( scope.debug ) {
                console.log( 'idling ...' );
             }
@@ -3635,31 +3899,27 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       var route;
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-      //if ( state.current === 'idle' ) {
+      // Mouse move handling: highlighting systems, dragging waypoints on route
 
-         // Mouse move on idle handling: highlighting systems, dragging waypoints on route
-
-         if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
-            intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
-               mouseOver = intersect.object.parent.userData.system;
-               window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
-               window.map._mouseOverObject.visible = true;
-            } else {
-               if ( !intersect || !intersect.object.parent.userData.system ) {
-                  if ( mouseOver !== undefined ) {
-                     window.map._mouseOverObject.position.set( 0, 0, 0 );
-                     window.map._mouseOverObject.visible = false;
-                  }
-                  mouseOver = undefined;
+      if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
+         intersect = scope.getIntersect( event );
+         if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
+            mouseOver = intersect.object.parent.userData.system;
+            window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+            window.map._mouseOverObject.visible = true;
+         } else {
+            if ( !intersect || !intersect.object.parent.userData.system ) {
+               if ( mouseOver !== undefined ) {
+                  window.map._mouseOverObject.position.set( 0, 0, 0 );
+                  window.map._mouseOverObject.visible = false;
                }
+               mouseOver = undefined;
             }
          }
+      }
 
-         mousePrevious.set( event.clientX, event.clientY );
-         //return;
+      mousePrevious.set( event.clientX, event.clientY );
 
-      //} else if ( state.current === 'touch' ) {
 
       if ( state.current === 'touch' ) {
 
@@ -3674,21 +3934,39 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       } else if ( state.current === 'drag' ) {
 
          if ( startObject ) {
-            intersect = scope.getIntersect( event );
+
             if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== startObject ) {
+
                if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
+
                   endObject = intersect.object.parent.userData.system;
                   route = window.map.route();
-                  route.start = startObject;
-                  route.waypoints = [ endObject ];
-                  route.__syncGraphs();
-                  route.update( endObject );
-                  if ( scope.debug ) {
-                     console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
+
+                  if ( !route.isSet() )
+                  {
+                     route.start = startObject;
+                     route.waypoints = [ endObject ];
+                     route.update( endObject );
+                     if ( scope.debug ) {
+                        console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
+                     }
                   }
+                  else
+                  {
+                     route.moveWaypoint( startObject, endObject );
+                     if ( startObject !== endObject ) {
+                        route.update();
+                     }
+                     startObject = endObject;
+
+                     console.log( 'In-route mode -- intermediate object while dragging is "' + endObject.name + '"' );
+                  }
+
+               } else {
+
+                  endObject = undefined;
+
                }
-            } else {
-               endObject = undefined;
             }
          }
 
@@ -4160,6 +4438,7 @@ function onWindowResize() {
    if ( composer ) {
       composer.reset();
    }
+   $('#map_ui').data( 'jsp' ).reinitialise();
 }
 
 function buildDisplayModeFSM ( initialState )
@@ -4288,6 +4567,28 @@ function hasLocalStorage() {
 
 jQuery.fn.outerHtml = function() {
      return jQuery('<div />').append(this.eq(0).clone()).html();
+};
+
+String.prototype.toHMM = function () {
+    var sec_num = parseInt(this, 10);
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+
+    //if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    var time    = hours+':'+minutes;
+    return time;
+};
+
+Number.prototype.toHMM = function () {
+    var sec_num = parseInt(this, 10);
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+
+    //if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    var time    = hours+':'+minutes;
+    return time;
 };
 
 function humanSort( a, b ) {

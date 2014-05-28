@@ -163,6 +163,7 @@
             </div>
 
             <div class="route" id="route" style="display: none;">
+
                <h1><a href="#" class="no-pad-top" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Routing options</a></h1>
                <p class="ui-section" style="display: none;">
                   <span class="checkmark-option">
@@ -183,14 +184,48 @@
                      </label>
                   </span>
                </p>
-               <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Calculated route</a></h1>
-               <div id="routelist" class="routelist ui-section">
-                  <p>Click and drag from system to system to calculate a route
-                     between the two systems. Use the options here to configure
-                     the routing. More functionality for this will become
-                     available later on.
+
+               <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>How this works</a></h1>
+               <div class="ui-section" style="display: none;">
+                  <p>
+                     Click and drag from system to system to calculate a route between
+                     these two systems, which then becomes your current route. You can
+                     have only one active route, so you must delete the current route
+                     to create a new one, or modify your existing route as desired.
+                  </p>
+                  <p>
+                     Use the options section above to configure the global routing
+                     options, or set the 'avoid' flag on a system to change the
+                     routing through that system only. Note that all route options are
+                     advisory, the user has the final say ... as an example: if you set
+                     the destination just into hostile territory then turning on the
+                     option to avoid hostile systems will not be effective.
+                  </p>
+                  <p>
+                     The route will always be the shortest number of jumps possible
+                     with the given settings, as using a jump is always faster
+                     than traveling in a system from jumppoint to jumppoint, and using
+                     jumppoints has been stated to not require fuel.
+                  </p>
+                  <p>
+                     Once a route is set, you can drag any of its waypoints elsewhere.
+                     Dragging will create a new waypoint as needed. Existing waypoints
+                     on the route can be removed again with the
+                     <i class="fa fa-times"></i> symbol in the route list below.
+                  </p>
+                  <p>
+                     On a final note: the given estimate times are extremely rough
+                     indications based on available information (very little at this
+                     time). As we learn more about the in-system and jumppoint
+                     traveling I'll do my best to refine the calculation accordingly.
                   </p>
                </div>
+
+               <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Calculated route</a></h1>
+               <div id="routelist" class="routelist ui-section">
+                  <p>No route set.</p>
+               </div>
+
             </div>
 
             <div class="editor" id="editor" style="display: none;">

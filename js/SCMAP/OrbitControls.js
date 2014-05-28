@@ -78,7 +78,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       TAB: 9
    };
 
-   this.debug = false;
+   this.debug = false; // TODO unset
 
    ////////////
    // internals
@@ -167,24 +167,48 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             }
          },
 
+         onenterdrag: function( stateEvent, from, to, event ) {
+            if ( scope.enabled === false ) { return; }
+            if ( scope.debug ) {
+               console.log( stateEvent, ": entered state", to, "from", from );
+            }
+         },
+
          onenteridle: function( stateEvent, from, to, event ) {
             if ( scope.debug ) {
                console.log( stateEvent, ": idling after", from );
             }
+
             if ( from === 'drag' ) {
+
                var intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.userData.system ) {
+               if ( intersect && intersect.object.parent.userData.system )
+               {
                   endObject = intersect.object.parent.userData.system;
-                  if ( window.map.selected() === endObject ) {
+                  if ( scope.debug ) {
+                     console.log( 'Ended dragging at "' + endObject.toString() + '"' );
+                  }
+
+                  if ( endObject === startObject ) {
+                     $('#map_ui').tabs( 'option', 'active', 2 );
                      endObject.displayInfo();
                   }
-                  if ( scope.debug ) {
-                     console.log( 'Ended dragging at "' + intersect.object.parent.userData.system.name + '"' );
+                  else
+                  {
+                     if ( window.map.selected() === endObject ) {
+                     }
+                     var route = window.map.route();
+                     if ( route.isSet() && startObject !== endObject ) {
+                        route.update( endObject );
+                        $('#map_ui').tabs( 'option', 'active', 3 );
+                     }
                   }
                }
             }
+
             startObject = undefined;
             endObject = undefined;
+
             if ( scope.debug ) {
                console.log( 'idling ...' );
             }
@@ -554,31 +578,27 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       var route;
       var element = scope.domElement === document ? scope.domElement.body : scope.domElement;
 
-      //if ( state.current === 'idle' ) {
+      // Mouse move handling: highlighting systems, dragging waypoints on route
 
-         // Mouse move on idle handling: highlighting systems, dragging waypoints on route
-
-         if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
-            intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
-               mouseOver = intersect.object.parent.userData.system;
-               window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
-               window.map._mouseOverObject.visible = true;
-            } else {
-               if ( !intersect || !intersect.object.parent.userData.system ) {
-                  if ( mouseOver !== undefined ) {
-                     window.map._mouseOverObject.position.set( 0, 0, 0 );
-                     window.map._mouseOverObject.visible = false;
-                  }
-                  mouseOver = undefined;
+      if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
+         intersect = scope.getIntersect( event );
+         if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
+            mouseOver = intersect.object.parent.userData.system;
+            window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+            window.map._mouseOverObject.visible = true;
+         } else {
+            if ( !intersect || !intersect.object.parent.userData.system ) {
+               if ( mouseOver !== undefined ) {
+                  window.map._mouseOverObject.position.set( 0, 0, 0 );
+                  window.map._mouseOverObject.visible = false;
                }
+               mouseOver = undefined;
             }
          }
+      }
 
-         mousePrevious.set( event.clientX, event.clientY );
-         //return;
+      mousePrevious.set( event.clientX, event.clientY );
 
-      //} else if ( state.current === 'touch' ) {
 
       if ( state.current === 'touch' ) {
 
@@ -593,21 +613,39 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       } else if ( state.current === 'drag' ) {
 
          if ( startObject ) {
-            intersect = scope.getIntersect( event );
+
             if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== startObject ) {
+
                if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
+
                   endObject = intersect.object.parent.userData.system;
                   route = window.map.route();
-                  route.start = startObject;
-                  route.waypoints = [ endObject ];
-                  route.__syncGraphs();
-                  route.update( endObject );
-                  if ( scope.debug ) {
-                     console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
+
+                  if ( !route.isSet() )
+                  {
+                     route.start = startObject;
+                     route.waypoints = [ endObject ];
+                     route.update( endObject );
+                     if ( scope.debug ) {
+                        console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
+                     }
                   }
+                  else
+                  {
+                     route.moveWaypoint( startObject, endObject );
+                     if ( startObject !== endObject ) {
+                        route.update();
+                     }
+                     startObject = endObject;
+
+                     console.log( 'In-route mode -- intermediate object while dragging is "' + endObject.name + '"' );
+                  }
+
+               } else {
+
+                  endObject = undefined;
+
                }
-            } else {
-               endObject = undefined;
             }
          }
 
