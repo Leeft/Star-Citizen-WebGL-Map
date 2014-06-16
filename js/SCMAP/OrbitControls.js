@@ -50,7 +50,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
    // Set to true to disable this control
    this.noPan = false;
-   this.keyPanSpeed = 25; // pixels moved per arrow key push
+   this.keyPanSpeed = 40; // pixels moved per arrow key push
    this.mapMode = true; // map mode pans on x,z
    this.requireAlt = false; // to allow soft-disable of this control temporarily
 
@@ -83,9 +83,6 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    ////////////
    // internals
 
-   //var STATE = { NONE : -1, ROTATE : 0, DOLLY : 1, PAN : 2, TOUCH_ROTATE : 3, TOUCH_DOLLY : 4, TOUCH_PAN : 5 };
-   //var state = STATE.NONE;
-
    var startObject; // drag start
    var endObject;   // drag end
 
@@ -95,9 +92,11 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    var labelScale = '15.0';
 
    var state = StateMachine.create({
-      initial: { state: 'idle', event: 'init', defer: true },
+      initial: { state: 'loading', event: 'init', defer: true },
 
       events: [
+         { name: 'startup', from: 'loading', to: 'idle' },
+
          // Start events
          { name: 'starttouch',  from: 'idle',   to: 'touch'  },
             { name: 'touchtodrag',   from: 'touch',  to: 'drag'   }, // LMB; Dragging with initial target
@@ -114,6 +113,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       ],
 
       callbacks: {
+
+         onenterstate: function( stateEvent, from, to ) {
+            scope.showState( to );
+         },
 
          onentertouch: function( stateEvent, from, to, event ) {
             if ( scope.enabled === false ) { return; }
@@ -249,6 +252,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    var rotationUp;
    var rotationRadius;
 
+   var isMoving = false;
+
    // events
 
    var changeEvent = { type: 'change' };
@@ -257,9 +262,9 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       return state;
    };
 
-   this.showState = function () {
+   this.showState = function ( to ) {
       if ( window.jQuery && window.jQuery('#debug-state') ) {
-         window.jQuery('#debug-state').text( 'State: ' + state.current );
+         window.jQuery('#debug-state').text( 'State: ' + to );
       }
    };
 
@@ -343,6 +348,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          .onUpdate( function () {
             var vec = new THREE.Vector3( this.x, this.y, this.z );
             _this.goTo( vec );
+            isMoving = true;
          } );
 
       targetTween.onComplete( function() {
@@ -387,6 +393,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             rotationLeft   = this.left;
             rotationUp     = this.up;
             rotationRadius = this.radius;
+            isMoving = true;
          });
 
       rotationTween.onComplete( function() {
@@ -453,6 +460,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       scale /= dollyScale;
+      isMoving = true;
    };
 
    this.dollyOut = function ( dollyScale ) {
@@ -461,6 +469,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       scale *= dollyScale;
+      isMoving = true;
    };
 
    // TODO: Move to map
@@ -479,7 +488,28 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       return this.object.position.clone().sub( this.target );
    };
 
-   this.update = function () {
+   this.currentState = function currentState() {
+      return state.current;
+   };
+
+   this.cameraIsMoving = function cameraIsMoving() {
+      return(
+         (state.current === 'pan') ||
+         (state.current === 'dolly') ||
+         (state.current === 'rotate') ||
+         (state.current === 'loading') ||
+         !dollyStart.equals( dollyEnd ) ||
+         isMoving
+      );
+   };
+
+   this.update = function update() {
+
+      if ( (state.current === 'idle') && (pan.length() === 0.0) && !isMoving ) {
+         return;
+      }
+
+      isMoving = true;
 
       var offset = this.objectVectorToTarget();
 
@@ -552,8 +582,9 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          lastPosition.copy( this.object.position );
       }
 
-      this.showState();
       this.rememberPosition();
+
+      isMoving = false;
    };
 
    function getZoomScale() {
@@ -580,19 +611,22 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
       // Mouse move handling: highlighting systems, dragging waypoints on route
 
-      if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
-         intersect = scope.getIntersect( event );
-         if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
-            mouseOver = intersect.object.parent.userData.system;
-            window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
-            window.map._mouseOverObject.visible = true;
-         } else {
-            if ( !intersect || !intersect.object.parent.userData.system ) {
-               if ( mouseOver !== undefined ) {
-                  window.map._mouseOverObject.position.set( 0, 0, 0 );
-                  window.map._mouseOverObject.visible = false;
+      if ( ! scope.cameraIsMoving() )
+      {
+         if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
+            intersect = scope.getIntersect( event );
+            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
+               mouseOver = intersect.object.parent.userData.system;
+               window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+               window.map._mouseOverObject.visible = true;
+            } else {
+               if ( !intersect || !intersect.object.parent.userData.system ) {
+                  if ( mouseOver !== undefined ) {
+                     window.map._mouseOverObject.position.set( 0, 0, 0 );
+                     window.map._mouseOverObject.visible = false;
+                  }
+                  mouseOver = undefined;
                }
-               mouseOver = undefined;
             }
          }
       }
@@ -722,7 +756,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
       if ( delta > 0 ) {
          scope.dollyOut();
-      } else {
+      } else if ( delta < 0 ) {
          scope.dollyIn();
       }
    }
@@ -750,18 +784,22 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       var needUpdate = false;
       switch ( event.keyCode ) {
          case scope.keys.UP:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( 0, scope.keyPanSpeed ) );
             needUpdate = true;
             break;
          case scope.keys.BOTTOM:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( 0, -scope.keyPanSpeed ) );
             needUpdate = true;
             break;
          case scope.keys.LEFT:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( scope.keyPanSpeed, 0 ) );
             needUpdate = true;
             break;
          case scope.keys.RIGHT:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( -scope.keyPanSpeed, 0 ) );
             needUpdate = true;
             break;
@@ -803,6 +841,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       if ( needUpdate ) {
+         isMoving = true;
          scope.update();
       }
    }

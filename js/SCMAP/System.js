@@ -359,11 +359,16 @@ SCMAP.System.prototype = {
       {
          var currentRoute = window.map.route().currentRoute();
          var header = [];
+         var adjacentSystem;
 
          if ( currentStep > 0 ) {
-            var $prev = currentRoute[currentStep-1].system.createInfoLink();
-            $prev.attr( 'title', 'Previous jump to ' + currentRoute[currentStep-1].system.name +
-               ' (' + currentRoute[currentStep-1].system.faction.name + ' territory)' );
+            adjacentSystem = currentRoute[currentStep-1].system;
+            if ( (currentStep > 1) && (adjacentSystem === currentRoute[currentStep].system) ) {
+               adjacentSystem = currentRoute[currentStep-2].system;
+            }
+            var $prev = adjacentSystem.createInfoLink();
+            $prev.attr( 'title', 'Previous jump to ' + adjacentSystem.name +
+               ' (' + adjacentSystem.faction.name + ' territory)' );
             $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
             header.push( $prev );
          } else {
@@ -371,9 +376,13 @@ SCMAP.System.prototype = {
          }
 
          if ( currentStep < ( currentRoute.length - 1 ) ) {
-            var $next = currentRoute[currentStep+1].system.createInfoLink();
-            $next.attr( 'title', 'Next jump to ' + currentRoute[currentStep+1].system.name +
-               ' (' + currentRoute[currentStep+1].system.faction.name + ' territory)'  );
+            adjacentSystem = currentRoute[currentStep+1].system;
+            if ( (currentStep < (currentRoute.length - 2)) && (adjacentSystem === currentRoute[currentStep].system) ) {
+               adjacentSystem = currentRoute[currentStep+2].system;
+            }
+            var $next = adjacentSystem.createInfoLink();
+            $next.attr( 'title', 'Next jump to ' + adjacentSystem.name +
+               ' (' + adjacentSystem.faction.name + ' territory)'  );
             $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
             header.push( $next );
          } else {
@@ -766,7 +775,7 @@ SCMAP.System.COLORS = {
 SCMAP.System.LABEL_SCALE = 0.06;
 SCMAP.System.GLOW_SCALE = 6.5;
 
-SCMAP.System.CUBE = new THREE.CubeGeometry( 1, 1, 1 );
+SCMAP.System.CUBE = new THREE.BoxGeometry( 1, 1, 1 );
 
 SCMAP.System.LODMESH = [
    [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],

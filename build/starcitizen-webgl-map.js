@@ -158,22 +158,12 @@ SCMAP.Settings = function () {
          radius: 122.2
       }
    };
-   this.cameraDefaults = JSON.parse( JSON.stringify( this.camera ) );
-   this.cameraDefaults.camera = new THREE.Vector3();
-   this.cameraDefaults.camera.copy( this.camera.camera );
-   this.cameraDefaults.target = new THREE.Vector3();
-   this.cameraDefaults.target.copy( this.camera.target );
-   this.load( 'camera' );
-
-   this.load( 'systems' );
-   if ( ! this.systems ) { this.systems = {}; }
 
    this.effect = {
       Antialias: true,
       FXAA: false,
       Bloom: false
    };
-   this.load( 'effect' );
 
    this.control = {
       rotationLocked: ( this.storage && this.storage['control.rotationLocked'] === '1' ) ? true : false
@@ -188,11 +178,34 @@ SCMAP.Settings = function () {
       avoidOffLimits: false,
       avoidUnknownJumppoints: false
    };
+
+   // Clean up the mess we made
+
+   this.convertAndRemoveOldSettings();
+
+   // Load configs
+
+   this.cameraDefaults = JSON.parse( JSON.stringify( this.camera ) );
+   this.cameraDefaults.camera = new THREE.Vector3();
+   this.cameraDefaults.camera.copy( this.camera.camera );
+   this.cameraDefaults.target = new THREE.Vector3();
+   this.cameraDefaults.target.copy( this.camera.target );
+
+   this.load( 'camera' );
+
    if ( this.storage && 'route' in this.storage ) {
       this.load( 'route' );
    }
 
-   this.mode = ( this.storage && this.storage.mode ) ? this.storage.mode : '3d';
+   this.load( 'systems' );
+   if ( ! this.systems ) { this.systems = {}; }
+
+   this.load( 'effect' );
+
+   this.mode = ( this.storage && (this.storage.mode === '2d') ) ? '2d' : '3d';
+
+   this.mergeAndRemoveOldSettings();
+   this.save( 'systems' );
 };
 
 SCMAP.Settings.prototype = {
@@ -205,7 +218,6 @@ SCMAP.Settings.prototype = {
             this[ key ] = JSON.parse( this.storage[ key ] );
          } catch ( e ) {
             console.error( "Error parsing 'localStorage." + key + "'; " + e.name + ": " + e.message );
-            this[ key ] = null;
          }
       }
    },
@@ -213,6 +225,73 @@ SCMAP.Settings.prototype = {
    save: function save( key ) {
       if ( this.storage && ( key in this ) ) {
          this.storage[ key ] = JSON.stringify( this[ key ] );
+      }
+   },
+
+   convertAndRemoveOldSettings: function convertAndRemoveOldSettings() {
+      if ( ! this.storage ) {
+         return;
+      }
+
+      if ( 'effect.Bloom' in this.storage ) {
+         this.effect.Bloom = ( this.storage['effect.Bloom'] === '1' ) ? true : false;
+         delete this.storage['effect.Bloom'];
+      }
+
+      if ( 'effect.FXAA' in this.storage ) {
+         this.effect.FXAA = ( this.storage['effect.FXAA'] === '1' ) ? true : false;
+         delete this.storage['effect.FXAA'];
+      }
+
+      delete this.storage['camera.x'];
+      delete this.storage['camera.y'];
+      delete this.storage['camera.z'];
+      delete this.storage['target.x'];
+      delete this.storage['target.y'];
+      delete this.storage['target.z'];
+   },
+
+   mergeAndRemoveOldSettings: function mergeAndRemoveOldSettings() {
+      var property, matches, systemId;
+
+      if ( ! this.storage ) {
+         return;
+      }
+
+      for ( property in this.storage ) {
+         if ( ! this.storage.hasOwnProperty( property ) ) {
+            continue;
+         }
+
+         matches = property.match( /^bookmarks[.](\d+)$/ );
+         if ( matches && (this.storage[ property ] === '1') ) {
+            systemId = matches[ 1 ];
+            if ( this.systems[ systemId ] !== 'object' ) {
+               this.systems[ systemId ] = {};
+            }
+            this.systems[ systemId ].bookmarked = true;
+            delete this.storage[ property ];
+         }
+
+         matches = property.match( /^hangarLocation[.](\d+)$/ );
+         if ( matches && (this.storage[ property ] === '1') ) {
+            systemId = matches[ 1 ];
+            if ( this.systems[ systemId ] !== 'object' ) {
+               this.systems[ systemId ] = {};
+            }
+            this.systems[ systemId ].hangarLocation = true;
+            delete this.storage[ property ];
+         }
+
+         matches = property.match( /^comments[.](\d+)$/ );
+         if ( matches && (this.storage[ property ] !== '') ) {
+            systemId = matches[ 1 ];
+            if ( this.systems[ systemId ] !== 'object' ) {
+               this.systems[ systemId ] = {};
+            }
+            this.systems[ systemId ].comments = this.storage[ property ];
+            delete this.storage[ property ];
+         }
       }
    }
 
@@ -1009,11 +1088,16 @@ SCMAP.System.prototype = {
       {
          var currentRoute = window.map.route().currentRoute();
          var header = [];
+         var adjacentSystem;
 
          if ( currentStep > 0 ) {
-            var $prev = currentRoute[currentStep-1].system.createInfoLink();
-            $prev.attr( 'title', 'Previous jump to ' + currentRoute[currentStep-1].system.name +
-               ' (' + currentRoute[currentStep-1].system.faction.name + ' territory)' );
+            adjacentSystem = currentRoute[currentStep-1].system;
+            if ( (currentStep > 1) && (adjacentSystem === currentRoute[currentStep].system) ) {
+               adjacentSystem = currentRoute[currentStep-2].system;
+            }
+            var $prev = adjacentSystem.createInfoLink();
+            $prev.attr( 'title', 'Previous jump to ' + adjacentSystem.name +
+               ' (' + adjacentSystem.faction.name + ' territory)' );
             $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
             header.push( $prev );
          } else {
@@ -1021,9 +1105,13 @@ SCMAP.System.prototype = {
          }
 
          if ( currentStep < ( currentRoute.length - 1 ) ) {
-            var $next = currentRoute[currentStep+1].system.createInfoLink();
-            $next.attr( 'title', 'Next jump to ' + currentRoute[currentStep+1].system.name +
-               ' (' + currentRoute[currentStep+1].system.faction.name + ' territory)'  );
+            adjacentSystem = currentRoute[currentStep+1].system;
+            if ( (currentStep < (currentRoute.length - 2)) && (adjacentSystem === currentRoute[currentStep].system) ) {
+               adjacentSystem = currentRoute[currentStep+2].system;
+            }
+            var $next = adjacentSystem.createInfoLink();
+            $next.attr( 'title', 'Next jump to ' + adjacentSystem.name +
+               ' (' + adjacentSystem.faction.name + ' territory)'  );
             $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
             header.push( $next );
          } else {
@@ -1416,7 +1504,7 @@ SCMAP.System.COLORS = {
 SCMAP.System.LABEL_SCALE = 0.06;
 SCMAP.System.GLOW_SCALE = 6.5;
 
-SCMAP.System.CUBE = new THREE.CubeGeometry( 1, 1, 1 );
+SCMAP.System.CUBE = new THREE.BoxGeometry( 1, 1, 1 );
 
 SCMAP.System.LODMESH = [
    [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],
@@ -1487,18 +1575,10 @@ SCMAP.Dijkstra.prototype = {
    buildGraph: function buildGraph( priority, forceUpdate ) {
       var nodes, i, distance, system, currentNode, jumpPoint,
          otherNode, endTime, startTime = new Date();
+      var distAU;
 
       if ( !( this.start instanceof SCMAP.System ) ) { throw new Error( "No source given" ); }
       if ( !( this.end instanceof SCMAP.System )   ) { throw new Error( "No or invalid destination given" ); }
-
-      // This model allows for two priorities, time or fuel ... can't think
-      // of any others which make sense (distance is really irrelevant for
-      // gameplay purposes).
-      // There will be other parameters to work out the route as well, but
-      // this decides the main "cost" algorithm for the graph.
-      if ( typeof priority !== 'string' || priority !== 'fuel' ) {
-         priority = 'time';
-      }
 
       this._result.destination = this.end;
       // TODO: expiry, map may have changed
@@ -1526,21 +1606,25 @@ SCMAP.Dijkstra.prototype = {
 
       nodes = SCMAP.Dijkstra.quickSort( this._nodes );
 
-var distAU;
-
       while ( nodes.length )
       {
          currentNode = nodes[0];
+
+         // "If we are only interested in a shortest path between vertices source and
+         //  target, we can terminate the search at line 13 if u = target."
+         if ( currentNode.system === this.end ) {
+            break;
+         }
+
          // Remove currentNode (the first node) from set
          nodes.splice( 0, 1 );
-         //delete this._mapping[ currentNode.system.id ];
 
-         // Don't bother with this node if it's not reachable
+         // Don't bother with th current node if it's not reachable
          if ( isInfinite( currentNode.distance ) ) {
             break;
          }
 
-//console.log( "Working on node", currentNode.system.name, ', ', currentNode.system.jumpPoints.length, 'jumppoints to test' );
+         //console.log( "Working on node", currentNode.system.name, ', ', currentNode.system.jumpPoints.length, 'jumppoints to test' );
 
          for ( i = 0; i < currentNode.system.jumpPoints.length; i++ )
          {
@@ -1552,11 +1636,15 @@ var distAU;
                continue;
             }
 
-            // These checks are only done if not an explicit part of the route we're building
+            // These checks are only done if they're not an explicit part of the route we're building
+            // (which is essentially the user overriding the route)
             if ( !this.isStartOrEnd( otherNode.system ) )
             {
                // Don't go into "hostile" nodes, unless we already are in one
-               if ( SCMAP.settings.route.avoidHostile && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+               if ( SCMAP.settings.route.avoidHostile &&
+                    !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) &&
+                    otherNode.system.faction.isHostileTo( SCMAP.usersFaction() )
+               ) {
                   continue;
                }
 
@@ -1573,16 +1661,15 @@ var distAU;
 
             // cost = half time to JP + JP time + half time from JP
             // TODO: at start and end this can be from start and to dest rather than half
-            //distance = currentNode.distance + jumpPoint.length();
             distance = currentNode.distance + jumpPoint.jumpTime();
+
             if ( currentNode.previous === null ) {
-distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
+               distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
                //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
                //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
             }
             else
             {
-//                  distance += SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() );
                distance += SCMAP.travelTimeAU( 0.7 );
                //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
                //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
@@ -1605,7 +1692,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
       this._result.nodes = nodes;
       this._result.priority = priority;
       endTime = new Date();
-      console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
+      //console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
    },
 
    isStartOrEnd: function isStartOrEnd( system ) {
@@ -3371,7 +3458,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
    // Set to true to disable this control
    this.noPan = false;
-   this.keyPanSpeed = 25; // pixels moved per arrow key push
+   this.keyPanSpeed = 40; // pixels moved per arrow key push
    this.mapMode = true; // map mode pans on x,z
    this.requireAlt = false; // to allow soft-disable of this control temporarily
 
@@ -3404,9 +3491,6 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    ////////////
    // internals
 
-   //var STATE = { NONE : -1, ROTATE : 0, DOLLY : 1, PAN : 2, TOUCH_ROTATE : 3, TOUCH_DOLLY : 4, TOUCH_PAN : 5 };
-   //var state = STATE.NONE;
-
    var startObject; // drag start
    var endObject;   // drag end
 
@@ -3416,9 +3500,11 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    var labelScale = '15.0';
 
    var state = StateMachine.create({
-      initial: { state: 'idle', event: 'init', defer: true },
+      initial: { state: 'loading', event: 'init', defer: true },
 
       events: [
+         { name: 'startup', from: 'loading', to: 'idle' },
+
          // Start events
          { name: 'starttouch',  from: 'idle',   to: 'touch'  },
             { name: 'touchtodrag',   from: 'touch',  to: 'drag'   }, // LMB; Dragging with initial target
@@ -3435,6 +3521,10 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       ],
 
       callbacks: {
+
+         onenterstate: function( stateEvent, from, to ) {
+            scope.showState( to );
+         },
 
          onentertouch: function( stateEvent, from, to, event ) {
             if ( scope.enabled === false ) { return; }
@@ -3570,6 +3660,8 @@ SCMAP.OrbitControls = function ( object, domElement ) {
    var rotationUp;
    var rotationRadius;
 
+   var isMoving = false;
+
    // events
 
    var changeEvent = { type: 'change' };
@@ -3578,9 +3670,9 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       return state;
    };
 
-   this.showState = function () {
+   this.showState = function ( to ) {
       if ( window.jQuery && window.jQuery('#debug-state') ) {
-         window.jQuery('#debug-state').text( 'State: ' + state.current );
+         window.jQuery('#debug-state').text( 'State: ' + to );
       }
    };
 
@@ -3664,6 +3756,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          .onUpdate( function () {
             var vec = new THREE.Vector3( this.x, this.y, this.z );
             _this.goTo( vec );
+            isMoving = true;
          } );
 
       targetTween.onComplete( function() {
@@ -3708,6 +3801,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             rotationLeft   = this.left;
             rotationUp     = this.up;
             rotationRadius = this.radius;
+            isMoving = true;
          });
 
       rotationTween.onComplete( function() {
@@ -3774,6 +3868,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       scale /= dollyScale;
+      isMoving = true;
    };
 
    this.dollyOut = function ( dollyScale ) {
@@ -3782,6 +3877,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       scale *= dollyScale;
+      isMoving = true;
    };
 
    // TODO: Move to map
@@ -3800,7 +3896,28 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       return this.object.position.clone().sub( this.target );
    };
 
-   this.update = function () {
+   this.currentState = function currentState() {
+      return state.current;
+   };
+
+   this.cameraIsMoving = function cameraIsMoving() {
+      return(
+         (state.current === 'pan') ||
+         (state.current === 'dolly') ||
+         (state.current === 'rotate') ||
+         (state.current === 'loading') ||
+         !dollyStart.equals( dollyEnd ) ||
+         isMoving
+      );
+   };
+
+   this.update = function update() {
+
+      if ( (state.current === 'idle') && (pan.length() === 0.0) && !isMoving ) {
+         return;
+      }
+
+      isMoving = true;
 
       var offset = this.objectVectorToTarget();
 
@@ -3873,8 +3990,9 @@ SCMAP.OrbitControls = function ( object, domElement ) {
          lastPosition.copy( this.object.position );
       }
 
-      this.showState();
       this.rememberPosition();
+
+      isMoving = false;
    };
 
    function getZoomScale() {
@@ -3901,19 +4019,22 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
       // Mouse move handling: highlighting systems, dragging waypoints on route
 
-      if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
-         intersect = scope.getIntersect( event );
-         if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
-            mouseOver = intersect.object.parent.userData.system;
-            window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
-            window.map._mouseOverObject.visible = true;
-         } else {
-            if ( !intersect || !intersect.object.parent.userData.system ) {
-               if ( mouseOver !== undefined ) {
-                  window.map._mouseOverObject.position.set( 0, 0, 0 );
-                  window.map._mouseOverObject.visible = false;
+      if ( ! scope.cameraIsMoving() )
+      {
+         if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
+            intersect = scope.getIntersect( event );
+            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
+               mouseOver = intersect.object.parent.userData.system;
+               window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+               window.map._mouseOverObject.visible = true;
+            } else {
+               if ( !intersect || !intersect.object.parent.userData.system ) {
+                  if ( mouseOver !== undefined ) {
+                     window.map._mouseOverObject.position.set( 0, 0, 0 );
+                     window.map._mouseOverObject.visible = false;
+                  }
+                  mouseOver = undefined;
                }
-               mouseOver = undefined;
             }
          }
       }
@@ -4043,7 +4164,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
       if ( delta > 0 ) {
          scope.dollyOut();
-      } else {
+      } else if ( delta < 0 ) {
          scope.dollyIn();
       }
    }
@@ -4071,18 +4192,22 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       var needUpdate = false;
       switch ( event.keyCode ) {
          case scope.keys.UP:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( 0, scope.keyPanSpeed ) );
             needUpdate = true;
             break;
          case scope.keys.BOTTOM:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( 0, -scope.keyPanSpeed ) );
             needUpdate = true;
             break;
          case scope.keys.LEFT:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( scope.keyPanSpeed, 0 ) );
             needUpdate = true;
             break;
          case scope.keys.RIGHT:
+            event.preventDefault();
             scope.pan( new THREE.Vector2( -scope.keyPanSpeed, 0 ) );
             needUpdate = true;
             break;
@@ -4124,6 +4249,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
       }
 
       if ( needUpdate ) {
+         isMoving = true;
          scope.update();
       }
    }
@@ -4536,16 +4662,25 @@ function animate() {
 
 function render() {
 
-   scene.updateMatrixWorld();
-   scene.traverse( function ( object ) {
-      if ( object instanceof THREE.LOD ) {
-         object.update( camera );
+   if ( controls.cameraIsMoving() ) {
+      scene.updateMatrixWorld();
+      if ( window.jQuery && window.jQuery('#debug-camera-is-moving') ) {
+         window.jQuery('#debug-camera-is-moving').text( 'Camera is moving' );
       }
-      // Needed for the shader glow:
-      //if ( object.userData.isGlow ) {
-      //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
-      //}
-   } );
+      scene.traverse( function ( object ) {
+         if ( object instanceof THREE.LOD ) {
+            object.update( camera );
+         }
+         // Needed for the shader glow:
+         //if ( object.userData.isGlow ) {
+         //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
+         //}
+      } );
+   } else {
+      if ( window.jQuery && window.jQuery('#debug-camera-is-moving') ) {
+         window.jQuery('#debug-camera-is-moving').text( 'Camera is not moving' );
+      }
+   }
 
    map.animateSelector();
 

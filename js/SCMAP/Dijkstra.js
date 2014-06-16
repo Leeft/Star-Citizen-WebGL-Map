@@ -34,18 +34,10 @@ SCMAP.Dijkstra.prototype = {
    buildGraph: function buildGraph( priority, forceUpdate ) {
       var nodes, i, distance, system, currentNode, jumpPoint,
          otherNode, endTime, startTime = new Date();
+      var distAU;
 
       if ( !( this.start instanceof SCMAP.System ) ) { throw new Error( "No source given" ); }
       if ( !( this.end instanceof SCMAP.System )   ) { throw new Error( "No or invalid destination given" ); }
-
-      // This model allows for two priorities, time or fuel ... can't think
-      // of any others which make sense (distance is really irrelevant for
-      // gameplay purposes).
-      // There will be other parameters to work out the route as well, but
-      // this decides the main "cost" algorithm for the graph.
-      if ( typeof priority !== 'string' || priority !== 'fuel' ) {
-         priority = 'time';
-      }
 
       this._result.destination = this.end;
       // TODO: expiry, map may have changed
@@ -73,21 +65,25 @@ SCMAP.Dijkstra.prototype = {
 
       nodes = SCMAP.Dijkstra.quickSort( this._nodes );
 
-var distAU;
-
       while ( nodes.length )
       {
          currentNode = nodes[0];
+
+         // "If we are only interested in a shortest path between vertices source and
+         //  target, we can terminate the search at line 13 if u = target."
+         if ( currentNode.system === this.end ) {
+            break;
+         }
+
          // Remove currentNode (the first node) from set
          nodes.splice( 0, 1 );
-         //delete this._mapping[ currentNode.system.id ];
 
-         // Don't bother with this node if it's not reachable
+         // Don't bother with th current node if it's not reachable
          if ( isInfinite( currentNode.distance ) ) {
             break;
          }
 
-//console.log( "Working on node", currentNode.system.name, ', ', currentNode.system.jumpPoints.length, 'jumppoints to test' );
+         //console.log( "Working on node", currentNode.system.name, ', ', currentNode.system.jumpPoints.length, 'jumppoints to test' );
 
          for ( i = 0; i < currentNode.system.jumpPoints.length; i++ )
          {
@@ -99,11 +95,15 @@ var distAU;
                continue;
             }
 
-            // These checks are only done if not an explicit part of the route we're building
+            // These checks are only done if they're not an explicit part of the route we're building
+            // (which is essentially the user overriding the route)
             if ( !this.isStartOrEnd( otherNode.system ) )
             {
                // Don't go into "hostile" nodes, unless we already are in one
-               if ( SCMAP.settings.route.avoidHostile && !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+               if ( SCMAP.settings.route.avoidHostile &&
+                    !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) &&
+                    otherNode.system.faction.isHostileTo( SCMAP.usersFaction() )
+               ) {
                   continue;
                }
 
@@ -120,16 +120,15 @@ var distAU;
 
             // cost = half time to JP + JP time + half time from JP
             // TODO: at start and end this can be from start and to dest rather than half
-            //distance = currentNode.distance + jumpPoint.length();
             distance = currentNode.distance + jumpPoint.jumpTime();
+
             if ( currentNode.previous === null ) {
-distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
+               distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
                //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
                //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
             }
             else
             {
-//                  distance += SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() );
                distance += SCMAP.travelTimeAU( 0.7 );
                //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
                //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
@@ -152,7 +151,7 @@ distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
       this._result.nodes = nodes;
       this._result.priority = priority;
       endTime = new Date();
-      console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
+      //console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
    },
 
    isStartOrEnd: function isStartOrEnd( system ) {

@@ -268,16 +268,25 @@ function animate() {
 
 function render() {
 
-   scene.updateMatrixWorld();
-   scene.traverse( function ( object ) {
-      if ( object instanceof THREE.LOD ) {
-         object.update( camera );
+   if ( controls.cameraIsMoving() ) {
+      scene.updateMatrixWorld();
+      if ( window.jQuery && window.jQuery('#debug-camera-is-moving') ) {
+         window.jQuery('#debug-camera-is-moving').text( 'Camera is moving' );
       }
-      // Needed for the shader glow:
-      //if ( object.userData.isGlow ) {
-      //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
-      //}
-   } );
+      scene.traverse( function ( object ) {
+         if ( object instanceof THREE.LOD ) {
+            object.update( camera );
+         }
+         // Needed for the shader glow:
+         //if ( object.userData.isGlow ) {
+         //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
+         //}
+      } );
+   } else {
+      if ( window.jQuery && window.jQuery('#debug-camera-is-moving') ) {
+         window.jQuery('#debug-camera-is-moving').text( 'Camera is not moving' );
+      }
+   }
 
    map.animateSelector();
 
