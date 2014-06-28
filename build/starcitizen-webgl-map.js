@@ -2175,6 +2175,7 @@ SCMAP.Route.prototype = {
       }
 
       this._routeObject = new THREE.Object3D();
+      this._routeObject.matrixAutoUpdate = false;
 
       //console.log( "Route updated: " + this.toString() ); // TODO remove
 
@@ -2663,60 +2664,8 @@ SCMAP.Map.prototype = {
       return [ furthest, _furthestPOI ];
    },
 
-   referencePlaneTerritoryColor: function referencePlaneTerritoryColor () {
-      if ( ! this.referencePlane instanceof THREE.Object3D ) {
-         return;
-      }
-
-      var geometry = this.referencePlane.geometry,
-         minDistance = 55;
-
-      for ( var i = 0; i < geometry.vertices.length; i++ )
-      {
-         var point = geometry.vertices[ i ];
-         var arr = this.closestPOI( point );
-         var distance = arr[0],
-             closest = arr[1];
-         if ( distance > minDistance ) { distance = minDistance; }
-         var strength = ( minDistance - distance ) / minDistance;
-         var color = closest.faction.planeColor.clone();
-         color.multiplyScalar( strength * 0.8 );
-         geometry.colors[i] = color;
-
-         //var color = closest.faction.color.clone();
-         //   var strength = ( minDistance - distance ) / minDistance;
-         //   color.multiplyScalar( strength * 1.2 );
-         //   geometry.colors[i] = color;
-      }
-   },
-
-   referencePlaneSolidColor: function referencePlaneSolidColor( color ) {
-      var geometry = this.referencePlane.geometry,
-         i, point;
-      if ( ! this.referencePlane instanceof THREE.Object3D ) {
-         return;
-      }
-      for ( i = 0; i < geometry.vertices.length; i++ ) {
-         point = geometry.vertices[ i ];
-         geometry.colors[i] = color;
-      }
-   },
-
    pointAtPlane: function pointAtPlane( theta, radius, y ) {
       return new THREE.Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
-   },
-
-   referencePlaneTerritoryColourMesh: function referencePlaneTerritoryColourMesh( material, prevTheta, nextTheta, innerRadius, outerRadius ) {
-      var geo, mesh;
-      geo = new THREE.Geometry();
-      geo.vertices.push( this.pointAtPlane( prevTheta, innerRadius, -0.04 ) );
-      geo.vertices.push( this.pointAtPlane( nextTheta, innerRadius, -0.04 ) );
-      geo.vertices.push( this.pointAtPlane( nextTheta, outerRadius, -0.04 ) );
-      geo.vertices.push( this.pointAtPlane( prevTheta, outerRadius, -0.04 ) );
-      geo.faces.push( new THREE.Face3( 2, 1, 0 ) );
-      geo.faces.push( new THREE.Face3( 3, 2, 0 ) );
-      mesh = new THREE.Mesh( geo, material );
-      return mesh;
    },
 
    buildReferenceGrid: function buildReferenceGrid() {
@@ -2859,6 +2808,8 @@ SCMAP.Map.prototype = {
          linewidth: 1.5, wireframe: true, vertexColors: THREE.VertexColors
       }), THREE.LinePieces );
 
+      referenceLines.matrixAutoUpdate = false;
+
       endTime = new Date();
       console.log( "Building the grid reference plane took " +
          (endTime.getTime() - startTime.getTime()) + " msec" );
@@ -2880,106 +2831,6 @@ SCMAP.Map.prototype = {
       return color;
    },
 
-   buildOldReferencePlane: function buildOldReferencePlane()
-   {
-      var ringWidth = 10.0, // plane circle scaling factor to match the map video
-         step = 2 * Math.PI / 36, // 36 radial segments
-         radius, insideRadius, outsideRadius,
-         lineMaterial, referenceLines, lineGeometry,
-         centerTheta, cosPrevTheta, sinPrevTheta, cosCenterTheta, sinCenterTheta,
-         xInside, zInside, xOutside, zOutside, zInside2, xOutside2, zOutside2,
-         maxRadius, arr,
-         endTime, startTime,
-         referenceColours = new THREE.Object3D(), prevTheta, nextTheta, i;
-
-      endTime = startTime = new Date();
-
-      // Work out how far away the furtest system is
-      // so that we can stop drawing just beyond that
-      // point
-      arr = this.furthestPOI( new THREE.Vector3() );
-      maxRadius = arr[0] + 50;
-
-      lineMaterial = new THREE.LineBasicMaterial({
-         color: 0x6060A0,
-         linewidth: 1.5,
-         vertexColors: true,
-         opacity: 0.6
-      } );
-      lineGeometry = new THREE.Geometry();
-
-      // Around in a circle, processing each center point of the
-      // squares we'll be drawing (dividing our step by 2 makes it
-      // the center point)
-      var theta;
-      for ( centerTheta = step / 2; centerTheta < 2 * Math.PI; centerTheta += step )
-      {
-         cosCenterTheta = Math.cos( centerTheta );
-         sinCenterTheta = Math.sin( centerTheta );
-
-         prevTheta = centerTheta - step / 2;
-         nextTheta = centerTheta + step / 2;
-         cosPrevTheta = Math.cos( prevTheta );
-         sinPrevTheta = Math.sin( prevTheta );
-
-         // inside to out, stop at furthest out
-         for ( radius = ringWidth / 2; radius < maxRadius; radius += ringWidth )
-         {
-            insideRadius  = radius - ringWidth / 2;
-            outsideRadius = radius + ringWidth / 2;
-            arr = this.closestPOI( new THREE.Vector3( radius * cosCenterTheta, 0, -radius * sinCenterTheta ) );
-
-            if ( arr[0] <= 35 )
-            {
-               //var mesh = this.referencePlaneTerritoryColourMesh(
-               //   arr[1].faction.material(), prevTheta, nextTheta, insideRadius, outsideRadius
-               //);
-               //if ( mesh ) {
-               //   referenceColours.add( mesh );
-               //}
-         //var point = geometry.vertices[ i ];
-         //var arr = this.closestPOI( point );
-         //var distance = arr[0],
-         //    closest = arr[1];
-         //if ( distance > minDistance ) { distance = minDistance; }
-         //var strength = ( minDistance - distance ) / minDistance;
-         //var color = closest.faction.planeColor.clone();
-         //color.multiplyScalar( strength * 0.8 );
-         //geometry.colors[i] = color;
-            }
-
-            if ( arr[0] < 55 )
-            {
-               xInside  =  insideRadius  * cosPrevTheta;
-               zInside  = -insideRadius  * sinPrevTheta;
-               xOutside =  outsideRadius * cosPrevTheta;
-               zOutside = -outsideRadius * sinPrevTheta;
-               lineGeometry.vertices.push( new THREE.Vector3( xInside,  0, zInside  ) );
-               lineGeometry.vertices.push( new THREE.Vector3( xOutside, 0, zOutside ) );
-               lineGeometry.vertices.push( new THREE.Vector3( xInside,  0, zInside  ) );
-               lineGeometry.vertices.push( new THREE.Vector3(
-                  insideRadius * Math.cos( nextTheta ), 0, -insideRadius * Math.sin( nextTheta )
-               ) );
-            }
-         }
-      }
-
-      // set basic color
-      for ( i = 0; i < lineGeometry.vertices.length; i++ ) {
-         lineGeometry.colors[i] = lineMaterial.color;
-      }
-
-      // and create the ground reference plane
-      referenceLines = new THREE.Line( lineGeometry, lineMaterial, THREE.LinePieces );
-      this.referencePlane = referenceLines;
-      scene.add( referenceLines );
-
-      scene.add( referenceColours );
-
-      endTime = new Date();
-      console.log( "Building the territory reference plane took " +
-         (endTime.getTime() - startTime.getTime()) + " msec" );
-   }
 };
 
 SCMAP.Map.BLACK = new THREE.Color( 0x000000 );

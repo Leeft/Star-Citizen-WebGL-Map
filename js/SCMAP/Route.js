@@ -369,6 +369,7 @@ SCMAP.Route.prototype = {
       }
 
       this._routeObject = new THREE.Object3D();
+      this._routeObject.matrixAutoUpdate = false;
 
       //console.log( "Route updated: " + this.toString() ); // TODO remove
 
