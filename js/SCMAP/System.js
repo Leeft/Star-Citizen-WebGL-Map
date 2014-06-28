@@ -3,7 +3,7 @@
 */
 
 SCMAP.System = function ( data ) {
-   // Filled in from the config
+   // Defaults, to be filled in from the config
    this.id = undefined;
    this.uuid = undefined;
    this.name = '';
@@ -12,8 +12,8 @@ SCMAP.System = function ( data ) {
    this.faction = new SCMAP.Faction();
    this.size = 'medium';
    this.jumpPoints = [];
-   this.starColor = new THREE.Color( 0xFFFFFF );
-   this.source = undefined;
+   this.poi = [];
+   this.color = new THREE.Color( 0xFFFFFF );
    this.planets = 0;
    this.planetaryRotation = [];
    this.import = [];
@@ -21,9 +21,12 @@ SCMAP.System = function ( data ) {
    this.crimeStatus = '';
    this.blackMarket = [];
    this.ueeStrategicValue = undefined;
-   this.blob = [];
+   this.info = [];
    this.scale = 1.0;
    this.binary = false;
+   this.isOffLimits = false;
+   this.hasWarning = false;
+   this.isMajorTradeHub = false;
 
    this.setValues( data );
 
@@ -63,11 +66,11 @@ SCMAP.System.prototype = {
       this.sceneObject.add( lod );
 
 //if ( this.name === 'Nul' ) {
-      //var customMaterial = this.glowShaderMaterial( this.starColor );
-      //var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
-      //moonGlow.scale.multiplyScalar( 2.3 * this.scale );
-      //moonGlow.userData.isGlow = true;
-      //this.sceneObject.add( moonGlow );
+//      var customMaterial = this.glowShaderMaterial( this.color );
+//      var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
+//      moonGlow.scale.multiplyScalar( 2.3 * this.scale );
+//      moonGlow.userData.isGlow = true;
+//      this.sceneObject.add( moonGlow );
 //}
 
       glow = new THREE.Sprite( this.glowMaterial() );
@@ -120,14 +123,14 @@ SCMAP.System.prototype = {
       return SCMAP.System.STAR_MATERIAL_WHITE;
    },
 
-   glowShaderMaterial: function glowShaderMaterial( color ) {
-      var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
-      material.uniforms.glowColor.value = color;
-      return material;
-   },
+   //glowShaderMaterial: function glowShaderMaterial( color ) {
+   //   var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
+   //   material.uniforms.glowColor.value = color;
+   //   return material;
+   //},
 
    glowMaterial: function glowMaterial() {
-      var color = this.starColor;
+      var color = this.color;
       if ( color.equals( SCMAP.Color.BLACK ) ) {
          color.copy( SCMAP.Color.UNSET );
       }
@@ -322,10 +325,10 @@ SCMAP.System.prototype = {
          return mySymbols;
       }
       if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
-      if ( this.hasWarning() ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
-      if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
-      if ( this.isMajorTradeHub() ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
-      if ( this.isOffLimits() ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
+      if ( this.hasWarning ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
+      if ( this.info.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
+      if ( this.isMajorTradeHub ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
+      if ( this.isOffLimits ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
       if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
       if ( this.isBookmarked() ) { mySymbols.push( SCMAP.Symbols.BOOKMARK ); }
       if ( this.isToBeAvoided() ) { mySymbols.push( SCMAP.Symbols.AVOID ); }
@@ -467,18 +470,18 @@ SCMAP.System.prototype = {
       $('#avoid-system').data( 'system', this.id );
       $('#hangar-location').data( 'system', this.id );
 
-      if ( this.blob.length ) {
-         var $md = $(markdown.toHTML( this.blob ));
-         $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
-         $blurb.append( '<div id="systemInfo">', $md, '</div>' );
-         $('#system-background-info').show();
-      } else {
-         $('#system-background-info').hide();
-      }
+      //if ( this.blob.length ) {
+      //   var $md = $(markdown.toHTML( this.blob ));
+      //   $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
+      //   $blurb.append( '<div id="systemInfo">', $md, '</div>' );
+      //   $('#system-background-info').show();
+      //} else {
+      //   $('#system-background-info').hide();
+      //}
 
-      if ( this.source ) {
-         $blurb.append( '<p><a class="system-source-url" href="' + this.source + '" target="_blank">(source)</a></p>' );
-      }
+      //if ( this.source ) {
+      //   $blurb.append( '<p><a class="system-source-url" href="' + this.source + '" target="_blank">(source)</a></p>' );
+      //}
 
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
@@ -579,21 +582,6 @@ SCMAP.System.prototype = {
       SCMAP.settings.save('systems');
    },
 
-   isOffLimits: function isOffLimits( ) {
-      // TODO this needs to come from the DB
-      return ( this.id === 90 || this.id === 97 );
-   },
-
-   hasWarning: function hasWarning( ) {
-      // TODO this needs to come from the DB
-      return ( this.id === 81 || this.id === 94 );
-   },
-
-   isMajorTradeHub: function isMajorTradeHub( ) {
-      // TODO this needs to come from the DB
-      return ( this.id === 82 || this.id === 95 || this.id === 80 || this.id === 102 || this.id === 100 || this.id === 108 || this.id === 96 || this.id === 85 || this.id === 83 || this.id === 106 || this.id === 15 || this.id === 84 || this.id === 88 || this.id === 19 || this.id === 92 );
-   },
-
    toString: function toString() {
       return this.name;
    },
@@ -604,6 +592,42 @@ SCMAP.System.prototype = {
       }
       var value = this[ key ];
       return value;
+   },
+
+   _fixJumpPoints: function _fixJumpPoints( cleanup ) {
+      var i, jumpPoint, destination, jumpPoints = [];
+
+      for ( i = 0; i < this.jumpPoints.length; i++ )
+      {
+         jumpPoint = this.jumpPoints[ i ];
+
+         if ( jumpPoint instanceof SCMAP.JumpPoint ) {
+            continue;
+         }
+
+         destination = SCMAP.System.getById( jumpPoint.destinationSystemId );
+
+         if ( destination instanceof SCMAP.System ) {
+            jumpPoint = new SCMAP.JumpPoint({
+               source: this,
+               destination: destination,
+               name: jumpPoint.name,
+               type: jumpPoint.type,
+               entryAU: jumpPoint.coordsAu
+            });
+            if ( cleanup ) {
+               jumpPoints.push( jumpPoint );
+            } else {
+               system.jumpPoints[ i ] = jumpPoint;
+            }
+         }
+      }
+
+      if ( cleanup ) {
+         this.jumpPoints = jumpPoints;
+      }
+
+      return this;
    },
 
    setValues: function setValues( values ) {
@@ -670,77 +694,64 @@ SCMAP.System.prototype = {
    }
 };
 
-SCMAP.System.preprocessSystems = function () {
-   var i, systemName, system, data, faction;
+SCMAP.System.preprocessSystems = function ( data ) {
+   var i, systemName, system;
 
+   SCMAP.data.systems = {};
    SCMAP.data.systemsById = {};
    SCMAP.System.List = [];
 
-   for ( systemName in SCMAP.data.systems ) {
-
-      data = SCMAP.data.systems[ systemName ];
-      if ( data instanceof SCMAP.System ) {
-         SCMAP.data.systemsById[ system.id ]   = data;
-         SCMAP.data.systemsById[ system.uuid ] = data;
-         continue;
+   // First build basic objects to make them all known
+   // (this will initialise any jumppoints it can as well)
+   for ( systemName in data ) {
+      if ( data.hasOwnProperty( systemName ) ) {
+         system = SCMAP.System.fromJSON( data[ systemName ] );
+         SCMAP.data.systems[ system.name ]     = system;
+         SCMAP.data.systemsById[ system.id ]   = system;
+         SCMAP.data.systemsById[ system.uuid ] = system;
+         SCMAP.System.List.push( system );
       }
-
-      faction = SCMAP.Faction.getById( data.faction_id );
-
-      system = new SCMAP.System({
-         id: data.system_id,
-         uuid: data.uuid,
-         name: systemName,
-         position: data.coords,
-         scale: data.scale || 1.0,
-         starColor: data.color,
-         faction: faction
-      });
-
-      system.setValues({
-         'nickname': data.nickname,
-         'size': data.size,
-         'source': data.source,
-         'crimeStatus': SCMAP.data.crime_levels[ data.crime_level_id ],
-         'ueeStrategicValue': SCMAP.data.uee_strategic_values[ ""+data.uee_strategic_value_id ],
-         'import': data.import,
-         'export': data.export,
-         'blackMarket': data.black_market,
-         'blob': data.blob,
-         'planets': 0,
-         'planetaryRotation': [],
-         'jumpPoints': data.jumppoints
-      });
-
-      SCMAP.data.systems[ system.name ]     = system;
-      SCMAP.data.systemsById[ system.id ]   = system;
-      SCMAP.data.systemsById[ system.uuid ] = system;
-
    }
 
-   for ( systemName in SCMAP.data.systems )
-   {
-
-      system = SCMAP.System.getByName( systemName );
-
-      SCMAP.System.List.push( system );
-
-      for ( i = 0; i < system.jumpPoints.length; i++ )
-      {
-         jumpPoint = system.jumpPoints[ i ];
-         system.jumpPoints[ i ] = new SCMAP.JumpPoint({
-            source: system,
-            destination: SCMAP.System.getById( jumpPoint.destination ),
-            name: jumpPoint.name,
-            typeId: jumpPoint.type_id,
-            entryAU: jumpPoint.coords_au
-         });
-      }
-
-   }
+   // Now go through the built objects again, fixing any leftover jumppoint data
+   $( SCMAP.System.List ).each( function ( i, system ) {
+      system._fixJumpPoints( true );
+   });
 };
 
 SCMAP.System.List = [];
+
+SCMAP.System.fromJSON = function fromJSON( data ) {
+   var system;
+
+   if ( data instanceof SCMAP.System ) {
+      return data;
+   }
+
+   return new SCMAP.System({
+      'id': data.systemId,
+      'uuid': data.uuid,
+      'name': data.name,
+      'position': data.coords,
+      'scale': data.scale || 1.0,
+      'color': data.color,
+      'faction': SCMAP.Faction.getById( data.factionId ),
+      'isMajorTradeHub': data.isMajorTradeHub,
+      'hasWarning': data.hasWarning,
+      'isOffLimits': data.isOffLimits,
+      'nickname': data.nickname,
+      'size': data.size,
+      'info': data.info,
+      'crimeStatus': SCMAP.data.crimeLevels[ data.crimeLevel ],
+      'ueeStrategicValue': SCMAP.data.ueeStrategicValues[ ""+data.ueeStrategicValue ],
+      'import': data.import,
+      'export': data.export,
+      'blackMarket': data.blackMarket,
+      'planets': [], // TODO
+      'planetaryRotation': [], // TODO
+      'jumpPoints': data.jumpPoints
+   });
+};
 
 SCMAP.System.SortedList = function SortedList() {
    var array = [];
@@ -789,23 +800,23 @@ SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, tran
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
 
-SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
+SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-config').data('glow-image') );
 
 // create custom material from the shader code in the html
-$(function() {
-   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
-      uniforms: { 
-         "c":   { type: "f", value: 0.05 },
-         "p":   { type: "f", value: 3.3 },
-         glowColor: { type: "c", value: SCMAP.Color.BLACK },
-         viewVector: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) }
-      },
-      vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
-      fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      transparent: true
-   });
-});
+//$(function() {
+//   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
+//      uniforms: { 
+//         "c":   { type: "f", value: 0.05 },
+//         "p":   { type: "f", value: 3.3 },
+//         glowColor: { type: "c", value: SCMAP.Color.BLACK },
+//         viewVector: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) }
+//      },
+//      vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+//      fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+//      side: THREE.BackSide,
+//      blending: THREE.AdditiveBlending,
+//      transparent: true
+//   });
+//});
 
 // EOF

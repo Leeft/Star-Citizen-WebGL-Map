@@ -330,16 +330,16 @@ SCMAP.SelectedSystemGeometry = SCMAP.SelectedSystemGeometry || _build_selected_s
 */
 
 SCMAP.JumpPoint = function ( data ) {
+   this.id = data.jumpPointId;
    this.name = ( typeof data.name === 'string' && data.name.length > 1 ) ? data.name : undefined;
    this.source = ( data.source instanceof SCMAP.System ) ? data.source : undefined;
    this.destination = ( data.destination instanceof SCMAP.System ) ? data.destination : undefined;
    this.drawn = false;
-   this.typeId = ( typeof data.typeId === 'number' ) ? data.typeId : 4;
-   this.entryAU = new THREE.Vector3(
-      (typeof data.entryAU[ 0 ] === 'number') ? data.entryAU[ 0 ] : 0,
-      (typeof data.entryAU[ 1 ] === 'number') ? data.entryAU[ 1 ] : 0,
-      (typeof data.entryAU[ 2 ] === 'number') ? data.entryAU[ 2 ] : 0
-   );
+   this.type = ( typeof data.type === 'string' ) ? data.type : 'UNDISC';
+   this.entryAU = new THREE.Vector3();
+   if ( ( typeof data.entryAU === 'object' ) && Array.isArray( data.entryAU ) ) {
+      this.entryAU = this.entryAU.fromArray( data.entryAU );
+   }
 
    if ( !this.isValid() ) {
       console.error( "Invalid route created" );
@@ -413,12 +413,10 @@ SCMAP.JumpPoint.prototype = {
    },
 
    getMaterial: function() {
-      if ( this.typeId === 2 ) {
-         return SCMAP.JumpPoint.Material.Undiscovered;
-      } else if ( this.typeId === 4 ) {
-         return SCMAP.JumpPoint.Material.Possible;
+      if ( this.type in SCMAP.JumpPoint.Material ) {
+         return SCMAP.JumpPoint.Material[ this.type ];
       } else {
-         return SCMAP.JumpPoint.Material.Regular;
+         return SCMAP.JumpPoint.Material.DEFAULT;
       }
    },
 
@@ -429,7 +427,7 @@ SCMAP.JumpPoint.prototype = {
    },
 
    isUnconfirmed: function() {
-      return ( this.typeId === 2 || this.typeId === 4 );
+      return ( ( this.type === 'UNCONF' ) || ( this.type === 'UNDISC' ) );
    },
 
    setDrawn: function() {
@@ -437,26 +435,28 @@ SCMAP.JumpPoint.prototype = {
    }
 };
 
-SCMAP.JumpPoint.Material = {};
-SCMAP.JumpPoint.Material.Regular = new THREE.LineBasicMaterial({
-   color: 0xFFFFFF,
-   linewidth: 2,
-   vertexColors: true
-});
-SCMAP.JumpPoint.Material.Undiscovered = new THREE.LineDashedMaterial({
-   color: 0xFFFFFF,
-   dashSize: 0.75,
-   gapSize: 0.75,
-   linewidth: 2,
-   vertexColors: true
-});
-SCMAP.JumpPoint.Material.Possible = new THREE.LineDashedMaterial({
-   color: 0xFFFFFF,
-   dashSize: 2,
-   gapSize: 2,
-   linewidth: 2,
-   vertexColors: true
-});
+SCMAP.JumpPoint.Material = {
+   NORMAL: new THREE.LineBasicMaterial({
+      color: 0xFFFFFF,
+      linewidth: 2,
+      vertexColors: true
+   }),
+   UNDISC: new THREE.LineDashedMaterial({
+      color: 0xFFFFFF,
+      dashSize: 0.75,
+      gapSize: 0.75,
+      linewidth: 2,
+      vertexColors: true
+   }),
+   UNCONF: new THREE.LineDashedMaterial({
+      color: 0xFFFFFF,
+      dashSize: 2,
+      gapSize: 2,
+      linewidth: 2,
+      vertexColors: true
+   })
+};
+SCMAP.JumpPoint.Material.DEFAULT = SCMAP.JumpPoint.Material.UNCONF;
 
 // EOF
 
@@ -468,11 +468,11 @@ SCMAP.Faction = function ( data ) {
 
    this.id = undefined;
    this.name = 'Unclaimed';
-   this.shortName = 'NONE';
    this.isRealFaction = false;
    this.color = new THREE.Color( 0xFFFFFF );
    this.planeColor = new THREE.Color( 0xFF0000 );
    this.lineColor = new THREE.Color( 0xFFFF00 );
+   this.parentFaction = null;
 
    this.setValues( data );
 
@@ -571,31 +571,34 @@ SCMAP.Faction.prototype = {
    }
 };
 
-SCMAP.Faction.preprocessFactions = function () {
+SCMAP.Faction.preprocessFactions = function ( data ) {
    var factionId, faction;
 
    SCMAP.data.factionsByName = {};
 
-   for ( factionId in SCMAP.data.factions ) {
+   for ( factionId in data ) {
 
-      faction = SCMAP.data.factions[ factionId ];
-      if ( faction instanceof SCMAP.Faction ) {
-         SCMAP.data.factionsByName[ faction.name ]      = faction;
-         SCMAP.data.factionsByName[ faction.shortName ] = faction;
-         continue;
+      if ( data.hasOwnProperty( factionId ) ) {
+
+         faction = data[ factionId ];
+
+         if ( !( faction instanceof SCMAP.Faction ) ) {
+
+            faction = new SCMAP.Faction({
+               id: factionId,
+               name: faction.name,
+               color: faction.color,
+               isRealFaction: faction.isRealFaction,
+               parentFaction: null
+            });
+
+         }
+
+         SCMAP.data.factions[ factionId ]          = faction;
+         SCMAP.data.factionsByName[ faction.id ]   = faction;
+         SCMAP.data.factionsByName[ faction.name ] = faction;
+
       }
-
-      faction = new SCMAP.Faction({
-         id: factionId,
-         name: faction.name,
-         shortName: faction.short_name,
-         color: faction.color,
-         isRealFaction: faction.is_real_faction
-      });
-
-      SCMAP.data.factions[ factionId ]               = faction;
-      SCMAP.data.factionsByName[ faction.name ]      = faction;
-      SCMAP.data.factionsByName[ faction.shortName ] = faction;
    }
 };
 
@@ -606,6 +609,7 @@ SCMAP.Faction.getById = function ( id ) {
    }
    return faction;
 };
+
 SCMAP.Faction.getByName = function ( name ) {
    var faction = SCMAP.data.factionsByName[ name ];
    if ( ! ( faction instanceof SCMAP.Faction ) ) {
@@ -624,7 +628,7 @@ SCMAP.Goods = function ( data ) {
 
    this.id = undefined;
    this.name = 'Unknown';
-   this.isBlackMarket = false;
+   this.blackMarket = false;
 
    this.setValues( data );
 
@@ -639,29 +643,6 @@ SCMAP.Goods = function ( data ) {
 
 SCMAP.Goods.prototype = {
    constructor: SCMAP.Goods,
-
-//   claim: function ( system ) {
-//      if ( ! system instanceof SCMAP.System ) {
-//         new Error( "A faction can only claim ownership over a system" );
-//         return;
-//      }
-//      this._claimed.systems[ system.uuid ] = true;
-//   },
-//
-//   claimed: function ( system ) {
-//      if ( ! system instanceof SCMAP.System ) {
-//         new Error( "A faction can only test ownership over a system" );
-//         return;
-//      }
-//      return this._claimed.systems[ system.uuid ];
-//   },
-//
-//   material: function ( ) {
-//      if ( typeof this._darkMaterial === 'undefined' ) {
-//         this._darkMaterial = new THREE.MeshBasicMaterial({ color: this.dark, vertexColors: false });
-//      }
-//      return this._darkMaterial;
-//   },
 
    getValue: function ( key ) {
       if ( key === undefined ) {
@@ -694,27 +675,30 @@ SCMAP.Goods.prototype = {
    }
 };
 
-SCMAP.Goods.preprocessGoods = function () {
+SCMAP.Goods.preprocessGoods = function ( data ) {
    var goodsId, goods;
 
    SCMAP.data.goodsByName = {};
 
    for ( goodsId in SCMAP.data.goods ) {
 
-      goods = SCMAP.data.goods[ goodsId ];
-      if ( goods instanceof SCMAP.Goods ) {
+      if ( SCMAP.data.goods.hasOwnProperty( goodsId ) ) {
+
+         goods = SCMAP.data.goods[ goodsId ];
+         if ( goods instanceof SCMAP.Goods ) {
+            SCMAP.data.goodsByName[ goods.name ] = goods;
+            continue;
+         }
+
+         goods = new SCMAP.Goods({
+            id: goodsId,
+            name: goods.name,
+            blackMarket: goods.blackMarket
+         });
+
+         SCMAP.data.goods[ goodsId ] = goods;
          SCMAP.data.goodsByName[ goods.name ] = goods;
-         continue;
       }
-
-      goods = new SCMAP.Goods({
-         id: goodsId,
-         name: goods.name,
-         isBlackMarket: goods.black_market
-      });
-
-      SCMAP.data.goods[ goodsId ] = goods;
-      SCMAP.data.goodsByName[ goods.name ] = goods;
    }
 };
 
@@ -732,7 +716,7 @@ SCMAP.Goods.getByName = function ( name ) {
 */
 
 SCMAP.System = function ( data ) {
-   // Filled in from the config
+   // Defaults, to be filled in from the config
    this.id = undefined;
    this.uuid = undefined;
    this.name = '';
@@ -741,8 +725,8 @@ SCMAP.System = function ( data ) {
    this.faction = new SCMAP.Faction();
    this.size = 'medium';
    this.jumpPoints = [];
-   this.starColor = new THREE.Color( 0xFFFFFF );
-   this.source = undefined;
+   this.poi = [];
+   this.color = new THREE.Color( 0xFFFFFF );
    this.planets = 0;
    this.planetaryRotation = [];
    this.import = [];
@@ -750,9 +734,12 @@ SCMAP.System = function ( data ) {
    this.crimeStatus = '';
    this.blackMarket = [];
    this.ueeStrategicValue = undefined;
-   this.blob = [];
+   this.info = [];
    this.scale = 1.0;
    this.binary = false;
+   this.isOffLimits = false;
+   this.hasWarning = false;
+   this.isMajorTradeHub = false;
 
    this.setValues( data );
 
@@ -792,11 +779,11 @@ SCMAP.System.prototype = {
       this.sceneObject.add( lod );
 
 //if ( this.name === 'Nul' ) {
-      //var customMaterial = this.glowShaderMaterial( this.starColor );
-      //var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
-      //moonGlow.scale.multiplyScalar( 2.3 * this.scale );
-      //moonGlow.userData.isGlow = true;
-      //this.sceneObject.add( moonGlow );
+//      var customMaterial = this.glowShaderMaterial( this.color );
+//      var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
+//      moonGlow.scale.multiplyScalar( 2.3 * this.scale );
+//      moonGlow.userData.isGlow = true;
+//      this.sceneObject.add( moonGlow );
 //}
 
       glow = new THREE.Sprite( this.glowMaterial() );
@@ -849,14 +836,14 @@ SCMAP.System.prototype = {
       return SCMAP.System.STAR_MATERIAL_WHITE;
    },
 
-   glowShaderMaterial: function glowShaderMaterial( color ) {
-      var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
-      material.uniforms.glowColor.value = color;
-      return material;
-   },
+   //glowShaderMaterial: function glowShaderMaterial( color ) {
+   //   var material = SCMAP.System.GLOW_SHADER_MATERIAL.clone();
+   //   material.uniforms.glowColor.value = color;
+   //   return material;
+   //},
 
    glowMaterial: function glowMaterial() {
-      var color = this.starColor;
+      var color = this.color;
       if ( color.equals( SCMAP.Color.BLACK ) ) {
          color.copy( SCMAP.Color.UNSET );
       }
@@ -1051,10 +1038,10 @@ SCMAP.System.prototype = {
          return mySymbols;
       }
       if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { mySymbols.push( SCMAP.Symbols.DANGER ); }
-      if ( this.hasWarning() ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
-      if ( this.blob.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
-      if ( this.isMajorTradeHub() ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
-      if ( this.isOffLimits() ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
+      if ( this.hasWarning ) { mySymbols.push( SCMAP.Symbols.WARNING ); }
+      if ( this.info.length ) { mySymbols.push( SCMAP.Symbols.INFO ); }
+      if ( this.isMajorTradeHub ) { mySymbols.push( SCMAP.Symbols.TRADE ); }
+      if ( this.isOffLimits ) { mySymbols.push( SCMAP.Symbols.BANNED ); }
       if ( this.hasHangar() ) { mySymbols.push( SCMAP.Symbols.HANGAR ); }
       if ( this.isBookmarked() ) { mySymbols.push( SCMAP.Symbols.BOOKMARK ); }
       if ( this.isToBeAvoided() ) { mySymbols.push( SCMAP.Symbols.AVOID ); }
@@ -1196,18 +1183,18 @@ SCMAP.System.prototype = {
       $('#avoid-system').data( 'system', this.id );
       $('#hangar-location').data( 'system', this.id );
 
-      if ( this.blob.length ) {
-         var $md = $(markdown.toHTML( this.blob ));
-         $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
-         $blurb.append( '<div id="systemInfo">', $md, '</div>' );
-         $('#system-background-info').show();
-      } else {
-         $('#system-background-info').hide();
-      }
+      //if ( this.blob.length ) {
+      //   var $md = $(markdown.toHTML( this.blob ));
+      //   $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
+      //   $blurb.append( '<div id="systemInfo">', $md, '</div>' );
+      //   $('#system-background-info').show();
+      //} else {
+      //   $('#system-background-info').hide();
+      //}
 
-      if ( this.source ) {
-         $blurb.append( '<p><a class="system-source-url" href="' + this.source + '" target="_blank">(source)</a></p>' );
-      }
+      //if ( this.source ) {
+      //   $blurb.append( '<p><a class="system-source-url" href="' + this.source + '" target="_blank">(source)</a></p>' );
+      //}
 
       $('#systemblurb').empty();
       $('#systemblurb').append( $blurb );
@@ -1308,21 +1295,6 @@ SCMAP.System.prototype = {
       SCMAP.settings.save('systems');
    },
 
-   isOffLimits: function isOffLimits( ) {
-      // TODO this needs to come from the DB
-      return ( this.id === 90 || this.id === 97 );
-   },
-
-   hasWarning: function hasWarning( ) {
-      // TODO this needs to come from the DB
-      return ( this.id === 81 || this.id === 94 );
-   },
-
-   isMajorTradeHub: function isMajorTradeHub( ) {
-      // TODO this needs to come from the DB
-      return ( this.id === 82 || this.id === 95 || this.id === 80 || this.id === 102 || this.id === 100 || this.id === 108 || this.id === 96 || this.id === 85 || this.id === 83 || this.id === 106 || this.id === 15 || this.id === 84 || this.id === 88 || this.id === 19 || this.id === 92 );
-   },
-
    toString: function toString() {
       return this.name;
    },
@@ -1333,6 +1305,42 @@ SCMAP.System.prototype = {
       }
       var value = this[ key ];
       return value;
+   },
+
+   _fixJumpPoints: function _fixJumpPoints( cleanup ) {
+      var i, jumpPoint, destination, jumpPoints = [];
+
+      for ( i = 0; i < this.jumpPoints.length; i++ )
+      {
+         jumpPoint = this.jumpPoints[ i ];
+
+         if ( jumpPoint instanceof SCMAP.JumpPoint ) {
+            continue;
+         }
+
+         destination = SCMAP.System.getById( jumpPoint.destinationSystemId );
+
+         if ( destination instanceof SCMAP.System ) {
+            jumpPoint = new SCMAP.JumpPoint({
+               source: this,
+               destination: destination,
+               name: jumpPoint.name,
+               type: jumpPoint.type,
+               entryAU: jumpPoint.coordsAu
+            });
+            if ( cleanup ) {
+               jumpPoints.push( jumpPoint );
+            } else {
+               system.jumpPoints[ i ] = jumpPoint;
+            }
+         }
+      }
+
+      if ( cleanup ) {
+         this.jumpPoints = jumpPoints;
+      }
+
+      return this;
    },
 
    setValues: function setValues( values ) {
@@ -1399,77 +1407,64 @@ SCMAP.System.prototype = {
    }
 };
 
-SCMAP.System.preprocessSystems = function () {
-   var i, systemName, system, data, faction;
+SCMAP.System.preprocessSystems = function ( data ) {
+   var i, systemName, system;
 
+   SCMAP.data.systems = {};
    SCMAP.data.systemsById = {};
    SCMAP.System.List = [];
 
-   for ( systemName in SCMAP.data.systems ) {
-
-      data = SCMAP.data.systems[ systemName ];
-      if ( data instanceof SCMAP.System ) {
-         SCMAP.data.systemsById[ system.id ]   = data;
-         SCMAP.data.systemsById[ system.uuid ] = data;
-         continue;
+   // First build basic objects to make them all known
+   // (this will initialise any jumppoints it can as well)
+   for ( systemName in data ) {
+      if ( data.hasOwnProperty( systemName ) ) {
+         system = SCMAP.System.fromJSON( data[ systemName ] );
+         SCMAP.data.systems[ system.name ]     = system;
+         SCMAP.data.systemsById[ system.id ]   = system;
+         SCMAP.data.systemsById[ system.uuid ] = system;
+         SCMAP.System.List.push( system );
       }
-
-      faction = SCMAP.Faction.getById( data.faction_id );
-
-      system = new SCMAP.System({
-         id: data.system_id,
-         uuid: data.uuid,
-         name: systemName,
-         position: data.coords,
-         scale: data.scale || 1.0,
-         starColor: data.color,
-         faction: faction
-      });
-
-      system.setValues({
-         'nickname': data.nickname,
-         'size': data.size,
-         'source': data.source,
-         'crimeStatus': SCMAP.data.crime_levels[ data.crime_level_id ],
-         'ueeStrategicValue': SCMAP.data.uee_strategic_values[ ""+data.uee_strategic_value_id ],
-         'import': data.import,
-         'export': data.export,
-         'blackMarket': data.black_market,
-         'blob': data.blob,
-         'planets': 0,
-         'planetaryRotation': [],
-         'jumpPoints': data.jumppoints
-      });
-
-      SCMAP.data.systems[ system.name ]     = system;
-      SCMAP.data.systemsById[ system.id ]   = system;
-      SCMAP.data.systemsById[ system.uuid ] = system;
-
    }
 
-   for ( systemName in SCMAP.data.systems )
-   {
-
-      system = SCMAP.System.getByName( systemName );
-
-      SCMAP.System.List.push( system );
-
-      for ( i = 0; i < system.jumpPoints.length; i++ )
-      {
-         jumpPoint = system.jumpPoints[ i ];
-         system.jumpPoints[ i ] = new SCMAP.JumpPoint({
-            source: system,
-            destination: SCMAP.System.getById( jumpPoint.destination ),
-            name: jumpPoint.name,
-            typeId: jumpPoint.type_id,
-            entryAU: jumpPoint.coords_au
-         });
-      }
-
-   }
+   // Now go through the built objects again, fixing any leftover jumppoint data
+   $( SCMAP.System.List ).each( function ( i, system ) {
+      system._fixJumpPoints( true );
+   });
 };
 
 SCMAP.System.List = [];
+
+SCMAP.System.fromJSON = function fromJSON( data ) {
+   var system;
+
+   if ( data instanceof SCMAP.System ) {
+      return data;
+   }
+
+   return new SCMAP.System({
+      'id': data.systemId,
+      'uuid': data.uuid,
+      'name': data.name,
+      'position': data.coords,
+      'scale': data.scale || 1.0,
+      'color': data.color,
+      'faction': SCMAP.Faction.getById( data.factionId ),
+      'isMajorTradeHub': data.isMajorTradeHub,
+      'hasWarning': data.hasWarning,
+      'isOffLimits': data.isOffLimits,
+      'nickname': data.nickname,
+      'size': data.size,
+      'info': data.info,
+      'crimeStatus': SCMAP.data.crimeLevels[ data.crimeLevel ],
+      'ueeStrategicValue': SCMAP.data.ueeStrategicValues[ ""+data.ueeStrategicValue ],
+      'import': data.import,
+      'export': data.export,
+      'blackMarket': data.blackMarket,
+      'planets': [], // TODO
+      'planetaryRotation': [], // TODO
+      'jumpPoints': data.jumpPoints
+   });
+};
 
 SCMAP.System.SortedList = function SortedList() {
    var array = [];
@@ -1518,24 +1513,24 @@ SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, tran
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
 
-SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#gl-info').data('glow-image') );
+SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-config').data('glow-image') );
 
 // create custom material from the shader code in the html
-$(function() {
-   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
-      uniforms: { 
-         "c":   { type: "f", value: 0.05 },
-         "p":   { type: "f", value: 3.3 },
-         glowColor: { type: "c", value: SCMAP.Color.BLACK },
-         viewVector: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) }
-      },
-      vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
-      fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      transparent: true
-   });
-});
+//$(function() {
+//   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
+//      uniforms: { 
+//         "c":   { type: "f", value: 0.05 },
+//         "p":   { type: "f", value: 3.3 },
+//         glowColor: { type: "c", value: SCMAP.Color.BLACK },
+//         viewVector: { type: "v3", value: new THREE.Vector3( 0, 0, 0 ) }
+//      },
+//      vertexShader:   document.getElementById( 'vertexShader'   ).textContent,
+//      fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+//      side: THREE.BackSide,
+//      blending: THREE.AdditiveBlending,
+//      transparent: true
+//   });
+//});
 
 // EOF
 
@@ -2368,11 +2363,29 @@ SCMAP.Map = function ( scene ) {
    this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
    scene.add( this._mouseOverObject );
 
-   SCMAP.Faction.preprocessFactions();
-   SCMAP.Goods.preprocessGoods();
-   SCMAP.System.preprocessSystems();
+   SCMAP.Faction.preprocessFactions( SCMAP.data.factions );
+   SCMAP.Goods.preprocessGoods( SCMAP.data.goods );
 
    this.__currentlySelected = null;
+
+   var map = this;
+
+   $.ajax({
+      url: $('#sc-map-config').data('systems-json'),
+      async: true,
+      cache: true,
+      dataType: 'json',
+      ifModified: true,
+      timeout: 5 * 1000
+   })
+   .done( function( data, textStatus, jqXHR ) {
+      //console.log( "ajax done", data, textStatus, jqXHR );
+      map.populate( data );
+      scene.add( map.buildReferenceGrid() );
+   })
+   .fail( function( jqXHR, textStatus, errorThrown ) {
+      console.error( "Ajax request failed:", errorThrown, textStatus );
+   });
 };
 
 SCMAP.Map.prototype = {
@@ -2547,14 +2560,12 @@ SCMAP.Map.prototype = {
       tweens[0].start();
    },
 
-   populateScene: function populateScene () {
-      var territory, territoryName, routeMaterial, system, systemName,
-         source, destinations, destination, geometry,
-         data, jumpPoint, jumpPointObject, faction, systemObject,
-         endTime, startTime, systemCount = 0, good,
-         i, systems, exports, black_markets, systemInfo, imports;
+   populate: function populate( data ) {
+      var jumpPointObject, endTime, startTime, systemCount = 0, i, map = this;
 
       endTime = startTime = new Date();
+
+      SCMAP.System.preprocessSystems( data );
 
       // TODO: clean up the existing scene and map data when populating with
       // new data
@@ -2562,33 +2573,24 @@ SCMAP.Map.prototype = {
       // First we go through the data to build the basic systems so
       // the routes can be built as well
 
-      for ( systemName in SCMAP.data.systems ) {
-         system = SCMAP.System.getByName( systemName );
+      $( SCMAP.System.List ).each( function( index, system ) {
          sceneObject = system.buildSceneObject();
-         this.scene.add( sceneObject );
-         this._interactables.push( sceneObject.children[0] );
+         map.scene.add( sceneObject );
+         map._interactables.push( sceneObject.children[0] );
          systemCount++;
-      }
+      });
 
       // Then we go through again and add the routes
 
-      for ( systemName in SCMAP.data.systems )
-      {
-
-         system = SCMAP.System.getByName( systemName );
-
+      $( SCMAP.System.List ).each( function( index, system ) {
          for ( i = 0; i < system.jumpPoints.length; i ++ ) {
-
-            jumpPoint = system.jumpPoints[ i ];
-            jumpPointObject = jumpPoint.buildSceneObject();
+            jumpPointObject = system.jumpPoints[i].buildSceneObject();
             if ( jumpPointObject instanceof THREE.Object3D ) {
                system._routeObjects.push( jumpPointObject );
-               this.scene.add( jumpPointObject );
+               map.scene.add( jumpPointObject );
             }
-
          }
-
-      }
+      });
 
       endTime = new Date();
       console.log( "Populating the scene (without ref plane) took " +
@@ -4279,9 +4281,9 @@ function init()
 
    controls = new SCMAP.OrbitControls( camera, container );
    controls.target.copy( SCMAP.settings.camera.target );
-   controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
-   controls.zoomSpeed = $('#gl-info').data('zoomSpeed');
-   controls.panSpeed = $('#gl-info').data('panSpeed');
+   controls.rotateSpeed = $('#sc-map-config').data('rotateSpeed');
+   controls.zoomSpeed = $('#sc-map-config').data('zoomSpeed');
+   controls.panSpeed = $('#sc-map-config').data('panSpeed');
    controls.addEventListener( 'change', render );
    controls.noRotate = SCMAP.settings.control.rotationLocked;
 
@@ -4297,8 +4299,6 @@ function init()
    container.appendChild( renderer.domElement );
 
    map = new SCMAP.Map( scene );
-   map.populateScene();
-   scene.add( map.buildReferenceGrid() );
 
    ui = new SCMAP.UI();
 

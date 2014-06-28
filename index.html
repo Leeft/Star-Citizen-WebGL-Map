@@ -321,14 +321,21 @@
          </div>
       </div>
 
-      <div id="gl-info" data-glow-image="images/glow.png" data-smoke-image="images/smoke.png" data-rotate-speed="0.4" data-zoom-speed="1.0" data-pan-speed="0.6"></div>
+      <div id="sc-map-config"
+         data-systems-json="js/data/systems.min.json"
+         data-glow-image="images/glow.png"
+         data-smoke-image="images/smoke.png"
+         data-rotate-speed="0.4"
+         data-zoom-speed="1.0"
+         data-pan-speed="0.6"
+      ></div>
 
       <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
       <script src="//code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r67/three.min.js"></script>
-      <script src="build/starcitizen-webgl-map-libs.min.js"></script>
-      <script src="build/starcitizen-webgl-map.min.js"></script>
-      <script src="build/starcitizen-webgl-map-data.min.js"></script>
+      <script src="build/starcitizen-webgl-map-libs.js"></script>
+      <script src="build/starcitizen-webgl-map.js"></script>
+      <script src="build/starcitizen-webgl-map-seed-data.min.js"></script>
       <script id="vertexShader" type="x-shader/x-vertex">
          uniform vec3 viewVector;
          uniform float c;

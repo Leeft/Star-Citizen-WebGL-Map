@@ -11,16 +11,6 @@ module.exports = function(grunt) {
               ' * Licensed under <%= _.pluck(pkg.licenses, "url").join(", ") %>\n' +
               ' */\n',
 
-    databanner: '/*!\n' +
-                ' * Sample map data to be replaced by online live data in the future.\n' +
-                ' *\n' +
-                ' * Copyright 2013-<%= grunt.template.today("yyyy") %> Lianna Eeftinck & Aaron Robinson. All Rights Reserved.\n' +
-                ' *\n' +
-                ' * This sample map data (everything in SCMAP.data.map to be specific) is\n' +
-                ' * provided as an example only and is free to be used with this application\n' +
-                ' * in any form but may not be used elsewhere without explicit permission.\n' +
-                ' */\n',
-
     jqueryCheck: 'if (typeof jQuery === "undefined") { throw new Error("<%= pkg.name %> requires jQuery"); }\n',
     threejsCheck: 'if (typeof THREE === "undefined") { throw new Error("<%= pkg.name %> requires THREE.js"); }\n',
 
@@ -75,15 +65,12 @@ module.exports = function(grunt) {
 
       scdata: {
         options: {
-          //banner: '<%= databanner %>',
           stripBanners: false
         },
         src: [
-          'js/data/map.js',
           'js/data/lists.js',
-          'js/data/systems.js',
         ],
-        dest: 'build/<%= pkg.name %>-data.js'
+        dest: 'build/<%= pkg.name %>-seed-data.js'
       },
 
       extlibs: {
@@ -120,11 +107,8 @@ module.exports = function(grunt) {
          },
 
          scdata: {
-            options: {
-               banner: '<%= databanner %>'
-            },
             src: ['<%= concat.scdata.dest %>'],
-            dest: 'build/<%= pkg.name %>-data.min.js'
+            dest: 'build/<%= pkg.name %>-seed-data.min.js'
          },
 
          extlibs: {

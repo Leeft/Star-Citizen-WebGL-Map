@@ -20,11 +20,29 @@ SCMAP.Map = function ( scene ) {
    this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
    scene.add( this._mouseOverObject );
 
-   SCMAP.Faction.preprocessFactions();
-   SCMAP.Goods.preprocessGoods();
-   SCMAP.System.preprocessSystems();
+   SCMAP.Faction.preprocessFactions( SCMAP.data.factions );
+   SCMAP.Goods.preprocessGoods( SCMAP.data.goods );
 
    this.__currentlySelected = null;
+
+   var map = this;
+
+   $.ajax({
+      url: $('#sc-map-config').data('systems-json'),
+      async: true,
+      cache: true,
+      dataType: 'json',
+      ifModified: true,
+      timeout: 5 * 1000
+   })
+   .done( function( data, textStatus, jqXHR ) {
+      //console.log( "ajax done", data, textStatus, jqXHR );
+      map.populate( data );
+      scene.add( map.buildReferenceGrid() );
+   })
+   .fail( function( jqXHR, textStatus, errorThrown ) {
+      console.error( "Ajax request failed:", errorThrown, textStatus );
+   });
 };
 
 SCMAP.Map.prototype = {
@@ -199,14 +217,12 @@ SCMAP.Map.prototype = {
       tweens[0].start();
    },
 
-   populateScene: function populateScene () {
-      var territory, territoryName, routeMaterial, system, systemName,
-         source, destinations, destination, geometry,
-         data, jumpPoint, jumpPointObject, faction, systemObject,
-         endTime, startTime, systemCount = 0, good,
-         i, systems, exports, black_markets, systemInfo, imports;
+   populate: function populate( data ) {
+      var jumpPointObject, endTime, startTime, systemCount = 0, i, map = this;
 
       endTime = startTime = new Date();
+
+      SCMAP.System.preprocessSystems( data );
 
       // TODO: clean up the existing scene and map data when populating with
       // new data
@@ -214,33 +230,24 @@ SCMAP.Map.prototype = {
       // First we go through the data to build the basic systems so
       // the routes can be built as well
 
-      for ( systemName in SCMAP.data.systems ) {
-         system = SCMAP.System.getByName( systemName );
+      $( SCMAP.System.List ).each( function( index, system ) {
          sceneObject = system.buildSceneObject();
-         this.scene.add( sceneObject );
-         this._interactables.push( sceneObject.children[0] );
+         map.scene.add( sceneObject );
+         map._interactables.push( sceneObject.children[0] );
          systemCount++;
-      }
+      });
 
       // Then we go through again and add the routes
 
-      for ( systemName in SCMAP.data.systems )
-      {
-
-         system = SCMAP.System.getByName( systemName );
-
+      $( SCMAP.System.List ).each( function( index, system ) {
          for ( i = 0; i < system.jumpPoints.length; i ++ ) {
-
-            jumpPoint = system.jumpPoints[ i ];
-            jumpPointObject = jumpPoint.buildSceneObject();
+            jumpPointObject = system.jumpPoints[i].buildSceneObject();
             if ( jumpPointObject instanceof THREE.Object3D ) {
                system._routeObjects.push( jumpPointObject );
-               this.scene.add( jumpPointObject );
+               map.scene.add( jumpPointObject );
             }
-
          }
-
-      }
+      });
 
       endTime = new Date();
       console.log( "Populating the scene (without ref plane) took " +

@@ -6,7 +6,7 @@ SCMAP.Goods = function ( data ) {
 
    this.id = undefined;
    this.name = 'Unknown';
-   this.isBlackMarket = false;
+   this.blackMarket = false;
 
    this.setValues( data );
 
@@ -21,29 +21,6 @@ SCMAP.Goods = function ( data ) {
 
 SCMAP.Goods.prototype = {
    constructor: SCMAP.Goods,
-
-//   claim: function ( system ) {
-//      if ( ! system instanceof SCMAP.System ) {
-//         new Error( "A faction can only claim ownership over a system" );
-//         return;
-//      }
-//      this._claimed.systems[ system.uuid ] = true;
-//   },
-//
-//   claimed: function ( system ) {
-//      if ( ! system instanceof SCMAP.System ) {
-//         new Error( "A faction can only test ownership over a system" );
-//         return;
-//      }
-//      return this._claimed.systems[ system.uuid ];
-//   },
-//
-//   material: function ( ) {
-//      if ( typeof this._darkMaterial === 'undefined' ) {
-//         this._darkMaterial = new THREE.MeshBasicMaterial({ color: this.dark, vertexColors: false });
-//      }
-//      return this._darkMaterial;
-//   },
 
    getValue: function ( key ) {
       if ( key === undefined ) {
@@ -76,27 +53,30 @@ SCMAP.Goods.prototype = {
    }
 };
 
-SCMAP.Goods.preprocessGoods = function () {
+SCMAP.Goods.preprocessGoods = function ( data ) {
    var goodsId, goods;
 
    SCMAP.data.goodsByName = {};
 
    for ( goodsId in SCMAP.data.goods ) {
 
-      goods = SCMAP.data.goods[ goodsId ];
-      if ( goods instanceof SCMAP.Goods ) {
+      if ( SCMAP.data.goods.hasOwnProperty( goodsId ) ) {
+
+         goods = SCMAP.data.goods[ goodsId ];
+         if ( goods instanceof SCMAP.Goods ) {
+            SCMAP.data.goodsByName[ goods.name ] = goods;
+            continue;
+         }
+
+         goods = new SCMAP.Goods({
+            id: goodsId,
+            name: goods.name,
+            blackMarket: goods.blackMarket
+         });
+
+         SCMAP.data.goods[ goodsId ] = goods;
          SCMAP.data.goodsByName[ goods.name ] = goods;
-         continue;
       }
-
-      goods = new SCMAP.Goods({
-         id: goodsId,
-         name: goods.name,
-         isBlackMarket: goods.black_market
-      });
-
-      SCMAP.data.goods[ goodsId ] = goods;
-      SCMAP.data.goodsByName[ goods.name ] = goods;
    }
 };
 

@@ -3,16 +3,16 @@
 */
 
 SCMAP.JumpPoint = function ( data ) {
+   this.id = data.jumpPointId;
    this.name = ( typeof data.name === 'string' && data.name.length > 1 ) ? data.name : undefined;
    this.source = ( data.source instanceof SCMAP.System ) ? data.source : undefined;
    this.destination = ( data.destination instanceof SCMAP.System ) ? data.destination : undefined;
    this.drawn = false;
-   this.typeId = ( typeof data.typeId === 'number' ) ? data.typeId : 4;
-   this.entryAU = new THREE.Vector3(
-      (typeof data.entryAU[ 0 ] === 'number') ? data.entryAU[ 0 ] : 0,
-      (typeof data.entryAU[ 1 ] === 'number') ? data.entryAU[ 1 ] : 0,
-      (typeof data.entryAU[ 2 ] === 'number') ? data.entryAU[ 2 ] : 0
-   );
+   this.type = ( typeof data.type === 'string' ) ? data.type : 'UNDISC';
+   this.entryAU = new THREE.Vector3();
+   if ( ( typeof data.entryAU === 'object' ) && Array.isArray( data.entryAU ) ) {
+      this.entryAU = this.entryAU.fromArray( data.entryAU );
+   }
 
    if ( !this.isValid() ) {
       console.error( "Invalid route created" );
@@ -86,12 +86,10 @@ SCMAP.JumpPoint.prototype = {
    },
 
    getMaterial: function() {
-      if ( this.typeId === 2 ) {
-         return SCMAP.JumpPoint.Material.Undiscovered;
-      } else if ( this.typeId === 4 ) {
-         return SCMAP.JumpPoint.Material.Possible;
+      if ( this.type in SCMAP.JumpPoint.Material ) {
+         return SCMAP.JumpPoint.Material[ this.type ];
       } else {
-         return SCMAP.JumpPoint.Material.Regular;
+         return SCMAP.JumpPoint.Material.DEFAULT;
       }
    },
 
@@ -102,7 +100,7 @@ SCMAP.JumpPoint.prototype = {
    },
 
    isUnconfirmed: function() {
-      return ( this.typeId === 2 || this.typeId === 4 );
+      return ( ( this.type === 'UNCONF' ) || ( this.type === 'UNDISC' ) );
    },
 
    setDrawn: function() {
@@ -110,25 +108,27 @@ SCMAP.JumpPoint.prototype = {
    }
 };
 
-SCMAP.JumpPoint.Material = {};
-SCMAP.JumpPoint.Material.Regular = new THREE.LineBasicMaterial({
-   color: 0xFFFFFF,
-   linewidth: 2,
-   vertexColors: true
-});
-SCMAP.JumpPoint.Material.Undiscovered = new THREE.LineDashedMaterial({
-   color: 0xFFFFFF,
-   dashSize: 0.75,
-   gapSize: 0.75,
-   linewidth: 2,
-   vertexColors: true
-});
-SCMAP.JumpPoint.Material.Possible = new THREE.LineDashedMaterial({
-   color: 0xFFFFFF,
-   dashSize: 2,
-   gapSize: 2,
-   linewidth: 2,
-   vertexColors: true
-});
+SCMAP.JumpPoint.Material = {
+   NORMAL: new THREE.LineBasicMaterial({
+      color: 0xFFFFFF,
+      linewidth: 2,
+      vertexColors: true
+   }),
+   UNDISC: new THREE.LineDashedMaterial({
+      color: 0xFFFFFF,
+      dashSize: 0.75,
+      gapSize: 0.75,
+      linewidth: 2,
+      vertexColors: true
+   }),
+   UNCONF: new THREE.LineDashedMaterial({
+      color: 0xFFFFFF,
+      dashSize: 2,
+      gapSize: 2,
+      linewidth: 2,
+      vertexColors: true
+   })
+};
+SCMAP.JumpPoint.Material.DEFAULT = SCMAP.JumpPoint.Material.UNCONF;
 
 // EOF

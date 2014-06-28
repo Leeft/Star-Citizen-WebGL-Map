@@ -6,11 +6,11 @@ SCMAP.Faction = function ( data ) {
 
    this.id = undefined;
    this.name = 'Unclaimed';
-   this.shortName = 'NONE';
    this.isRealFaction = false;
    this.color = new THREE.Color( 0xFFFFFF );
    this.planeColor = new THREE.Color( 0xFF0000 );
    this.lineColor = new THREE.Color( 0xFFFF00 );
+   this.parentFaction = null;
 
    this.setValues( data );
 
@@ -109,31 +109,34 @@ SCMAP.Faction.prototype = {
    }
 };
 
-SCMAP.Faction.preprocessFactions = function () {
+SCMAP.Faction.preprocessFactions = function ( data ) {
    var factionId, faction;
 
    SCMAP.data.factionsByName = {};
 
-   for ( factionId in SCMAP.data.factions ) {
+   for ( factionId in data ) {
 
-      faction = SCMAP.data.factions[ factionId ];
-      if ( faction instanceof SCMAP.Faction ) {
-         SCMAP.data.factionsByName[ faction.name ]      = faction;
-         SCMAP.data.factionsByName[ faction.shortName ] = faction;
-         continue;
+      if ( data.hasOwnProperty( factionId ) ) {
+
+         faction = data[ factionId ];
+
+         if ( !( faction instanceof SCMAP.Faction ) ) {
+
+            faction = new SCMAP.Faction({
+               id: factionId,
+               name: faction.name,
+               color: faction.color,
+               isRealFaction: faction.isRealFaction,
+               parentFaction: null
+            });
+
+         }
+
+         SCMAP.data.factions[ factionId ]          = faction;
+         SCMAP.data.factionsByName[ faction.id ]   = faction;
+         SCMAP.data.factionsByName[ faction.name ] = faction;
+
       }
-
-      faction = new SCMAP.Faction({
-         id: factionId,
-         name: faction.name,
-         shortName: faction.short_name,
-         color: faction.color,
-         isRealFaction: faction.is_real_faction
-      });
-
-      SCMAP.data.factions[ factionId ]               = faction;
-      SCMAP.data.factionsByName[ faction.name ]      = faction;
-      SCMAP.data.factionsByName[ faction.shortName ] = faction;
    }
 };
 
@@ -144,6 +147,7 @@ SCMAP.Faction.getById = function ( id ) {
    }
    return faction;
 };
+
 SCMAP.Faction.getByName = function ( name ) {
    var faction = SCMAP.data.factionsByName[ name ];
    if ( ! ( faction instanceof SCMAP.Faction ) ) {

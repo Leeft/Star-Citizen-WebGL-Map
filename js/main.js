@@ -34,9 +34,9 @@ function init()
 
    controls = new SCMAP.OrbitControls( camera, container );
    controls.target.copy( SCMAP.settings.camera.target );
-   controls.rotateSpeed = $('#gl-info').data('rotateSpeed');
-   controls.zoomSpeed = $('#gl-info').data('zoomSpeed');
-   controls.panSpeed = $('#gl-info').data('panSpeed');
+   controls.rotateSpeed = $('#sc-map-config').data('rotateSpeed');
+   controls.zoomSpeed = $('#sc-map-config').data('zoomSpeed');
+   controls.panSpeed = $('#sc-map-config').data('panSpeed');
    controls.addEventListener( 'change', render );
    controls.noRotate = SCMAP.settings.control.rotationLocked;
 
@@ -52,8 +52,6 @@ function init()
    container.appendChild( renderer.domElement );
 
    map = new SCMAP.Map( scene );
-   map.populateScene();
-   scene.add( map.buildReferenceGrid() );
 
    ui = new SCMAP.UI();
 
