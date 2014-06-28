@@ -7,12 +7,13 @@
 [submodule "markdown-js"]
 	path = js/markdown-js
 	url = https://github.com/evilstreak/markdown-js.git
-[submodule "three.js"]
-	path = js/three.js
-	url = git@github.com:Leeft/three.js.git
 [submodule "js/tween.js"]
 	path = js/tween.js
 	url = git@github.com:sole/tween.js.git
 [submodule "js/javascript-state-machine"]
 	path = js/javascript-state-machine
 	url = git@github.com:jakesgordon/javascript-state-machine
+[submodule "three.js"]
+	path = js/three.js
+	url = https://github.com/mrdoob/three.js.git
+	branch = master

@@ -26,22 +26,6 @@ module.exports = function(grunt) {
 
     copy: {
 
-      threejs: {
-        files: [
-          { expand: false, src: 'js/three.js/build/three.min.js',                           dest: 'build/three.min.js'    },
-          { expand: false, src: 'js/three.js/examples/js/shaders/ConvolutionShader.js',     dest: 'build/shaders/ConvolutionShader.js' },
-          { expand: false, src: 'js/three.js/examples/js/shaders/FXAAShader.js',            dest: 'build/shaders/FXAAShader.js'        },
-          { expand: false, src: 'js/three.js/examples/js/shaders/CopyShader.js',            dest: 'build/shaders/CopyShader.js'        },
-          { expand: false, src: 'js/three.js/examples/js/postprocessing/EffectComposer.js', dest: 'build/postprocessing/EffectComposer.js' },
-          { expand: false, src: 'js/three.js/examples/js/postprocessing/MaskPass.js',       dest: 'build/postprocessing/MaskPass.js'   },
-          { expand: false, src: 'js/three.js/examples/js/postprocessing/RenderPass.js',     dest: 'build/postprocessing/RenderPass.js' },
-          { expand: false, src: 'js/three.js/examples/js/postprocessing/ShaderPass.js',     dest: 'build/postprocessing/ShaderPass.js' },
-          { expand: false, src: 'js/three.js/examples/js/postprocessing/BloomPass.js',      dest: 'build/postprocessing/BloomPass.js'  },
-          { expand: false, src: 'js/three.js/examples/js/Detector.js',                      dest: 'build/Detector.js'                  },
-          { expand: false, src: 'js/three.js/examples/js/libs/stats.min.js',                dest: 'build/stats.min.js'                 }
-        ]
-      },
-
       tweenjs: {
         files: [
           { expand: false, src: 'js/tween.js/build/tween.min.js',                      dest: 'build/tween.min.js' },
@@ -125,7 +109,7 @@ module.exports = function(grunt) {
 
     },
 
-      uglify: {
+    uglify: {
 
          scmap: {
             options: {
