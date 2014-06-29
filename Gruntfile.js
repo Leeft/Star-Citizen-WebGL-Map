@@ -85,6 +85,7 @@ module.exports = function(grunt) {
           'js/three.js/examples/js/postprocessing/BloomPass.js',
           'js/three.js/examples/js/Detector.js',
           'js/three.js/examples/js/libs/stats.min.js',
+          'js/handlebars-v1.3.0.js',
           'build/jquery.jscrollpane.min.js',
           'build/jquery.mousewheel.min.js',
           'build/markdown.min.js',
