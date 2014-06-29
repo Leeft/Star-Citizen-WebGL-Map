@@ -334,7 +334,7 @@ SCMAP.Map.prototype = {
       var uniqueColours = {};
       var left, right, above, below;
       var vertices, vertexColours;
-      var geo = new THREE.Geometry();
+      var geo = new THREE.BufferGeometry();
       var color;
       var grid = {};
       var alongX = {};
@@ -403,6 +403,28 @@ SCMAP.Map.prototype = {
       var alongZ = []; for ( j in grid ) { alongZ.push( j ); }
       alongZ.sort( function ( a, b ) { return a - b; } );
 
+      var positions = [];
+      var next_positions_index = 0;
+      var colors = [];
+      var indices_array = [];
+
+      function addLine( v1, c1, v2, c2 ) {
+         if ( next_positions_index >= 0xfffe ) {
+            throw new Error("Too many points");
+         }
+
+         positions.push( v1[0], v1[1], v1[2] );
+         colors.push( c1.r, c1.g, c1.b );
+         next_positions_index++;
+
+         positions.push( v2[0], v2[1], v2[2] );
+         colors.push( c2.r, c2.g, c2.b );
+
+         indices_array.push( next_positions_index - 1, next_positions_index );
+
+         return next_positions_index++;
+      }
+
       // Now we got most data worked out, and we can start drawing
       // the horizontal lines. We draw a line from start vertex to
       // end vertex for each section where the colour doesn't
@@ -420,17 +442,15 @@ SCMAP.Map.prototype = {
             vertexColor = grid[ z ][ x ];
 
             if ( (vertexColor !== grid[z][left]  && grid[z][left] ) ||
-                 (vertexColor !== grid[z][right] && grid[z][right])    ) {
-               vertices.push( new THREE.Vector3( x, 0, z ) );
+                 (vertexColor !== grid[z][right] && grid[z][right])    )
+            {
+               vertices.push( [ x, 0, z ] );
                vertexColours.push( uniqueColours[ vertexColor ] );
             }
          }
 
          for ( k = 0; k < vertices.length - 1; k++ ) {
-            geo.vertices.push( vertices[k] );
-            geo.colors.push( vertexColours[k] );
-            geo.vertices.push( vertices[k+1] );
-            geo.colors.push( vertexColours[k+1] );
+            addLine( vertices[k], vertexColours[k], vertices[k+1], vertexColours[k+1] );
          }
       }
 
@@ -448,19 +468,36 @@ SCMAP.Map.prototype = {
             vertexColor = grid[ z ][ x ];
 
             if ( ( grid[above] && grid[above][x] && vertexColor !== grid[above][x] ) ||
-                 ( grid[below] && grid[below][x] && vertexColor !== grid[below][x] )    ) {
-               vertices.push( new THREE.Vector3( x, 0, z ) );
+                 ( grid[below] && grid[below][x] && vertexColor !== grid[below][x] )    )
+            {
+               vertices.push( [ x, 0, z ] );
                vertexColours.push( uniqueColours[ vertexColor ] );
             }
          }
 
          for ( k = 0; k < vertices.length - 1; k++ ) {
-            geo.vertices.push( vertices[k] );
-            geo.colors.push( vertexColours[k] );
-            geo.vertices.push( vertices[k+1] );
-            geo.colors.push( vertexColours[k+1] );
+            addLine( vertices[k], vertexColours[k], vertices[k+1], vertexColours[k+1] );
          }
       }
+
+// TODO FIXME: current r67 master branch doesn't allow parameters in the constructor, dev branch does ... this code should work for both but needs updating when it is in master
+var indexBA = new THREE.BufferAttribute();
+indexBA.array = new Uint16Array( indices_array );
+indexBA.itemSize = 1;
+geo.addAttribute( 'index', indexBA );
+
+indexBA = new THREE.BufferAttribute();
+indexBA.array = new Float32Array( positions );
+indexBA.itemSize = 3;
+geo.addAttribute( 'position', indexBA );
+
+indexBA = new THREE.BufferAttribute();
+indexBA.array = new Float32Array( colors );
+indexBA.itemSize = 3;
+geo.addAttribute( 'color', indexBA );
+
+      geo.dynamic = false;
+      geo.computeBoundingBox();
 
       // Finally create the object with the geometry just built
       var referenceLines = new THREE.Line( geo, new THREE.LineBasicMaterial({
