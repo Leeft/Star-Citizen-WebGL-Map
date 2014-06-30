@@ -337,161 +337,72 @@ SCMAP.System.prototype = {
    },
 
    displayInfo: function displayInfo( doNotSwitch ) {
-      var worlds = '(No information)';
-      var _import = '&mdash;';
-      var _export = '&mdash;';
-      var blackMarket = '&mdash;';
-      var strategicValue = 'Unknown';
-      var crimeStatus = 'Unknown';
-      var i;
-      var tmp = [];
-      var $blurb = $('<div class="sc_system_info" '+SCMAP.UI.makeSafeForCSS(this.name)+'"></div>');
-      var currentStep = window.map.route().indexOfCurrentRoute( this );
+      var $element = $('#info');
+      $element.empty();
+      $element.append( SCMAP.UI.Templates.systemInfo({ system: this }) );
 
-      $('#systemname')
-         .css( 'color', this.faction.color.getStyle() )
-         .text( 'System: ' + this.name );
-
-      if ( typeof this.nickname === 'string' && this.nickname.length ) {
-         $('#systemnickname').text( this.nickname ).show();
-      } else {
-         $('#systemnickname').text( '' ).hide();
-      }
-
-      if ( typeof currentStep === 'number' )
-      {
-         var currentRoute = window.map.route().currentRoute();
-         var header = [];
-         var adjacentSystem;
-
-         if ( currentStep > 0 ) {
-            adjacentSystem = currentRoute[currentStep-1].system;
-            if ( (currentStep > 1) && (adjacentSystem === currentRoute[currentStep].system) ) {
-               adjacentSystem = currentRoute[currentStep-2].system;
-            }
-            var $prev = adjacentSystem.createInfoLink();
-            $prev.attr( 'title', 'Previous jump to ' + adjacentSystem.name +
-               ' (' + adjacentSystem.faction.name + ' territory)' );
-            $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
-            header.push( $prev );
-         } else {
-            header.push( $('<i class="left fa fa-fw"></i>') );
-         }
-
-         if ( currentStep < ( currentRoute.length - 1 ) ) {
-            adjacentSystem = currentRoute[currentStep+1].system;
-            if ( (currentStep < (currentRoute.length - 2)) && (adjacentSystem === currentRoute[currentStep].system) ) {
-               adjacentSystem = currentRoute[currentStep+2].system;
-            }
-            var $next = adjacentSystem.createInfoLink();
-            $next.attr( 'title', 'Next jump to ' + adjacentSystem.name +
-               ' (' + adjacentSystem.faction.name + ' territory)'  );
-            $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
-            header.push( $next );
-         } else {
-            header.push( $('<i class="right fa fa-fw"></i>') );
-         }
-
-         header.push( this.name );
-
-         $('#systemname').removeClass('padleft').empty().append( header );
-      }
-      else
-      {
-         $('#systemname').addClass('padleft');
-      }
-
-      if ( this.planetaryRotation.length ) {
-         worlds = this.planetaryRotation.join( ', ' );
-      }
-
-      if ( this.import.length ) {
-         _import = $.map( this.import, function( elem, i ) {
-            return SCMAP.data.goods[ elem ].name;
-         }).join( ', ' );
-      }
-
-      if ( this.export.length ) {
-         _export = $.map( this.export, function( elem, i ) {
-            return SCMAP.data.goods[ elem ].name;
-         }).join( ', ' );
-      }
-
-      if ( this.blackMarket.length ) {
-         blackMarket = $.map( this.blackMarket, function( elem, i ) {
-            return SCMAP.data.goods[ elem ].name;
-         }).join( ', ' );
-      }
-
-      //if ( typeof this.planets === 'string' || typeof this.planets === 'number' ) {
-      //   planets = this.planets;
-      //}
-
-      if ( typeof this.crimeStatus === 'object' ) {
-         crimeStatus = this.crimeStatus.name;
-      }
-
-      if ( typeof this.ueeStrategicValue === 'object' ) {
-         strategicValue = this.ueeStrategicValue.color;
-      }
-
-      $("dl.basic-system dd.faction").text( this.faction.name );
-      //$("dl.basic-system dd.planets").text( planets );
-      $("dl.basic-system dd.rotation").html( worlds );
-      $("dl.basic-system dd.import").html( _import );
-      $("dl.basic-system dd.export").html( _export );
-      $("dl.basic-system dd.blackMarket").html( blackMarket );
-      $("dl.basic-system dt.crime").addClass( 'crime_'+crimeStatus.toLowerCase() );
-      $("dl.basic-system dd.crime").text( crimeStatus );
-      $("dl.basic-system dt.strategic").addClass( 'strategic_value_'+strategicValue.toLowerCase() );
-      $("dl.basic-system dd.strategic").text( strategicValue );
-
-      if ( this.faction.name !== 'Unclaimed' ) {
-         $('dl.basic-system dd.faction').css( 'color', this.faction.color.getStyle() );
-      }
-
-      // User's notes and bookmarks
-
-      $('#hangar-location').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
-      $('#bookmark').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
-      $('#avoid-system').prop( 'checked', this.isToBeAvoided() ).attr( 'data-system', this.id );
+      // Set user's notes and bookmarks
+      $element.find('.user-system-ishangar').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
+      $element.find('.user-system-bookmarked').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
+      $element.find('.user-system-avoid').prop( 'checked', this.isToBeAvoided() ).attr( 'data-system', this.id );
 
       if ( this.hasComments() ) {
-         $('#comments').empty().val( this.getComments() );
-         $('#comments-md').html( $( markdown.toHTML( this.getComments() ) ) );
+         $element.find('.user-system-comments').empty().val( this.getComments() );
+         $element.find('.user-system-comments-md').html( $( markdown.toHTML( this.getComments() ) ) );
       } else {
-         $('#comments').empty().val('');
-         $('#comments-md').empty();
+         $element.find('.user-system-comments').empty().val('');
+         $element.find('.user-system-comments-md').empty();
       }
 
-      $('#comments').data( 'system', this.id );
-      $('#clear-comments').data( 'system', this.id );
-      $('#bookmark').data( 'system', this.id );
-      $('#avoid-system').data( 'system', this.id );
-      $('#hangar-location').data( 'system', this.id );
+      // TODO FIXME
+      //var currentStep = window.map.route().indexOfCurrentRoute( this );
+      //if ( typeof currentStep === 'number' )
+      //{
+      //   var currentRoute = window.map.route().currentRoute();
+      //   var header = [];
+      //   var adjacentSystem;
 
-      //if ( this.blob.length ) {
-      //   var $md = $(markdown.toHTML( this.blob ));
-      //   $md.find('p').prepend('<i class="fa fa-2x fa-quote-left"></i>');
-      //   $blurb.append( '<div id="systemInfo">', $md, '</div>' );
-      //   $('#system-background-info').show();
-      //} else {
-      //   $('#system-background-info').hide();
+      //   if ( currentStep > 0 ) {
+      //      adjacentSystem = currentRoute[currentStep-1].system;
+      //      if ( (currentStep > 1) && (adjacentSystem === currentRoute[currentStep].system) ) {
+      //         adjacentSystem = currentRoute[currentStep-2].system;
+      //      }
+      //      var $prev = adjacentSystem.createInfoLink();
+      //      $prev.attr( 'title', 'Previous jump to ' + adjacentSystem.name +
+      //         ' (' + adjacentSystem.faction.name + ' territory)' );
+      //      $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
+      //      header.push( $prev );
+      //   } else {
+      //      header.push( $('<i class="left fa fa-fw"></i>') );
+      //   }
+
+      //   if ( currentStep < ( currentRoute.length - 1 ) ) {
+      //      adjacentSystem = currentRoute[currentStep+1].system;
+      //      if ( (currentStep < (currentRoute.length - 2)) && (adjacentSystem === currentRoute[currentStep].system) ) {
+      //         adjacentSystem = currentRoute[currentStep+2].system;
+      //      }
+      //      var $next = adjacentSystem.createInfoLink();
+      //      $next.attr( 'title', 'Next jump to ' + adjacentSystem.name +
+      //         ' (' + adjacentSystem.faction.name + ' territory)'  );
+      //      $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
+      //      header.push( $next );
+      //   } else {
+      //      header.push( $('<i class="right fa fa-fw"></i>') );
+      //   }
+
+      //   header.push( this.name );
+
+      //   $('#systemname').removeClass('padleft').empty().append( header );
+      //}
+      //else
+      //{
+      //   $('#systemname').addClass('padleft');
       //}
 
-      //if ( this.source ) {
-      //   $blurb.append( '<p><a class="system-source-url" href="' + this.source + '" target="_blank">(source)</a></p>' );
-      //}
-
-      $('#systemblurb').empty();
-      $('#systemblurb').append( $blurb );
-
-      $('#map_ui #system-selected').show();
-      $('#map_ui #system-not-selected').hide();
       if ( !doNotSwitch ) {
          $('#map_ui').tabs( 'option', 'active', 2 );
-         $('#map_ui').data( 'jsp' ).reinitialise();
          $('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
+         $('#map_ui').data( 'jsp' ).reinitialise();
       }
    },
 
@@ -500,22 +411,26 @@ SCMAP.System.prototype = {
       var wantedY = object.userData.system.position.y * ( scalar / 100 );
       object.userData.system.sceneObject.translateY( wantedY - object.userData.system.sceneObject.position.y );
       object.userData.system.routeNeedsUpdate();
+      return this;
    },
 
    moveTo: function moveTo( vector ) {
       this.system.sceneObject.position.copy( vector );
       this.system.routeNeedsUpdate();
+      return this;
    },
 
    translateVector: function translateVector( vector ) {
       this.system.sceneObject.add( vector );
       this.system.routeNeedsUpdate();
+      return this;
    },
 
    routeNeedsUpdate: function routeNeedsUpdate() {
       for ( var j = 0; j < this._routeObjects.length; j++ ) {
          this._routeObjects[j].geometry.verticesNeedUpdate = true;
       }
+      return this;
    },
 
    // Returns the jumppoint leading to the given destination
@@ -534,6 +449,7 @@ SCMAP.System.prototype = {
    setBookmarkedState: function setBookmarkedState( state ) {
       this.storedSettings().bookmarked = ( state ) ? true : false;
       this.saveSettings();
+      return this;
    },
 
    hasHangar: function hasHangar( ) {
@@ -543,6 +459,7 @@ SCMAP.System.prototype = {
    setHangarState: function setHangarState( state ) {
       this.storedSettings().hangarLocation = ( state ) ? true : false;
       this.saveSettings();
+      return this;
    },
 
    isToBeAvoided: function isToBeAvoided( ) {
@@ -552,6 +469,7 @@ SCMAP.System.prototype = {
    setToBeAvoidedState: function setToBeAvoidedState( state ) {
       this.storedSettings().avoid = ( state ) ? true : false;
       this.saveSettings();
+      return this;
    },
 
    hasComments: function hasComments( ) {
@@ -569,6 +487,7 @@ SCMAP.System.prototype = {
          delete this.storedSettings().comments;
       }
       this.saveSettings();
+      return this;
    },
 
    storedSettings: function storedSettings() {
@@ -580,6 +499,7 @@ SCMAP.System.prototype = {
 
    saveSettings: function saveSettings() {
       SCMAP.settings.save('systems');
+      return this;
    },
 
    toString: function toString() {
