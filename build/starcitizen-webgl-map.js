@@ -1328,7 +1328,7 @@ SCMAP.System.prototype = {
 };
 
 SCMAP.System.preprocessSystems = function ( data ) {
-   var i, systemName, system;
+   var i, systemName, system, systems = [];
 
    SCMAP.data.systems = {};
    SCMAP.data.systemsById = {};
@@ -1342,17 +1342,29 @@ SCMAP.System.preprocessSystems = function ( data ) {
          SCMAP.data.systems[ system.name ]     = system;
          SCMAP.data.systemsById[ system.id ]   = system;
          SCMAP.data.systemsById[ system.uuid ] = system;
-         SCMAP.System.List.push( system );
+         systems.push( system );
       }
    }
 
    // Now go through the built objects again, fixing any leftover jumppoint data
-   $( SCMAP.System.List ).each( function ( i, system ) {
+   $( systems ).each( function ( i, system ) {
       system._fixJumpPoints( true );
    });
+
+   SCMAP.System.List = SCMAP.System.SortSystemList( systems );
 };
 
 SCMAP.System.List = [];
+
+SCMAP.System.SortSystemList = function SortSystemList( systems ) {
+   var array = [];
+   var i = systems.length;
+   while( i-- ) {
+      array[i] = systems[i];
+   }
+   var sorted = array.sort( humanSort );
+   return sorted;
+};
 
 SCMAP.System.fromJSON = function fromJSON( data ) {
    var system;
@@ -1384,16 +1396,6 @@ SCMAP.System.fromJSON = function fromJSON( data ) {
       'planetaryRotation': [], // TODO
       'jumpPoints': data.jumpPoints
    });
-};
-
-SCMAP.System.SortedList = function SortedList() {
-   var array = [];
-   var i = SCMAP.System.List.length;
-   while( i-- ) {
-      array[i] = SCMAP.System.List[i];
-   }
-   var sorted = array.sort( humanSort );
-   return sorted;
 };
 
 SCMAP.System.getByName = function getByName( name ) {
