@@ -2885,6 +2885,18 @@ SCMAP.UI = function () {
       $('#route').append( SCMAP.UI.Templates.routeList({ }));
    }
 
+   if ( $('#config') ) {
+      $('#config').append( SCMAP.UI.Templates.settings({ }));
+   }
+
+   if ( $('#debug') ) {
+      $('#debug').append( SCMAP.UI.Templates.debugInfo({ }));
+   }
+
+   if ( $('#about') ) {
+      $('#about').append( SCMAP.UI.Templates.about({ }));
+   }
+
    $( "#map_ui" ).tabs({
       active: 0,
       activate: function( event, ui ) {
@@ -3366,6 +3378,9 @@ SCMAP.UI.Templates = {
    },
    listings: Handlebars.compile( $('#template-systems-listing').html() ),
    routeList: Handlebars.compile( $('#template-route-list').html() ),
+   settings: Handlebars.compile( $('#template-settings').html() ),
+   debugInfo: Handlebars.compile( $('#template-debug-information').html() ),
+   about: Handlebars.compile( $('#template-about').html() )
 };
 
 // End of file
