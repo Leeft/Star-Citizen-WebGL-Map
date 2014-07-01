@@ -108,7 +108,7 @@ SCMAP.Dijkstra.prototype = {
                }
 
                // Don't go into "off limits" nodes
-               if ( SCMAP.settings.route.avoidOffLimits && otherNode.system.isOffLimits() ) {
+               if ( SCMAP.settings.route.avoidOffLimits && otherNode.system.isOffLimits ) {
                   continue;
                }
 

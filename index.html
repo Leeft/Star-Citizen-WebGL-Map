@@ -9,6 +9,7 @@
       <link href="css/sc.css" rel="stylesheet">
    </head>
    <body class="webgl-map">
+
       <div id="webgl-container" class="noselect webgl-container webgl-container-noedit"></div>
 
       <div id="map_ui_container">
@@ -29,84 +30,10 @@
                </ul>
 
                <div class="home" id="home"></div>
-
-               <div class="listing" id="listing" style="display: none;">
-                  <h1 class="padleft">Systems</h1>
-                  <div id="map-dynamic-lists"></div>
-               </div>
-
+               <div class="listing" id="listing" style="display: none;"></div>
                <div class="info" id="info" style="display: none;"></div>
-
-               <div class="route" id="route" style="display: none;">
-
-                  <h1><a href="#" class="no-pad-top" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Routing options</a></h1>
-                  <p class="ui-section" style="display: none;">
-                     <span class="checkmark-option">
-                        <input type="checkbox" id="avoid-hostile">
-                        <label for="avoid-hostile">Don't enter hostile territory
-                           <span class="small label-info">But do try to get out of it quickly.</span>
-                        </label>
-                     </span>
-                     <span class="checkmark-option">
-                        <input type="checkbox" id="avoid-unknown-jumppoints">
-                        <label for="avoid-unknown-jumppoints">Avoid unconfirmed jumppoints
-                           <span class="small label-info">Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines.</span>
-                        </label>
-                     </span>
-                     <span class="checkmark-option"><input type="checkbox" id="avoid-off-limits">
-                        <label for="avoid-off-limits">Avoid 'off limits' systems
-                           <span class="small label-info">Note though that not all of the system marked as such is necessarily off-limits.</span>
-                        </label>
-                     </span>
-                  </p>
-
-                  <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>How this works</a></h1>
-                  <div class="ui-section" style="display: none;">
-                     <p>
-                        Click and drag from system to system to calculate a route between
-                        these two systems, which then becomes your current route. You can
-                        have only one active route, so you must delete the current route
-                        to create a new one, or modify your existing route as desired.
-                     </p>
-                     <p>
-                        Use the options section above to configure the global routing
-                        options, or set the 'avoid' flag on a system to change the
-                        routing through that system only. Note that all route options are
-                        advisory, the user has the final say ... as an example: if you set
-                        the destination just into hostile territory then turning on the
-                        option to avoid hostile systems will not be effective.
-                     </p>
-                     <p>
-                        The route will always be the shortest number of jumps possible
-                        with the given settings, as using a jump is always faster
-                        than traveling in a system from jumppoint to jumppoint, and using
-                        jumppoints has been stated to not require fuel.
-                     </p>
-                     <p>
-                        Once a route is set, you can drag any of its waypoints elsewhere.
-                        Dragging will create a new waypoint as needed. Existing waypoints
-                        on the route can be removed again with the
-                        <i class="fa fa-times"></i> symbol in the route list below.
-                     </p>
-                     <p>
-                        On a final note: the given estimate times are extremely rough
-                        indications based on available information (very little at this
-                        time). As we learn more about the in-system and jumppoint
-                        traveling I'll do my best to refine the calculation accordingly.
-                     </p>
-                  </div>
-
-                  <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Calculated route</a></h1>
-                  <div id="routelist" class="routelist ui-section">
-                     <p>No route set.</p>
-                  </div>
-
-               </div>
-
-               <div class="editor" id="editor" style="display: none;">
-                  <h1 class="padleft">Editor Mode</h1>
-                  <p class="ui-section">The map editor is a feature for the future, when I get around to it :)</p>
-               </div>
+               <div class="route" id="route" style="display: none;"></div>
+               <div class="editor" id="editor" style="display: none;"></div>
 
                <div class="config" id="config" style="display: none;">
                   <h1 class="padleft">Settings</h1>
@@ -191,7 +118,6 @@
                   <p class="ui-section">
                      The icons are from the awesome <a href="http://fontawesome.io/" target="_blank">Font Awesome 4.1.0</a> by Dave Gandy.
                   </p>
-
                </div>
             </div>
          </div>
@@ -206,33 +132,68 @@
          data-pan-speed="0.6"
       ></div>
 
-      <script id="template-fa-UL" type="text/x-handlebars-template">
-         {{! FontAwesome bulleted list, expects faClass to be set }}
-         <ul class="fa-ul {{cssClass}}">
-         {{#each item}}
-            <li><i class="fa fa-li {{../faClass}}"></i>{{{this}}}</dt>
-         {{/each}}
+      <template id="template-main-instructions">
+         {{uiSection 'Instructions' 0 class='no-pad-top' }}
+         <ul class="fa-ul bullet-list-med">
+            {{#each items}}
+            <li><i class="fa fa-li fa-circle-thin"></i>{{{this}}}</li>
+            {{/each}}
          </ul>
-      </script>
+         {{endUiSection }}
+      </template>
 
-      <script id="template-route-list" type="text/x-handlebars-template">
-         {{#unless route}}
-            <p class="no-route">No route set.</p>
-         {{else}}
-            <table class="routelist">
-               <caption>
-                  Route from {{ systemLink route.from noIcons=1 noTarget=1 }} to {{ systemLink route.to noIcons=1 noTarget=1 }} along
-                  <strong class="route-count">{{ route.length }}</strong> jump points:
-               </caption>
-               <thead>
-               </thead>
-               <tbody>
-               </tbody>
-            </table>
-         {{/unless}}
-      </script>
+      <template id="template-main-shortcuts">
+         {{uiSection 'Keyboard shortcuts' 0 }}
+         <dl class="shortcuts">
+            {{#each items}}
+            <dt>{{{ key }}}</dt>
+            <dd>{{{ description }}}</dd>
+            {{/each}}
+         </dl>
+         {{endUiSection }}
+      </template>
 
-      <script id="template-system-info" type="text/x-handlebars-template">
+      <template id="template-main-icon-legend">
+         {{uiSection 'Icon legend' 0 }}
+         <ul class="fa-ul bullet-list-med legend">
+            {{#each items}}
+            <li>{{{this}}}</li>
+            {{/each}}
+         </ul>
+         {{endUiSection }}
+      </template>
+
+      <template id="template-main-quick-functions">
+         {{uiSection 'Quick functions' 1 }}
+         <p>
+            {{bigButton "resetCamera"  "fa-camera"       "Reset view" }}
+            {{bigButton "centreCamera" "fa-home"         "Centre view [C]" }}
+            {{bigButton "northCamera"  "fa-compass"      "Reset orientation [R]" }}
+            {{bigButton "topCamera"    "fa-camera-retro" "Top-down view [T]" }}
+            {{bigButton "top2D"        "fa-map-marker"   "2D map mode [2]" }}
+            <br>
+            {{checkboxButton "3d-mode"       "3D map mode [3]" }}
+            {{checkboxButton "lock-rotation" "Lock map rotation [L]" }}
+         </p>
+         {{endUiSection }}
+      </template>
+
+      <template id="template-systems-listing">
+         <h1 class="padleft">Systems</h1>
+         {{#each sections}}
+            {{#if items}}
+               {{ uiSection title 0 }}
+                  <ul>
+                  {{#each items}}
+                     <li>{{{this}}}</li>
+                  {{/each}}
+                  </ul>
+               {{ endUiSection }}
+            {{/if}}
+         {{/each}}
+      </template>
+
+      <template id="template-system-info">
          {{#if system}}
             <h1 id="systemname" class="systemname padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.name}}</h1>
             {{#if system.nickname}}
@@ -240,66 +201,69 @@
             {{/if}}
 
             <article>
-               <h1><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Basic info</a></h1>
-               <dl class="wide basic-system">
-                  <dt class="faction">Faction</dt>
-                  <dd class="faction">{{ system.faction.name }}</dd>
+               {{uiSection 'Basic info' 1 }}
+                  <dl class="wide basic-system">
+                     <dt class="faction">Faction</dt>
+                     <dd class="faction">{{ system.faction.name }}</dd>
 
-                  <!-- <dt class="planets">Planets</dt>
-                  <dd class="planets">TODO</dd> -->
+                     <!-- <dt class="planets">Planets</dt>
+                     <dd class="planets">TODO</dd> -->
 
-                  <!-- <dt class="rotation">Planetary rotation</dt>
-                  <dd class="rotation">TODO</dd> -->
+                     <!-- <dt class="rotation">Planetary rotation</dt>
+                     <dd class="rotation">TODO</dd> -->
 
-                  <dt class="import">Import</dt>
-                  <dd class="import">{{{ commoditiesList system.import }}}</dd>
+                     <dt class="import">Import</dt>
+                     <dd class="import">{{{ commoditiesList system.import }}}</dd>
 
-                  <dt class="export">Export</dt>
-                  <dd class="export">{{{ commoditiesList system.export }}}</dd>
+                     <dt class="export">Export</dt>
+                     <dd class="export">{{{ commoditiesList system.export }}}</dd>
 
-                  <dt class="blackMarket">Black market</dt>
-                  <dd class="blackMarket">{{{ commoditiesList system.blackMarket }}}</dd>
+                     <dt class="blackMarket">Black market</dt>
+                     <dd class="blackMarket">{{{ commoditiesList system.blackMarket }}}</dd>
 
-{{! TODO: warning, offlimits, tradehub }}
+   {{! TODO: warning, offlimits, tradehub }}
 
-                  <dt class="crime">Crime status</dt>
-                  <dd class="crime crime_{{ system.crimeStatus.name }}">{{ system.crimeStatus.name }}</dd>
+                     <dt class="crime">Crime status</dt>
+                     <dd class="crime crime_{{ system.crimeStatus.name }}">{{ system.crimeStatus.name }}</dd>
 
-                  <dt class="strategic">UEE strategic value</dt>
-                  <dd class="strategic strategic_value_{{ system.ueeStrategicValue.color }}">{{ system.ueeStrategicValue.color }}</dd>
-               </dl>
+                     <dt class="strategic">UEE strategic value</dt>
+                     <dd class="strategic strategic_value_{{ system.ueeStrategicValue.color }}">{{ system.ueeStrategicValue.color }}</dd>
+                  </dl>
+               {{endUiSection }}
             </article>
 
             <article>
-               <h1 class="your-info-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Comments and settings</a></h1>
-               <div class="user ui-section" style="display: none;">
-                  {{ checkboxButton "hangar-location" 'My hangar location <i class="fa fa-lg fa-fw fa-home"></i>' class="user-system-ishangar" data-system=system.id }}
-                  {{ checkboxButton "bookmark" 'Bookmarked <i class="fa fa-lg fa-fw fa-bookmark"></i>' class="user-system-bookmarked" data-system=system.id }}
-                  {{ checkboxButton "avoid-system" 'Avoid: don\'t route here <i class="fa fa-lg fa-fw fa-times"></i>' class="user-system-avoid" data-system=system.id }}
+               {{uiSection 'Comments and settings' 0 }}
+
+                  {{checkboxButton "hangar-location" "My hangar location"      icon="fa-home"     class="user-system-ishangar"   data-system=system.id }}
+                  {{checkboxButton "bookmark"        "Bookmarked"              icon="fa-bookmark" class="user-system-bookmarked" data-system=system.id }}
+                  {{checkboxButton "avoid-system"    "Avoid: don't route here" icon="fa-times"    class="user-system-avoid"      data-system=system.id }}
 
                   <div class="comment-editing">
-                     <h2><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>Edit your comments</a></h2>
-                     <div class="user wide ui-section" style="display: none;">
-                        <label for="user-comments-{{ system.id }}">Your comments (<a href="https://daringfireball.net/projects/markdown/basics" target="_new">markdown syntax</a>):
-                        </label><a href="#" class="remove-system-comments" title="Remove" data-id="{{ system.id }}" class="pull-right text-danger"><i class="fa fa-fw fa-lg fa-times"></i></a>
-                        <textarea id="user-comments-{{ system.id }}" data-id="{{ system.id}}" class="user-system-comments"></textarea>
-                     </div>
+                     {{uiSection 'Edit your comments' 0 class='user ui-section' }}
+                        <div class="user wide">
+                           <label for="user-comments-{{ system.id }}">Your comments (<a href="https://daringfireball.net/projects/markdown/basics" target="_new">markdown syntax</a>):
+                           </label><a href="#" class="remove-system-comments" title="Remove" data-id="{{ system.id }}" class="pull-right text-danger"><i class="fa fa-fw fa-lg fa-times"></i></a>
+                           <textarea id="user-comments-{{ system.id }}" data-id="{{ system.id}}" class="user-system-comments"></textarea>
+                        </div>
+                     {{endUiSection }}
                   </div>
+
                   <p class="user-system-comments-md"></p>
-               </div>
+
+               {{endUiSection }}
             </article>
 
             {{#each system.info}}
             <article>
-               <h1 class="system-blurb-header"><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-down"></i>Background info</a></h1>
-               <div class="ui-section">
+               {{uiSection 'Background info' 1 }}
                   <div class="system-blurb-body" data-source="{{ this.source }}">
                      {{markdown this.blob}}
                   </div>
                   {{#if this.source}}
                   <p class="system-blurb-source"><a href="{{ this.source }}" target="_new">(source)</a></p>
                   {{/if}}
-               </div>
+               {{endUiSection }}
             </article>
             {{/each}}
 
@@ -310,45 +274,99 @@
             </div>
 
          {{/if}}
-      </script>
+      </template>
 
-      <script id="template-basicDL" type="text/x-handlebars-template">
+      <template id="template-route-list">
+         {{uiSection 'Routing options' 0 class="no-pad-top" }}
+            {{checkboxOption "avoid-hostile" "Don't enter hostile territory" "But do try to get out of it quickly."}}
+            {{checkboxOption "avoid-unknown-jumppoints" "Avoid unconfirmed jumppoints" "Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines."}}
+            {{checkboxOption "avoid-off-limits" "Avoid 'off limits' systems" "Note though that not all of the system marked as such is necessarily off-limits."}}
+         {{endUiSection }}
+
+         {{uiSection 'How this works' 0 }}
+            <p>
+               Click and drag from system to system to calculate a route between these two systems, which then becomes your current route. You can
+               have only one active route, so you must delete the current route to create a new one, or modify your existing route as desired.
+            </p>
+            <p>
+               Use the options section above to configure the global routing options, or set the 'avoid' flag on a system to change the
+               routing through that system only. Note that all route options are advisory, the user has the final say ... as an example: if you set
+               the destination just into hostile territory then turning on the option to avoid hostile systems will not be effective.
+            </p>
+            <p>
+               The route will always be the shortest number of jumps possible with the given settings, as using a jump is always faster
+               than traveling in a system from jumppoint to jumppoint, and using jumppoints has been stated to not require fuel.
+            </p>
+            <p>
+               Once a route is set, you can drag any of its waypoints elsewhere.  Dragging will create a new waypoint as needed. Existing waypoints
+               on the route can be removed again with the <i class="fa fa-times"></i> symbol in the route list below.
+            </p>
+            <p>
+               On a final note: the given estimate times are extremely rough indications based on available information (very little at this
+               time). As we learn more about the in-system and jumppoint traveling I'll do my best to refine the calculation accordingly.
+            </p>
+         {{endUiSection }}
+
+         {{uiSection 'Calculated route' 1 class="routelist" }}
+            {{#if route}}
+               <table class="routelist">
+                  <caption>
+                     Route from {{ systemLink route.from noIcons=1 noTarget=1 }} to {{ systemLink route.to noIcons=1 noTarget=1 }}
+                     along <strong class="route-count">{{ route.length }}</strong> jump points:
+                  </caption>
+                  <thead>
+                  </thead>
+                  <tbody>
+                  </tbody>
+               </table>
+            {{else}}
+               <p class="no-route">No route set.</p>
+            {{/if}}
+         {{endUiSection }}
+      </template>
+
+      <template id="template-basicDL">
          <dl class="{{cssClass}}">
          {{#each item}}
             <dt>{{key}}</dt>
-            <dd>{{{description}}}</dd>
+            <dd>{{{detemplateion}}}</dd>
          {{/each}}
          </dl>
-      </script>
+      </template>
 
-      <script id="template-closed-section" type="text/x-handlebars-template">
-         {{! UI block which is closed by default }}
-         <h1><a href="#" data-toggle-next="next" class="{{cssClass}}"><i class="fa fa-fw fa-lg fa-caret-right"></i>{{{title}}}</a></h1>
-         <div class="ui-section" style="display: none;">
-            {{{body}}}
-         </div>
-      </script>
+      <template id="template-fa-UL">
+         {{! FontAwesome bulleted list, expects faClass to be set }}
+         <ul class="fa-ul {{cssClass}}">
+         {{#each items}}
+            <li><i class="fa fa-li {{../faClass}}"></i>{{{this}}}</dt>
+         {{/each}}
+         </ul>
+      </template>
 
-      <script id="template-open-section" type="text/x-handlebars-template">
-         {{! UI block which is open by default }}
-         <h1><a href="#" data-toggle-next="next" class="{{cssClass}}"><i class="fa fa-fw fa-lg fa-caret-down"></i>{{{title}}}</a></h1>
-         <div class="ui-section">
-            {{{body}}}
-         </div>
-      </script>
+      <template id="vertexShader">
+         uniform vec3 viewVector;
+         uniform float c;
+         uniform float p;
+         varying float intensity;
+         void main()
+         {
+            vec3 vNormal = normalize( normalMatrix * normal );
+            vec3 vNormel = normalize( normalMatrix * viewVector );
+            intensity = pow( c - dot(vNormal, vNormel), p );
 
-      <script id="template-quick-functions" type="text/x-handlebars-template">
-         <p>
-            {{ bigButton "resetCamera"  "fa-camera"       "Reset view" }}
-            {{ bigButton "centreCamera" "fa-home"         "Centre view [C]" }}
-            {{ bigButton "northCamera"  "fa-compass"      "Reset orientation [R]" }}
-            {{ bigButton "topCamera"    "fa-camera-retro" "Top-down view [T]" }}
-            {{ bigButton "top2D"        "fa-map-marker"   "2D map mode [2]" }}
-            <br>
-            {{ checkboxButton "3d-mode"       "3D map mode [3]" }}
-            {{ checkboxButton "lock-rotation" "Lock map rotation [L]" }}
-         </p>
-      </script>
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+         }
+      </template>
+
+      <template id="fragmentShader">
+         uniform vec3 glowColor;
+         varying float intensity;
+         void main()
+         {
+            vec3 glow = glowColor * intensity;
+            gl_FragColor = vec4( glow, 1.0 );
+         }
+      </template>
 
       <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
       <script src="//code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
@@ -356,28 +374,6 @@
       <script src="build/starcitizen-webgl-map-libs.js"></script>
       <script src="build/starcitizen-webgl-map.js"></script>
       <script src="build/starcitizen-webgl-map-seed-data.min.js"></script>
-      <script id="vertexShader" type="x-shader/x-vertex">
-         uniform vec3 viewVector;
-         uniform float c;
-         uniform float p;
-         varying float intensity;
-         void main() 
-         {
-            vec3 vNormal = normalize( normalMatrix * normal );
-            vec3 vNormel = normalize( normalMatrix * viewVector );
-            intensity = pow( c - dot(vNormal, vNormel), p );
-                        
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-         }
-      </script>
-      <script id="fragmentShader" type="x-shader/x-vertex"> 
-         uniform vec3 glowColor;
-         varying float intensity;
-         void main() 
-         {
-            vec3 glow = glowColor * intensity;
-            gl_FragColor = vec4( glow, 1.0 );
-         }
-      </script>
+
    </body>
 </html>

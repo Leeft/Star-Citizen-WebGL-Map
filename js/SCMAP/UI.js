@@ -8,44 +8,30 @@ SCMAP.UI = function () {
 
    if ( $('#home') )
    {
-      // Instructions (closed)
-      $('#home').append(
-         SCMAP.UI.Templates.closedSection({
-            title: "Instructions",
-            cssClass: 'no-pad-top',
-            body: SCMAP.UI.Templates.faUL({
-               cssClass: "fa-bullet-list-med",
-               faClass: "fa-circle-thin",
-               item: [
-                  "Left-click and release to select a system.",
-                  "Left-click and drag from system to system to map a route between them.",
-                  "Left-click and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.",
-                  "Left-click and drag on the map to rotate the camera around the center of the map.",
-                  "Mousewheel to zoom in and out, middle-click and drag can also be used.",
-                  "Right-click to pan the camera around the map."
-               ]
-            })
-         })
-      );
+      // Instructions
+      $('#home').append( SCMAP.UI.Templates.main.instructions({
+         items: [
+            "Left-click and release to select a system.",
+            "Left-click and drag from system to system to map a route between them.",
+            "Left-click and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.",
+            "Left-click and drag on the map to rotate the camera around the center of the map.",
+            "Mousewheel to zoom in and out, middle-click and drag can also be used.",
+            "Right-click to pan the camera around the map."
+         ]
+      }));
 
       // Keyboard shortcuts (closed)
-      $('#home').append(
-         SCMAP.UI.Templates.closedSection({
-            title: "Keyboard shortcuts",
-            body: SCMAP.UI.Templates.basicDL({
-               cssClass: "shortcuts",
-               item: [
-                  { key: "R",   description: "Reset camera orientation" },
-                  { key: "C",   description: "Camera to center (Sol)" },
-                  { key: "T",   description: "Top-down camera" },
-                  { key: "L",   description: "Lock/unlock camera rotation" },
-                  { key: "2",   description: "Switch to 2D mode" },
-                  { key: "3",   description: "Switch to 3D mode" },
-                  { key: "Esc", description: "Deselect target" }
-               ]
-            })
-         })
-      );
+      $('#home').append( SCMAP.UI.Templates.main.shortcuts({
+         items: [
+            { key: "R",   description: "Reset camera orientation" },
+            { key: "C",   description: "Camera to center (Sol)" },
+            { key: "T",   description: "Top-down camera" },
+            { key: "L",   description: "Lock/unlock camera rotation" },
+            { key: "2",   description: "Switch to 2D mode" },
+            { key: "3",   description: "Switch to 3D mode" },
+            { key: "Esc", description: "Deselect target" }
+         ]
+      }));
 
       // Icon legend (closed)
       var icons = [];
@@ -53,24 +39,11 @@ SCMAP.UI = function () {
          icon = SCMAP.Symbols[ icon ]; // TODO use a handlebar template
          icons.push( $('<span><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</span>' ).css( 'color', icon.color ).outerHtml() );
       }
-      $('#home').append(
-         SCMAP.UI.Templates.closedSection({
-            title: "Icon legend",
-            body: SCMAP.UI.Templates.faUL({
-               cssClass: "bullet-list-med legend",
-               //faClass: "fa-circle-thin",
-               item: icons
-            })
-         })
-      );
+      $('#home').append( SCMAP.UI.Templates.main.iconLegend({ items: icons }));
 
       // Quick functions (open)
-      $('#home').append(
-         SCMAP.UI.Templates.openSection({
-            title: "Quick functions",
-            body: Handlebars.compile( $('#template-quick-functions').html() )
-         })
-      );
+      $('#home').append( SCMAP.UI.Templates.main.quickFunctions({ }) );
+
 
       $('#3d-mode').prop( 'checked', SCMAP.settings.mode === '3d' );
       $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
@@ -106,6 +79,10 @@ SCMAP.UI = function () {
          displayState.to2d();
          controls.rotateTo( 0, 0, 180 );
       });
+   }
+
+   if ( $('#route') ) {
+      $('#route').append( SCMAP.UI.Templates.routeList({ }));
    }
 
    $( "#map_ui" ).tabs({
@@ -422,8 +399,6 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
    var byFaction = [];
    var everything = [];
 
-   $('#map-dynamic-lists').empty(); 
-
    $( SCMAP.System.List ).each( function ( i, system ) {
       var link = system.createInfoLink().outerHtml(); // TODO replace with template
 
@@ -431,6 +406,7 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
       if ( system.isBookmarked() ) { bookmarked.push( link ); }
       if ( system.hasComments() ) { withComments.push( link ); }
 
+      // TODO: By faction
       //for ( var factionId in SCMAP.data.factions ) {
       //   var faction = SCMAP.data.factions[factionId];
       //   $('#list-faction-'+faction.id).empty();
@@ -441,72 +417,66 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
       //      }
       //   }
       //}
+      //$('#faction-list').empty();
+      //for ( var factionId in SCMAP.data.factions ) {
+      //   var faction = SCMAP.data.factions[factionId];
+      //   var $factionHeader = $('<h3><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>'+faction.name+'</a></h3>');
+      //       $factionHeader.find('a').css( 'color', faction.color.getStyle() );
+      //   var $factionSystems = $('<ul style="display: none;" id="list-faction-'+faction.id+'" class="fa-ul ui-section"></ul>');
+      //   $('#faction-list').append( $factionHeader ).append( $factionSystems );
+      //}
 
       everything.push( link );
    });
 
-   if ( hangars.length ) {
-      $('#map-dynamic-lists').append(
-         SCMAP.UI.Templates.closedSection({
-            title: "Hangar locations&nbsp;" + SCMAP.Symbol.getTag( SCMAP.Symbols.HANGAR ).addClass('fa-lg').outerHtml(),
-            body: SCMAP.UI.Templates.faUL({
-               //cssClass: "shortcuts",
-               item: hangars
-            })
-         })
-      );
+   $('#listing').empty().append( SCMAP.UI.Templates.listings({
+      sections: [
+         {
+            title: "Hangar locations&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.HANGAR ).addClass('fa-lg').outerHtml(),
+            items: hangars
+         },
+         {
+            title: "Bookmarked&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.BOOKMARK ).addClass('fa-lg').outerHtml(),
+            items: bookmarked
+         },
+         {
+            title: "With your comments&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.COMMENTS ).addClass('fa-lg').outerHtml(),
+            items: withComments
+         },
+         {
+            title: "Everything",
+            items: everything
+         }
+      ]
+   }));
+};
+
+var sectionLevel = 1;
+Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
+   var cssClass = '';
+   var opened = ( shouldOpen ) ? true : false;
+   var icon = 'fa-caret-right';
+   var hidden = 'style="display: none;"';
+   if ( 'class' in options.hash ) {
+      cssClass = 'class="'+options.hash.class+'"';
    }
-
-   if ( bookmarked.length ) {
-      $('#map-dynamic-lists').append(
-         SCMAP.UI.Templates.closedSection({
-            title: "Bookmarked&nbsp;" + SCMAP.Symbol.getTag( SCMAP.Symbols.BOOKMARK ).addClass('fa-lg').outerHtml(),
-            body: SCMAP.UI.Templates.faUL({
-               item: bookmarked
-            })
-         })
-      );
+   if ( opened ) {
+      icon = 'fa-caret-down';
+      hidden = '';
    }
-
-   if ( withComments.length ) {
-      $('#map-dynamic-lists').append(
-         SCMAP.UI.Templates.closedSection({
-            title: "With your comments&nbsp;" + SCMAP.Symbol.getTag( SCMAP.Symbols.COMMENTS ).addClass('fa-lg').outerHtml(),
-            body: SCMAP.UI.Templates.faUL({
-               item: withComments
-            })
-         })
-      );
-   }
-
-   // TODO: By faction
-   //$('#faction-list').empty();
-   //for ( var factionId in SCMAP.data.factions ) {
-   //   var faction = SCMAP.data.factions[factionId];
-   //   var $factionHeader = $('<h3><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>'+faction.name+'</a></h3>');
-   //       $factionHeader.find('a').css( 'color', faction.color.getStyle() );
-   //   var $factionSystems = $('<ul style="display: none;" id="list-faction-'+faction.id+'" class="fa-ul ui-section"></ul>');
-   //   $('#faction-list').append( $factionHeader ).append( $factionSystems );
-   //}
-
-   $('#map-dynamic-lists').append(
-      SCMAP.UI.Templates.closedSection({
-         title: "Everything",
-         body: SCMAP.UI.Templates.faUL({
-            item: everything
-         })
-      })
+   var oldLevel = sectionLevel++; // FIXME doesn't work yet :(
+   return new Handlebars.SafeString(
+      '<h'+oldLevel+'><a href="#" data-toggle-next="next" '+cssClass+'><i class="fa fa-fw fa-lg '+icon+'"></i>'+title+'</a></h'+oldLevel+'>'+
+      '<div class="ui-section" '+hidden+'>'
    );
-};
-
-SCMAP.UI.Templates = {
-   closedSection: Handlebars.compile( $('#template-closed-section').html() ),
-   openSection: Handlebars.compile( $('#template-open-section').html() ),
-   basicDL: Handlebars.compile( $('#template-basicDL').html() ),
-   faUL: Handlebars.compile( $('#template-fa-UL').html() ),
-   routeList: Handlebars.compile( $('#template-route-list').html() ),
-   systemInfo: Handlebars.compile( $('#template-system-info').html() )
-};
+});
+Handlebars.registerHelper( 'endUiSection', function() {
+   sectionLevel -= 1;
+   if ( sectionLevel < 1 ) {
+      sectionLevel = 1;
+   }
+   return new Handlebars.SafeString( '</div>' );
+});
 
 Handlebars.registerHelper( 'tabHeader', function( title ) {
    return new Handlebars.SafeString( '<h1 class="padleft">'+title+'</h1>' );
@@ -550,7 +520,11 @@ Handlebars.registerHelper( 'systemLink', function( system, options ) {
 Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
    var attrs = [];
    for ( var prop in options.hash ) {
-      attrs.push( prop + '="' + options.hash[prop] + '"' );
+      if ( prop === 'icon' ) {
+         title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
+      } else {
+         attrs.push( prop + '="' + options.hash[prop] + '"' );
+      }
    }
    return new Handlebars.SafeString(
       '<span class="checkmark-button">'+
@@ -558,5 +532,40 @@ Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
       '</span>'
    );
 });
+
+Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
+   var attrs = [];
+   for ( var prop in options.hash ) {
+      if ( prop === 'icon' ) {
+         title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
+      } else {
+         attrs.push( prop + '="' + options.hash[prop] + '"' );
+      }
+   }
+   return new Handlebars.SafeString(
+      '<span class="checkmark-option">'+
+         '<input type="checkbox" id="'+id+'">'+
+         '<label for="'+id+'">'+title+
+            '<span class="small label-info">'+description+'</span>'+
+         '</label>'+
+      '</span>'
+   );
+});
+
+Handlebars.registerPartial( 'faUL', $('#template-fa-UL').html() );
+
+SCMAP.UI.Templates = {
+   basicDL: Handlebars.compile( $('#template-basicDL').html() ),
+   faUL: Handlebars.compile( $('#template-fa-UL').html() ),
+   systemInfo: Handlebars.compile( $('#template-system-info').html() ),
+   main: {
+      instructions:   Handlebars.compile( $('#template-main-instructions').html() ),
+      shortcuts:      Handlebars.compile( $('#template-main-shortcuts').html() ),
+      iconLegend:     Handlebars.compile( $('#template-main-icon-legend').html() ),
+      quickFunctions: Handlebars.compile( $('#template-main-quick-functions').html() )
+   },
+   listings: Handlebars.compile( $('#template-systems-listing').html() ),
+   routeList: Handlebars.compile( $('#template-route-list').html() ),
+};
 
 // End of file
