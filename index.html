@@ -10,35 +10,6 @@
    </head>
    <body class="webgl-map">
 
-      <div id="webgl-container" class="noselect webgl-container webgl-container-noedit"></div>
-
-      <div id="map_ui_container">
-
-         <div id="map_ui" class="map_ui medium noselect">
-
-            <div class="map_ui_padding">
-               <ul class="menubar">
-                  <li class="home"><a title="Usage" href="#home"><i class="fa fa-home fa-fw fa-2x"></i></a></li>
-                  <li class="listing"><a title="Systems" href="#listing"><i class="fa fa-list fa-fw fa-2x"></i></a></li>
-                  <li class="info"><a title="Selected Item Information" href="#info"><i class="fa fa-info-circle fa-fw fa-2x"></i></a></li>
-                  <li class="route"><a title="Plan a route" href="#route"><i class="fa fa-paper-plane fa-fw fa-2x"></i></a></li>
-                  <li class="editor" style="display: none;"><a title="Map Editor" href="#editor"><i class="fa fa-edit fa-fw fa-2x"></i></a></li>
-                  <li class="config"><a title="Settings" href="#config"><i class="fa fa-wrench fa-fw fa-2x"></i></a></li>
-                  <li class="debug"><a title="Debug Information" href="#debug"><i class="fa fa-bug fa-fw fa-2x"></i></a></li>
-                  <li class="about"><a title="About this map" href="#about"><i class="fa fa-comment fa-fw fa-2x"></i></a></li>
-               </ul>
-               <div class="home" id="home"></div>
-               <div class="listing" id="listing" style="display: none;"></div>
-               <div class="info" id="info" style="display: none;"></div>
-               <div class="route" id="route" style="display: none;"></div>
-               <div class="editor" id="editor" style="display: none;"></div>
-               <div class="config" id="config" style="display: none;"></div>
-               <div class="debug" id="debug" style="display: none;"></div>
-               <div class="about" id="about" style="display: none;"></div>
-            </div>
-         </div>
-      </div>
-
       <div id="sc-map-config"
          data-systems-json="js/data/systems.min.json"
          data-glow-image="images/glow.png"
@@ -48,39 +19,88 @@
          data-pan-speed="0.6"
       ></div>
 
-      <template id="template-main-instructions">
-         {{uiSection 'Instructions' 0 class='no-pad-top' }}
+      <div id="webgl-container" class="noselect webgl-container webgl-container-noedit"></div>
+      <div id="map_ui_container">
+         <div id="map_ui" class="map_ui medium noselect"></div>
+      </div>
+
+      <script id="templateMapUI" type="text/x-handlebars-template">
+         <div class="map_ui_padding">
+            <ul class="menubar">
+               {{mapUiTabHeader 'home' 'Usage' 'fa-home'}}
+               {{mapUiTabHeader 'listing' 'Systems' 'fa-list'}}
+               {{mapUiTabHeader 'info' 'Selected System Information' 'fa-info-circle'}}
+               {{mapUiTabHeader 'route' 'Plan a route' 'fa-paper-plane'}}
+               {{mapUiTabHeader 'config' 'Settings' 'fa-wrench'}}
+               {{mapUiTabHeader 'debug' 'Debug Information' 'fa-bug'}}
+               {{mapUiTabHeader 'about' 'About this map' 'fa-comment'}}
+            </ul>
+            <div id="home">
+               {{>templateMainInstructions}}
+               {{>templateMainShortcuts}}
+               {{>templateMainIconLegend}}
+               {{>templateMainQuickFunctions}}
+            </div>
+
+            <div style="display: none;" id="listing">
+               {{! Populated dynamically and on-demand }}
+            </div>
+
+            <div style="display: none;" id="info">
+               {{! Populated dynamically and on-demand }}
+            </div>
+
+            <div style="display: none;" id="route">
+               {{>templateRouteList}}
+            </div>
+
+            <div style="display: none;" id="config">
+               {{>templateSettings}}
+            </div>
+
+            <div style="display: none;" id="debug">
+               {{>templateDebugInformation}}
+            </div>
+
+            <div style="display: none;" id="about">
+               {{>templateAbout}}
+            </div>
+         </div>
+      </script>
+
+      <script id="templateMainInstructions" data-partial="1" type="text/x-handlebars-template">
+         {{#uiSection 'Instructions' 0 class='no-pad-top' }}
          <ul class="fa-ul bullet-list-med">
-            {{#each items}}
+            {{#each instructions}}
             <li><i class="fa fa-li fa-circle-thin"></i>{{{this}}}</li>
             {{/each}}
          </ul>
-         {{endUiSection }}
-      </template>
+         {{/uiSection }}
+      </script>
 
-      <template id="template-main-shortcuts">
-         {{uiSection 'Keyboard shortcuts' 0 }}
+      <script id="templateMainShortcuts" data-partial="1" type="text/x-handlebars-template">
+         {{#uiSection 'Keyboard shortcuts' 0 }}
          <dl class="shortcuts">
-            {{#each items}}
+            {{#each shortcuts}}
             <dt>{{{ key }}}</dt>
             <dd>{{{ description }}}</dd>
             {{/each}}
          </dl>
-         {{endUiSection }}
-      </template>
+         {{/uiSection }}
+      </script>
 
-      <template id="template-main-icon-legend">
-         {{uiSection 'Icon legend' 0 }}
+      <script id="templateMainIconLegend" data-partial="1" type="text/x-handlebars-template">
+         {{#uiSection 'Icon legend' 0 }}
          <ul class="fa-ul bullet-list-med legend">
-            {{#each items}}
+            {{#each icons}}
             <li>{{{this}}}</li>
             {{/each}}
          </ul>
-         {{endUiSection }}
-      </template>
+         {{/uiSection }}
+      </script>
 
-      <template id="template-main-quick-functions">
-         {{uiSection 'Quick functions' 1 }}
+      <script id="templateMainQuickFunctions" data-partial="1" type="text/x-handlebars-template">
+         {{#uiSection 'Quick functions' 1 }}
          <p>
             {{bigButton "resetCamera"  "fa-camera"       "Reset view" }}
             {{bigButton "centreCamera" "fa-home"         "Centre view [C]" }}
@@ -91,25 +111,25 @@
             {{checkboxButton "3d-mode"       "3D map mode [3]" }}
             {{checkboxButton "lock-rotation" "Lock map rotation [L]" }}
          </p>
-         {{endUiSection }}
-      </template>
+         {{/uiSection }}
+      </script>
 
-      <template id="template-systems-listing">
+      <script id="templateSystemsListing" data-partial="1" type="text/x-handlebars-template">
          <h1 class="padleft">Systems</h1>
-         {{#each sections}}
+         {{#each systemGroups}}
             {{#if items}}
-               {{ uiSection title 0 }}
-                  <ul>
+               {{#uiSection title 0 }}
+                  <ul class="nostyle">
                   {{#each items}}
                      <li>{{{this}}}</li>
                   {{/each}}
                   </ul>
-               {{ endUiSection }}
+               {{/uiSection }}
             {{/if}}
          {{/each}}
-      </template>
+      </script>
 
-      <template id="template-system-info">
+      <script id="templateSystemInfo" data-partial="1" type="text/x-handlebars-template">
          {{#if system}}
             <h1 id="systemname" class="systemname padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.name}}</h1>
             {{#if system.nickname}}
@@ -117,7 +137,7 @@
             {{/if}}
 
             <article>
-               {{uiSection 'Basic info' 1 }}
+               {{#uiSection 'Basic info' 1 }}
                   <dl class="wide basic-system">
                      <dt class="faction">Faction</dt>
                      <dd class="faction">{{ system.faction.name }}</dd>
@@ -145,41 +165,41 @@
                      <dt class="strategic">UEE strategic value</dt>
                      <dd class="strategic strategic_value_{{ system.ueeStrategicValue.color }}">{{ system.ueeStrategicValue.color }}</dd>
                   </dl>
-               {{endUiSection }}
+               {{/uiSection }}
             </article>
 
             <article>
-               {{uiSection 'Comments and settings' 0 }}
+               {{#uiSection 'Comments and settings' 0 }}
 
                   {{checkboxButton "hangar-location" "My hangar location"      icon="fa-home"     class="user-system-ishangar"   data-system=system.id }}
                   {{checkboxButton "bookmark"        "Bookmarked"              icon="fa-bookmark" class="user-system-bookmarked" data-system=system.id }}
                   {{checkboxButton "avoid-system"    "Avoid: don't route here" icon="fa-times"    class="user-system-avoid"      data-system=system.id }}
 
                   <div class="comment-editing">
-                     {{uiSection 'Edit your comments' 0 class='user ui-section' }}
+                     {{#uiSection 'Edit your comments' 0 class='user ui-section' }}
                         <div class="user wide">
                            <label for="user-comments-{{ system.id }}">Your comments (<a href="https://daringfireball.net/projects/markdown/basics" target="_new">markdown syntax</a>):
-                           </label><a href="#" class="remove-system-comments" title="Remove" data-id="{{ system.id }}" class="pull-right text-danger"><i class="fa fa-fw fa-lg fa-times"></i></a>
-                           <textarea id="user-comments-{{ system.id }}" data-id="{{ system.id}}" class="user-system-comments"></textarea>
+                           </label><a href="#" class="remove-system-comments" title="Remove" data-system="{{ system.id }}" class="pull-right text-danger"><i class="fa fa-fw fa-lg fa-times"></i></a>
+                           <textarea id="user-comments-{{ system.id }}" data-system="{{ system.id}}" class="user-system-comments"></textarea>
                         </div>
-                     {{endUiSection }}
+                     {{/uiSection }}
+
+                     <p class="ui-section user-system-comments-md"></p>
                   </div>
 
-                  <p class="user-system-comments-md"></p>
-
-               {{endUiSection }}
+               {{/uiSection }}
             </article>
 
             {{#each system.info}}
             <article>
-               {{uiSection 'Background info' 1 }}
+               {{#uiSection 'Background info' 1 }}
                   <div class="system-blurb-body" data-source="{{ this.source }}">
                      {{markdown this.blob}}
                   </div>
                   {{#if this.source}}
                   <p class="system-blurb-source"><a href="{{ this.source }}" target="_new">(source)</a></p>
                   {{/if}}
-               {{endUiSection }}
+               {{/uiSection }}
             </article>
             {{/each}}
 
@@ -190,34 +210,28 @@
             </div>
 
          {{/if}}
-      </template>
+      </script>
 
-      <template id="template-route-list">
-         {{uiSection 'Routing options' 0 class="no-pad-top" }}
+      <script id="templateRouteList" data-partial="1" type="text/x-handlebars-template">
+         {{#uiSection 'Routing options' 0 class="no-pad-top" }}
             {{checkboxOption "avoid-hostile" "Don't enter hostile territory" "But do try to get out of it quickly."}}
             {{checkboxOption "avoid-unknown-jumppoints" "Avoid unconfirmed jumppoints" "Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines."}}
             {{checkboxOption "avoid-off-limits" "Avoid 'off limits' systems" "Note though that not all of the system marked as such is necessarily off-limits."}}
-         {{endUiSection }}
+         {{/uiSection }}
 
-         {{uiSection 'How this works' 0 }}
-            <p>
-               Click and drag from system to system to calculate a route between these two systems, which then becomes your current route. You can have only one active route, so you must delete the current route to create a new one, or modify your existing route as desired.
-            </p>
-            <p>
-               Use the options section above to configure the global routing options, or set the 'avoid' flag on a system to change the routing through that system only. Note that all route options are advisory, the user has the final say ... as an example: if you set the destination just into hostile territory then turning on the option to avoid hostile systems will not be effective.
-            </p>
-            <p>
-               The route will always be the shortest number of jumps possible with the given settings, as using a jump is always faster than traveling in a system from jumppoint to jumppoint, and using jumppoints has been stated to not require fuel.
-            </p>
-            <p>
-               Once a route is set, you can drag any of its waypoints elsewhere.  Dragging will create a new waypoint as needed. Existing waypoints on the route can be removed again with the <i class="fa fa-times"></i> symbol in the route list below.
-            </p>
-            <p>
-               On a final note: the given estimate times are extremely rough indications based on available information (very little at this time). As we learn more about the in-system and jumppoint traveling I'll do my best to refine the calculation accordingly.
-            </p>
-         {{endUiSection }}
+         {{#uiSection 'How this works' 0 }}
+            <p>Click and drag from system to system to calculate a route between these two systems, which then becomes your current route. You can have only one active route, so you must delete the current route to create a new one, or modify your existing route as desired.</p>
 
-         {{uiSection 'Calculated route' 1 class="routelist" }}
+            <p>Use the options section above to configure the global routing options, or set the 'avoid' flag on a system to change the routing through that system only. Note that all route options are advisory, the user has the final say ... as an example: if you set the destination just into hostile territory then turning on the option to avoid hostile systems will not be effective.</p>
+
+            <p>The route will always be the shortest number of jumps possible with the given settings, as using a jump is always faster than traveling in a system from jumppoint to jumppoint, and using jumppoints has been stated to not require fuel.</p>
+
+            <p>Once a route is set, you can drag any of its waypoints elsewhere.  Dragging will create a new waypoint as needed. Existing waypoints on the route can be removed again with the <i class="fa fa-times"></i> symbol in the route list below.</p>
+
+            <p>On a final note: the given estimate times are extremely rough indications based on available information (very little at this time). As we learn more about the in-system and jumppoint traveling I will do my best to refine the calculation accordingly.</p>
+         {{/uiSection }}
+
+         {{#uiSection 'Calculated route' 1 }}
             {{#if route}}
                <table class="routelist">
                   <caption>
@@ -232,10 +246,10 @@
             {{else}}
                <p class="no-route">No route set.</p>
             {{/if}}
-         {{endUiSection }}
-      </template>
+         {{/uiSection }}
+      </script>
 
-      <template id="template-settings">
+      <script id="templateSettings" data-partial="1" type="text/x-handlebars-template">
          <h1 class="padleft">Settings</h1>
          <p class="ui-section">
             <span class="checkmark-option">
@@ -268,9 +282,9 @@
             <span class="checkmark-option">
             </span>
          </p>
-      </template>
+      </script>
 
-      <template id="template-debug-information">
+      <script id="templateDebugInformation" data-partial="1" type="text/x-handlebars-template">
          <h1 class="padleft">Debug Information</h1>
          <p class="ui-section">
             <span class="checkmark-button">
@@ -286,9 +300,9 @@
             <p id="debug-target"></p>
             <p id="debug-axis"></p>
          </div>
-      </template>
+      </script>
 
-      <template id="template-about">
+      <script id="templateAbout" data-partial="1" type="text/x-handlebars-template">
          <h1 class="padleft">About this map</h1>
          <p class="ui-section">
             A 3D (and 2D) interactive galaxy map of the space sim adventure game <a href="https://robertsspaceindustries.com/about-the-game" target="_blank">Star Citizen</a> (currently being developed).
@@ -305,27 +319,27 @@
          <p class="ui-section">
             The icons are from the awesome <a href="http://fontawesome.io/" target="_blank">Font Awesome 4.1.0</a> by Dave Gandy.
          </p>
-      </template>
+      </script>
 
-      <template id="template-basicDL">
+      <script id="templateBasicDL" type="text/x-handlebars-template">
          <dl class="{{cssClass}}">
          {{#each item}}
             <dt>{{key}}</dt>
             <dd>{{{detemplateion}}}</dd>
          {{/each}}
          </dl>
-      </template>
+      </script>
 
-      <template id="template-fa-UL">
+      <script id="templateFaUL" type="text/x-handlebars-template">
          {{! FontAwesome bulleted list, expects faClass to be set }}
          <ul class="fa-ul {{cssClass}}">
          {{#each items}}
             <li><i class="fa fa-li {{../faClass}}"></i>{{{this}}}</dt>
          {{/each}}
          </ul>
-      </template>
+      </script>
 
-      <template id="vertexShader">
+      <script id="vertexShader" type="x-shader/x-vertex">
          uniform vec3 viewVector;
          uniform float c;
          uniform float p;
@@ -338,9 +352,9 @@
 
             gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
          }
-      </template>
+      </script>
 
-      <template id="fragmentShader">
+      <script id="fragmentShader" type="x-shader/x-fragment">
          uniform vec3 glowColor;
          varying float intensity;
          void main()
@@ -348,7 +362,7 @@
             vec3 glow = glowColor * intensity;
             gl_FragColor = vec4( glow, 1.0 );
          }
-      </template>
+      </script>
 
       <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
       <script src="//code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>

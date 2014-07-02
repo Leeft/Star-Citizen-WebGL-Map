@@ -139,7 +139,17 @@ a {
       margin-bottom: 3em;
    }
 
+   .inactive {
+      display: none;
+   }
+
    ul {
+
+      &.nostyle {
+         margin-left: 0.5rem;
+         padding-left: 0;
+         list-style-type: none;
+      }
 
       &.menubar {
          background: transparent;
@@ -420,15 +430,6 @@ a {
 
       textarea {
          margin-top: 0.4rem;
-      }
-   }
-
-   .info {
-      /*
-      .user label[for="comments"] {
-      }
-*/
-      textarea {
          width: 100%;
          height: 5em;
          max-width: 100%;
@@ -539,6 +540,11 @@ dt {
 }
 .wide {
    margin: 0.5rem 0;
+   padding-left: 0;
+   padding-right: 0;
+}
+.wide.basic-system {
+   margin-left: -1.3rem;
    padding-left: 0;
    padding-right: 0;
 }
