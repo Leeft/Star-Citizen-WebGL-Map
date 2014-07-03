@@ -115,7 +115,7 @@
       </script>
 
       <script id="templateSystemsListing" data-partial="1" type="text/x-handlebars-template">
-         <h1 class="padleft">Systems</h1>
+         {{tabHeader 'Systems'}}
          {{#each systemGroups}}
             {{#if items}}
                {{#uiSection title 0 }}
@@ -250,49 +250,30 @@
       </script>
 
       <script id="templateSettings" data-partial="1" type="text/x-handlebars-template">
-         <h1 class="padleft">Settings</h1>
+         {{tabHeader 'Settings'}}
          <p class="ui-section">
-            <span class="checkmark-option">
-               <input type="checkbox" id="toggle-antialias" checked>
-               <label for="toggle-antialias">Enable antialising
-                  <span class="small label-info">Disables postprocessing; forces reload.<br>
-                  Note: antialiasing does not work everywhere.</span>
-               </label>
-            </span>
-            <span class="checkmark-option">
-               <input type="checkbox" id="toggle-fxaa">
-               <label for="toggle-fxaa">Postprocess: FXAA</label>
-            </span>
-            <span class="checkmark-option">
-               <input type="checkbox" id="toggle-bloom">
-               <label for="toggle-bloom">Postprocess: Bloom</label>
-            </span>
+            {{checkboxOption "toggle-antialias" "Enable antialiasing"
+               "Disable postprocessing; forces reload.<br>Note: antialiasing does not work everywhere."}}
+            {{checkboxOption "toggle-fxaa" "Postprocess: FXAA" ""}}
+            {{checkboxOption "toggle-bloom" "Postprocess: Bloom" ""}}
          </p>
          <p class="ui-section">
-            <span class="checkmark-option">
-               <input type="checkbox" id="toggle-glow" checked>
-               <label for="toggle-glow">Enable star glow</label>
-            </span>
+            {{checkboxOption "toggle-glow" "Enable star glow" ""}}
             <span class="checkmark-option">
                <input type="checkbox" id="toggle-labels" checked>
                <label for="toggle-labels">Enable system labels</label>
                <input type="checkbox" id="toggle-label-icons" checked>
                <label for="toggle-label-icons"><i class="fa fa-level-up fa-rotate-90 fa-fw"></i> Display icons in system labels</label>
             </span>
-            <span class="checkmark-option">
-            </span>
          </p>
       </script>
 
       <script id="templateDebugInformation" data-partial="1" type="text/x-handlebars-template">
-         <h1 class="padleft">Debug Information</h1>
+         {{tabHeader 'Debug information'}}
          <p class="ui-section">
-            <span class="checkmark-button">
-               <input type="checkbox" id="toggle-stats">
-               <label for="toggle-stats">Framerate statistics</label>
-            </span>
+            {{checkboxButton "toggle-stats" "Framerate statistics" }}
          </p>
-         <div id="debugstuff" class="debug ui-section">
+         <div class="debug ui-section">
             <p id="debug-systems"></p>
             <p id="debug-state"></p>
             <p id="debug-camera-is-moving"></p>
@@ -303,7 +284,7 @@
       </script>
 
       <script id="templateAbout" data-partial="1" type="text/x-handlebars-template">
-         <h1 class="padleft">About this map</h1>
+         {{tabHeader 'About this map'}}
          <p class="ui-section">
             A 3D (and 2D) interactive galaxy map of the space sim adventure game <a href="https://robertsspaceindustries.com/about-the-game" target="_blank">Star Citizen</a> (currently being developed).
          </p>
