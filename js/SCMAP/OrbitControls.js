@@ -813,7 +813,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             scope.rotateTo( 0, undefined, undefined );
             break;
          case scope.keys.C: // Center on default
-            scope.moveTo( SCMAP.settings.camera.target );
+            scope.moveTo( SCMAP.settings.cameraDefaults.target );
             break;
          case scope.keys.T: // Top view
             scope.rotateTo( 0, 0, 200 );
