@@ -125,6 +125,17 @@
                   {{/each}}
                   </ul>
                {{/uiSection }}
+            {{else}}
+               {{#uiSection title 0 }}
+               {{debug}}
+                  {{#each factions}}
+                     {{#uiSection faction 0 }}
+                        {{#each items}}
+                           <li>{{{this}}}</li>
+                        {{/each}}
+                     {{/uiSection }}
+                  {{/each}}
+               {{/uiSection }}
             {{/if}}
          {{/each}}
       </script>

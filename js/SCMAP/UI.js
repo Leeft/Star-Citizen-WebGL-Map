@@ -398,7 +398,10 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
 
    for ( var factionId in SCMAP.data.factions ) {
       var faction = SCMAP.data.factions[factionId];
-      factionsById[ faction.id ] = [];
+      factionsById[ faction.id ] = {
+         faction: faction.name,
+         items: []
+      };
    }
 
    var factions = [];
@@ -410,15 +413,7 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
       if ( system.isBookmarked() ) { bookmarked.push( link ); }
       if ( system.hasComments() ) { withComments.push( link ); }
 
-      //$('#faction-list').empty();
-      //for ( var factionId in SCMAP.data.factions ) {
-      //   var faction = SCMAP.data.factions[factionId];
-      //   var $factionHeader = $('<h3><a href="#" data-toggle-next="next"><i class="fa fa-fw fa-lg fa-caret-right"></i>'+faction.name+'</a></h3>');
-      //       $factionHeader.find('a').css( 'color', faction.color.getStyle() );
-      //   var $factionSystems = $('<ul style="display: none;" id="list-faction-'+faction.id+'" class="fa-ul ui-section"></ul>');
-      //   $('#faction-list').append( $factionHeader ).append( $factionSystems );
-      //}
-
+      factionsById[ system.faction.id ].items.push( link );
       everything.push( link );
    });
 
@@ -433,8 +428,7 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
          items: withComments
       }, {
          title: "By faction",
-         factions: [
-         ]
+         factions: factionsById
       }, {
          title: "Everything",
          items: everything
