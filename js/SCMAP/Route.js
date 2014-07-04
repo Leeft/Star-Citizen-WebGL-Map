@@ -343,13 +343,15 @@ SCMAP.Route.prototype = {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
-      $('#routelist').empty();
+      $('#route').empty();
    },
 
    update: function update( destination ) {
       var _this = this, i, route, material, system, $entry;
       var duration = 0, totalDuration = 0;
       var before = this.toString();
+      var templateData = {};
+      var waypoint;
 
       this.__syncGraphs();
 
@@ -360,9 +362,17 @@ SCMAP.Route.prototype = {
 
       this.removeFromScene();
 
-      if ( this.lastError() ) {
-         $('#routelist').html(
-            '<p class="impossible">'+this.lastError().message+'</p>'
+      if ( this.lastError() )
+      {
+         $('#route').empty().append(
+            SCMAP.UI.Templates.routeList({
+               route: {
+                  status: {
+                     text: this.lastError().message,
+                     class: 'impossible'
+                  }
+               }
+            })
          );
          $('#map_ui').tabs( 'option', 'active', 3 );
          return;
@@ -371,12 +381,10 @@ SCMAP.Route.prototype = {
       this._routeObject = new THREE.Object3D();
       this._routeObject.matrixAutoUpdate = false;
 
-      //console.log( "Route updated: " + this.toString() ); // TODO remove
-
       // building all the parts of the route together in a single geometry group
       var entireRoute = this.currentRoute();
       var startColour = new THREE.Color( 0xEEEE66 );
-      var endColour   = new THREE.Color( 0xFF3322 ); //new THREE.Color( 0xDD3322 );
+      var endColour   = new THREE.Color( 0xFF3322 );
 
       for ( i = 0; i < ( entireRoute.length - 1 ); i += 1 ) {
          var from = entireRoute[i].system;
@@ -395,8 +403,15 @@ SCMAP.Route.prototype = {
 
       if ( entireRoute.length === 0 )
       {
-         $('#routelist').append(
-            '<p class="no-route">No route set.</p>'
+         $('#route').empty().append(
+            SCMAP.UI.Templates.routeList({
+               route: {
+                  status: {
+                     text: 'No route set',
+                     class: 'no-route'
+                  }
+               }
+            })
          );
          return;
       }
@@ -411,10 +426,6 @@ SCMAP.Route.prototype = {
 
          for ( i = 0; i < this.waypoints.length; i += 1 ) {
             if ( typeof this.waypoints[i].sceneObject === 'object' ) {
-               //var selectorColour = 0xDD8844;
-               //if ( i === this.waypoints.length - 1 ) {
-               //   selectorColour = 0xDD3322;
-               //}
                waypointObject = window.map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
                waypointObject.scale.set( 3.8, 3.8, 3.8 );
                waypointObject.position.copy( this.waypoints[i].sceneObject.position );
@@ -426,92 +437,68 @@ SCMAP.Route.prototype = {
          scene.add( this._routeObject );
       }
 
-      $('#routelist').empty();
-
       if ( entireRoute.length > 1 )
       {
-         $('#routelist')
-            .append( '<table class="routelist"><thead></thead><tbody></tbody></table>' );
-
-         $('#routelist table')
-            .append( '<caption>'+
-               'Route from '+
-               entireRoute[0].system.createInfoLink( true ).outerHtml()+' to ' +
-               entireRoute[entireRoute.length-1].system.createInfoLink( true ).outerHtml() +
-               ' along <strong class="route-count">' +
-               '</strong> jump points:</caption>' );
-
-         var routeCount = 0;
+         templateData.from          = entireRoute[0].system;
+         templateData.to            = entireRoute[entireRoute.length-1].system;
+         templateData.waypoints     = [];
+         templateData.totalDuration = 0;
 
          for ( i = 0; i < entireRoute.length; i += 1 )
          {
             system = entireRoute[i].system;
 
-            if ( i > 0 && system.id === entireRoute[i-1].system.id ) {
-               $('#routelist tr').last().addClass('waypoint').find('td.control i')
-                  .addClass('fa-lg').addClass('fa-times').addClass('text-danger')
-                  .removeClass('fa-long-arrow-down').prop('title','Remove waypoint')
-                  .wrap('<a href="#" class="remove-waypoint" data-system="'+system.id+'"></a>');
-
+            if ( ( i > 0 ) && ( system.id === entireRoute[i-1].system.id ) )
+            {
+               // Duplicate waypoint, which means we jumped between routes, so update the last waypoint instead
+               waypoint = templateData.waypoints[ templateData.waypoints.length - 1 ];
+               waypoint.iconClass = 'fa-times text-danger';
+               waypoint.iconTitle = 'Remove waypoint';
+               waypoint.rowClass  = 'waypoint';
+               waypoint.action    = '<a href="#" class="remove-waypoint" data-system="'+system.id+'">';
                continue;
             }
 
-            routeCount += 1;
-            duration = 30 * 60;
-            $entry = $(
-               '<tr class="waypoint">'+
-                  '<th class="count muted">'+routeCount+'</th>'+
-                  '<td class="control muted"></td>'+ //<a class="remove-waypoint" href="#"><i class="fa fa-fw fa-lg"></i></a></td>'+
-                  '<td class="system">'+system.createInfoLink( false, true ).outerHtml()+'</td>'+
-                  '<td class="duration muted small"></td>'+
-               '</tr>'
-            );
+            waypoint = {
+               rowClass: '',
+               index: templateData.waypoints.length + 1,
+               system: system,
+               iconClass: 'fa-long-arrow-down',
+               iconTitle: 'Jump Point',
+               duration: 30 * 60,
+               action: ''
+            };
 
             if ( i === 0 ) {
 
-               duration = 30 * 60 / 2; // TODO
-               $entry.addClass('start').find('td.control').html('<i class="fa fa-fw fa-lg fa-flag" title="Start"></i>');
+               waypoint.duration = 30 * 60 / 2; // TODO
+               waypoint.rowClass = 'start';
+               waypoint.iconClass = 'fa-flag';
+               waypoint.iconTitle = 'Start';
 
             } else if ( i === ( entireRoute.length - 1 ) ) {
 
-               duration = 30 * 60 / 2; // TODO
-               $entry.addClass('end').find('td.control').html('<i class="fa fa-fw fa-lg fa-flag-checkered" title="Destination"></i>');
+               waypoint.duration = 30 * 60 / 2; // TODO
+               waypoint.rowClass = 'end';
+               waypoint.iconClass = 'fa-flag-checkered';
+               waypoint.iconTitle = 'Destination';
 
-            } else {
-
-               $entry.find('td.control').html('<i class="fa fa-fw fa-lg fa-long-arrow-down" title="Destination"></i>');
             }
 
-            $entry.find('td.duration').html( '&plusmn;' + duration.toHMM() );
-
-            totalDuration += duration;
-            $('#routelist tbody').append( $entry );
+            templateData.waypoints.push( waypoint );
+            templateData.totalDuration += waypoint.duration;
          }
 
-         $('#routelist table').append(
-            '<tfoot>'+
-               '<tr>'+
-                  '<th class="count">&nbsp;</th>'+
-                  '<th class="control">&nbsp;</th>'+
-                  '<th class="system">&nbsp;</th>'+
-                  '<th class="duration small">&plusmn;'+totalDuration.toHMM()+'</th>'+
-               '</tr>'+
-            '</tfoot>'
-         );
-
-         $('#routelist .route-count').text( routeCount - 1 );
-
-         $('#routelist').append(
-            '<p><button class="delete-route" id="delete-route"><i class="fa fa-fw fa-trash-o"></i>Delete route</button></p>'
-         );
       }
       else
       {
-         $('#routelist').append(
-            '<p class="impossible">No route available'+
-            ' with your current settings</p>'
-         );
+         templateData.status = {
+            text: 'No route available with your current settings.',
+            class: 'impossible'
+         };
       }
+
+      $('#route').empty().append( SCMAP.UI.Templates.routeList({ route: templateData }) );
 
       if ( this.toString() !== before ) {
          $('#map_ui').data( 'jsp' ).reinitialise();

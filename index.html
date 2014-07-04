@@ -232,20 +232,43 @@
          {{/uiSection }}
 
          {{#uiSection 'Calculated route' 1 }}
-            {{#if route}}
+            {{#unless route.status}}
                <table class="routelist">
                   <caption>
                      Route from {{ systemLink route.from noIcons=1 noTarget=1 }} to {{ systemLink route.to noIcons=1 noTarget=1 }}
-                     along <strong class="route-count">{{ route.length }}</strong> jump points:
+                     along <strong class="route-count">{{ minusOne route.waypoints.length }}</strong> jump points:
                   </caption>
-                  <thead>
-                  </thead>
                   <tbody>
+                     {{#each route.waypoints}}
+                     <tr>
+                        <th class="count muted">{{ plusOne @index }}</th>
+                        <td class="control muted">
+                           {{#if action}}
+                              {{{action}}}<i class="fa fa-fw fa-lg {{ iconClass }}" title="{{ iconTitle }}"></i></a>
+                           {{else}}
+                              <i class="fa fa-fw fa-lg {{ iconClass }}" title="{{ iconTitle }}"></i>
+                           {{/if}}
+                        </td>
+                        <td class="system">{{ systemLink system noIcons=0 noTarget=0 }}</td>
+                        <td class="duration muted small">{{ durationHMM this.duration }}</td>
+                     </tr>
+                     {{/each}}
                   </tbody>
+                  <tfoot>
+                     <tr>
+                        <th class="count">&nbsp;</th>
+                        <th class="control">&nbsp;</th>
+                        <th class="system">&nbsp;</th>
+                        <th class="duration small">&plusmn;{{ durationHMM route.totalDuration }}</th>
+                     </tr>
+                  </tfoot>
                </table>
+               <p>
+                  <button class="delete-route"><i class="fa fa-fw fa-trash-o"></i>Delete route</button>
+               </p>
             {{else}}
-               <p class="no-route">No route set.</p>
-            {{/if}}
+               <p class="{{ status.class }}">{{ route.status.text }}</p>
+            {{/unless}}
          {{/uiSection }}
       </script>
 

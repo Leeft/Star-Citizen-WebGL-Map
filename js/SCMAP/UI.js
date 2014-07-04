@@ -32,7 +32,13 @@ SCMAP.UI = function () {
             { key: "Esc", description: "Deselect target" }
          ],
          icons: icons,
-         systemGroups: SCMAP.UI.buildDynamicLists()
+         systemGroups: SCMAP.UI.buildDynamicLists(),
+         route: {
+            status: {
+               text: 'No route set.',
+               class: 'no-route'
+            }
+         }
       })
    );
 
@@ -151,7 +157,7 @@ SCMAP.UI = function () {
       .on( 'change', function() {
          SCMAP.settings.effect.Antialias = this.checked;
          SCMAP.settings.save( 'effect' );
-         console.log( localStorage.effect );
+         //console.log( localStorage.effect );
          window.location.reload( false );
       });
 
@@ -250,7 +256,7 @@ SCMAP.UI = function () {
       controls.moveTo( system );
    });
 
-   $('#map_ui #routelist').on( 'click', "td.control a.remove-waypoint", function( event ) {
+   $('#map_ui').on( 'click', "table.routelist .remove-waypoint", function( event ) {
       event.preventDefault();
       var $this = $(this);
       var system = SCMAP.System.getById( $this.data('system') );
@@ -258,7 +264,7 @@ SCMAP.UI = function () {
       map.route().update();
    });
 
-   $('#map_ui #routelist').on( 'click', 'button.delete-route', function( event ) {
+   $('#map_ui').on( 'click', 'button.delete-route', function( event ) {
       map.route().destroy();
    });
 
@@ -482,13 +488,16 @@ Handlebars.registerHelper( 'colourGetStyle', function( colour ) {
 });
 
 Handlebars.registerHelper( 'systemLink', function( system, options ) {
-   console.log( options );
+   //console.log( options );
    var noIcons = false, noTarget = false;
    if ( 'noIcons' in options.hash ) {
       noIcons = ( options.hash.noIcons ) ? true : false;
    }
    if ( 'noTarget' in options.hash ) {
       noTarget = ( options.hash.noTarget ) ? true : false;
+   }
+   if ( !(system instanceof SCMAP.System) ) {
+      return '';
    }
    return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
 });
@@ -525,6 +534,21 @@ Handlebars.registerHelper( 'mapUiTabHeader', function( id, title, icon ) {
    return new Handlebars.SafeString(
       '<li><a title="'+htmlEscape(title)+'" href="#'+htmlEscape(id)+'"><i class="fa fa-fw fa-2x '+htmlEscape(icon)+'"></i></a></li>'
    );
+});
+
+Handlebars.registerHelper( 'durationHMM', function( duration ) {
+   if ( !duration ) {
+      return '';
+   }
+   return new Handlebars.SafeString( duration.toHMM() );
+});
+
+Handlebars.registerHelper( 'plusOne', function( number ) {
+   return new Handlebars.SafeString( number + 1 );
+});
+
+Handlebars.registerHelper( 'minusOne', function( number ) {
+   return new Handlebars.SafeString( number - 1 );
 });
 
 Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
