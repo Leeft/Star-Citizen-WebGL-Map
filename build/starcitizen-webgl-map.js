@@ -3014,10 +3014,17 @@ SCMAP.UI = function () {
       event.preventDefault();
       var $element = $this.parent().next();
       $element.toggle();
+      var title = $this.data('title');
       if ( $element.is(':visible') ) {
          $this.parent().find('> a > i').first().removeClass('fa-caret-right').addClass('fa-caret-down');
+         if ( window.sessionStorage ) {
+            window.sessionStorage[ title ] = '1';
+         }
       } else {
          $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
+         if ( window.sessionStorage ) {
+            delete window.sessionStorage[ title ];
+         }
       }
       $('#map_ui').data( 'jsp' ).reinitialise();
    });
@@ -3230,6 +3237,9 @@ Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
    var attrs = [];
    var oldLevel = sectionLevel++;
    var str;
+   if ( window.sessionStorage && ( title in window.sessionStorage ) ) {
+      opened = ( window.sessionStorage[ title ] == '1' ) ? true : false;
+   }
    if ( opened ) {
       icon = 'fa-caret-down';
       hidden = '';
@@ -3237,7 +3247,7 @@ Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
    for ( var prop in options.hash ) {
       attrs.push( prop + '="' + options.hash[prop] + '"' );
    }
-   str = '<h'+oldLevel+'><a href="#" data-toggle-next="next" '+attrs.join(" ")+'><i class="fa fa-fw fa-lg '+icon+'"></i>'+title+'</a></h'+oldLevel+">\n"+
+   str = '<h'+oldLevel+'><a href="#" data-title="'+htmlEscape(title)+'" data-toggle-next="next" '+attrs.join(" ")+'><i class="fa fa-fw fa-lg '+icon+'"></i>'+title+'</a></h'+oldLevel+">\n"+
          '         <div class="ui-section" '+hidden+'>';
    if ( 'fn' in options ) {
       str += options.fn( this );
