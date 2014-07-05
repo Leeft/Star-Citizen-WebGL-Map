@@ -1050,9 +1050,10 @@ SCMAP.System.prototype = {
    },
 
    displayInfo: function displayInfo( doNotSwitch ) {
-      var $element = $('#info');
-      $element.empty();
-      $element.append( SCMAP.UI.Templates.systemInfo({ system: this }) );
+      var me = this;
+      var $element = $( SCMAP.UI.Tab('system').id )
+         .empty()
+         .append( SCMAP.UI.Templates.systemInfo({ system: me }) );
 
       // Set user's notes and bookmarks
       $element.find('.user-system-ishangar').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
@@ -1113,9 +1114,9 @@ SCMAP.System.prototype = {
       //}
 
       if ( !doNotSwitch ) {
-         $('#map_ui').tabs( 'option', 'active', 2 );
-         $('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
-         $('#map_ui').data( 'jsp' ).reinitialise();
+         $('#sc-map-interface').tabs( 'option', 'active', 2 );
+         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
+         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
       }
    },
 
@@ -1435,7 +1436,7 @@ SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, tran
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
 
-SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-config').data('glow-image') );
+SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configuration').data('glow-image') );
 
 // create custom material from the shader code in the html
 //$(function() {
@@ -2066,7 +2067,16 @@ SCMAP.Route.prototype = {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
-      $('#route').empty();
+      $( SCMAP.UI.Tab('route').id ).empty().append(
+         SCMAP.UI.Templates.routeList({
+            route: {
+               status: {
+                  text: 'No route set',
+                  class: 'no-route'
+               }
+            }
+         })
+      );
    },
 
    update: function update( destination ) {
@@ -2087,7 +2097,7 @@ SCMAP.Route.prototype = {
 
       if ( this.lastError() )
       {
-         $('#route').empty().append(
+         $( SCMAP.UI.Tab('route').id ).empty().append(
             SCMAP.UI.Templates.routeList({
                route: {
                   status: {
@@ -2097,7 +2107,7 @@ SCMAP.Route.prototype = {
                }
             })
          );
-         $('#map_ui').tabs( 'option', 'active', 3 );
+         $('#sc-map-interface').tabs( 'option', 'active', 3 );
          return;
       }
 
@@ -2126,16 +2136,7 @@ SCMAP.Route.prototype = {
 
       if ( entireRoute.length === 0 )
       {
-         $('#route').empty().append(
-            SCMAP.UI.Templates.routeList({
-               route: {
-                  status: {
-                     text: 'No route set',
-                     class: 'no-route'
-                  }
-               }
-            })
-         );
+         this.removeFromScene();
          return;
       }
 
@@ -2221,11 +2222,13 @@ SCMAP.Route.prototype = {
          };
       }
 
-      $('#route').empty().append( SCMAP.UI.Templates.routeList({ route: templateData }) );
+      $( SCMAP.UI.Tab('route').id )
+         .empty()
+         .append( SCMAP.UI.Templates.routeList({ route: templateData }) );
 
       if ( this.toString() !== before ) {
-         $('#map_ui').data( 'jsp' ).reinitialise();
-         $('#map_ui').tabs( 'option', 'active', 3 );
+         $('#sc-map-interface').data( 'jsp' ).reinitialise();
+         $('#sc-map-interface').tabs( 'option', 'active', 3 );
       }
    },
 
@@ -2254,33 +2257,35 @@ RouteSegmentFailed.prototype.constructor = RouteSegmentFailed;
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-SCMAP.Map = function ( scene ) {
+SCMAP.Map = function () {
    this.name = "Star Citizen Persistent Universe";
-   this.scene = scene;
+   this.scene = new THREE.Scene();
 
    // No editing available for the moment (doesn't work yet)
    this.canEdit = false;
-   $('#map_ui li.editor').hide();
+   //$('#map_ui li.editor').hide();
 
    this._interactables = [];
    this._route = null; // The main route the user can set
 
    this._selectorObject = this.createSelectorObject( 0x99FF99 );
-   scene.add( this._selectorObject );
+   this.scene.add( this._selectorObject );
 
    this._mouseOverObject = this.createSelectorObject( 0x8844FF );
    this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
-   scene.add( this._mouseOverObject );
+   this.scene.add( this._mouseOverObject );
 
    SCMAP.Faction.preprocessFactions( SCMAP.data.factions );
    SCMAP.Goods.preprocessGoods( SCMAP.data.goods );
 
    this.__currentlySelected = null;
 
+   this.animate = this._animate.bind( this );
+
    var map = this;
 
    $.ajax({
-      url: $('#sc-map-config').data('systems-json'),
+      url: $('#sc-map-configuration').data('systems-json'),
       async: true,
       cache: true,
       dataType: 'json',
@@ -2290,11 +2295,13 @@ SCMAP.Map = function ( scene ) {
    .done( function( data, textStatus, jqXHR ) {
       //console.log( "ajax done", data, textStatus, jqXHR );
       map.populate( data );
-      scene.add( map.buildReferenceGrid() );
+      map.scene.add( map.buildReferenceGrid() );
    })
    .fail( function( jqXHR, textStatus, errorThrown ) {
       console.error( "Ajax request failed:", errorThrown, textStatus );
    });
+
+   this.displayState = this.buildDisplayModeFSM( SCMAP.settings.mode );
 };
 
 SCMAP.Map.prototype = {
@@ -2306,6 +2313,15 @@ SCMAP.Map.prototype = {
 
    selected: function selected() {
       return this.getSelected();
+   },
+
+   _animate: function _animate() {
+      var rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
+      this.scene.traverse( function ( object ) {
+         if ( object.userData.isSelector ) {
+            object.rotation.y = rotationY;
+         }
+      });
    },
 
    setSelected: function setSelected ( system ) {
@@ -2356,10 +2372,6 @@ SCMAP.Map.prototype = {
       return this.__updateSelectorObject( system );
    },
 
-   clearSelection: function clearSelection () {
-      return this.__updateSelectorObject();
-   },
-
    getSystemByName: function getSystemByName ( name ) {
       return SCMAP.System.getByName( name );
    },
@@ -2369,18 +2381,7 @@ SCMAP.Map.prototype = {
    },
 
    deselect: function deselect () {
-      this.clearSelection();
-      $('#system-selected').hide();
-      $('#system-not-selected').show();
-   },
-
-   animateSelector: function animateSelector () {
-      var rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
-      window.scene.traverse( function ( object ) {
-         if ( object.userData.isSelector ) {
-            object.rotation.y = rotationY;
-         }
-      });
+      return this.__updateSelectorObject();
    },
 
    updateSystems: function updateSystems () {
@@ -2483,7 +2484,7 @@ SCMAP.Map.prototype = {
       // the routes can be built as well
 
       $( SCMAP.System.List ).each( function( index, system ) {
-         sceneObject = system.buildSceneObject();
+         var sceneObject = system.buildSceneObject();
          map.scene.add( sceneObject );
          map._interactables.push( sceneObject.children[0] );
          systemCount++;
@@ -2779,6 +2780,83 @@ geo.addAttribute( 'color', indexBA );
       return color;
    },
 
+   buildDisplayModeFSM: function buildDisplayModeFSM ( initialState ) {
+      var tweenTo2d, tweenTo3d, position, fsm;
+      var map = this;
+
+      position = { y: ( initialState === '3d' ) ? 100 : 0.5 };
+
+      tweenTo2d = new TWEEN.Tween( position )
+         .to( { y: 0.5 }, 1000 )
+         .easing( TWEEN.Easing.Cubic.InOut )
+         .onUpdate( function () {
+            map.route().removeFromScene(); // TODO: find a way to animate
+            for ( var i = 0; i < map.scene.children.length; i++ ) {
+               var child = map.scene.children[i];
+               if ( typeof child.userData.scaleY === 'function' ) {
+                  child.userData.scaleY( child, this.y );
+               }
+            }
+         } );
+
+      tweenTo3d = new TWEEN.Tween( position )
+         .to( { y: 100.0 }, 1000 )
+         .easing( TWEEN.Easing.Cubic.InOut )
+         .onUpdate( function () {
+            map.route().removeFromScene(); // TODO: find a way to animate
+            for ( var i = 0; i < map.scene.children.length; i++ ) {
+               var child = map.scene.children[i];
+               if ( typeof child.userData.scaleY === 'function' ) {
+                  child.userData.scaleY( child, this.y );
+               }
+            }
+         } );
+
+      fsm = StateMachine.create({
+         initial: initialState || '3d',
+
+         events: [
+            { name: 'to2d',  from: '3d', to: '2d' },
+            { name: 'to3d', from: '2d', to: '3d' }
+         ],
+
+         callbacks: {
+            onenter2d: function() {
+               $('#sc-map-3d-mode').prop( 'checked', false );
+               if ( storage ) { storage.mode = '2d'; }
+            },
+
+            onenter3d: function() {
+               $('#sc-map-3d-mode').prop( 'checked', true );
+               if ( storage ) { storage.mode = '3d'; }
+            },
+
+            onleave2d: function() {
+               tweenTo3d.onComplete( function() {
+                  fsm.transition();
+                  map.route().update();
+               });
+               tweenTo3d.start();
+               return StateMachine.ASYNC;
+            },
+
+            onleave3d: function() {
+               tweenTo2d.onComplete( function() {
+                  fsm.transition();
+                  map.route().update();
+               });
+               tweenTo2d.start();
+               return StateMachine.ASYNC;
+            },
+         },
+
+         error: function( eventName, from, to, args, errorCode, errorMessage ) {
+            console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
+         }
+      });
+
+      return fsm;
+   }
 };
 
 SCMAP.Map.BLACK = new THREE.Color( 0x000000 );
@@ -2789,17 +2867,19 @@ SCMAP.Map.BLACK = new THREE.Color( 0x000000 );
   * @author Lianna Eeftinck / https://github.com/Leeft
   */
 
-SCMAP.UI = function () {
+SCMAP.UI = function ( map ) {
 
    var me = this;
 
+   this.map = map;
+
    var icons = [];
    for ( var icon in SCMAP.Symbols ) {
-      icon = SCMAP.Symbols[ icon ]; // TODO use a handlebar template
+      icon = SCMAP.Symbols[ icon ];
       icons.push( $('<span><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</span>' ).css( 'color', icon.color ).outerHtml() );
    }
 
-   $('#map_ui').empty().append(
+   $('#sc-map-interface').empty().append(
       SCMAP.UI.Templates.mapUI({
          instructions: [
             "Left-click and release to select a system.",
@@ -2820,6 +2900,7 @@ SCMAP.UI = function () {
          ],
          icons: icons,
          systemGroups: SCMAP.UI.buildDynamicLists(),
+         system: null,
          route: {
             status: {
                text: 'No route set.',
@@ -2828,61 +2909,75 @@ SCMAP.UI = function () {
          }
       })
    );
+   $( SCMAP.UI.menuBar ).each( function ( i, menuItem ) {
+      $('#sc-map-interface ul.menubar').append( menuItem );
+   });
 
-   if ( $('#home') )
-   {
-      $('#3d-mode').prop( 'checked', SCMAP.settings.mode === '3d' );
-      $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
-      $('#lock-rotation').prop( 'checked', SCMAP.settings.control.rotationLocked );
-      $('#lock-rotation').on( 'change', function() {
-         controls.noRotate = this.checked;
-         if ( storage ) {
-            storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
-         }
-      });
+      $('#sc-map-3d-mode')
+         .prop( 'checked', SCMAP.settings.mode === '3d' )
+         .on( 'change', function() {
+            if ( this.checked ) {
+               me.map.displayState.to3d();
+            } else {
+               me.map.displayState.to2d();
+            }
+         });
 
-      $('#resetCamera').on( 'click', function() {
-         controls.cameraTo(
+      $('#sc-map-lock-rotation')
+         .prop( 'checked', SCMAP.settings.control.rotationLocked )
+         .on( 'change', function() {
+            renderer.controls.noRotate = this.checked;
+            if ( storage ) {
+               storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+            }
+         });
+
+      $('#sc-map-resetCamera').on( 'click', function() {
+         renderer.controls.cameraTo(
             SCMAP.settings.cameraDefaults.target,
             SCMAP.settings.cameraDefaults.orientation.theta,
             SCMAP.settings.cameraDefaults.orientation.phi,
             SCMAP.settings.cameraDefaults.orientation.radius
          );
       });
-      $('#centreCamera').on( 'click', function() {
-         controls.moveTo( SCMAP.settings.cameraDefaults.target );
-      });
-      $('#northCamera').on( 'click', function() {
-         controls.rotateTo( 0, undefined, undefined );
-      });
-      $('#topCamera').on( 'click', function() {
-         controls.rotateTo( 0, 0, 180 );
-      });
-      $('#top2D').on( 'click', function() {
-         controls.noRotate = true;
-         $('#lock-rotation').prop( 'checked', true );
-         displayState.to2d();
-         controls.rotateTo( 0, 0, 180 );
-      });
-   }
 
-   $( "#map_ui" ).tabs({
+      $('#sc-map-centreCamera').on( 'click', function() {
+         renderer.controls.moveTo( SCMAP.settings.cameraDefaults.target );
+      });
+
+      $('#sc-map-northCamera').on( 'click', function() {
+         renderer.controls.rotateTo( 0, undefined, undefined );
+      });
+
+      $('#sc-map-topCamera').on( 'click', function() {
+         renderer.controls.rotateTo( 0, 0, 180 );
+      });
+
+      $('#sc-map-top2D').on( 'click', function() {
+         renderer.controls.noRotate = true;
+         $('#sc-map-lock-rotation').prop( 'checked', true );
+         me.map.displayState.to2d();
+         renderer.controls.rotateTo( 0, 0, 180 );
+      });
+
+   $("#sc-map-interface").tabs({
       active: 0,
       activate: function( event, ui ) {
          event.preventDefault();
-         var clicked_on = ui.newTab.find('a').attr('href');
+         var clicked_on = ui.newTab.find('a').data('tab');
+         var tab = SCMAP.UI.Tab( clicked_on );
 
          switch ( clicked_on ) {
 
-            case '#listing':
-               $('#listing').empty().append(
+            case 'systems':
+               $( tab.id ).empty().append(
                   SCMAP.UI.Templates.listings({ systemGroups: SCMAP.UI.buildDynamicLists() })
                );
                break;
 
             default:
-               $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
+               $('#sc-map-webgl-container').removeClass('edit');
                //window.editor.enabled = false;
                //window.controls.requireAlt = false;
                //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
@@ -2891,42 +2986,45 @@ SCMAP.UI = function () {
                break;
          }
 
-         $('#map_ui').data( 'jsp' ).reinitialise();
+         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
       }
    });
 
    /* jScrollPane */
-   $('#map_ui').jScrollPane({ showArrows: true });
+   //$('#sc-map-interface').jScrollPane({ showArrows: true });
 
-   $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
-   $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
-   $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-
-   $('#avoid-hostile').prop( 'checked', SCMAP.settings.route.avoidHostile );
-   $('#avoid-off-limits').prop( 'checked', SCMAP.settings.route.avoidOffLimits );
-   $('#avoid-unknown-jumppoints').prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints );
-
-   // Event handlers
+   $('#sc-map-toggle-glow').prop( 'checked', SCMAP.settings.glow );
+   $('#sc-map-toggle-labels').prop( 'checked', SCMAP.settings.labels );
+   $('#sc-map-toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
 
    // Some simple UI stuff
 
-   $('#avoid-hostile').on( 'change', function() {
-      SCMAP.settings.route.avoidHostile = this.checked;
-      SCMAP.settings.save( 'route' );
-      map.route().rebuildCurrentRoute();
-   });
-   $('#avoid-off-limits').on( 'change', function() {
-      SCMAP.settings.route.avoidOffLimits = this.checked;
-      SCMAP.settings.save( 'route' );
-      map.route().rebuildCurrentRoute();
-   });
-   $('#avoid-unknown-jumppoints').on( 'change', function() {
-      SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
-      SCMAP.settings.save( 'route' );
-      map.route().rebuildCurrentRoute();
-   });
+   $('#sc-map-avoid-hostile')
+      .prop( 'checked', SCMAP.settings.route.avoidHostile )
+      .on( 'change', function() {
+         SCMAP.settings.route.avoidHostile = this.checked;
+         SCMAP.settings.save( 'route' );
+         map.route().rebuildCurrentRoute();
+      });
 
-   $('#toggle-stats')
+   $('#sc-map-avoid-off-limits')
+      .prop( 'checked', SCMAP.settings.route.avoidOffLimits )
+      .on( 'change', function() {
+         SCMAP.settings.route.avoidOffLimits = this.checked;
+         SCMAP.settings.save( 'route' );
+         map.route().rebuildCurrentRoute();
+      });
+
+   $('#sc-map-avoid-unknown-jumppoints')
+      .prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints )
+      .on( 'change', function() {
+         SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
+         SCMAP.settings.save( 'route' );
+         map.route().rebuildCurrentRoute();
+      });
+
+   $('#sc-map-toggle-stats')
       .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
       .on( 'change', function() {
          if ( this.checked ) {
@@ -2939,44 +3037,43 @@ SCMAP.UI = function () {
          }
       });
 
-   $('#toggle-antialias')
+   $('#sc-map-toggle-antialias')
       .prop( 'checked', SCMAP.settings.effect.Antialias )
       .on( 'change', function() {
          SCMAP.settings.effect.Antialias = this.checked;
          SCMAP.settings.save( 'effect' );
-         //console.log( localStorage.effect );
          window.location.reload( false );
       });
 
-   $('#toggle-fxaa')
+   $('#sc-map-toggle-fxaa')
       .prop( 'checked', SCMAP.settings.effect.FXAA )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
 
       .on( 'change', function() {
          SCMAP.settings.effect.FXAA = this.checked;
          SCMAP.settings.save( 'effect' );
-         if ( effectFXAA ) {
-            effectFXAA.enabled = this.checked;
+         if ( renderer.FXAA ) {
+            renderer.FXAA.enabled = this.checked;
          }
       });
 
-   $('#toggle-bloom')
+   $('#sc-map-toggle-bloom')
       .prop( 'checked', SCMAP.settings.effect.Bloom )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
 
       .on( 'change', function() {
          SCMAP.settings.effect.Bloom = this.checked;
          SCMAP.settings.save( 'effect' );
-         if ( composer ) {
-            for ( var i = 0; i < composer.passes.length; i++ ) {
-               if ( composer.passes[i] instanceof THREE.BloomPass ) {
-                  composer.passes[i].enabled = this.checked;
+         if ( renderer.composer ) {
+            for ( var i = 0; i < renderer.composer.passes.length; i++ ) {
+               if ( renderer.composer.passes[i] instanceof THREE.BloomPass ) {
+                  renderer.composer.passes[i].enabled = this.checked;
                }
             }
          }
       });
 
-   $('#toggle-glow').on( 'change', function() {
+   $('#sc-map-toggle-glow').on( 'change', function() {
       SCMAP.settings.glow = this.checked;
       map.updateSystems();
       if ( storage ) {
@@ -2984,18 +3081,17 @@ SCMAP.UI = function () {
       }
    });
 
-   $('#toggle-labels').on( 'change', function() {
+   $('#sc-map-toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
-      $('#toggle-label-icons').prop( 'disabled', !SCMAP.settings.labels );
+      $('#sc-map-toggle-label-icons').prop( 'disabled', !SCMAP.settings.labels );
       map.updateSystems();
       if ( storage ) {
          storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
       }
    });
 
-   $('#toggle-label-icons')
+   $('#sc-map-toggle-label-icons')
       .prop( 'disabled', !SCMAP.settings.labels )
-
       .on( 'change', function() {
          SCMAP.settings.labelIcons = this.checked;
          map.updateSystems();
@@ -3009,27 +3105,31 @@ SCMAP.UI = function () {
       $this.find('input[type=checkbox]').click();
    });
 
-   $('#map_ui').on( 'click', 'a[data-toggle-next]', function ( event ) {
+   $('#sc-map-interface').on( 'click', 'a[data-toggle-next]', function ( event ) {
       var $this = $(this);
       event.preventDefault();
       var $element = $this.parent().next();
       $element.toggle();
       var title = $this.data('title');
+      var storage = null;
+      if ( hasSessionStorage() ) {
+         storage = window.sessionStorage;
+      }
       if ( $element.is(':visible') ) {
          $this.parent().find('> a > i').first().removeClass('fa-caret-right').addClass('fa-caret-down');
-         if ( window.sessionStorage ) {
-            window.sessionStorage[ title ] = '1';
+         if ( storage ) {
+            storage[ title ] = '1';
          }
       } else {
          $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
-         if ( window.sessionStorage ) {
-            delete window.sessionStorage[ title ];
+         if ( storage ) {
+            delete storage[ title ];
          }
       }
-      $('#map_ui').data( 'jsp' ).reinitialise();
+      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
    });
 
-   $('#map_ui').on( 'click', 'a[data-toggle-child]', function ( event ) {
+   $('#sc-map-interface').on( 'click', 'a[data-toggle-child]', function ( event ) {
       var $this = $(this);
       event.preventDefault();
       var $element = $this.parent().find( $this.data('toggle-child') );
@@ -3039,18 +3139,18 @@ SCMAP.UI = function () {
       } else {
          $this.parent().find('> a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
-      $('#map_ui').data( 'jsp' ).reinitialise();
+      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
    });
 
-   $('#map_ui').on( 'click', "a[data-goto='system']", function( event ) {
+   $('#sc-map-interface').on( 'click', "a[data-goto='system']", function( event ) {
       event.preventDefault();
       var $this = $(this);
       var system = SCMAP.System.getById( $this.data('system') );
       system.displayInfo();
-      controls.moveTo( system );
+      renderer.controls.moveTo( system );
    });
 
-   $('#map_ui').on( 'click', "table.routelist .remove-waypoint", function( event ) {
+   $('#sc-map-interface').on( 'click', "table.routelist .remove-waypoint", function( event ) {
       event.preventDefault();
       var $this = $(this);
       var system = SCMAP.System.getById( $this.data('system') );
@@ -3058,7 +3158,7 @@ SCMAP.UI = function () {
       map.route().update();
    });
 
-   $('#map_ui').on( 'click', 'button.delete-route', function( event ) {
+   $('#sc-map-interface').on( 'click', 'button.delete-route', function( event ) {
       map.route().destroy();
    });
 
@@ -3068,19 +3168,19 @@ SCMAP.UI = function () {
       var text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
          system.setComments( text );
-         $('#map_ui .user-system-comments-md').html( $(markdown.toHTML( text )) );
+         $('#sc-map-interface .user-system-comments-md').html( $(markdown.toHTML( text )) );
       } else {
          system.setComments();
-         $('#map_ui .user-system-comments-md').empty();
+         $('#sc-map-interface .user-system-comments-md').empty();
       }
       system.updateSceneObject( scene );
    };
 
-   $('#map_ui').on( 'keyup', '.user-system-comments', updateComments );
-   $('#map_ui').on( 'blur', '.user-system-comments', updateComments );
-   $('#map_ui').on( 'change', '.user-system-comments', updateComments );
+   $('#sc-map-interface').on( 'keyup', '.user-system-comments', updateComments );
+   $('#sc-map-interface').on( 'blur', '.user-system-comments', updateComments );
+   $('#sc-map-interface').on( 'change', '.user-system-comments', updateComments );
 
-   $('#map_ui').on( 'click', '.remove-system-comments', function( event ) {
+   $('#sc-map-interface').on( 'click', '.remove-system-comments', function( event ) {
       event.preventDefault();
       var system = SCMAP.System.getById( $(this).data('system') );
       system.setComments();
@@ -3089,21 +3189,21 @@ SCMAP.UI = function () {
       system.updateSceneObject( scene );
    });
 
-   $('#map_ui').on( 'change', '.user-system-bookmarked', function() {
+   $('#sc-map-interface').on( 'change', '.user-system-bookmarked', function() {
       SCMAP.System.getById( $(this).data('system') )
          .setBookmarkedState( this.checked )
          .updateSceneObject( scene );
       SCMAP.settings.save( 'systems' );
    });
 
-   $('#map_ui').on( 'change', '.user-system-ishangar', function() {
+   $('#sc-map-interface').on( 'change', '.user-system-ishangar', function() {
       SCMAP.System.getById( $(this).data('system') )
          .setHangarState( this.checked )
          .updateSceneObject( scene );
       SCMAP.settings.save( 'systems' );
    });
 
-   $('#map_ui').on( 'change', '.user-system-avoid', function() {
+   $('#sc-map-interface').on( 'change', '.user-system-avoid', function() {
       SCMAP.System.getById( $(this).data('system') )
          .setToBeAvoidedState( this.checked )
          .updateSceneObject( scene );
@@ -3111,23 +3211,46 @@ SCMAP.UI = function () {
       map.route().rebuildCurrentRoute();
    });
 
-   $("#map_ui a[href='#']").removeAttr('href');
+   /* Browsers show an ugly URL bar if href is set to #, this
+    * makes the HTML invalid but removes the ugly URL bar */
+   $("#sc-map-interface a[href='#']").removeAttr('href');
 };
 
 SCMAP.UI.prototype = {
 
    constructor: SCMAP.UI,
 
-   toTabIndex: function toTabIndex( index ) {
-      //$('#map_ui').tabs( 'options', 'active', index );
-      window.ui.updateHeight();
-      //$('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
+   toTab: function toTab( index ) {
+      var tab = SCMAP.UI.Tab( index );
+      $('#sc-map-interface').tabs( 'options', 'active', tab.index );
+   },
+
+   toTabTop: function toTabTop() {
+      if ( $('#sc-map-interface').data('jsp') ) {
+         $('#sc-map-interface').data('jsp').scrollToPercentY( 0 );
+      }
    },
 
    updateHeight: function updateHeight() {
-      //$('#map_ui').data( 'jsp' ).reinitialise();
+      if ( $('#sc-map-interface').data('jsp') ) {
+         $('#sc-map-interface').data('jsp').reinitialise();
+      }
    }
 
+};
+
+SCMAP.UI.Tabs = [];
+SCMAP.UI.menuBar = [];
+
+SCMAP.UI.Tab = function Tab( name ) {
+   for ( var i = 0; i < SCMAP.UI.Tabs.length; i += 1 ) {
+      if ( ( typeof name === 'string' ) && ( SCMAP.UI.Tabs[ i ].name === name ) ) {
+         return SCMAP.UI.Tabs[ i ];
+      } else if ( ( typeof name === 'number' ) && ( SCMAP.UI.Tabs[ i ].id === name ) ) {
+         return SCMAP.UI.Tabs[ i ];
+      }
+   }
+   return;
 };
 
 SCMAP.UI.makeSafeForCSS = function makeSafeForCSS( name ) {
@@ -3182,6 +3305,7 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
    var byFaction = [];
    var everything = [];
    var factionsById = {};
+   var data = [];
 
    for ( var factionId in SCMAP.data.factions ) {
       var faction = SCMAP.data.factions[factionId];
@@ -3204,176 +3328,49 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
       everything.push( link );
    });
 
-   return [ {
+   if ( hangars.length ) {
+      data.push({
          title: "Hangar locations&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.HANGAR ).addClass('fa-lg').outerHtml(),
          items: hangars
-      }, {
+      });
+   }
+
+   if ( bookmarked.length ) {
+      data.push({
          title: "Bookmarked&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.BOOKMARK ).addClass('fa-lg').outerHtml(),
          items: bookmarked
-      }, {
+      });
+   }
+
+   if ( withComments.length ) {
+      data.push({
          title: "With your comments&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.COMMENTS ).addClass('fa-lg').outerHtml(),
          items: withComments
-      }, {
+      });
+   }
+
+   data.push(
+     {
          title: "By faction",
          factions: factionsById
-      }, {
+      },
+      {
          title: "Everything",
          items: everything
       }
-   ];
+   );
+
+   return data;
 };
 
-var sectionLevel = 1;
-Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
-   var opened = ( shouldOpen ) ? true : false;
-   var icon = 'fa-caret-right';
-   var hidden = 'style="display: none;"';
-   var attrs = [];
-   var oldLevel = sectionLevel++;
-   var str;
-   if ( window.sessionStorage && ( title in window.sessionStorage ) ) {
-      opened = ( window.sessionStorage[ title ] == '1' ) ? true : false;
-   }
-   if ( opened ) {
-      icon = 'fa-caret-down';
-      hidden = '';
-   }
-   for ( var prop in options.hash ) {
-      attrs.push( prop + '="' + options.hash[prop] + '"' );
-   }
-   str = '<h'+oldLevel+'><a href="#" data-title="'+htmlEscape(title)+'" data-toggle-next="next" '+attrs.join(" ")+'><i class="fa fa-fw fa-lg '+icon+'"></i>'+title+'</a></h'+oldLevel+">\n"+
-         '         <div class="ui-section" '+hidden+'>';
-   if ( 'fn' in options ) {
-      str += options.fn( this );
-   }
-   str += '</div>';
-   sectionLevel -= 1;
-   return new Handlebars.SafeString( str );
-});
-
-Handlebars.registerHelper( 'tabHeader', function( title ) {
-   return new Handlebars.SafeString( '<h1 class="padleft">'+title+'</h1>' );
-});
-
-Handlebars.registerHelper( 'bigButton', function( id, faClass, title ) {
-   return new Handlebars.SafeString( '<button class="big-button" id="'+id+'"><i class="fa '+faClass+' fa-fw fa-lg"></i> '+title+'</button>'+'<br>' );
-});
-
-Handlebars.registerHelper( 'commoditiesList', function( commodities ) {
-   if ( !commodities.length ) {
-      return new Handlebars.SafeString( '&mdash;' );
-   }
-   return new Handlebars.SafeString(
-      $.map( commodities, function( elem, i ) {
-         return SCMAP.data.goods[ elem ].name;
-      }).join( ', ' )
-   );
-});
-
-Handlebars.registerHelper( 'markdown', function( markdownText ) {
-   return new Handlebars.SafeString( markdown.toHTML( markdownText ) );
-});
-
-Handlebars.registerHelper( 'colourGetStyle', function( colour ) {
-   return new Handlebars.SafeString( colour.getStyle() );
-});
-
-Handlebars.registerHelper( 'systemLink', function( system, options ) {
-   //console.log( options );
-   var noIcons = false, noTarget = false;
-   if ( 'noIcons' in options.hash ) {
-      noIcons = ( options.hash.noIcons ) ? true : false;
-   }
-   if ( 'noTarget' in options.hash ) {
-      noTarget = ( options.hash.noTarget ) ? true : false;
-   }
-   if ( !(system instanceof SCMAP.System) ) {
-      return '';
-   }
-   return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
-});
-
-Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
-   var attrs = [];
-   for ( var prop in options.hash ) {
-      if ( prop === 'icon' ) {
-         title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
-      } else {
-         attrs.push( prop + '="' + htmlEscape(options.hash[prop]) + '"' );
-      }
-   }
-   return new Handlebars.SafeString(
-      '<span class="checkmark-button">'+
-         '<input type="checkbox" id="'+id+'" '+attrs.join(" ")+'><label for="'+id+'">'+title+'</label>'+
-      '</span>'
-   );
-});
-
-Handlebars.registerHelper( "debug", function(optionalValue) {
-  console.log("Current Context");
-  console.log("====================");
-  console.log(this);
-
-  if (optionalValue) {
-    console.log("Value");
-    console.log("====================");
-    console.log(optionalValue);
-  }
-});
-
-Handlebars.registerHelper( 'mapUiTabHeader', function( id, title, icon ) {
-   return new Handlebars.SafeString(
-      '<li><a title="'+htmlEscape(title)+'" href="#'+htmlEscape(id)+'"><i class="fa fa-fw fa-2x '+htmlEscape(icon)+'"></i></a></li>'
-   );
-});
-
-Handlebars.registerHelper( 'durationHMM', function( duration ) {
-   if ( !duration ) {
-      return '';
-   }
-   return new Handlebars.SafeString( duration.toHMM() );
-});
-
-Handlebars.registerHelper( 'plusOne', function( number ) {
-   return new Handlebars.SafeString( number + 1 );
-});
-
-Handlebars.registerHelper( 'minusOne', function( number ) {
-   return new Handlebars.SafeString( number - 1 );
-});
-
-Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
-   var attrs = [];
-   for ( var prop in options.hash ) {
-      if ( prop === 'icon' ) {
-         title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
-      } else {
-         attrs.push( prop + '="' + htmlEscape(options.hash[prop]) + '"' );
-      }
-   }
-   return new Handlebars.SafeString(
-      '<span class="checkmark-option">'+
-         '<input type="checkbox" id="'+id+'">'+
-         '<label for="'+id+'">'+title+
-            '<span class="small label-info">'+description+'</span>'+
-         '</label>'+
-      '</span>'
-   );
-});
-
-$('script[type="text/x-handlebars-template"][data-partial="1"]').each( function( index, elem ) {
-   var $elem = $(elem);
-   Handlebars.registerPartial( $elem.attr('id'), $elem.html() );
-});
-
-function htmlEscape(str) {
+SCMAP.UI.htmlEscape = function htmlEscape(str) {
     return String(str)
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-}
+};
 
 SCMAP.UI.Templates = {
    mapUI:      Handlebars.compile( $('#templateMapUI').html() ),
@@ -3381,6 +3378,391 @@ SCMAP.UI.Templates = {
    listings:   Handlebars.compile( $('#templateSystemsListing').html() ),
    routeList:  Handlebars.compile( $('#templateRouteList').html() )
 };
+
+$(function() {
+   var sectionLevel = 1;
+   var tabCounter = 0;
+
+   Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
+      var opened = ( shouldOpen ) ? true : false;
+      var icon = 'fa-caret-right';
+      var hidden = 'style="display: none;"';
+      var attrs = [], str;
+      var oldLevel = sectionLevel++;
+      var storage = null;
+      if ( hasSessionStorage() ) {
+         storage = window.sessionStorage;
+      }
+
+      if ( storage && ( title in storage ) ) {
+         opened = ( storage[ title ] == '1' ) ? true : false;
+      }
+
+      if ( opened ) {
+         icon = 'fa-caret-down';
+         hidden = '';
+      }
+
+      for ( var prop in options.hash ) {
+         attrs.push( prop + '="' + options.hash[prop] + '"' );
+      }
+
+      str = '<h'+oldLevel+'><a href="#" data-title="'+SCMAP.UI.htmlEscape(title)+
+         '" data-toggle-next="next" '+attrs.join(" ")+'><i class="fa fa-fw fa-lg '+icon+'">'+
+         '</i>'+title+'</a></h'+oldLevel+">\n"+'         <div class="ui-section" '+hidden+'>';
+
+      if ( 'fn' in options ) {
+         str += options.fn( this );
+      }
+
+      str += '</div>';
+      sectionLevel -= 1;
+      return new Handlebars.SafeString( str );
+   });
+
+   Handlebars.registerHelper( 'tabHeader', function( title ) {
+      return new Handlebars.SafeString( '<h1 class="padleft">'+title+'</h1>' );
+   });
+
+   /* title: shown to user, name: internal name, icon: font awesome icon class */
+   Handlebars.registerHelper( 'jQueryUiTab', function( title, name, icon, options ) {
+      var hidden = 'style="display: none;"';
+      var attrs = [], str = '';
+      var $menuItem;
+      var id = 'sc-map-ui-tab-'+SCMAP.UI.makeSafeForCSS( name );
+
+      //for ( var prop in options.hash ) {
+      //   attrs.push( prop + '="' + options.hash[prop] + '"' );
+      //}
+
+      $menuItem = $(
+         '<li>' +
+            '<a title="'+SCMAP.UI.htmlEscape(title)+'" data-tab="'+SCMAP.UI.htmlEscape(name)+'" href="#'+SCMAP.UI.htmlEscape(id)+'">'+
+               '<i class="fa fa-fw fa-2x '+SCMAP.UI.htmlEscape(icon)+'"></i>'+
+            '</a>'+
+         '</li>'
+      );
+      SCMAP.UI.menuBar.push( $menuItem );
+
+      str = '<div id="' + id + '" class="sc-map-ui-tab" ' + ((tabCounter !== 0) ? 'style="display: none"' : '') + '>';
+      if ( 'fn' in options ) {
+         str += options.fn( this );
+      }
+      str += '</div>';
+
+      SCMAP.UI.Tabs.push({ id: '#'+id, name: name, index: tabCounter++ });
+
+      return new Handlebars.SafeString( str );
+   });
+
+   Handlebars.registerHelper( 'bigButton', function( id, faClass, title ) {
+      return new Handlebars.SafeString( '<button class="big-button" id="'+id+'">'+
+         '<i class="fa '+faClass+' fa-fw fa-lg"></i> '+title+'</button>'+'<br>' );
+   });
+
+   Handlebars.registerHelper( 'commoditiesList', function( commodities ) {
+      if ( !commodities.length ) {
+         return new Handlebars.SafeString( '&mdash;' );
+      }
+      return new Handlebars.SafeString(
+         $.map( commodities, function( elem, i ) {
+            return SCMAP.data.goods[ elem ].name;
+         }).join( ', ' )
+      );
+   });
+
+   Handlebars.registerHelper( 'markdown', function( markdownText ) {
+      return new Handlebars.SafeString( markdown.toHTML( markdownText ) );
+   });
+
+   Handlebars.registerHelper( 'colourGetStyle', function( colour ) {
+      return new Handlebars.SafeString( colour.getStyle() );
+   });
+
+   Handlebars.registerHelper( 'systemLink', function( system, options ) {
+      var noIcons = false, noTarget = false;
+      if ( 'noIcons' in options.hash ) {
+         noIcons = ( options.hash.noIcons ) ? true : false;
+      }
+      if ( 'noTarget' in options.hash ) {
+         noTarget = ( options.hash.noTarget ) ? true : false;
+      }
+      if ( !(system instanceof SCMAP.System) ) {
+         return '';
+      }
+      return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
+   });
+
+   Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
+      var attrs = [];
+      for ( var prop in options.hash ) {
+         if ( prop === 'icon' ) {
+            title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
+         } else {
+            attrs.push( prop + '="' + SCMAP.UI.htmlEscape(options.hash[prop]) + '"' );
+         }
+      }
+      return new Handlebars.SafeString(
+         '<span class="checkmark-button">'+
+            '<input type="checkbox" id="'+id+'" '+attrs.join(" ")+'>'+
+            '<label for="'+id+'">'+title+'</label>'+
+         '</span>'
+      );
+   });
+
+   Handlebars.registerHelper( "debug", function( optionalValue ) {
+      console.log( "Current Context", this );
+      if (optionalValue) {
+         console.log( "Value", optionalValue );
+      }
+   });
+
+   Handlebars.registerHelper( 'durationHMM', function( duration ) {
+      if ( !duration ) {
+         return '';
+      }
+      return new Handlebars.SafeString( duration.toHMM() );
+   });
+
+   Handlebars.registerHelper( 'plusOne', function( number ) {
+      return new Handlebars.SafeString( number + 1 );
+   });
+
+   Handlebars.registerHelper( 'minusOne', function( number ) {
+      return new Handlebars.SafeString( number - 1 );
+   });
+
+   Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
+      var attrs = [];
+      for ( var prop in options.hash ) {
+         if ( prop === 'icon' ) {
+            title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
+         } else {
+            attrs.push( prop + '="' + SCMAP.UI.htmlEscape(options.hash[prop]) + '"' );
+         }
+      }
+      return new Handlebars.SafeString(
+         '<span class="checkmark-option">'+
+            '<input type="checkbox" id="'+id+'">'+
+            '<label for="'+id+'">'+title+
+               '<span class="small label-info">'+description+'</span>'+
+            '</label>'+
+         '</span>'
+      );
+   });
+
+   $('script[type="text/x-handlebars-template"][data-partial="1"]').each( function( index, elem ) {
+      var $elem = $(elem);
+      Handlebars.registerPartial( $elem.attr('id'), $elem.html() );
+   });
+});
+
+// End of file
+
+/**
+  * @author Lianna Eeftinck / https://github.com/Leeft
+  */
+
+SCMAP.Renderer = function ( map ) {
+   this.map = map;
+
+   this.composer = null;
+   this.FXAA = null;
+   this.camera = null;
+   
+   this.width = window.innerWidth;
+   this.height = window.innerHeight;
+
+   this.resize  = this._resize.bind( this );
+   this.animate = this._animate.bind( this );
+   this.render  = this._render.bind( this );
+
+   this.dpr = 1;
+   if ( window.devicePixelRatio !== undefined ) {
+      this.dpr = window.devicePixelRatio;
+   }
+
+   var container = $('#sc-map-webgl-container')[0];
+
+   this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
+   this.camera.position.copy( SCMAP.settings.camera.camera );
+   this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface').width() / 2 ), 0, this.width, this.height );
+
+   this.controls = new SCMAP.OrbitControls( this, container );
+   this.controls.target.copy( SCMAP.settings.camera.target );
+   this.controls.rotateSpeed = $('#sc-map-configuration').data('rotateSpeed');
+   this.controls.zoomSpeed = $('#sc-map-configuration').data('zoomSpeed');
+   this.controls.panSpeed = $('#sc-map-configuration').data('panSpeed');
+   this.controls.noRotate = SCMAP.settings.control.rotationLocked;
+
+   this.threeRenderer = new THREE.WebGLRenderer( { antialias: true } );
+   if ( ! SCMAP.settings.effect.Antialias ) {
+      this.threeRenderer.autoClear = false;
+   }
+   this.threeRenderer.setClearColor( 0x000000, 1 );
+   this.threeRenderer.setSize( this.width, this.height );
+
+   container.appendChild( this.threeRenderer.domElement );
+
+   var renderer = this;
+
+   // Stats
+
+   this.stats = new Stats();
+   this.stats.domElement.style.position = 'absolute';
+   this.stats.domElement.style.top = '0px';
+   this.stats.domElement.style.right = '0px';
+   this.stats.domElement.style.display = 'none';
+   this.stats.domElement.style.zIndex = '100';
+   container.appendChild( this.stats.domElement );
+   if ( SCMAP.settings.renderer.Stats ) {
+      $('#stats').show();
+   }
+
+   if ( hasLocalStorage() ) {
+      storage = window.localStorage;
+   }
+
+   // Event handlers
+
+   window.addEventListener( 'resize', this.resize, false );
+   document.addEventListener( 'change', this.render, false );
+
+   if ( ! SCMAP.settings.effect.Antialias )
+   {
+      var renderModel = new THREE.RenderPass( this.map.scene, this.camera );
+
+      this.FXAA = new THREE.ShaderPass( THREE.FXAAShader );
+      this.FXAA.uniforms.resolution.value.set( 1 / (this.width * this.dpr), 1 / (this.height * this.dpr) );
+      this.FXAA.enabled = SCMAP.settings.effect.FXAA;
+
+      var effectBloom = new THREE.BloomPass( 0.6 );
+      effectBloom.enabled = SCMAP.settings.effect.Bloom;
+
+      var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
+      effectCopy.renderToScreen = true;
+
+      this.composer = new THREE.EffectComposer( this.threeRenderer );
+      this.composer.setSize( this.width * this.dpr, this.height * this.dpr );
+      this.composer.addPass( renderModel );
+      this.composer.addPass( this.FXAA );
+      this.composer.addPass( effectBloom );
+      this.composer.addPass( effectCopy );
+   }
+
+   this.animate();
+};
+
+SCMAP.Renderer.prototype = {
+   constructor: SCMAP.Renderer,
+
+   _resize: function _resize() {
+      this.width = window.innerWidth;
+      this.height = window.innerHeight;
+      this.camera.aspect = this.width / this.height;
+      this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface').width() / 2 ), 0, this.width, this.height );
+      this.camera.updateProjectionMatrix();
+
+      if ( this.FXAA ) {
+         this.FXAA.uniforms.resolution.value.set( 1 / (this.width * this.dpr), 1 / (this.height * this.dpr) );
+      }
+
+      this.threeRenderer.setSize( this.width, this.height );
+      if ( this.composer ) {
+         this.composer.reset();
+      }
+      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+   },
+
+   _animate: function _animate() {
+      requestAnimationFrame( this.animate );
+      TWEEN.update();
+      this.controls.update();
+      //if ( editor !== undefined ) {
+      //   editor.update();
+      //}
+      this.map.animate();
+      this.stats.update();
+      this.render();
+   },
+
+   _render: function _render() {
+      if ( this.controls.cameraIsMoving() ) {
+         this.map.scene.updateMatrixWorld();
+         if ( $('#debug-camera-is-moving') ) {
+            $('#debug-camera-is-moving').text( 'Camera is moving' );
+         }
+         var camera = this.camera;
+         this.map.scene.traverse( function ( object ) {
+            if ( object instanceof THREE.LOD ) {
+               object.update( camera );
+            }
+            // Needed for the shader glow:
+            //if ( object.userData.isGlow ) {
+            //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
+            //}
+         } );
+      } else {
+         if ( $('#debug-camera-is-moving') ) {
+            $('#debug-camera-is-moving').text( 'Camera is not moving' );
+         }
+      }
+
+      if ( this.composer ) {
+         this.threeRenderer.clear();
+         this.composer.render();
+      } else {
+         this.threeRenderer.render( this.map.scene, this.camera );
+      }
+   }
+};
+
+function smokeTest () {
+   var smokeParticles = new THREE.Geometry();
+   for (i = 0; i < 25; i++) {
+       var particle = new THREE.Vector3( Math.random() * 8, Math.random() * 10 + 5, Math.random() * 8 );
+       smokeParticles.vertices.push( particle );
+   }
+   var smokeTexture = THREE.ImageUtils.loadTexture('images/smoke.png');
+   var smokeMaterial = new THREE.ParticleBasicMaterial({
+      map: smokeTexture,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      size: 25,
+      color: 0x111111
+   });
+   
+   var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
+   smoke.sortParticles = true;
+   smoke.position.x = 10;
+   
+   scene.add(smoke);
+}
+
+function buildCross () {
+   var material = new THREE.MeshBasicMaterial( { wireframe: true, color: 0xFF0000, linewidth: 1 } );
+   var group = new THREE.Object3D();
+   var geo = new THREE.Geometry();
+   geo.vertices.push( new THREE.Vector3( -50, 1, 0 ) );
+   geo.vertices.push( new THREE.Vector3( 50, 1, 0 ) );
+   var cross = new THREE.Line( geo, material );
+   group.add( cross );
+   geo = new THREE.Geometry();
+   var material2 = new THREE.MeshBasicMaterial( { wireframe: true, color: 0xF0F000, linewidth: 1 } );
+   geo.vertices.push( new THREE.Vector3( 0, 1, -50 ) );
+   geo.vertices.push( new THREE.Vector3( 0, 1, 50 ) );
+   cross = new THREE.Line( geo, material2 );
+   group.add( cross );
+   var material3 = new THREE.MeshBasicMaterial( { wireframe: true, color: 0x0000F0, linewidth: 1 } );
+   geo = new THREE.Geometry();
+   geo.vertices.push( new THREE.Vector3( 0, -50, 0 ) );
+   geo.vertices.push( new THREE.Vector3( 0, 50, 0 ) );
+   cross = new THREE.Line( geo, material3 );
+   group.add( cross );
+   return group;
+}
+
+//
 
 // End of file
 
@@ -3406,9 +3788,10 @@ SCMAP.UI.Templates = {
 // state machine for dealing with the user's input (I needed more than
 // just basic control).
 
-SCMAP.OrbitControls = function ( object, domElement ) {
+SCMAP.OrbitControls = function ( renderer, domElement ) {
 
-   this.object = object;
+   this.object     = renderer.camera;
+   this.map        = renderer.map;
    this.domElement = ( domElement !== undefined ) ? domElement : document;
 
    // API
@@ -3579,7 +3962,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                   }
 
                   if ( endObject === startObject ) {
-                     $('#map_ui').tabs( 'option', 'active', 2 );
+                     $('#sc-map-interface').tabs( 'option', 'active', 2 );
                      endObject.displayInfo();
                   }
                   else
@@ -3589,7 +3972,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                      var route = window.map.route();
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
-                        $('#map_ui').tabs( 'option', 'active', 3 );
+                        $('#sc-map-interface').tabs( 'option', 'active', 3 );
                      }
                   }
                }
@@ -4206,12 +4589,12 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             break;
          case scope.keys['2']: // 2D mode
             scope.noRotate = true;
-            $('#lock-rotation').prop( 'checked', true );
-            displayState.to2d();
+            $('#sc-map-lock-rotation').prop( 'checked', true );
+            scope.map.displayState.to2d();
             scope.rotateTo( 0, 0, 180 );
             break;
          case scope.keys['3']: // 3D mode
-            displayState.to3d();
+            scope.map.displayState.to3d();
             scope.rotateTo(
                SCMAP.settings.cameraDefaults.orientation.theta,
                SCMAP.settings.cameraDefaults.orientation.phi,
@@ -4219,7 +4602,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             );
             break;
          case scope.keys.L: // Lock/unlock rotation
-            $('#lock-rotation').click();
+            $('#sc-map-lock-rotation').click();
             break;
          default:
             //console.log( "onkeydown", event.keyCode );
@@ -4370,107 +4753,22 @@ SCMAP.OrbitControls = function ( object, domElement ) {
 
 SCMAP.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 
-var effectFXAA, camera, scene, renderer, composer, map, dpr,
-   shift, ctrl, alt, controls, editor, stats, displayState, ui,
-   storage;
+var scene, map, ui, storage, renderer;
 
 $(function() {
    if ( ! Detector.webgl ) {
       Detector.addGetWebGLMessage();
    }
 
-   init();
-   animate();
-});
-
-function init()
-{
-   var container, renderModel, effectCopy, effectBloom;
-   var width = window.innerWidth;
-   var height = window.innerHeight;
-
    if ( hasLocalStorage() ) {
       storage = window.localStorage;
    }
 
-   dpr = 1;
-   if ( window.devicePixelRatio !== undefined ) {
-      dpr = window.devicePixelRatio;
-   }
-
-   container = document.getElementById( 'webgl-container' );
-
-   camera = new THREE.PerspectiveCamera( 45, width / height, 10, 1600 );
-   camera.position.copy( SCMAP.settings.camera.camera );
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
-
-   controls = new SCMAP.OrbitControls( camera, container );
-   controls.target.copy( SCMAP.settings.camera.target );
-   controls.rotateSpeed = $('#sc-map-config').data('rotateSpeed');
-   controls.zoomSpeed = $('#sc-map-config').data('zoomSpeed');
-   controls.panSpeed = $('#sc-map-config').data('panSpeed');
-   controls.addEventListener( 'change', render );
-   controls.noRotate = SCMAP.settings.control.rotationLocked;
-
-   scene = new THREE.Scene();
-
-   renderer = new THREE.WebGLRenderer( { antialias: true } );
-   if ( ! SCMAP.settings.effect.Antialias ) {
-      renderer.autoClear = false;
-   }
-   renderer.setClearColor( 0x000000, 1 );
-   renderer.setSize( window.innerWidth, window.innerHeight );
-
-   container.appendChild( renderer.domElement );
-
-   map = new SCMAP.Map( scene );
-
-   ui = new SCMAP.UI();
-
-   // Stats
-
-   stats = new Stats();
-   stats.domElement.style.position = 'absolute';
-   stats.domElement.style.top = '0px';
-   stats.domElement.style.right = '0px';
-   stats.domElement.style.display = 'none';
-   stats.domElement.style.zIndex = '100';
-   container.appendChild( stats.domElement );
-   if ( SCMAP.settings.renderer.Stats ) {
-      $('#stats').show();
-   }
-
-   // Event handlers
-
-   window.addEventListener( 'resize', onWindowResize, false );
-   document.addEventListener( 'change', render );
-
-   // Rendering
-
-   if ( ! SCMAP.settings.effect.Antialias )
-   {
-      renderModel = new THREE.RenderPass( scene, camera );
-
-      effectFXAA = new THREE.ShaderPass( THREE.FXAAShader );
-      effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
-      effectFXAA.enabled = SCMAP.settings.effect.FXAA;
-
-      effectBloom = new THREE.BloomPass( 0.6 );
-      effectBloom.enabled = SCMAP.settings.effect.Bloom;
-
-      effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-      effectCopy.renderToScreen = true;
-
-      composer = new THREE.EffectComposer( renderer );
-      composer.setSize( width * dpr, height * dpr );
-      composer.addPass( renderModel );
-      composer.addPass( effectFXAA );
-      composer.addPass( effectBloom );
-      composer.addPass( effectCopy );
-   }
-
-   displayState = buildDisplayModeFSM( SCMAP.settings.mode );
-}
+   map      = new SCMAP.Map();
+   ui       = new SCMAP.UI( map );
+   renderer = new SCMAP.Renderer( map );
+   scene    = map.scene;
+});
 
 function smokeTest () {
    var smokeParticles = new THREE.Geometry();
@@ -4517,6 +4815,22 @@ function buildCross () {
    return group;
 }
 
+function hasLocalStorage() {
+   try {
+      return 'localStorage' in window && window.localStorage !== null;
+   } catch(e) {
+      return false;
+   }
+}
+
+function hasSessionStorage() {
+   try {
+      return 'sessionStorage' in window && window.sessionStorage !== null;
+   } catch(e) {
+      return false;
+   }
+}
+
 Object.values = function (obj ) {
     var vals = [];
     for ( var key in obj ) {
@@ -4527,155 +4841,6 @@ Object.values = function (obj ) {
     return vals;
 };
 
-function onWindowResize() {
-   var width = window.innerWidth;
-   var height = window.innerHeight;
-   camera.aspect = width / height;
-   camera.setViewOffset( width, height, -( $('#map_ui').width() / 2 ), 0, width, height );
-   camera.updateProjectionMatrix();
-   if ( effectFXAA ) {
-      effectFXAA.uniforms.resolution.value.set( 1 / (width * dpr), 1 / (height * dpr) );
-   }
-   renderer.setSize( width, height );
-   if ( composer ) {
-      composer.reset();
-   }
-   $('#map_ui').data( 'jsp' ).reinitialise();
-}
-
-function buildDisplayModeFSM ( initialState )
-{
-   var tweenTo2d, tweenTo3d, position, fsm;
-
-   position = { y: ( initialState === '3d' ) ? 100 : 0.5 };
-
-   tweenTo2d = new TWEEN.Tween( position )
-      .to( { y: 0.5 }, 1000 )
-      .easing( TWEEN.Easing.Cubic.InOut )
-      .onUpdate( function () {
-         map.route().removeFromScene(); // TODO: find a way to animate
-         for ( var i = 0; i < scene.children.length; i++ ) {
-            var child = scene.children[i];
-            if ( typeof child.userData.scaleY === 'function' ) {
-               child.userData.scaleY( child, this.y );
-            }
-         }
-      } );
-
-   tweenTo3d = new TWEEN.Tween( position )
-      .to( { y: 100.0 }, 1000 )
-      .easing( TWEEN.Easing.Cubic.InOut )
-      .onUpdate( function () {
-         map.route().removeFromScene(); // TODO: find a way to animate
-         for ( var i = 0; i < scene.children.length; i++ ) {
-            var child = scene.children[i];
-            if ( typeof child.userData.scaleY === 'function' ) {
-               child.userData.scaleY( child, this.y );
-            }
-         }
-      } );
-
-   fsm = StateMachine.create({
-      initial: initialState || '3d',
-
-      events: [
-         { name: 'to2d',  from: '3d', to: '2d' },
-         { name: 'to3d', from: '2d', to: '3d' }
-      ],
-
-      callbacks: {
-         onenter2d: function() {
-            $('#3d-mode').prop( 'checked', false );
-            if ( storage ) { storage.mode = '2d'; }
-         },
-
-         onenter3d: function() {
-            $('#3d-mode').prop( 'checked', true );
-            if ( storage ) { storage.mode = '3d'; }
-         },
-
-         onleave2d: function() {
-            tweenTo3d.onComplete( function() {
-               fsm.transition();
-               map.route().update();
-            });
-            tweenTo3d.start();
-            return StateMachine.ASYNC;
-         },
-
-         onleave3d: function() {
-            tweenTo2d.onComplete( function() {
-               fsm.transition();
-               map.route().update();
-            });
-            tweenTo2d.start();
-            return StateMachine.ASYNC;
-         },
-      },
-
-      error: function( eventName, from, to, args, errorCode, errorMessage ) {
-         console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
-      }
-   });
-
-   return fsm;
-}
-
-//
-
-function animate() {
-   requestAnimationFrame( animate );
-   TWEEN.update();
-   if ( controls !== undefined ) {
-      controls.update();
-   }
-   if ( editor !== undefined ) {
-      editor.update();
-   }
-   stats.update();
-   render();
-}
-
-function render() {
-
-   if ( controls.cameraIsMoving() ) {
-      scene.updateMatrixWorld();
-      if ( window.jQuery && window.jQuery('#debug-camera-is-moving') ) {
-         window.jQuery('#debug-camera-is-moving').text( 'Camera is moving' );
-      }
-      scene.traverse( function ( object ) {
-         if ( object instanceof THREE.LOD ) {
-            object.update( camera );
-         }
-         // Needed for the shader glow:
-         //if ( object.userData.isGlow ) {
-         //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
-         //}
-      } );
-   } else {
-      if ( window.jQuery && window.jQuery('#debug-camera-is-moving') ) {
-         window.jQuery('#debug-camera-is-moving').text( 'Camera is not moving' );
-      }
-   }
-
-   map.animateSelector();
-
-   if ( composer ) {
-      renderer.clear();
-      composer.render();
-   } else {
-      renderer.render( scene, camera );
-   }
-}
-
-function hasLocalStorage() {
-   try {
-      return 'localStorage' in window && window.localStorage !== null;
-   } catch(e) {
-      return false;
-   }
-}
-
 jQuery.fn.outerHtml = function() {
      return jQuery('<div />').append(this.eq(0).clone()).html();
 };
@@ -4684,8 +4849,6 @@ String.prototype.toHMM = function () {
     var sec_num = parseInt(this, 10);
     var hours   = Math.floor(sec_num / 3600);
     var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-
-    //if (hours   < 10) {hours   = "0"+hours;}
     if (minutes < 10) {minutes = "0"+minutes;}
     var time    = hours+':'+minutes;
     return time;
@@ -4695,8 +4858,6 @@ Number.prototype.toHMM = function () {
     var sec_num = parseInt(this, 10);
     var hours   = Math.floor(sec_num / 3600);
     var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-
-    //if (hours   < 10) {hours   = "0"+hours;}
     if (minutes < 10) {minutes = "0"+minutes;}
     var time    = hours+':'+minutes;
     return time;

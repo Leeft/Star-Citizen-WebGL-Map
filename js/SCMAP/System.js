@@ -337,9 +337,10 @@ SCMAP.System.prototype = {
    },
 
    displayInfo: function displayInfo( doNotSwitch ) {
-      var $element = $('#info');
-      $element.empty();
-      $element.append( SCMAP.UI.Templates.systemInfo({ system: this }) );
+      var me = this;
+      var $element = $( SCMAP.UI.Tab('system').id )
+         .empty()
+         .append( SCMAP.UI.Templates.systemInfo({ system: me }) );
 
       // Set user's notes and bookmarks
       $element.find('.user-system-ishangar').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
@@ -400,9 +401,9 @@ SCMAP.System.prototype = {
       //}
 
       if ( !doNotSwitch ) {
-         $('#map_ui').tabs( 'option', 'active', 2 );
-         $('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
-         $('#map_ui').data( 'jsp' ).reinitialise();
+         $('#sc-map-interface').tabs( 'option', 'active', 2 );
+         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
+         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
       }
    },
 
@@ -722,7 +723,7 @@ SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, tran
 SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
 SCMAP.System.CUBE_MATERIAL.transparent = true;
 
-SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-config').data('glow-image') );
+SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configuration').data('glow-image') );
 
 // create custom material from the shader code in the html
 //$(function() {

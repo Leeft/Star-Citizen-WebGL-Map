@@ -57,6 +57,7 @@ module.exports = function(grunt) {
           'js/SCMAP/Route.js',
           'js/SCMAP/Map.js',
           'js/SCMAP/UI.js',
+          'js/SCMAP/Renderer.js',
           'js/SCMAP/OrbitControls.js',
           'js/main.js'
         ],

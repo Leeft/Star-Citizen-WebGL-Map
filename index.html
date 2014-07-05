@@ -8,9 +8,9 @@
       <link href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
       <link href="css/sc.css" rel="stylesheet">
    </head>
-   <body class="webgl-map">
+   <body class="sc-webgl-map noselect">
 
-      <div id="sc-map-config"
+      <div id="sc-map-configuration"
          data-systems-json="js/data/systems.min.json"
          data-glow-image="images/glow.png"
          data-smoke-image="images/smoke.png"
@@ -19,52 +19,45 @@
          data-pan-speed="0.6"
       ></div>
 
-      <div id="webgl-container" class="noselect webgl-container webgl-container-noedit"></div>
-      <div id="map_ui_container">
-         <div id="map_ui" class="map_ui medium noselect"></div>
-      </div>
+      <div id="sc-map-webgl-container"></div>
+      <div id="sc-map-interface" class="medium"></div>
 
       <script id="templateMapUI" type="text/x-handlebars-template">
-         <div class="map_ui_padding">
-            <ul class="menubar">
-               {{mapUiTabHeader 'home' 'Usage' 'fa-home'}}
-               {{mapUiTabHeader 'listing' 'Systems' 'fa-list'}}
-               {{mapUiTabHeader 'info' 'Selected System Information' 'fa-info-circle'}}
-               {{mapUiTabHeader 'route' 'Plan a route' 'fa-paper-plane'}}
-               {{mapUiTabHeader 'config' 'Settings' 'fa-wrench'}}
-               {{mapUiTabHeader 'debug' 'Debug Information' 'fa-bug'}}
-               {{mapUiTabHeader 'about' 'About this map' 'fa-comment'}}
-            </ul>
-            <div id="home">
+         {{! Main UI template, used to set up the tabs and the static info }}
+         <div class="sc-map-ui-padding">
+            <ul class="menubar"></ul>
+
+            {{#jQueryUiTab 'Usage' 'usage' 'fa-home'}}
                {{>templateMainInstructions}}
                {{>templateMainShortcuts}}
                {{>templateMainIconLegend}}
                {{>templateMainQuickFunctions}}
-            </div>
+            {{/jQueryUiTab}}
 
-            <div style="display: none;" id="listing">
+            {{#jQueryUiTab 'Systems' 'systems' 'fa-list'}}
                {{! Populated dynamically and on-demand }}
-            </div>
+               {{>templateSystemInfo}}
+            {{/jQueryUiTab}}
 
-            <div style="display: none;" id="info">
+            {{#jQueryUiTab 'Selected system information' 'system' 'fa-info-circle'}}
                {{! Populated dynamically and on-demand }}
-            </div>
+            {{/jQueryUiTab}}
 
-            <div style="display: none;" id="route">
+            {{#jQueryUiTab 'Plan a route' 'route' 'fa-paper-plane'}}
                {{>templateRouteList}}
-            </div>
+            {{/jQueryUiTab}}
 
-            <div style="display: none;" id="config">
+            {{#jQueryUiTab 'Settings' 'settings' 'fa-wrench'}}
                {{>templateSettings}}
-            </div>
+            {{/jQueryUiTab}}
 
-            <div style="display: none;" id="debug">
+            {{#jQueryUiTab 'Debug information' 'debug' 'fa-bug'}}
                {{>templateDebugInformation}}
-            </div>
+            {{/jQueryUiTab}}
 
-            <div style="display: none;" id="about">
+            {{#jQueryUiTab 'About this map' 'about' 'fa-comment'}}
                {{>templateAbout}}
-            </div>
+            {{/jQueryUiTab}}
          </div>
       </script>
 
@@ -102,14 +95,14 @@
       <script id="templateMainQuickFunctions" data-partial="1" type="text/x-handlebars-template">
          {{#uiSection 'Quick functions' 1 }}
          <p>
-            {{bigButton "resetCamera"  "fa-camera"       "Reset view" }}
-            {{bigButton "centreCamera" "fa-home"         "Centre view [C]" }}
-            {{bigButton "northCamera"  "fa-compass"      "Reset orientation [R]" }}
-            {{bigButton "topCamera"    "fa-camera-retro" "Top-down view [T]" }}
-            {{bigButton "top2D"        "fa-map-marker"   "2D map mode [2]" }}
+            {{bigButton "sc-map-resetCamera"  "fa-camera"       "Reset view" }}
+            {{bigButton "sc-map-centreCamera" "fa-home"         "Centre view [C]" }}
+            {{bigButton "sc-map-northCamera"  "fa-compass"      "Reset orientation [R]" }}
+            {{bigButton "sc-map-topCamera"    "fa-camera-retro" "Top-down view [T]" }}
+            {{bigButton "sc-map-top2D"        "fa-map-marker"   "2D map mode [2]" }}
             <br>
-            {{checkboxButton "3d-mode"       "3D map mode [3]" }}
-            {{checkboxButton "lock-rotation" "Lock map rotation [L]" }}
+            {{checkboxButton "sc-map-3d-mode"       "3D map mode [3]" }}
+            {{checkboxButton "sc-map-lock-rotation" "Lock map rotation [L]" }}
          </p>
          {{/uiSection }}
       </script>
@@ -127,7 +120,6 @@
                {{/uiSection }}
             {{else}}
                {{#uiSection title 0 }}
-               {{debug}}
                   {{#each factions}}
                      {{#uiSection faction 0 }}
                         {{#each items}}
@@ -142,9 +134,9 @@
 
       <script id="templateSystemInfo" data-partial="1" type="text/x-handlebars-template">
          {{#if system}}
-            <h1 id="systemname" class="systemname padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.name}}</h1>
+            <h1 class="systemname padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.name}}</h1>
             {{#if system.nickname}}
-               <h2 id="systemnickname" class="nickname quote padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.nickname}}</h2>
+               <h2 class="nickname quote padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.nickname}}</h2>
             {{/if}}
 
             <article>
@@ -182,9 +174,9 @@
             <article>
                {{#uiSection 'Comments and settings' 0 }}
 
-                  {{checkboxButton "hangar-location" "My hangar location"      icon="fa-home"     class="user-system-ishangar"   data-system=system.id }}
-                  {{checkboxButton "bookmark"        "Bookmarked"              icon="fa-bookmark" class="user-system-bookmarked" data-system=system.id }}
-                  {{checkboxButton "avoid-system"    "Avoid: don't route here" icon="fa-times"    class="user-system-avoid"      data-system=system.id }}
+                  {{checkboxButton "sc-map-hangar-location" "My hangar location"      icon="fa-home"     class="user-system-ishangar"   data-system=system.id }}
+                  {{checkboxButton "sc-map-bookmark"        "Bookmarked"              icon="fa-bookmark" class="user-system-bookmarked" data-system=system.id }}
+                  {{checkboxButton "sc-map-avoid-system"    "Avoid: don't route here" icon="fa-times"    class="user-system-avoid"      data-system=system.id }}
 
                   <div class="comment-editing">
                      {{#uiSection 'Edit your comments' 0 class='user ui-section' }}
@@ -216,7 +208,7 @@
 
          {{else}}
 
-            <div id="system-not-selected">
+            <div>
                <p class="impossible large ui-section">No system selected</p>
             </div>
 
@@ -225,9 +217,9 @@
 
       <script id="templateRouteList" data-partial="1" type="text/x-handlebars-template">
          {{#uiSection 'Routing options' 0 class="no-pad-top" }}
-            {{checkboxOption "avoid-hostile" "Don't enter hostile territory" "But do try to get out of it quickly."}}
-            {{checkboxOption "avoid-unknown-jumppoints" "Avoid unconfirmed jumppoints" "Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines."}}
-            {{checkboxOption "avoid-off-limits" "Avoid 'off limits' systems" "Note though that not all of the system marked as such is necessarily off-limits."}}
+            {{checkboxOption "sc-map-avoid-hostile" "Don't enter hostile territory" "But do try to get out of it quickly."}}
+            {{checkboxOption "sc-map-avoid-unknown-jumppoints" "Avoid unconfirmed jumppoints" "Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines."}}
+            {{checkboxOption "sc-map-avoid-off-limits" "Avoid 'off limits' systems" "Note though that not all of the system marked as such is necessarily off-limits."}}
          {{/uiSection }}
 
          {{#uiSection 'How this works' 0 }}
@@ -286,18 +278,18 @@
       <script id="templateSettings" data-partial="1" type="text/x-handlebars-template">
          {{tabHeader 'Settings'}}
          <p class="ui-section">
-            {{checkboxOption "toggle-antialias" "Enable antialiasing"
+            {{checkboxOption "sc-map-toggle-antialias" "Enable antialiasing"
                "Disable postprocessing; forces reload.<br>Note: antialiasing does not work everywhere."}}
-            {{checkboxOption "toggle-fxaa" "Postprocess: FXAA" ""}}
-            {{checkboxOption "toggle-bloom" "Postprocess: Bloom" ""}}
+            {{checkboxOption "sc-map-toggle-fxaa" "Postprocess: FXAA" ""}}
+            {{checkboxOption "sc-map-toggle-bloom" "Postprocess: Bloom" ""}}
          </p>
          <p class="ui-section">
-            {{checkboxOption "toggle-glow" "Enable star glow" ""}}
+            {{checkboxOption "sc-map-toggle-glow" "Enable star glow" ""}}
             <span class="checkmark-option">
-               <input type="checkbox" id="toggle-labels" checked>
-               <label for="toggle-labels">Enable system labels</label>
-               <input type="checkbox" id="toggle-label-icons" checked>
-               <label for="toggle-label-icons"><i class="fa fa-level-up fa-rotate-90 fa-fw"></i> Display icons in system labels</label>
+               <input type="checkbox" id="sc-map-toggle-labels" checked>
+               <label for="sc-map-toggle-labels">Enable system labels</label>
+               <input type="checkbox" id="sc-map-toggle-label-icons" checked>
+               <label for="sc-map-toggle-label-icons"><i class="fa fa-level-up fa-rotate-90 fa-fw"></i> Display icons in system labels</label>
             </span>
          </p>
       </script>
@@ -305,9 +297,9 @@
       <script id="templateDebugInformation" data-partial="1" type="text/x-handlebars-template">
          {{tabHeader 'Debug information'}}
          <p class="ui-section">
-            {{checkboxButton "toggle-stats" "Framerate statistics" }}
+            {{checkboxButton "sc-map-toggle-stats" "Framerate statistics" }}
          </p>
-         <div class="debug ui-section">
+         <div class="sc-map-debug ui-section">
             <p id="debug-systems"></p>
             <p id="debug-state"></p>
             <p id="debug-camera-is-moving"></p>
@@ -336,25 +328,7 @@
          </p>
       </script>
 
-      <script id="templateBasicDL" type="text/x-handlebars-template">
-         <dl class="{{cssClass}}">
-         {{#each item}}
-            <dt>{{key}}</dt>
-            <dd>{{{detemplateion}}}</dd>
-         {{/each}}
-         </dl>
-      </script>
-
-      <script id="templateFaUL" type="text/x-handlebars-template">
-         {{! FontAwesome bulleted list, expects faClass to be set }}
-         <ul class="fa-ul {{cssClass}}">
-         {{#each items}}
-            <li><i class="fa fa-li {{../faClass}}"></i>{{{this}}}</dt>
-         {{/each}}
-         </ul>
-      </script>
-
-      <script id="vertexShader" type="x-shader/x-vertex">
+      <script id="scMapVertexShader" type="x-shader/x-vertex">
          uniform vec3 viewVector;
          uniform float c;
          uniform float p;
@@ -369,7 +343,7 @@
          }
       </script>
 
-      <script id="fragmentShader" type="x-shader/x-fragment">
+      <script id="scMapFragmentShader" type="x-shader/x-fragment">
          uniform vec3 glowColor;
          varying float intensity;
          void main()

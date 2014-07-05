@@ -2,17 +2,19 @@
   * @author Lianna Eeftinck / https://github.com/Leeft
   */
 
-SCMAP.UI = function () {
+SCMAP.UI = function ( map ) {
 
    var me = this;
 
+   this.map = map;
+
    var icons = [];
    for ( var icon in SCMAP.Symbols ) {
-      icon = SCMAP.Symbols[ icon ]; // TODO use a handlebar template
+      icon = SCMAP.Symbols[ icon ];
       icons.push( $('<span><i class="fa-li fa '+icon.faClass+'"></i>'+icon.description+'</span>' ).css( 'color', icon.color ).outerHtml() );
    }
 
-   $('#map_ui').empty().append(
+   $('#sc-map-interface').empty().append(
       SCMAP.UI.Templates.mapUI({
          instructions: [
             "Left-click and release to select a system.",
@@ -33,6 +35,7 @@ SCMAP.UI = function () {
          ],
          icons: icons,
          systemGroups: SCMAP.UI.buildDynamicLists(),
+         system: null,
          route: {
             status: {
                text: 'No route set.',
@@ -41,61 +44,75 @@ SCMAP.UI = function () {
          }
       })
    );
+   $( SCMAP.UI.menuBar ).each( function ( i, menuItem ) {
+      $('#sc-map-interface ul.menubar').append( menuItem );
+   });
 
-   if ( $('#home') )
-   {
-      $('#3d-mode').prop( 'checked', SCMAP.settings.mode === '3d' );
-      $('#3d-mode').on( 'change', function() { if ( this.checked ) displayState.to3d(); else displayState.to2d(); });
 
-      $('#lock-rotation').prop( 'checked', SCMAP.settings.control.rotationLocked );
-      $('#lock-rotation').on( 'change', function() {
-         controls.noRotate = this.checked;
-         if ( storage ) {
-            storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
-         }
-      });
+      $('#sc-map-3d-mode')
+         .prop( 'checked', SCMAP.settings.mode === '3d' )
+         .on( 'change', function() {
+            if ( this.checked ) {
+               me.map.displayState.to3d();
+            } else {
+               me.map.displayState.to2d();
+            }
+         });
 
-      $('#resetCamera').on( 'click', function() {
-         controls.cameraTo(
+      $('#sc-map-lock-rotation')
+         .prop( 'checked', SCMAP.settings.control.rotationLocked )
+         .on( 'change', function() {
+            renderer.controls.noRotate = this.checked;
+            if ( storage ) {
+               storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+            }
+         });
+
+      $('#sc-map-resetCamera').on( 'click', function() {
+         renderer.controls.cameraTo(
             SCMAP.settings.cameraDefaults.target,
             SCMAP.settings.cameraDefaults.orientation.theta,
             SCMAP.settings.cameraDefaults.orientation.phi,
             SCMAP.settings.cameraDefaults.orientation.radius
          );
       });
-      $('#centreCamera').on( 'click', function() {
-         controls.moveTo( SCMAP.settings.cameraDefaults.target );
-      });
-      $('#northCamera').on( 'click', function() {
-         controls.rotateTo( 0, undefined, undefined );
-      });
-      $('#topCamera').on( 'click', function() {
-         controls.rotateTo( 0, 0, 180 );
-      });
-      $('#top2D').on( 'click', function() {
-         controls.noRotate = true;
-         $('#lock-rotation').prop( 'checked', true );
-         displayState.to2d();
-         controls.rotateTo( 0, 0, 180 );
-      });
-   }
 
-   $( "#map_ui" ).tabs({
+      $('#sc-map-centreCamera').on( 'click', function() {
+         renderer.controls.moveTo( SCMAP.settings.cameraDefaults.target );
+      });
+
+      $('#sc-map-northCamera').on( 'click', function() {
+         renderer.controls.rotateTo( 0, undefined, undefined );
+      });
+
+      $('#sc-map-topCamera').on( 'click', function() {
+         renderer.controls.rotateTo( 0, 0, 180 );
+      });
+
+      $('#sc-map-top2D').on( 'click', function() {
+         renderer.controls.noRotate = true;
+         $('#sc-map-lock-rotation').prop( 'checked', true );
+         me.map.displayState.to2d();
+         renderer.controls.rotateTo( 0, 0, 180 );
+      });
+
+   $("#sc-map-interface").tabs({
       active: 0,
       activate: function( event, ui ) {
          event.preventDefault();
-         var clicked_on = ui.newTab.find('a').attr('href');
+         var clicked_on = ui.newTab.find('a').data('tab');
+         var tab = SCMAP.UI.Tab( clicked_on );
 
          switch ( clicked_on ) {
 
-            case '#listing':
-               $('#listing').empty().append(
+            case 'systems':
+               $( tab.id ).empty().append(
                   SCMAP.UI.Templates.listings({ systemGroups: SCMAP.UI.buildDynamicLists() })
                );
                break;
 
             default:
-               $('#webgl-container').removeClass().addClass( 'noselect webgl-container-noedit' );
+               $('#sc-map-webgl-container').removeClass('edit');
                //window.editor.enabled = false;
                //window.controls.requireAlt = false;
                //if ( clicked_on === '#info' && map.selected() instanceof SCMAP.System ) {
@@ -104,42 +121,45 @@ SCMAP.UI = function () {
                break;
          }
 
-         $('#map_ui').data( 'jsp' ).reinitialise();
+         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
       }
    });
 
    /* jScrollPane */
-   $('#map_ui').jScrollPane({ showArrows: true });
+   //$('#sc-map-interface').jScrollPane({ showArrows: true });
 
-   $('#toggle-glow').prop( 'checked', SCMAP.settings.glow );
-   $('#toggle-labels').prop( 'checked', SCMAP.settings.labels );
-   $('#toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
-
-   $('#avoid-hostile').prop( 'checked', SCMAP.settings.route.avoidHostile );
-   $('#avoid-off-limits').prop( 'checked', SCMAP.settings.route.avoidOffLimits );
-   $('#avoid-unknown-jumppoints').prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints );
-
-   // Event handlers
+   $('#sc-map-toggle-glow').prop( 'checked', SCMAP.settings.glow );
+   $('#sc-map-toggle-labels').prop( 'checked', SCMAP.settings.labels );
+   $('#sc-map-toggle-label-icons').prop( 'checked', SCMAP.settings.labelIcons );
 
    // Some simple UI stuff
 
-   $('#avoid-hostile').on( 'change', function() {
-      SCMAP.settings.route.avoidHostile = this.checked;
-      SCMAP.settings.save( 'route' );
-      map.route().rebuildCurrentRoute();
-   });
-   $('#avoid-off-limits').on( 'change', function() {
-      SCMAP.settings.route.avoidOffLimits = this.checked;
-      SCMAP.settings.save( 'route' );
-      map.route().rebuildCurrentRoute();
-   });
-   $('#avoid-unknown-jumppoints').on( 'change', function() {
-      SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
-      SCMAP.settings.save( 'route' );
-      map.route().rebuildCurrentRoute();
-   });
+   $('#sc-map-avoid-hostile')
+      .prop( 'checked', SCMAP.settings.route.avoidHostile )
+      .on( 'change', function() {
+         SCMAP.settings.route.avoidHostile = this.checked;
+         SCMAP.settings.save( 'route' );
+         map.route().rebuildCurrentRoute();
+      });
 
-   $('#toggle-stats')
+   $('#sc-map-avoid-off-limits')
+      .prop( 'checked', SCMAP.settings.route.avoidOffLimits )
+      .on( 'change', function() {
+         SCMAP.settings.route.avoidOffLimits = this.checked;
+         SCMAP.settings.save( 'route' );
+         map.route().rebuildCurrentRoute();
+      });
+
+   $('#sc-map-avoid-unknown-jumppoints')
+      .prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints )
+      .on( 'change', function() {
+         SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
+         SCMAP.settings.save( 'route' );
+         map.route().rebuildCurrentRoute();
+      });
+
+   $('#sc-map-toggle-stats')
       .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
       .on( 'change', function() {
          if ( this.checked ) {
@@ -152,44 +172,43 @@ SCMAP.UI = function () {
          }
       });
 
-   $('#toggle-antialias')
+   $('#sc-map-toggle-antialias')
       .prop( 'checked', SCMAP.settings.effect.Antialias )
       .on( 'change', function() {
          SCMAP.settings.effect.Antialias = this.checked;
          SCMAP.settings.save( 'effect' );
-         //console.log( localStorage.effect );
          window.location.reload( false );
       });
 
-   $('#toggle-fxaa')
+   $('#sc-map-toggle-fxaa')
       .prop( 'checked', SCMAP.settings.effect.FXAA )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
 
       .on( 'change', function() {
          SCMAP.settings.effect.FXAA = this.checked;
          SCMAP.settings.save( 'effect' );
-         if ( effectFXAA ) {
-            effectFXAA.enabled = this.checked;
+         if ( renderer.FXAA ) {
+            renderer.FXAA.enabled = this.checked;
          }
       });
 
-   $('#toggle-bloom')
+   $('#sc-map-toggle-bloom')
       .prop( 'checked', SCMAP.settings.effect.Bloom )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
 
       .on( 'change', function() {
          SCMAP.settings.effect.Bloom = this.checked;
          SCMAP.settings.save( 'effect' );
-         if ( composer ) {
-            for ( var i = 0; i < composer.passes.length; i++ ) {
-               if ( composer.passes[i] instanceof THREE.BloomPass ) {
-                  composer.passes[i].enabled = this.checked;
+         if ( renderer.composer ) {
+            for ( var i = 0; i < renderer.composer.passes.length; i++ ) {
+               if ( renderer.composer.passes[i] instanceof THREE.BloomPass ) {
+                  renderer.composer.passes[i].enabled = this.checked;
                }
             }
          }
       });
 
-   $('#toggle-glow').on( 'change', function() {
+   $('#sc-map-toggle-glow').on( 'change', function() {
       SCMAP.settings.glow = this.checked;
       map.updateSystems();
       if ( storage ) {
@@ -197,18 +216,17 @@ SCMAP.UI = function () {
       }
    });
 
-   $('#toggle-labels').on( 'change', function() {
+   $('#sc-map-toggle-labels').on( 'change', function() {
       SCMAP.settings.labels = this.checked;
-      $('#toggle-label-icons').prop( 'disabled', !SCMAP.settings.labels );
+      $('#sc-map-toggle-label-icons').prop( 'disabled', !SCMAP.settings.labels );
       map.updateSystems();
       if ( storage ) {
          storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
       }
    });
 
-   $('#toggle-label-icons')
+   $('#sc-map-toggle-label-icons')
       .prop( 'disabled', !SCMAP.settings.labels )
-
       .on( 'change', function() {
          SCMAP.settings.labelIcons = this.checked;
          map.updateSystems();
@@ -222,27 +240,31 @@ SCMAP.UI = function () {
       $this.find('input[type=checkbox]').click();
    });
 
-   $('#map_ui').on( 'click', 'a[data-toggle-next]', function ( event ) {
+   $('#sc-map-interface').on( 'click', 'a[data-toggle-next]', function ( event ) {
       var $this = $(this);
       event.preventDefault();
       var $element = $this.parent().next();
       $element.toggle();
       var title = $this.data('title');
+      var storage = null;
+      if ( hasSessionStorage() ) {
+         storage = window.sessionStorage;
+      }
       if ( $element.is(':visible') ) {
          $this.parent().find('> a > i').first().removeClass('fa-caret-right').addClass('fa-caret-down');
-         if ( window.sessionStorage ) {
-            window.sessionStorage[ title ] = '1';
+         if ( storage ) {
+            storage[ title ] = '1';
          }
       } else {
          $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
-         if ( window.sessionStorage ) {
-            delete window.sessionStorage[ title ];
+         if ( storage ) {
+            delete storage[ title ];
          }
       }
-      $('#map_ui').data( 'jsp' ).reinitialise();
+      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
    });
 
-   $('#map_ui').on( 'click', 'a[data-toggle-child]', function ( event ) {
+   $('#sc-map-interface').on( 'click', 'a[data-toggle-child]', function ( event ) {
       var $this = $(this);
       event.preventDefault();
       var $element = $this.parent().find( $this.data('toggle-child') );
@@ -252,18 +274,18 @@ SCMAP.UI = function () {
       } else {
          $this.parent().find('> a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
-      $('#map_ui').data( 'jsp' ).reinitialise();
+      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
    });
 
-   $('#map_ui').on( 'click', "a[data-goto='system']", function( event ) {
+   $('#sc-map-interface').on( 'click', "a[data-goto='system']", function( event ) {
       event.preventDefault();
       var $this = $(this);
       var system = SCMAP.System.getById( $this.data('system') );
       system.displayInfo();
-      controls.moveTo( system );
+      renderer.controls.moveTo( system );
    });
 
-   $('#map_ui').on( 'click', "table.routelist .remove-waypoint", function( event ) {
+   $('#sc-map-interface').on( 'click', "table.routelist .remove-waypoint", function( event ) {
       event.preventDefault();
       var $this = $(this);
       var system = SCMAP.System.getById( $this.data('system') );
@@ -271,7 +293,7 @@ SCMAP.UI = function () {
       map.route().update();
    });
 
-   $('#map_ui').on( 'click', 'button.delete-route', function( event ) {
+   $('#sc-map-interface').on( 'click', 'button.delete-route', function( event ) {
       map.route().destroy();
    });
 
@@ -281,19 +303,19 @@ SCMAP.UI = function () {
       var text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
          system.setComments( text );
-         $('#map_ui .user-system-comments-md').html( $(markdown.toHTML( text )) );
+         $('#sc-map-interface .user-system-comments-md').html( $(markdown.toHTML( text )) );
       } else {
          system.setComments();
-         $('#map_ui .user-system-comments-md').empty();
+         $('#sc-map-interface .user-system-comments-md').empty();
       }
       system.updateSceneObject( scene );
    };
 
-   $('#map_ui').on( 'keyup', '.user-system-comments', updateComments );
-   $('#map_ui').on( 'blur', '.user-system-comments', updateComments );
-   $('#map_ui').on( 'change', '.user-system-comments', updateComments );
+   $('#sc-map-interface').on( 'keyup', '.user-system-comments', updateComments );
+   $('#sc-map-interface').on( 'blur', '.user-system-comments', updateComments );
+   $('#sc-map-interface').on( 'change', '.user-system-comments', updateComments );
 
-   $('#map_ui').on( 'click', '.remove-system-comments', function( event ) {
+   $('#sc-map-interface').on( 'click', '.remove-system-comments', function( event ) {
       event.preventDefault();
       var system = SCMAP.System.getById( $(this).data('system') );
       system.setComments();
@@ -302,21 +324,21 @@ SCMAP.UI = function () {
       system.updateSceneObject( scene );
    });
 
-   $('#map_ui').on( 'change', '.user-system-bookmarked', function() {
+   $('#sc-map-interface').on( 'change', '.user-system-bookmarked', function() {
       SCMAP.System.getById( $(this).data('system') )
          .setBookmarkedState( this.checked )
          .updateSceneObject( scene );
       SCMAP.settings.save( 'systems' );
    });
 
-   $('#map_ui').on( 'change', '.user-system-ishangar', function() {
+   $('#sc-map-interface').on( 'change', '.user-system-ishangar', function() {
       SCMAP.System.getById( $(this).data('system') )
          .setHangarState( this.checked )
          .updateSceneObject( scene );
       SCMAP.settings.save( 'systems' );
    });
 
-   $('#map_ui').on( 'change', '.user-system-avoid', function() {
+   $('#sc-map-interface').on( 'change', '.user-system-avoid', function() {
       SCMAP.System.getById( $(this).data('system') )
          .setToBeAvoidedState( this.checked )
          .updateSceneObject( scene );
@@ -324,23 +346,46 @@ SCMAP.UI = function () {
       map.route().rebuildCurrentRoute();
    });
 
-   $("#map_ui a[href='#']").removeAttr('href');
+   /* Browsers show an ugly URL bar if href is set to #, this
+    * makes the HTML invalid but removes the ugly URL bar */
+   $("#sc-map-interface a[href='#']").removeAttr('href');
 };
 
 SCMAP.UI.prototype = {
 
    constructor: SCMAP.UI,
 
-   toTabIndex: function toTabIndex( index ) {
-      //$('#map_ui').tabs( 'options', 'active', index );
-      window.ui.updateHeight();
-      //$('#map_ui').data( 'jsp' ).scrollToPercentY( 0 );
+   toTab: function toTab( index ) {
+      var tab = SCMAP.UI.Tab( index );
+      $('#sc-map-interface').tabs( 'options', 'active', tab.index );
+   },
+
+   toTabTop: function toTabTop() {
+      if ( $('#sc-map-interface').data('jsp') ) {
+         $('#sc-map-interface').data('jsp').scrollToPercentY( 0 );
+      }
    },
 
    updateHeight: function updateHeight() {
-      //$('#map_ui').data( 'jsp' ).reinitialise();
+      if ( $('#sc-map-interface').data('jsp') ) {
+         $('#sc-map-interface').data('jsp').reinitialise();
+      }
    }
 
+};
+
+SCMAP.UI.Tabs = [];
+SCMAP.UI.menuBar = [];
+
+SCMAP.UI.Tab = function Tab( name ) {
+   for ( var i = 0; i < SCMAP.UI.Tabs.length; i += 1 ) {
+      if ( ( typeof name === 'string' ) && ( SCMAP.UI.Tabs[ i ].name === name ) ) {
+         return SCMAP.UI.Tabs[ i ];
+      } else if ( ( typeof name === 'number' ) && ( SCMAP.UI.Tabs[ i ].id === name ) ) {
+         return SCMAP.UI.Tabs[ i ];
+      }
+   }
+   return;
 };
 
 SCMAP.UI.makeSafeForCSS = function makeSafeForCSS( name ) {
@@ -395,6 +440,7 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
    var byFaction = [];
    var everything = [];
    var factionsById = {};
+   var data = [];
 
    for ( var factionId in SCMAP.data.factions ) {
       var faction = SCMAP.data.factions[factionId];
@@ -417,176 +463,49 @@ SCMAP.UI.buildDynamicLists = function buildDynamicLists() {
       everything.push( link );
    });
 
-   return [ {
+   if ( hangars.length ) {
+      data.push({
          title: "Hangar locations&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.HANGAR ).addClass('fa-lg').outerHtml(),
          items: hangars
-      }, {
+      });
+   }
+
+   if ( bookmarked.length ) {
+      data.push({
          title: "Bookmarked&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.BOOKMARK ).addClass('fa-lg').outerHtml(),
          items: bookmarked
-      }, {
+      });
+   }
+
+   if ( withComments.length ) {
+      data.push({
          title: "With your comments&nbsp;"+SCMAP.Symbol.getTag( SCMAP.Symbols.COMMENTS ).addClass('fa-lg').outerHtml(),
          items: withComments
-      }, {
+      });
+   }
+
+   data.push(
+     {
          title: "By faction",
          factions: factionsById
-      }, {
+      },
+      {
          title: "Everything",
          items: everything
       }
-   ];
+   );
+
+   return data;
 };
 
-var sectionLevel = 1;
-Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
-   var opened = ( shouldOpen ) ? true : false;
-   var icon = 'fa-caret-right';
-   var hidden = 'style="display: none;"';
-   var attrs = [];
-   var oldLevel = sectionLevel++;
-   var str;
-   if ( window.sessionStorage && ( title in window.sessionStorage ) ) {
-      opened = ( window.sessionStorage[ title ] == '1' ) ? true : false;
-   }
-   if ( opened ) {
-      icon = 'fa-caret-down';
-      hidden = '';
-   }
-   for ( var prop in options.hash ) {
-      attrs.push( prop + '="' + options.hash[prop] + '"' );
-   }
-   str = '<h'+oldLevel+'><a href="#" data-title="'+htmlEscape(title)+'" data-toggle-next="next" '+attrs.join(" ")+'><i class="fa fa-fw fa-lg '+icon+'"></i>'+title+'</a></h'+oldLevel+">\n"+
-         '         <div class="ui-section" '+hidden+'>';
-   if ( 'fn' in options ) {
-      str += options.fn( this );
-   }
-   str += '</div>';
-   sectionLevel -= 1;
-   return new Handlebars.SafeString( str );
-});
-
-Handlebars.registerHelper( 'tabHeader', function( title ) {
-   return new Handlebars.SafeString( '<h1 class="padleft">'+title+'</h1>' );
-});
-
-Handlebars.registerHelper( 'bigButton', function( id, faClass, title ) {
-   return new Handlebars.SafeString( '<button class="big-button" id="'+id+'"><i class="fa '+faClass+' fa-fw fa-lg"></i> '+title+'</button>'+'<br>' );
-});
-
-Handlebars.registerHelper( 'commoditiesList', function( commodities ) {
-   if ( !commodities.length ) {
-      return new Handlebars.SafeString( '&mdash;' );
-   }
-   return new Handlebars.SafeString(
-      $.map( commodities, function( elem, i ) {
-         return SCMAP.data.goods[ elem ].name;
-      }).join( ', ' )
-   );
-});
-
-Handlebars.registerHelper( 'markdown', function( markdownText ) {
-   return new Handlebars.SafeString( markdown.toHTML( markdownText ) );
-});
-
-Handlebars.registerHelper( 'colourGetStyle', function( colour ) {
-   return new Handlebars.SafeString( colour.getStyle() );
-});
-
-Handlebars.registerHelper( 'systemLink', function( system, options ) {
-   //console.log( options );
-   var noIcons = false, noTarget = false;
-   if ( 'noIcons' in options.hash ) {
-      noIcons = ( options.hash.noIcons ) ? true : false;
-   }
-   if ( 'noTarget' in options.hash ) {
-      noTarget = ( options.hash.noTarget ) ? true : false;
-   }
-   if ( !(system instanceof SCMAP.System) ) {
-      return '';
-   }
-   return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
-});
-
-Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
-   var attrs = [];
-   for ( var prop in options.hash ) {
-      if ( prop === 'icon' ) {
-         title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
-      } else {
-         attrs.push( prop + '="' + htmlEscape(options.hash[prop]) + '"' );
-      }
-   }
-   return new Handlebars.SafeString(
-      '<span class="checkmark-button">'+
-         '<input type="checkbox" id="'+id+'" '+attrs.join(" ")+'><label for="'+id+'">'+title+'</label>'+
-      '</span>'
-   );
-});
-
-Handlebars.registerHelper( "debug", function(optionalValue) {
-  console.log("Current Context");
-  console.log("====================");
-  console.log(this);
-
-  if (optionalValue) {
-    console.log("Value");
-    console.log("====================");
-    console.log(optionalValue);
-  }
-});
-
-Handlebars.registerHelper( 'mapUiTabHeader', function( id, title, icon ) {
-   return new Handlebars.SafeString(
-      '<li><a title="'+htmlEscape(title)+'" href="#'+htmlEscape(id)+'"><i class="fa fa-fw fa-2x '+htmlEscape(icon)+'"></i></a></li>'
-   );
-});
-
-Handlebars.registerHelper( 'durationHMM', function( duration ) {
-   if ( !duration ) {
-      return '';
-   }
-   return new Handlebars.SafeString( duration.toHMM() );
-});
-
-Handlebars.registerHelper( 'plusOne', function( number ) {
-   return new Handlebars.SafeString( number + 1 );
-});
-
-Handlebars.registerHelper( 'minusOne', function( number ) {
-   return new Handlebars.SafeString( number - 1 );
-});
-
-Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
-   var attrs = [];
-   for ( var prop in options.hash ) {
-      if ( prop === 'icon' ) {
-         title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
-      } else {
-         attrs.push( prop + '="' + htmlEscape(options.hash[prop]) + '"' );
-      }
-   }
-   return new Handlebars.SafeString(
-      '<span class="checkmark-option">'+
-         '<input type="checkbox" id="'+id+'">'+
-         '<label for="'+id+'">'+title+
-            '<span class="small label-info">'+description+'</span>'+
-         '</label>'+
-      '</span>'
-   );
-});
-
-$('script[type="text/x-handlebars-template"][data-partial="1"]').each( function( index, elem ) {
-   var $elem = $(elem);
-   Handlebars.registerPartial( $elem.attr('id'), $elem.html() );
-});
-
-function htmlEscape(str) {
+SCMAP.UI.htmlEscape = function htmlEscape(str) {
     return String(str)
       .replace(/&/g, '&amp;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
-}
+};
 
 SCMAP.UI.Templates = {
    mapUI:      Handlebars.compile( $('#templateMapUI').html() ),
@@ -594,5 +513,183 @@ SCMAP.UI.Templates = {
    listings:   Handlebars.compile( $('#templateSystemsListing').html() ),
    routeList:  Handlebars.compile( $('#templateRouteList').html() )
 };
+
+$(function() {
+   var sectionLevel = 1;
+   var tabCounter = 0;
+
+   Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
+      var opened = ( shouldOpen ) ? true : false;
+      var icon = 'fa-caret-right';
+      var hidden = 'style="display: none;"';
+      var attrs = [], str;
+      var oldLevel = sectionLevel++;
+      var storage = null;
+      if ( hasSessionStorage() ) {
+         storage = window.sessionStorage;
+      }
+
+      if ( storage && ( title in storage ) ) {
+         opened = ( storage[ title ] == '1' ) ? true : false;
+      }
+
+      if ( opened ) {
+         icon = 'fa-caret-down';
+         hidden = '';
+      }
+
+      for ( var prop in options.hash ) {
+         attrs.push( prop + '="' + options.hash[prop] + '"' );
+      }
+
+      str = '<h'+oldLevel+'><a href="#" data-title="'+SCMAP.UI.htmlEscape(title)+
+         '" data-toggle-next="next" '+attrs.join(" ")+'><i class="fa fa-fw fa-lg '+icon+'">'+
+         '</i>'+title+'</a></h'+oldLevel+">\n"+'         <div class="ui-section" '+hidden+'>';
+
+      if ( 'fn' in options ) {
+         str += options.fn( this );
+      }
+
+      str += '</div>';
+      sectionLevel -= 1;
+      return new Handlebars.SafeString( str );
+   });
+
+   Handlebars.registerHelper( 'tabHeader', function( title ) {
+      return new Handlebars.SafeString( '<h1 class="padleft">'+title+'</h1>' );
+   });
+
+   /* title: shown to user, name: internal name, icon: font awesome icon class */
+   Handlebars.registerHelper( 'jQueryUiTab', function( title, name, icon, options ) {
+      var hidden = 'style="display: none;"';
+      var attrs = [], str = '';
+      var $menuItem;
+      var id = 'sc-map-ui-tab-'+SCMAP.UI.makeSafeForCSS( name );
+
+      //for ( var prop in options.hash ) {
+      //   attrs.push( prop + '="' + options.hash[prop] + '"' );
+      //}
+
+      $menuItem = $(
+         '<li>' +
+            '<a title="'+SCMAP.UI.htmlEscape(title)+'" data-tab="'+SCMAP.UI.htmlEscape(name)+'" href="#'+SCMAP.UI.htmlEscape(id)+'">'+
+               '<i class="fa fa-fw fa-2x '+SCMAP.UI.htmlEscape(icon)+'"></i>'+
+            '</a>'+
+         '</li>'
+      );
+      SCMAP.UI.menuBar.push( $menuItem );
+
+      str = '<div id="' + id + '" class="sc-map-ui-tab" ' + ((tabCounter !== 0) ? 'style="display: none"' : '') + '>';
+      if ( 'fn' in options ) {
+         str += options.fn( this );
+      }
+      str += '</div>';
+
+      SCMAP.UI.Tabs.push({ id: '#'+id, name: name, index: tabCounter++ });
+
+      return new Handlebars.SafeString( str );
+   });
+
+   Handlebars.registerHelper( 'bigButton', function( id, faClass, title ) {
+      return new Handlebars.SafeString( '<button class="big-button" id="'+id+'">'+
+         '<i class="fa '+faClass+' fa-fw fa-lg"></i> '+title+'</button>'+'<br>' );
+   });
+
+   Handlebars.registerHelper( 'commoditiesList', function( commodities ) {
+      if ( !commodities.length ) {
+         return new Handlebars.SafeString( '&mdash;' );
+      }
+      return new Handlebars.SafeString(
+         $.map( commodities, function( elem, i ) {
+            return SCMAP.data.goods[ elem ].name;
+         }).join( ', ' )
+      );
+   });
+
+   Handlebars.registerHelper( 'markdown', function( markdownText ) {
+      return new Handlebars.SafeString( markdown.toHTML( markdownText ) );
+   });
+
+   Handlebars.registerHelper( 'colourGetStyle', function( colour ) {
+      return new Handlebars.SafeString( colour.getStyle() );
+   });
+
+   Handlebars.registerHelper( 'systemLink', function( system, options ) {
+      var noIcons = false, noTarget = false;
+      if ( 'noIcons' in options.hash ) {
+         noIcons = ( options.hash.noIcons ) ? true : false;
+      }
+      if ( 'noTarget' in options.hash ) {
+         noTarget = ( options.hash.noTarget ) ? true : false;
+      }
+      if ( !(system instanceof SCMAP.System) ) {
+         return '';
+      }
+      return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
+   });
+
+   Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
+      var attrs = [];
+      for ( var prop in options.hash ) {
+         if ( prop === 'icon' ) {
+            title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
+         } else {
+            attrs.push( prop + '="' + SCMAP.UI.htmlEscape(options.hash[prop]) + '"' );
+         }
+      }
+      return new Handlebars.SafeString(
+         '<span class="checkmark-button">'+
+            '<input type="checkbox" id="'+id+'" '+attrs.join(" ")+'>'+
+            '<label for="'+id+'">'+title+'</label>'+
+         '</span>'
+      );
+   });
+
+   Handlebars.registerHelper( "debug", function( optionalValue ) {
+      console.log( "Current Context", this );
+      if (optionalValue) {
+         console.log( "Value", optionalValue );
+      }
+   });
+
+   Handlebars.registerHelper( 'durationHMM', function( duration ) {
+      if ( !duration ) {
+         return '';
+      }
+      return new Handlebars.SafeString( duration.toHMM() );
+   });
+
+   Handlebars.registerHelper( 'plusOne', function( number ) {
+      return new Handlebars.SafeString( number + 1 );
+   });
+
+   Handlebars.registerHelper( 'minusOne', function( number ) {
+      return new Handlebars.SafeString( number - 1 );
+   });
+
+   Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
+      var attrs = [];
+      for ( var prop in options.hash ) {
+         if ( prop === 'icon' ) {
+            title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
+         } else {
+            attrs.push( prop + '="' + SCMAP.UI.htmlEscape(options.hash[prop]) + '"' );
+         }
+      }
+      return new Handlebars.SafeString(
+         '<span class="checkmark-option">'+
+            '<input type="checkbox" id="'+id+'">'+
+            '<label for="'+id+'">'+title+
+               '<span class="small label-info">'+description+'</span>'+
+            '</label>'+
+         '</span>'
+      );
+   });
+
+   $('script[type="text/x-handlebars-template"][data-partial="1"]').each( function( index, elem ) {
+      var $elem = $(elem);
+      Handlebars.registerPartial( $elem.attr('id'), $elem.html() );
+   });
+});
 
 // End of file

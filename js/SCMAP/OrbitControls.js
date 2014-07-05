@@ -20,9 +20,10 @@
 // state machine for dealing with the user's input (I needed more than
 // just basic control).
 
-SCMAP.OrbitControls = function ( object, domElement ) {
+SCMAP.OrbitControls = function ( renderer, domElement ) {
 
-   this.object = object;
+   this.object     = renderer.camera;
+   this.map        = renderer.map;
    this.domElement = ( domElement !== undefined ) ? domElement : document;
 
    // API
@@ -193,7 +194,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                   }
 
                   if ( endObject === startObject ) {
-                     $('#map_ui').tabs( 'option', 'active', 2 );
+                     $('#sc-map-interface').tabs( 'option', 'active', 2 );
                      endObject.displayInfo();
                   }
                   else
@@ -203,7 +204,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
                      var route = window.map.route();
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
-                        $('#map_ui').tabs( 'option', 'active', 3 );
+                        $('#sc-map-interface').tabs( 'option', 'active', 3 );
                      }
                   }
                }
@@ -820,12 +821,12 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             break;
          case scope.keys['2']: // 2D mode
             scope.noRotate = true;
-            $('#lock-rotation').prop( 'checked', true );
-            displayState.to2d();
+            $('#sc-map-lock-rotation').prop( 'checked', true );
+            scope.map.displayState.to2d();
             scope.rotateTo( 0, 0, 180 );
             break;
          case scope.keys['3']: // 3D mode
-            displayState.to3d();
+            scope.map.displayState.to3d();
             scope.rotateTo(
                SCMAP.settings.cameraDefaults.orientation.theta,
                SCMAP.settings.cameraDefaults.orientation.phi,
@@ -833,7 +834,7 @@ SCMAP.OrbitControls = function ( object, domElement ) {
             );
             break;
          case scope.keys.L: // Lock/unlock rotation
-            $('#lock-rotation').click();
+            $('#sc-map-lock-rotation').click();
             break;
          default:
             //console.log( "onkeydown", event.keyCode );

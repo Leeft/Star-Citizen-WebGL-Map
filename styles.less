@@ -1,5 +1,3 @@
-/* @import url(http://fonts.googleapis.com/css?family=Electrolize); */
-
 @rsi-blue: #6ABBCF;
 @colour-danger: #C00;
 @text-font-family: 'Segoe UI', 'Lucida Grande', 'Tahoma', 'Calibri', sans-serif;
@@ -14,26 +12,17 @@
            border-radius: @radius;
 }
 
-.webgl-map {
+body.the-verse {
+   overflow: hidden;
+}
+
+.sc-webgl-map {
    background-color: #000;
    margin: 0;
    overflow: hidden;
    color: #FFF;
    font-family: @text-font-family;
 }
-
-body.the-verse {
-   overflow: hidden;
-}
-
-.webgl-container {
-   position: absolute;
-   top: 0;
-   right: 0;
-}
-
-.webgl-container-edit   { cursor: crosshair; }
-.webgl-container-noedit { cursor: move;      }
 
 .noselect {
    -webkit-touch-callout: none;
@@ -47,7 +36,6 @@ body.the-verse {
 
 html {
    font-size: 14px;
-
 }
 
 *:focus {
@@ -70,17 +58,7 @@ a {
 }
 
 /*
-#appinfo {
-   position: absolute;
-   top: 10px; width: 100%;
-   color: #ffffff;
-   padding: 5px;
-   text-align: center;
-}
-*/
-
-/*
-#map_popup {
+#sc-map-popup {
    overflow: auto;
    position: absolute;
    top: 200px;
@@ -97,9 +75,18 @@ a {
 }
 */
 
-.map_ui {
+#sc-map-webgl-container {
+   position: absolute;
+   top: 0;
+   right: 0;
+   cursor: move;
+   .noedit { cursor: move; }
+}
 
-   overflow: auto;
+
+#sc-map-interface {
+   overflow: hidden;
+   overflow-y: auto;
    position: absolute;
    top: 0;
    left: 0;
@@ -109,6 +96,7 @@ a {
    text-align: left;
    background: @panel-background;
    z-index: 100;
+   resize: horizontal;
 
    .small {
       font-size: 12px;
@@ -126,7 +114,8 @@ a {
       font-family: @fixed-font-family;
    }
 
-   .map_ui_padding {
+   /* Spacing around the contents of the user interface */
+   .sc-map-ui-padding {
       padding: 0.6em;
 
       &.the-verse {
@@ -177,12 +166,6 @@ a {
       }
 
    }
-
-   /*
-   ul.menubar i, i {
-      display: inline-block;
-   }
-   */
 
    .pull-right {
       float: right;
@@ -325,7 +308,7 @@ a {
 
       margin-bottom: 0.7em;
       display: block;
-      margin-right: 0.5em;
+      margin-right: 1.5em;
 
       label {
          .border-radius( 5px );
@@ -333,6 +316,7 @@ a {
          display: block;
          width: 100%;
          padding-left: 0.5rem;
+         padding-right: 0.5rem;
          line-height: 2.3rem;
 
          background: @button-background;
@@ -482,10 +466,185 @@ a {
       margin-left: 0;
       margin-right: 0;
    }
-}
 
-template {
-    display: none;
+
+   /*** custom checkboxes ***/
+
+   input[type=checkbox] { display:none; } /* to hide the checkbox itself */
+   input[type=checkbox] + label:before {
+      font-family: FontAwesome;
+      display: inline-block;
+   }
+
+   input[type=checkbox] + label:before { content: "\f096"; color: #f88; } /* unchecked icon */
+   input[type=checkbox] + label:before { letter-spacing: 12px; } /* space between checkbox and label */
+
+   /* input.hangar[type=checkbox] + label:before { content: "\f015"; color: #aaa; } */ /* unchecked hangar */
+   /* input.bookmark[type=checkbox] + label:before { content: "\f02e"; color: #aaa; } */ /* unchecked bookmark */
+   /* input.avoid[type=checkbox] + label:before { content: "\f00d"; color: #aaa; } */ /* unchecked cross */
+
+   input[type=checkbox]:checked + label:before { content: "\f046"; color: #8f8; } /* checked icon */
+   /* input[type=checkbox]:checked + label:before { letter-spacing: 8px; } */ /* allow space for check mark */
+
+   input[type=checkbox][disabled] + label { color: #666; } /* disabled checkbox */
+   input[type=checkbox][disabled] + label:before{ color: #666; } /* disabled checkbox */
+   input[type=checkbox][disabled]:checked + label:before { content: "\f046"; } /* checked icon */
+
+   dl {
+      border: 0;
+      padding: 0;
+      margin-left: 2em;
+
+   }
+   .shortcuts {
+      margin-left: 0.6em;
+   }
+   dt {
+      float: left;
+      clear: left;
+      text-align: right;
+      font-weight: bold;
+      color: @rsi-blue;
+   }
+   .wide {
+      margin: 0.5rem 0;
+      padding-left: 0;
+      padding-right: 0;
+   }
+   .wide.basic-system {
+      margin-left: -1.3rem;
+      padding-left: 0;
+      padding-right: 0;
+   }
+   .wide dt {
+      width: 140px;
+   }
+
+   .wide dd {
+      margin: 0 0 0 145px;
+      padding: 0 0 0.4em 0;
+   }
+   /*
+   #keyboard-shortcuts dd {
+      width: 250px;
+      margin: 0 0 0 35px;
+   }
+   */
+
+   dt:after {
+      content: ": ";
+   }
+
+   /* CSS Styles that are needed by jScrollPane for it to operate correctly.  */
+   .jspScrollable {
+      .jspContainer {
+         overflow: hidden;
+         position: relative;
+      }
+
+      .jspPane {
+         position: absolute;
+      }
+
+      .jspVerticalBar {
+         position: absolute;
+         top: 0;
+         right: 0;
+         width: 12px;
+         height: 100%;
+         background: transparent;
+
+         .jspArrow {
+            height: 12px;
+         }
+      }
+
+      .jspHorizontalBar {
+         position: absolute;
+         bottom: 0;
+         left: 0;
+         width: 100%;
+         height: 12px;
+         background: transparent;
+
+         .jspCap {
+            float: left;
+         }
+
+         .jspTrack,
+         .jspDrag {
+            float: left;
+            height: 100%;
+         }
+
+         .jspArrow {
+            width: 12px;
+            float: left;
+            height: 100%;
+         }
+      }
+
+      .jspCap {
+         display: none;
+      }
+
+      .jspTrack {
+         background: transparent;
+         position: relative;
+      }
+
+      .jspDrag {
+         background: darken( #a8a8a8, 20% );
+         position: relative;
+         top: 0;
+         left: 0;
+         cursor: pointer;
+      }
+
+      .jspArrow {
+         background: darken( #505050, 20% );
+         text-indent: -20000px;
+         display: block;
+         cursor: pointer;
+         padding: 0;
+         margin: 0;
+      }
+
+      .jspDisabled {
+         cursor: default;
+         background: #808080;
+      }
+
+      .jspCorner {
+         background: darken( #eee, 20% );
+         float: left;
+         height: 100%;
+      }
+   }
+
+   .ui-resizable {
+      position: relative;
+   }
+   .ui-resizable-handle {
+      position: absolute;
+      font-size: 0.1px;
+      display: block;
+      -ms-touch-action: none;
+      touch-action: none;
+   }
+   .ui-resizable-disabled .ui-resizable-handle,
+   .ui-resizable-autohide .ui-resizable-handle {
+      display: none;
+   }
+   .ui-resizable-e {
+      cursor: e-resize;
+      width: 10px;
+      right: -5px;
+      top: 0;
+      height: 100%;
+      background: #75a874;
+      &:after { content: "”"; }
+   }
 }
 
 /* Stats */
@@ -498,231 +657,4 @@ template {
 }
 /* /Stats */
 
-/*** custom checkboxes ***/
 
-input[type=checkbox] { display:none; } /* to hide the checkbox itself */
-input[type=checkbox] + label:before {
-   font-family: FontAwesome;
-   display: inline-block;
-}
-
-input[type=checkbox] + label:before { content: "\f096"; color: #f88; } /* unchecked icon */
-input[type=checkbox] + label:before { letter-spacing: 12px; } /* space between checkbox and label */
-
-/* input.hangar[type=checkbox] + label:before { content: "\f015"; color: #aaa; } */ /* unchecked hangar */
-/* input.bookmark[type=checkbox] + label:before { content: "\f02e"; color: #aaa; } */ /* unchecked bookmark */
-/* input.avoid[type=checkbox] + label:before { content: "\f00d"; color: #aaa; } */ /* unchecked cross */
-
-input[type=checkbox]:checked + label:before { content: "\f046"; color: #8f8; } /* checked icon */
-/* input[type=checkbox]:checked + label:before { letter-spacing: 8px; } */ /* allow space for check mark */
-
-input[type=checkbox][disabled] + label { color: #666; } /* disabled checkbox */
-input[type=checkbox][disabled] + label:before{ color: #666; } /* disabled checkbox */
-input[type=checkbox][disabled]:checked + label:before { content: "\f046"; } /* checked icon */
-
-dl {
-   border: 0;
-   padding: 0;
-   margin-left: 2em;
-
-}
-.shortcuts {
-   margin-left: 0.6em;
-}
-dt {
-   float: left;
-   clear: left;
-   text-align: right;
-   font-weight: bold;
-   color: @rsi-blue;
-}
-.wide {
-   margin: 0.5rem 0;
-   padding-left: 0;
-   padding-right: 0;
-}
-.wide.basic-system {
-   margin-left: -1.3rem;
-   padding-left: 0;
-   padding-right: 0;
-}
-.wide dt {
-   width: 140px;
-}
-
-.wide dd {
-   margin: 0 0 0 145px;
-   padding: 0 0 0.4em 0;
-}
-/*
-#keyboard-shortcuts dd {
-   width: 250px;
-   margin: 0 0 0 35px;
-}
-*/
-
-dt:after {
-   content: ": ";
-}
-
-/* CSS Styles that are needed by jScrollPane for it to operate correctly.  */
-.jspScrollable {
-   .jspContainer {
-      overflow: hidden;
-      position: relative;
-   }
-
-   .jspPane {
-      position: absolute;
-   }
-
-   .jspVerticalBar {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 12px;
-      height: 100%;
-      background: transparent;
-
-      .jspArrow {
-         height: 12px;
-      }
-   }
-
-   .jspHorizontalBar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 12px;
-      background: transparent;
-
-      .jspCap {
-         float: left;
-      }
-
-      .jspTrack,
-      .jspDrag {
-         float: left;
-         height: 100%;
-      }
-
-      .jspArrow {
-         width: 12px;
-         float: left;
-         height: 100%;
-      }
-   }
-
-   .jspCap {
-      display: none;
-   }
-
-   .jspTrack {
-      background: transparent;
-      position: relative;
-   }
-
-   .jspDrag {
-      background: darken( #a8a8a8, 20% );
-      position: relative;
-      top: 0;
-      left: 0;
-      cursor: pointer;
-   }
-
-   .jspArrow {
-      background: darken( #505050, 20% );
-      text-indent: -20000px;
-      display: block;
-      cursor: pointer;
-      padding: 0;
-      margin: 0;
-   }
-
-   .jspDisabled {
-      cursor: default;
-      background: #808080;
-   }
-
-   .jspCorner {
-      background: darken( #eee, 20% );
-      float: left;
-      height: 100%;
-   }
-}
-
-.ui-resizable {
-   position: relative;
-}
-.ui-resizable-handle {
-   position: absolute;
-   font-size: 0.1px;
-   display: block;
-   -ms-touch-action: none;
-   touch-action: none;
-}
-.ui-resizable-disabled .ui-resizable-handle,
-.ui-resizable-autohide .ui-resizable-handle {
-   display: none;
-}
-.ui-resizable-e {
-   cursor: e-resize;
-   width: 10px;
-   right: -5px;
-   top: 0;
-   height: 100%;
-   background: #75a874;
-   &:after { content: "”"; }
-}
-/*
-.ui-resizable-n {
-   cursor: n-resize;
-   height: 7px;
-   width: 100%;
-   top: -5px;
-   left: 0;
-}
-.ui-resizable-s {
-   cursor: s-resize;
-   height: 7px;
-   width: 100%;
-   bottom: -5px;
-   left: 0;
-}
-.ui-resizable-w {
-   cursor: w-resize;
-   width: 7px;
-   left: -5px;
-   top: 0;
-   height: 100%;
-}
-.ui-resizable-se {
-   cursor: se-resize;
-   width: 12px;
-   height: 12px;
-   right: 1px;
-   bottom: 1px;
-}
-.ui-resizable-sw {
-   cursor: sw-resize;
-   width: 9px;
-   height: 9px;
-   left: -5px;
-   bottom: -5px;
-}
-.ui-resizable-nw {
-   cursor: nw-resize;
-   width: 9px;
-   height: 9px;
-   left: -5px;
-   top: -5px;
-}
-.ui-resizable-ne {
-   cursor: ne-resize;
-   width: 9px;
-   height: 9px;
-   right: -5px;
-   top: -5px;
-}
-*/

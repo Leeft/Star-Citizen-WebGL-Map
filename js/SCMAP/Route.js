@@ -343,7 +343,16 @@ SCMAP.Route.prototype = {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
-      $('#route').empty();
+      $( SCMAP.UI.Tab('route').id ).empty().append(
+         SCMAP.UI.Templates.routeList({
+            route: {
+               status: {
+                  text: 'No route set',
+                  class: 'no-route'
+               }
+            }
+         })
+      );
    },
 
    update: function update( destination ) {
@@ -364,7 +373,7 @@ SCMAP.Route.prototype = {
 
       if ( this.lastError() )
       {
-         $('#route').empty().append(
+         $( SCMAP.UI.Tab('route').id ).empty().append(
             SCMAP.UI.Templates.routeList({
                route: {
                   status: {
@@ -374,7 +383,7 @@ SCMAP.Route.prototype = {
                }
             })
          );
-         $('#map_ui').tabs( 'option', 'active', 3 );
+         $('#sc-map-interface').tabs( 'option', 'active', 3 );
          return;
       }
 
@@ -403,16 +412,7 @@ SCMAP.Route.prototype = {
 
       if ( entireRoute.length === 0 )
       {
-         $('#route').empty().append(
-            SCMAP.UI.Templates.routeList({
-               route: {
-                  status: {
-                     text: 'No route set',
-                     class: 'no-route'
-                  }
-               }
-            })
-         );
+         this.removeFromScene();
          return;
       }
 
@@ -498,11 +498,13 @@ SCMAP.Route.prototype = {
          };
       }
 
-      $('#route').empty().append( SCMAP.UI.Templates.routeList({ route: templateData }) );
+      $( SCMAP.UI.Tab('route').id )
+         .empty()
+         .append( SCMAP.UI.Templates.routeList({ route: templateData }) );
 
       if ( this.toString() !== before ) {
-         $('#map_ui').data( 'jsp' ).reinitialise();
-         $('#map_ui').tabs( 'option', 'active', 3 );
+         $('#sc-map-interface').data( 'jsp' ).reinitialise();
+         $('#sc-map-interface').tabs( 'option', 'active', 3 );
       }
    },
 

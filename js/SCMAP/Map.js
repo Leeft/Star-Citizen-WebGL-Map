@@ -2,33 +2,35 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-SCMAP.Map = function ( scene ) {
+SCMAP.Map = function () {
    this.name = "Star Citizen Persistent Universe";
-   this.scene = scene;
+   this.scene = new THREE.Scene();
 
    // No editing available for the moment (doesn't work yet)
    this.canEdit = false;
-   $('#map_ui li.editor').hide();
+   //$('#map_ui li.editor').hide();
 
    this._interactables = [];
    this._route = null; // The main route the user can set
 
    this._selectorObject = this.createSelectorObject( 0x99FF99 );
-   scene.add( this._selectorObject );
+   this.scene.add( this._selectorObject );
 
    this._mouseOverObject = this.createSelectorObject( 0x8844FF );
    this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
-   scene.add( this._mouseOverObject );
+   this.scene.add( this._mouseOverObject );
 
    SCMAP.Faction.preprocessFactions( SCMAP.data.factions );
    SCMAP.Goods.preprocessGoods( SCMAP.data.goods );
 
    this.__currentlySelected = null;
 
+   this.animate = this._animate.bind( this );
+
    var map = this;
 
    $.ajax({
-      url: $('#sc-map-config').data('systems-json'),
+      url: $('#sc-map-configuration').data('systems-json'),
       async: true,
       cache: true,
       dataType: 'json',
@@ -38,11 +40,13 @@ SCMAP.Map = function ( scene ) {
    .done( function( data, textStatus, jqXHR ) {
       //console.log( "ajax done", data, textStatus, jqXHR );
       map.populate( data );
-      scene.add( map.buildReferenceGrid() );
+      map.scene.add( map.buildReferenceGrid() );
    })
    .fail( function( jqXHR, textStatus, errorThrown ) {
       console.error( "Ajax request failed:", errorThrown, textStatus );
    });
+
+   this.displayState = this.buildDisplayModeFSM( SCMAP.settings.mode );
 };
 
 SCMAP.Map.prototype = {
@@ -54,6 +58,15 @@ SCMAP.Map.prototype = {
 
    selected: function selected() {
       return this.getSelected();
+   },
+
+   _animate: function _animate() {
+      var rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
+      this.scene.traverse( function ( object ) {
+         if ( object.userData.isSelector ) {
+            object.rotation.y = rotationY;
+         }
+      });
    },
 
    setSelected: function setSelected ( system ) {
@@ -104,10 +117,6 @@ SCMAP.Map.prototype = {
       return this.__updateSelectorObject( system );
    },
 
-   clearSelection: function clearSelection () {
-      return this.__updateSelectorObject();
-   },
-
    getSystemByName: function getSystemByName ( name ) {
       return SCMAP.System.getByName( name );
    },
@@ -117,18 +126,7 @@ SCMAP.Map.prototype = {
    },
 
    deselect: function deselect () {
-      this.clearSelection();
-      $('#system-selected').hide();
-      $('#system-not-selected').show();
-   },
-
-   animateSelector: function animateSelector () {
-      var rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
-      window.scene.traverse( function ( object ) {
-         if ( object.userData.isSelector ) {
-            object.rotation.y = rotationY;
-         }
-      });
+      return this.__updateSelectorObject();
    },
 
    updateSystems: function updateSystems () {
@@ -231,7 +229,7 @@ SCMAP.Map.prototype = {
       // the routes can be built as well
 
       $( SCMAP.System.List ).each( function( index, system ) {
-         sceneObject = system.buildSceneObject();
+         var sceneObject = system.buildSceneObject();
          map.scene.add( sceneObject );
          map._interactables.push( sceneObject.children[0] );
          systemCount++;
@@ -527,6 +525,83 @@ geo.addAttribute( 'color', indexBA );
       return color;
    },
 
+   buildDisplayModeFSM: function buildDisplayModeFSM ( initialState ) {
+      var tweenTo2d, tweenTo3d, position, fsm;
+      var map = this;
+
+      position = { y: ( initialState === '3d' ) ? 100 : 0.5 };
+
+      tweenTo2d = new TWEEN.Tween( position )
+         .to( { y: 0.5 }, 1000 )
+         .easing( TWEEN.Easing.Cubic.InOut )
+         .onUpdate( function () {
+            map.route().removeFromScene(); // TODO: find a way to animate
+            for ( var i = 0; i < map.scene.children.length; i++ ) {
+               var child = map.scene.children[i];
+               if ( typeof child.userData.scaleY === 'function' ) {
+                  child.userData.scaleY( child, this.y );
+               }
+            }
+         } );
+
+      tweenTo3d = new TWEEN.Tween( position )
+         .to( { y: 100.0 }, 1000 )
+         .easing( TWEEN.Easing.Cubic.InOut )
+         .onUpdate( function () {
+            map.route().removeFromScene(); // TODO: find a way to animate
+            for ( var i = 0; i < map.scene.children.length; i++ ) {
+               var child = map.scene.children[i];
+               if ( typeof child.userData.scaleY === 'function' ) {
+                  child.userData.scaleY( child, this.y );
+               }
+            }
+         } );
+
+      fsm = StateMachine.create({
+         initial: initialState || '3d',
+
+         events: [
+            { name: 'to2d',  from: '3d', to: '2d' },
+            { name: 'to3d', from: '2d', to: '3d' }
+         ],
+
+         callbacks: {
+            onenter2d: function() {
+               $('#sc-map-3d-mode').prop( 'checked', false );
+               if ( storage ) { storage.mode = '2d'; }
+            },
+
+            onenter3d: function() {
+               $('#sc-map-3d-mode').prop( 'checked', true );
+               if ( storage ) { storage.mode = '3d'; }
+            },
+
+            onleave2d: function() {
+               tweenTo3d.onComplete( function() {
+                  fsm.transition();
+                  map.route().update();
+               });
+               tweenTo3d.start();
+               return StateMachine.ASYNC;
+            },
+
+            onleave3d: function() {
+               tweenTo2d.onComplete( function() {
+                  fsm.transition();
+                  map.route().update();
+               });
+               tweenTo2d.start();
+               return StateMachine.ASYNC;
+            },
+         },
+
+         error: function( eventName, from, to, args, errorCode, errorMessage ) {
+            console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
+         }
+      });
+
+      return fsm;
+   }
 };
 
 SCMAP.Map.BLACK = new THREE.Color( 0x000000 );
