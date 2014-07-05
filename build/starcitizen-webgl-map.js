@@ -2961,8 +2961,16 @@ SCMAP.UI = function ( map ) {
          renderer.controls.rotateTo( 0, 0, 180 );
       });
 
+   var tabIndex = 0;
+   if ( hasSessionStorage() && ( 'scMapTab' in window.sessionStorage ) ) {
+      var defaultTab = SCMAP.UI.Tab( window.sessionStorage.scMapTab );
+      if ( defaultTab ) {
+         tabIndex = defaultTab.index;
+      }
+   }
+
    $("#sc-map-interface").tabs({
-      active: 0,
+      active: tabIndex,
       activate: function( event, ui ) {
          event.preventDefault();
          var clicked_on = ui.newTab.find('a').data('tab');
@@ -2984,6 +2992,10 @@ SCMAP.UI = function ( map ) {
                //   map.selected().displayInfo();
                //}
                break;
+         }
+
+         if ( hasSessionStorage() ) {
+            window.sessionStorage.scMapTab = clicked_on;
          }
 
          //$('#sc-map-interface').data( 'jsp' ).reinitialise();
