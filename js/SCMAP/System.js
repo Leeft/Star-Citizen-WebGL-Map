@@ -401,9 +401,7 @@ SCMAP.System.prototype = {
       //}
 
       if ( !doNotSwitch ) {
-         $('#sc-map-interface').tabs( 'option', 'active', 2 );
-         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
-         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+         ui.toTab( 'system' );
       }
    },
 

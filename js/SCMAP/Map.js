@@ -41,6 +41,7 @@ SCMAP.Map = function () {
       //console.log( "ajax done", data, textStatus, jqXHR );
       map.populate( data );
       map.scene.add( map.buildReferenceGrid() );
+      ui.updateSystemsList();
    })
    .fail( function( jqXHR, textStatus, errorThrown ) {
       console.error( "Ajax request failed:", errorThrown, textStatus );

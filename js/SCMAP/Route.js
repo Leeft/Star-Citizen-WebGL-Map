@@ -383,7 +383,7 @@ SCMAP.Route.prototype = {
                }
             })
          );
-         $('#sc-map-interface').tabs( 'option', 'active', 3 );
+         ui.toTab( 'route' );
          return;
       }
 
@@ -503,8 +503,7 @@ SCMAP.Route.prototype = {
          .append( SCMAP.UI.Templates.routeList({ route: templateData }) );
 
       if ( this.toString() !== before ) {
-         $('#sc-map-interface').data( 'jsp' ).reinitialise();
-         $('#sc-map-interface').tabs( 'option', 'active', 3 );
+         ui.toTab( 'route' );
       }
    },
 

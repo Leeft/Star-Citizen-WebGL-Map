@@ -194,7 +194,6 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                   }
 
                   if ( endObject === startObject ) {
-                     $('#sc-map-interface').tabs( 'option', 'active', 2 );
                      endObject.displayInfo();
                   }
                   else
@@ -204,7 +203,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                      var route = window.map.route();
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
-                        $('#sc-map-interface').tabs( 'option', 'active', 3 );
+                        ui.toTab( 'route' );
                      }
                   }
                }

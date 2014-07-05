@@ -36,11 +36,11 @@
 
             {{#jQueryUiTab 'Systems' 'systems' 'fa-list'}}
                {{! Populated dynamically and on-demand }}
-               {{>templateSystemInfo}}
             {{/jQueryUiTab}}
 
             {{#jQueryUiTab 'Selected system information' 'system' 'fa-info-circle'}}
                {{! Populated dynamically and on-demand }}
+               {{>templateSystemInfo}}
             {{/jQueryUiTab}}
 
             {{#jQueryUiTab 'Plan a route' 'route' 'fa-paper-plane'}}
@@ -209,7 +209,7 @@
          {{else}}
 
             <div>
-               <p class="impossible large ui-section">No system selected</p>
+               <p class="padleft impossible large ui-section">No system selected</p>
             </div>
 
          {{/if}}

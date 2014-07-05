@@ -114,9 +114,7 @@ SCMAP.UI = function ( map ) {
          switch ( clicked_on ) {
 
             case 'systems':
-               $( tab.id ).empty().append(
-                  SCMAP.UI.Templates.listings({ systemGroups: SCMAP.UI.buildDynamicLists() })
-               );
+               me.updateSystemsList();
                break;
 
             default:
@@ -369,7 +367,7 @@ SCMAP.UI.prototype = {
 
    toTab: function toTab( index ) {
       var tab = SCMAP.UI.Tab( index );
-      $('#sc-map-interface').tabs( 'options', 'active', tab.index );
+      $('#sc-map-interface').tabs( 'option', 'active', tab.index );
    },
 
    toTabTop: function toTabTop() {
@@ -382,8 +380,14 @@ SCMAP.UI.prototype = {
       if ( $('#sc-map-interface').data('jsp') ) {
          $('#sc-map-interface').data('jsp').reinitialise();
       }
-   }
+   },
 
+   updateSystemsList: function updateSystemsList() {
+      var tab = SCMAP.UI.Tab( 'systems' );
+      $( tab.id ).empty().append(
+         SCMAP.UI.Templates.listings({ systemGroups: SCMAP.UI.buildDynamicLists() })
+      );
+   }
 };
 
 SCMAP.UI.Tabs = [];

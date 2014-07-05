@@ -1114,9 +1114,7 @@ SCMAP.System.prototype = {
       //}
 
       if ( !doNotSwitch ) {
-         $('#sc-map-interface').tabs( 'option', 'active', 2 );
-         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
-         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+         ui.toTab( 'system' );
       }
    },
 
@@ -2107,7 +2105,7 @@ SCMAP.Route.prototype = {
                }
             })
          );
-         $('#sc-map-interface').tabs( 'option', 'active', 3 );
+         ui.toTab( 'route' );
          return;
       }
 
@@ -2227,8 +2225,7 @@ SCMAP.Route.prototype = {
          .append( SCMAP.UI.Templates.routeList({ route: templateData }) );
 
       if ( this.toString() !== before ) {
-         $('#sc-map-interface').data( 'jsp' ).reinitialise();
-         $('#sc-map-interface').tabs( 'option', 'active', 3 );
+         ui.toTab( 'route' );
       }
    },
 
@@ -2296,6 +2293,7 @@ SCMAP.Map = function () {
       //console.log( "ajax done", data, textStatus, jqXHR );
       map.populate( data );
       map.scene.add( map.buildReferenceGrid() );
+      ui.updateSystemsList();
    })
    .fail( function( jqXHR, textStatus, errorThrown ) {
       console.error( "Ajax request failed:", errorThrown, textStatus );
@@ -2979,9 +2977,7 @@ SCMAP.UI = function ( map ) {
          switch ( clicked_on ) {
 
             case 'systems':
-               $( tab.id ).empty().append(
-                  SCMAP.UI.Templates.listings({ systemGroups: SCMAP.UI.buildDynamicLists() })
-               );
+               me.updateSystemsList();
                break;
 
             default:
@@ -3234,7 +3230,7 @@ SCMAP.UI.prototype = {
 
    toTab: function toTab( index ) {
       var tab = SCMAP.UI.Tab( index );
-      $('#sc-map-interface').tabs( 'options', 'active', tab.index );
+      $('#sc-map-interface').tabs( 'option', 'active', tab.index );
    },
 
    toTabTop: function toTabTop() {
@@ -3247,8 +3243,14 @@ SCMAP.UI.prototype = {
       if ( $('#sc-map-interface').data('jsp') ) {
          $('#sc-map-interface').data('jsp').reinitialise();
       }
-   }
+   },
 
+   updateSystemsList: function updateSystemsList() {
+      var tab = SCMAP.UI.Tab( 'systems' );
+      $( tab.id ).empty().append(
+         SCMAP.UI.Templates.listings({ systemGroups: SCMAP.UI.buildDynamicLists() })
+      );
+   }
 };
 
 SCMAP.UI.Tabs = [];
@@ -3974,7 +3976,6 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                   }
 
                   if ( endObject === startObject ) {
-                     $('#sc-map-interface').tabs( 'option', 'active', 2 );
                      endObject.displayInfo();
                   }
                   else
@@ -3984,7 +3985,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                      var route = window.map.route();
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
-                        $('#sc-map-interface').tabs( 'option', 'active', 3 );
+                        ui.toTab( 'route' );
                      }
                   }
                }
