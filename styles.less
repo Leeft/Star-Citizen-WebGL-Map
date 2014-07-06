@@ -1,4 +1,5 @@
 @rsi-blue: #6ABBCF;
+@brand-alternate: rgba(117, 168, 116, 1);
 @colour-danger: #C00;
 @text-font-family: 'Segoe UI', 'Lucida Grande', 'Tahoma', 'Calibri', sans-serif;
 @fixed-font-family: 'Consolas', 'Courier New', 'Courier', monospace;
@@ -7,10 +8,10 @@
 @panel-background: rgba( 0, 0, 0, 0.7 );
 
 .border-radius( @radius ) {
-   -webkit-border-radius: @radius;
-      -moz-border-radius: @radius;
            border-radius: @radius;
 }
+//     -moz-border-radius: @radius;
+//   -webkit-border-radius: @radius;
 
 body.the-verse {
    overflow: hidden;
@@ -76,11 +77,16 @@ a {
 */
 
 #sc-map-webgl-container {
-   position: absolute;
-   top: 0;
-   right: 0;
-   cursor: move;
-   .noedit { cursor: move; }
+   //position: absolute;
+   //top: 0;
+   //right: 0;
+   canvas {
+      cursor: move;
+   }
+
+   .noedit {
+      cursor: move;
+   }
 }
 
 
@@ -90,6 +96,8 @@ a {
    position: absolute;
    top: 0;
    left: 0;
+   min-width: 32px;
+   max-width: 33%;
    width: 320px;
    height: 100%;
    padding: 0;
@@ -226,6 +234,7 @@ a {
 
    .padleft {
       padding-left: 0.5em;
+      color: @brand-alternate;
    }
 
    .quote {

@@ -278,7 +278,7 @@ SCMAP.System.prototype = {
       $line.addClass('system-link');
       $line.attr( 'data-goto', 'system' );
       $line.attr( 'data-system', this.id );
-      $line.attr( 'href', '#system='+encodeURI( this.name ) );
+      $line.attr( 'href', '#system='+encodeURIComponent( this.name ) );
       $line.attr( 'title', 'Show information on '+this.name );
       if ( noTarget ) {
          $line.text( this.name );

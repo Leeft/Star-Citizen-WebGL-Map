@@ -991,7 +991,7 @@ SCMAP.System.prototype = {
       $line.addClass('system-link');
       $line.attr( 'data-goto', 'system' );
       $line.attr( 'data-system', this.id );
-      $line.attr( 'href', '#system='+encodeURI( this.name ) );
+      $line.attr( 'href', '#system='+encodeURIComponent( this.name ) );
       $line.attr( 'title', 'Show information on '+this.name );
       if ( noTarget ) {
          $line.text( this.name );
@@ -4750,8 +4750,19 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
 
    // We need to trigger jquery-mousewheel explicitly, or the WebGL view doesn't
    // get any mousewheel events
-   $( this.domElement ).on( 'mousewheel', onMouseWheel );
+   //$( this.domElement ).on( 'mousewheel', onMouseWheel );
    $( this.domElement ).on( 'mouseenter', function ( event ) { state.idle( event ); });
+
+   // Workaround for a Chrome (WebKit) issue where the scrollable area can vanish
+   // when scrolling it
+   var isWebkit = /webkit/i.test( navigator.userAgent );
+   if ( isWebkit ) {
+      var elem = document.getElementById( 'sc-map-interface' );
+      elem.addEventListener( 'scroll', function( event ) {
+         var width = $('#sc-map-interface').width();
+         $('#sc-map-interface').css( 'width', width + 0.1 );
+      }, false );
+   }
 
    //this.domElement.addEventListener( 'keydown', onKeyDown, false );
    window.addEventListener( 'keydown', onKeyDown, false );
