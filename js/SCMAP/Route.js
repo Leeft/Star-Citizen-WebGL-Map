@@ -343,23 +343,20 @@ SCMAP.Route.prototype = {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
-      $( SCMAP.UI.Tab('route').id ).empty().append(
-         SCMAP.UI.Templates.routeList({
-            route: {
-               status: {
-                  text: 'No route set',
-                  class: 'no-route'
-               }
-            }
-         })
-      );
    },
 
    update: function update( destination ) {
       var _this = this, i, route, material, system, $entry;
       var duration = 0, totalDuration = 0;
       var before = this.toString();
-      var templateData = {};
+      var templateData = {
+         settings: {
+            avoidHostile: SCMAP.settings.route.avoidHostile,
+            avoidUnknownJumppoints: SCMAP.settings.route.avoidUnknownJumppoints,
+            avoidOffLimits: SCMAP.settings.route.avoidOffLimits
+         },
+      };
+
       var waypoint;
 
       this.__syncGraphs();
@@ -371,17 +368,28 @@ SCMAP.Route.prototype = {
 
       this.removeFromScene();
 
+      // building all the parts of the route together in a single geometry group
+      var entireRoute = this.currentRoute();
+
+      if ( !entireRoute.length ) {
+         templateData.status = {
+            text: 'No route set',
+            class: 'no-route'
+         };
+         $( SCMAP.UI.Tab('route').id ).empty().append(
+            SCMAP.UI.Templates.routeList({ route: templateData })
+         );
+         return;
+      }
+
       if ( this.lastError() )
       {
+         templateData.status = {
+            text: this.lastError().message,
+            class: 'impossible'
+         };
          $( SCMAP.UI.Tab('route').id ).empty().append(
-            SCMAP.UI.Templates.routeList({
-               route: {
-                  status: {
-                     text: this.lastError().message,
-                     class: 'impossible'
-                  }
-               }
-            })
+            SCMAP.UI.Templates.routeList({ route: templateData })
          );
          ui.toTab( 'route' );
          return;
@@ -390,8 +398,6 @@ SCMAP.Route.prototype = {
       this._routeObject = new THREE.Object3D();
       this._routeObject.matrixAutoUpdate = false;
 
-      // building all the parts of the route together in a single geometry group
-      var entireRoute = this.currentRoute();
       var startColour = new THREE.Color( 0xEEEE66 );
       var endColour   = new THREE.Color( 0xFF3322 );
 

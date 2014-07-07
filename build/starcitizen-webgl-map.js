@@ -2065,23 +2065,20 @@ SCMAP.Route.prototype = {
       if ( this._routeObject ) {
          scene.remove( this._routeObject );
       }
-      $( SCMAP.UI.Tab('route').id ).empty().append(
-         SCMAP.UI.Templates.routeList({
-            route: {
-               status: {
-                  text: 'No route set',
-                  class: 'no-route'
-               }
-            }
-         })
-      );
    },
 
    update: function update( destination ) {
       var _this = this, i, route, material, system, $entry;
       var duration = 0, totalDuration = 0;
       var before = this.toString();
-      var templateData = {};
+      var templateData = {
+         settings: {
+            avoidHostile: SCMAP.settings.route.avoidHostile,
+            avoidUnknownJumppoints: SCMAP.settings.route.avoidUnknownJumppoints,
+            avoidOffLimits: SCMAP.settings.route.avoidOffLimits
+         },
+      };
+
       var waypoint;
 
       this.__syncGraphs();
@@ -2093,17 +2090,28 @@ SCMAP.Route.prototype = {
 
       this.removeFromScene();
 
+      // building all the parts of the route together in a single geometry group
+      var entireRoute = this.currentRoute();
+
+      if ( !entireRoute.length ) {
+         templateData.status = {
+            text: 'No route set',
+            class: 'no-route'
+         };
+         $( SCMAP.UI.Tab('route').id ).empty().append(
+            SCMAP.UI.Templates.routeList({ route: templateData })
+         );
+         return;
+      }
+
       if ( this.lastError() )
       {
+         templateData.status = {
+            text: this.lastError().message,
+            class: 'impossible'
+         };
          $( SCMAP.UI.Tab('route').id ).empty().append(
-            SCMAP.UI.Templates.routeList({
-               route: {
-                  status: {
-                     text: this.lastError().message,
-                     class: 'impossible'
-                  }
-               }
-            })
+            SCMAP.UI.Templates.routeList({ route: templateData })
          );
          ui.toTab( 'route' );
          return;
@@ -2112,8 +2120,6 @@ SCMAP.Route.prototype = {
       this._routeObject = new THREE.Object3D();
       this._routeObject.matrixAutoUpdate = false;
 
-      // building all the parts of the route together in a single geometry group
-      var entireRoute = this.currentRoute();
       var startColour = new THREE.Color( 0xEEEE66 );
       var endColour   = new THREE.Color( 0xFF3322 );
 
@@ -2899,7 +2905,22 @@ SCMAP.UI = function ( map ) {
          icons: icons,
          systemGroups: SCMAP.UI.buildDynamicLists(),
          system: null,
+         settings: {
+            glow: SCMAP.settings.glow,
+            labels: SCMAP.settings.labels,
+            labelIcons: SCMAP.settings.labelIcons,
+            effect: {
+               Antialias: SCMAP.settings.effect.Antialias,
+               FXAA: SCMAP.settings.effect.FXAA,
+               Bloom: SCMAP.settings.effect.Bloom
+            }
+         },
          route: {
+            settings: {
+               avoidHostile: SCMAP.settings.route.avoidHostile,
+               avoidUnknownJumppoints: SCMAP.settings.route.avoidUnknownJumppoints,
+               avoidOffLimits: SCMAP.settings.route.avoidOffLimits
+            },
             status: {
                text: 'No route set.',
                class: 'no-route'
@@ -3008,29 +3029,26 @@ SCMAP.UI = function ( map ) {
 
    // Some simple UI stuff
 
-   $('#sc-map-avoid-hostile')
-      .prop( 'checked', SCMAP.settings.route.avoidHostile )
-      .on( 'change', function() {
-         SCMAP.settings.route.avoidHostile = this.checked;
-         SCMAP.settings.save( 'route' );
-         map.route().rebuildCurrentRoute();
-      });
+   $('#sc-map-interface').on( 'change', '.sc-map-avoid-hostile', function() {
+      SCMAP.settings.route.avoidHostile = this.checked;
+      SCMAP.settings.save( 'route' );
+      //map.route().rebuildCurrentRoute();
+      map.route().update();
+   });
 
-   $('#sc-map-avoid-off-limits')
-      .prop( 'checked', SCMAP.settings.route.avoidOffLimits )
-      .on( 'change', function() {
-         SCMAP.settings.route.avoidOffLimits = this.checked;
-         SCMAP.settings.save( 'route' );
-         map.route().rebuildCurrentRoute();
-      });
+   $('#sc-map-interface').on( 'change', '.sc-map-avoid-unknown-jumppoints', function() {
+      SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
+      SCMAP.settings.save( 'route' );
+      //map.route().rebuildCurrentRoute();
+      map.route().update();
+   });
 
-   $('#sc-map-avoid-unknown-jumppoints')
-      .prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints )
-      .on( 'change', function() {
-         SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
-         SCMAP.settings.save( 'route' );
-         map.route().rebuildCurrentRoute();
-      });
+   $('#sc-map-interface').on( 'change', '.sc-map-avoid-off-limits', function() {
+      SCMAP.settings.route.avoidOffLimits = this.checked;
+      SCMAP.settings.save( 'route' );
+      //map.route().rebuildCurrentRoute();
+      map.route().update();
+   });
 
    $('#sc-map-toggle-stats')
       .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
@@ -3046,7 +3064,6 @@ SCMAP.UI = function ( map ) {
       });
 
    $('#sc-map-toggle-antialias')
-      .prop( 'checked', SCMAP.settings.effect.Antialias )
       .on( 'change', function() {
          SCMAP.settings.effect.Antialias = this.checked;
          SCMAP.settings.save( 'effect' );
@@ -3054,9 +3071,7 @@ SCMAP.UI = function ( map ) {
       });
 
    $('#sc-map-toggle-fxaa')
-      .prop( 'checked', SCMAP.settings.effect.FXAA )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
-
       .on( 'change', function() {
          SCMAP.settings.effect.FXAA = this.checked;
          SCMAP.settings.save( 'effect' );
@@ -3066,9 +3081,7 @@ SCMAP.UI = function ( map ) {
       });
 
    $('#sc-map-toggle-bloom')
-      .prop( 'checked', SCMAP.settings.effect.Bloom )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
-
       .on( 'change', function() {
          SCMAP.settings.effect.Bloom = this.checked;
          SCMAP.settings.save( 'effect' );
@@ -3546,8 +3559,16 @@ $(function() {
       return new Handlebars.SafeString( number - 1 );
    });
 
-   Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
+   Handlebars.registerHelper( 'checked', function( isChecked ) {
+      return new Handlebars.SafeString( isChecked ? 'checked' : '' );
+   });
+
+   Handlebars.registerHelper( 'checkboxOption', function( id, defaultChecked, title, description, options ) {
       var attrs = [];
+      var checked = '';
+      if ( defaultChecked ) {
+         checked = 'checked';
+      }
       for ( var prop in options.hash ) {
          if ( prop === 'icon' ) {
             title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
@@ -3557,7 +3578,7 @@ $(function() {
       }
       return new Handlebars.SafeString(
          '<span class="checkmark-option">'+
-            '<input type="checkbox" id="'+id+'">'+
+            '<input class="'+id+'" type="checkbox" id="'+id+'" '+checked+'>'+
             '<label for="'+id+'">'+title+
                '<span class="small label-info">'+description+'</span>'+
             '</label>'+

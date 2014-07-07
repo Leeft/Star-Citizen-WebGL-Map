@@ -219,9 +219,9 @@
 
       <script id="templateRouteList" data-partial="1" type="text/x-handlebars-template">
          {{#uiSection 'Routing options' 0 class="no-pad-top" }}
-            {{checkboxOption "sc-map-avoid-hostile" "Don't enter hostile territory" "But do try to get out of it quickly."}}
-            {{checkboxOption "sc-map-avoid-unknown-jumppoints" "Avoid unconfirmed jumppoints" "Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines."}}
-            {{checkboxOption "sc-map-avoid-off-limits" "Avoid 'off limits' systems" "Note though that not all of the system marked as such is necessarily off-limits."}}
+            {{checkboxOption "sc-map-avoid-hostile" route.settings.avoidHostile "Don't enter hostile territory" "But do try to get out of it quickly."}}
+            {{checkboxOption "sc-map-avoid-unknown-jumppoints" route.settings.avoidUnknownJumppoints "Avoid unconfirmed jumppoints" "Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines."}}
+            {{checkboxOption "sc-map-avoid-off-limits" route.settings.avoidOffLimits "Avoid 'off limits' systems" "Note though that not all of the system marked as such is necessarily off-limits."}}
          {{/uiSection }}
 
          {{#uiSection 'How this works' 0 }}
@@ -280,17 +280,17 @@
       <script id="templateSettings" data-partial="1" type="text/x-handlebars-template">
          {{tabHeader 'Settings'}}
          <p class="ui-section">
-            {{checkboxOption "sc-map-toggle-antialias" "Enable antialiasing"
+            {{checkboxOption "sc-map-toggle-antialias" settings.effect.Antialias "Enable antialiasing"
                "Disable postprocessing; forces reload.<br>Note: antialiasing does not work everywhere."}}
-            {{checkboxOption "sc-map-toggle-fxaa" "Postprocess: FXAA" ""}}
-            {{checkboxOption "sc-map-toggle-bloom" "Postprocess: Bloom" ""}}
+            {{checkboxOption "sc-map-toggle-fxaa" settings.effect.FXAA "Postprocess: FXAA" ""}}
+            {{checkboxOption "sc-map-toggle-bloom" settings.effect.Bloom "Postprocess: Bloom" ""}}
          </p>
          <p class="ui-section">
-            {{checkboxOption "sc-map-toggle-glow" "Enable star glow" ""}}
+            {{checkboxOption "sc-map-toggle-glow" settings.glow "Enable star glow" ""}}
             <span class="checkmark-option">
-               <input type="checkbox" id="sc-map-toggle-labels" checked>
+               <input type="checkbox" id="sc-map-toggle-labels" {{checked settings.labels}}>
                <label for="sc-map-toggle-labels">Enable system labels</label>
-               <input type="checkbox" id="sc-map-toggle-label-icons" checked>
+               <input type="checkbox" id="sc-map-toggle-label-icons"  {{checked settings.labelIcons}}>
                <label for="sc-map-toggle-label-icons"><i class="fa fa-level-up fa-rotate-90 fa-fw"></i> Display icons in system labels</label>
             </span>
          </p>

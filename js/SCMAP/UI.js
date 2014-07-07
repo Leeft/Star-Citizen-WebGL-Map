@@ -36,7 +36,22 @@ SCMAP.UI = function ( map ) {
          icons: icons,
          systemGroups: SCMAP.UI.buildDynamicLists(),
          system: null,
+         settings: {
+            glow: SCMAP.settings.glow,
+            labels: SCMAP.settings.labels,
+            labelIcons: SCMAP.settings.labelIcons,
+            effect: {
+               Antialias: SCMAP.settings.effect.Antialias,
+               FXAA: SCMAP.settings.effect.FXAA,
+               Bloom: SCMAP.settings.effect.Bloom
+            }
+         },
          route: {
+            settings: {
+               avoidHostile: SCMAP.settings.route.avoidHostile,
+               avoidUnknownJumppoints: SCMAP.settings.route.avoidUnknownJumppoints,
+               avoidOffLimits: SCMAP.settings.route.avoidOffLimits
+            },
             status: {
                text: 'No route set.',
                class: 'no-route'
@@ -145,29 +160,26 @@ SCMAP.UI = function ( map ) {
 
    // Some simple UI stuff
 
-   $('#sc-map-avoid-hostile')
-      .prop( 'checked', SCMAP.settings.route.avoidHostile )
-      .on( 'change', function() {
-         SCMAP.settings.route.avoidHostile = this.checked;
-         SCMAP.settings.save( 'route' );
-         map.route().rebuildCurrentRoute();
-      });
+   $('#sc-map-interface').on( 'change', '.sc-map-avoid-hostile', function() {
+      SCMAP.settings.route.avoidHostile = this.checked;
+      SCMAP.settings.save( 'route' );
+      //map.route().rebuildCurrentRoute();
+      map.route().update();
+   });
 
-   $('#sc-map-avoid-off-limits')
-      .prop( 'checked', SCMAP.settings.route.avoidOffLimits )
-      .on( 'change', function() {
-         SCMAP.settings.route.avoidOffLimits = this.checked;
-         SCMAP.settings.save( 'route' );
-         map.route().rebuildCurrentRoute();
-      });
+   $('#sc-map-interface').on( 'change', '.sc-map-avoid-unknown-jumppoints', function() {
+      SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
+      SCMAP.settings.save( 'route' );
+      //map.route().rebuildCurrentRoute();
+      map.route().update();
+   });
 
-   $('#sc-map-avoid-unknown-jumppoints')
-      .prop( 'checked', SCMAP.settings.route.avoidUnknownJumppoints )
-      .on( 'change', function() {
-         SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
-         SCMAP.settings.save( 'route' );
-         map.route().rebuildCurrentRoute();
-      });
+   $('#sc-map-interface').on( 'change', '.sc-map-avoid-off-limits', function() {
+      SCMAP.settings.route.avoidOffLimits = this.checked;
+      SCMAP.settings.save( 'route' );
+      //map.route().rebuildCurrentRoute();
+      map.route().update();
+   });
 
    $('#sc-map-toggle-stats')
       .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
@@ -183,7 +195,6 @@ SCMAP.UI = function ( map ) {
       });
 
    $('#sc-map-toggle-antialias')
-      .prop( 'checked', SCMAP.settings.effect.Antialias )
       .on( 'change', function() {
          SCMAP.settings.effect.Antialias = this.checked;
          SCMAP.settings.save( 'effect' );
@@ -191,9 +202,7 @@ SCMAP.UI = function ( map ) {
       });
 
    $('#sc-map-toggle-fxaa')
-      .prop( 'checked', SCMAP.settings.effect.FXAA )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
-
       .on( 'change', function() {
          SCMAP.settings.effect.FXAA = this.checked;
          SCMAP.settings.save( 'effect' );
@@ -203,9 +212,7 @@ SCMAP.UI = function ( map ) {
       });
 
    $('#sc-map-toggle-bloom')
-      .prop( 'checked', SCMAP.settings.effect.Bloom )
       .prop( 'disabled', SCMAP.settings.effect.Antialias )
-
       .on( 'change', function() {
          SCMAP.settings.effect.Bloom = this.checked;
          SCMAP.settings.save( 'effect' );
@@ -683,8 +690,16 @@ $(function() {
       return new Handlebars.SafeString( number - 1 );
    });
 
-   Handlebars.registerHelper( 'checkboxOption', function( id, title, description, options ) {
+   Handlebars.registerHelper( 'checked', function( isChecked ) {
+      return new Handlebars.SafeString( isChecked ? 'checked' : '' );
+   });
+
+   Handlebars.registerHelper( 'checkboxOption', function( id, defaultChecked, title, description, options ) {
       var attrs = [];
+      var checked = '';
+      if ( defaultChecked ) {
+         checked = 'checked';
+      }
       for ( var prop in options.hash ) {
          if ( prop === 'icon' ) {
             title = title+' <i class="fa fa-lg fa-fw '+options.hash[prop]+'"></i>';
@@ -694,7 +709,7 @@ $(function() {
       }
       return new Handlebars.SafeString(
          '<span class="checkmark-option">'+
-            '<input type="checkbox" id="'+id+'">'+
+            '<input class="'+id+'" type="checkbox" id="'+id+'" '+checked+'>'+
             '<label for="'+id+'">'+title+
                '<span class="small label-info">'+description+'</span>'+
             '</label>'+
