@@ -69,7 +69,6 @@ a {
    .border-radius( 12px );
    border: 1px solid #333;
    text-align: left;
-   background: @panel-background;
    z-index: 110;
    padding: 10px 15px;
    display: none;
@@ -89,22 +88,30 @@ a {
    }
 }
 
-
 #sc-map-interface {
-   overflow: hidden;
-   overflow-y: auto;
+   text-align: left;
+   overflow: auto;
    position: absolute;
    top: 0;
    left: 0;
-   min-width: 32px;
-   max-width: 33%;
-   width: 320px;
+   min-width: 1px;
    height: 100%;
-   padding: 0;
-   text-align: left;
-   background: @panel-background;
+   width: 320px;
    z-index: 100;
-   resize: horizontal;
+   margin: 0;
+   padding: 0;
+   background: @panel-background;
+
+   /* Spacing around the contents of the user interface */
+   .sc-map-ui-padding {
+      overflow: inherit;
+      margin: 0.6rem;
+      margin-right: 1.2rem;
+
+      &.the-verse {
+         padding-top: 3.4em;
+      }
+   }
 
    .small {
       font-size: 12px;
@@ -120,15 +127,6 @@ a {
 
    .fixed {
       font-family: @fixed-font-family;
-   }
-
-   /* Spacing around the contents of the user interface */
-   .sc-map-ui-padding {
-      padding: 0.6em;
-
-      &.the-verse {
-         padding-top: 3.4em;
-      }
    }
 
    .ui-tabs-panel {
@@ -233,7 +231,7 @@ a {
    }
 
    .padleft {
-      padding-left: 0.5em;
+      margin-left: 0.5em;
       color: @brand-alternate;
    }
 
@@ -318,6 +316,8 @@ a {
       margin-bottom: 0.7em;
       display: block;
       margin-right: 1.5em;
+      min-width: 8em;
+      max-width: 22em;
 
       label {
          .border-radius( 5px );
@@ -544,93 +544,6 @@ a {
       content: ": ";
    }
 
-   /* CSS Styles that are needed by jScrollPane for it to operate correctly.  */
-   .jspScrollable {
-      .jspContainer {
-         overflow: hidden;
-         position: relative;
-      }
-
-      .jspPane {
-         position: absolute;
-      }
-
-      .jspVerticalBar {
-         position: absolute;
-         top: 0;
-         right: 0;
-         width: 12px;
-         height: 100%;
-         background: transparent;
-
-         .jspArrow {
-            height: 12px;
-         }
-      }
-
-      .jspHorizontalBar {
-         position: absolute;
-         bottom: 0;
-         left: 0;
-         width: 100%;
-         height: 12px;
-         background: transparent;
-
-         .jspCap {
-            float: left;
-         }
-
-         .jspTrack,
-         .jspDrag {
-            float: left;
-            height: 100%;
-         }
-
-         .jspArrow {
-            width: 12px;
-            float: left;
-            height: 100%;
-         }
-      }
-
-      .jspCap {
-         display: none;
-      }
-
-      .jspTrack {
-         background: transparent;
-         position: relative;
-      }
-
-      .jspDrag {
-         background: darken( #a8a8a8, 20% );
-         position: relative;
-         top: 0;
-         left: 0;
-         cursor: pointer;
-      }
-
-      .jspArrow {
-         background: darken( #505050, 20% );
-         text-indent: -20000px;
-         display: block;
-         cursor: pointer;
-         padding: 0;
-         margin: 0;
-      }
-
-      .jspDisabled {
-         cursor: default;
-         background: #808080;
-      }
-
-      .jspCorner {
-         background: darken( #eee, 20% );
-         float: left;
-         height: 100%;
-      }
-   }
-
    .ui-resizable {
       position: relative;
    }
@@ -648,13 +561,165 @@ a {
    .ui-resizable-e {
       cursor: e-resize;
       width: 10px;
-      right: -5px;
+      right: 0px;
       top: 0;
       height: 100%;
       background: #75a874;
       &:after { content: "”"; }
    }
 }
+
+/* CSS Styles that are needed by jScrollPane for it to operate correctly.  */
+.jspScrollable {
+   .jspContainer {
+      overflow: hidden;
+      position: relative;
+      width: auto;
+      //height: 100%;
+   }
+
+   .jspPane {
+      position: absolute;
+      width: auto;
+      //height: 100%;
+   }
+
+   .jspVerticalBar {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 12px;
+      height: 100%;
+      background: transparent;
+
+      //.jspArrow {
+      //   height: 12px;
+      //}
+   }
+
+   .jspHorizontalBar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 12px;
+      background: transparent;
+
+      .jspCap {
+         float: left;
+      }
+
+      .jspTrack,
+      .jspDrag {
+         float: left;
+         //height: 100%;
+      }
+
+      .jspArrow {
+         display: none;
+         //width: 12px;
+         //float: left;
+         //height: 100%;
+      }
+   }
+
+   .jspCap {
+      display: none;
+   }
+
+   .jspTrack {
+      background: transparent;
+      position: relative;
+   }
+
+   .jspDrag {
+      background: darken( #a8a8a8, 20% );
+      position: relative;
+      top: 0;
+      left: -2px;
+      cursor: pointer;
+      .border-radius( 5px );
+   }
+
+   .jspArrow {
+      background: darken( #505050, 20% );
+      text-indent: -20000px;
+      display: block;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      display: none;
+   }
+
+   .jspDisabled {
+      cursor: default;
+      background: #808080;
+   }
+
+   .jspCorner {
+      background: darken( #eee, 20% );
+      float: left;
+      height: 0%;
+      display: none;
+   }
+}
+
+::-webkit-scrollbar {
+   width: 16px;
+   padding: 2px;
+}
+::-webkit-scrollbar:hover {
+   cursor: grab;
+}
+::-webkit-scrollbar-track {
+   background-color: darken( #505050, 20% );
+} /* the new scrollbar will have a flat appearance with the set background color */
+
+::-webkit-scrollbar-thumb {
+   background-color: darken( #a8a8a8, 20% );
+   .border-radius( 10px );
+   margin: 2px;
+} /* this will style the thumb, ignoring the track */
+
+::-webkit-scrollbar-button {
+   height: 0px;
+} /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
+
+::-webkit-resizer {
+   background-color: @brand-alternate;
+   outline: 1px solid slategrey;
+   color: white;
+   border: none;
+   cursor: ew-resize;
+   //background-color: darken( #505050, 20% );
+} /* if both the vertical and the horizontal bars appear, then perhaps the right bottom corner also needs to be styled */
+
+// Courtesy of http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/
+.resize-triggers {
+   visibility: hidden;
+}
+
+.resize-triggers, .resize-triggers > div, .contract-trigger:before {
+   content: " ";
+   display: block;
+   position: absolute;
+   top: 0;
+   left: 0;
+   height: 100%;
+   width: 100%;
+   overflow: hidden;
+}
+
+.resize-triggers > div {
+   background: #eee;
+   overflow: auto;
+}
+
+.contract-trigger:before {
+   width: 200%;
+   height: 200%;
+}
+// Eof of resize triggers CSS
 
 /* Stats */
 #fpsText {

@@ -338,9 +338,37 @@ SCMAP.System.prototype = {
 
    displayInfo: function displayInfo( doNotSwitch ) {
       var me = this;
+      var previous = null;
+      var next = null;
+      var currentStep = window.map.route().indexOfCurrentRoute( this );
+
+      if ( typeof currentStep === 'number' )
+      {
+         var currentRoute = window.map.route().currentRoute();
+
+         if ( currentStep > 0 ) {
+            previous = currentRoute[ currentStep - 1 ].system;
+            if ( ( currentStep > 1 ) && ( previous === currentRoute[ currentStep ].system ) ) {
+               previous = currentRoute[ currentStep - 2 ].system;
+            }
+            previous = previous;
+         }
+
+         if ( currentStep < ( currentRoute.length - 1 ) ) {
+            next = currentRoute[ currentStep + 1 ].system;
+            if ( ( currentStep < ( currentRoute.length - 2 ) ) && ( next === currentRoute[ currentStep ].system ) ) {
+               next = currentRoute[ currentStep + 2 ].system;
+            }
+         }
+      }
+
       var $element = $( SCMAP.UI.Tab('system').id )
          .empty()
-         .append( SCMAP.UI.Templates.systemInfo({ system: me }) );
+         .append( SCMAP.UI.Templates.systemInfo({
+            previous: previous,
+            system: me,
+            next: next
+         }));
 
       // Set user's notes and bookmarks
       $element.find('.user-system-ishangar').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
@@ -355,53 +383,9 @@ SCMAP.System.prototype = {
          $element.find('.user-system-comments-md').empty();
       }
 
-      // TODO FIXME
-      //var currentStep = window.map.route().indexOfCurrentRoute( this );
-      //if ( typeof currentStep === 'number' )
-      //{
-      //   var currentRoute = window.map.route().currentRoute();
-      //   var header = [];
-      //   var adjacentSystem;
-
-      //   if ( currentStep > 0 ) {
-      //      adjacentSystem = currentRoute[currentStep-1].system;
-      //      if ( (currentStep > 1) && (adjacentSystem === currentRoute[currentStep].system) ) {
-      //         adjacentSystem = currentRoute[currentStep-2].system;
-      //      }
-      //      var $prev = adjacentSystem.createInfoLink();
-      //      $prev.attr( 'title', 'Previous jump to ' + adjacentSystem.name +
-      //         ' (' + adjacentSystem.faction.name + ' territory)' );
-      //      $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
-      //      header.push( $prev );
-      //   } else {
-      //      header.push( $('<i class="left fa fa-fw"></i>') );
-      //   }
-
-      //   if ( currentStep < ( currentRoute.length - 1 ) ) {
-      //      adjacentSystem = currentRoute[currentStep+1].system;
-      //      if ( (currentStep < (currentRoute.length - 2)) && (adjacentSystem === currentRoute[currentStep].system) ) {
-      //         adjacentSystem = currentRoute[currentStep+2].system;
-      //      }
-      //      var $next = adjacentSystem.createInfoLink();
-      //      $next.attr( 'title', 'Next jump to ' + adjacentSystem.name +
-      //         ' (' + adjacentSystem.faction.name + ' territory)'  );
-      //      $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
-      //      header.push( $next );
-      //   } else {
-      //      header.push( $('<i class="right fa fa-fw"></i>') );
-      //   }
-
-      //   header.push( this.name );
-
-      //   $('#systemname').removeClass('padleft').empty().append( header );
-      //}
-      //else
-      //{
-      //   $('#systemname').addClass('padleft');
-      //}
-
       if ( !doNotSwitch ) {
          ui.toTab( 'system' );
+         ui.updateHeight();
       }
    },
 

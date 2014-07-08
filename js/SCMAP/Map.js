@@ -37,13 +37,29 @@ SCMAP.Map = function () {
       ifModified: true,
       timeout: 5 * 1000
    })
-   .done( function( data, textStatus, jqXHR ) {
+   .done( function xhrDone( data, textStatus, jqXHR ) {
+      var storage = window.sessionStorage;
+      var selectedSystem;
       //console.log( "ajax done", data, textStatus, jqXHR );
       map.populate( data );
       map.scene.add( map.buildReferenceGrid() );
-      ui.updateSystemsList();
+      window.ui.updateSystemsList();
+      window.renderer.controls.idle();
+
+      map.route().restoreFromSession();
+      map.route().update();
+
+      if ( hasSessionStorage() && ( 'selectedSystem' in storage ) ) {
+         selectedSystem = SCMAP.System.getById( storage.selectedSystem );
+         if ( selectedSystem instanceof SCMAP.System ) {
+            map.setSelectionTo( selectedSystem );
+            selectedSystem.displayInfo( true );
+         }
+      }
+
+      window.ui.updateHeight();
    })
-   .fail( function( jqXHR, textStatus, errorThrown ) {
+   .fail( function xhrFail( jqXHR, textStatus, errorThrown ) {
       console.error( "Ajax request failed:", errorThrown, textStatus );
    });
 
@@ -71,10 +87,14 @@ SCMAP.Map.prototype = {
    },
 
    setSelected: function setSelected ( system ) {
+      var storage = window.sessionStorage;
       if ( system !== null && !(system instanceof SCMAP.System) ) {
          throw new Error( system, "is not an instance of SCMAP.System" );
       }
       this.__currentlySelected = system;
+      if ( hasSessionStorage() ) {
+         storage.selectedSystem = system.id;
+      }
       return system;
    },
 

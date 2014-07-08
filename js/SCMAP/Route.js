@@ -14,7 +14,7 @@ SCMAP.Route = function ( start, waypoints ) {
    if ( waypoints instanceof SCMAP.System ) {
       this.waypoints = [ waypoints ];
    } else if ( Array.isArray( waypoints ) ) {
-      for ( var i = 0; i < waypoints.length; i += 1 ) {
+      for ( var i = 0, waypointsLength = waypoints.length; i < waypointsLength; i += 1 ) {
          if ( waypoints[i] instanceof SCMAP.System ) {
             this.waypoints.push( waypoints[i] );
          }
@@ -34,7 +34,7 @@ SCMAP.Route.prototype = {
       var graphs = [];
       var seen = {};
 
-      for ( var i = 0; i < this._graphs.length; i += 1 )
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
       {
          var route = [];
          try {
@@ -50,7 +50,7 @@ SCMAP.Route.prototype = {
             }
          }
 
-         for ( var j = 0; j < route.length; j += 1 ) {
+         for ( var j = 0, routeLength = route.length; j < routeLength; j += 1 ) {
             if ( route[j].system === waypoint && !(seen[ route[j].system.id ]) ) {
                seen[ route[j].system.id ] = true;
                graphs.push( this._graphs[i] );
@@ -75,7 +75,8 @@ SCMAP.Route.prototype = {
       var routeArray = graph.routeArray();
       var oldEnd = graph.lastNode().system;
       graph.end = waypoint; // set end of graph to wp
-      for ( var i = 0; i < this._graphs.length; i += 1 ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
+      {
          if ( this._graphs[i] === graph ) {
             // insert new graph at wp, starting at wp, ending at oldEnd
             this._graphs.splice( i + 1, 0, new SCMAP.Dijkstra( SCMAP.System.List, waypoint, oldEnd ) );
@@ -86,9 +87,11 @@ SCMAP.Route.prototype = {
                }
             }
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          }
       }
+
       console.error( "Couldn't match graph to split" );
    },
 
@@ -115,7 +118,8 @@ SCMAP.Route.prototype = {
       var graphTwo = graphs[1];
       graphOne.end = graphTwo.start;
       // And now delete graphTwo
-      for ( var i = 0; i < this._graphs.length; i += 1 ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
+      {
          if ( this._graphs[i] === graphTwo ) {
             console.log( "Matched "+graphTwo+" starting at index "+i );
             console.log( this._graphs );
@@ -132,6 +136,7 @@ SCMAP.Route.prototype = {
                }
             }
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          }
       }
@@ -153,6 +158,7 @@ SCMAP.Route.prototype = {
          if ( this.waypoints.length !== 1 || destination !== this.waypoints[0] ) {
             this.start = destination;
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          } else {
             return false;
@@ -164,6 +170,7 @@ SCMAP.Route.prototype = {
       if ( index > -1 ) {
          this.waypoints[ index ] = destination;
          this.__syncGraphs();
+            this.storeToSession();
          return true;
       }
 
@@ -173,6 +180,7 @@ SCMAP.Route.prototype = {
          if ( index > -1 ) {
             this.waypoints[ index ] = destination;
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          }
       }
@@ -198,6 +206,7 @@ SCMAP.Route.prototype = {
             this.waypoints[i] = ( this.waypoints[i] instanceof SCMAP.System ) ? this.waypoints[i] : null;
          }
       }
+      this.storeToSession();
    },
 
    // Updates the graphs to match the current waypoints, and recalculates
@@ -209,7 +218,7 @@ SCMAP.Route.prototype = {
 
       try {
 
-         for ( var i = 0; i < this.waypoints.length; i += 1 )
+         for ( var i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 )
          {
             var start = ( i === 0 ) ? this.start : this.waypoints[i - 1];
             var end   = this.waypoints[i];
@@ -261,7 +270,7 @@ SCMAP.Route.prototype = {
 
    currentRoute: function currentRoute() {
       var route = [];
-      for ( var i = 0; i < this._graphs.length; i += 1 ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 ) {
          if ( this.waypoints[i] instanceof SCMAP.System ) {
             this._graphs[i].rebuildGraph();
             var routePart = this._graphs[i].routeArray( this.waypoints[i] );
@@ -277,6 +286,7 @@ SCMAP.Route.prototype = {
    // the route; we can use this to establish the approximate
    // colour of the given point
    alphaOfSystem: function alphaOfSystem( system ) {
+      // TODO: Combine with indexOfCurrentRoute code
       if ( ! system instanceof SCMAP.System ) {
          return 0;
       }
@@ -285,7 +295,7 @@ SCMAP.Route.prototype = {
       var currentRoute = this.currentRoute();
 
       if ( currentRoute.length ) {
-         for ( var i = 0; i < currentRoute.length; i++ ) {
+         for ( var i = 0, routeLength = currentRoute.length; i < routeLength; i++ ) {
             if ( currentRoute[i].system === system ) {
                currentStep = i;
                break;
@@ -309,7 +319,7 @@ SCMAP.Route.prototype = {
       var currentRoute = this.currentRoute();
 
       if ( currentRoute.length ) {
-         for ( var i = 0; i < currentRoute.length; i++ ) {
+         for ( var i = 0, routeLength = currentRoute.length; i < routeLength; i++ ) {
             if ( currentRoute[i].system === system ) {
                currentStep = i;
                break;
@@ -322,7 +332,7 @@ SCMAP.Route.prototype = {
 
    rebuildCurrentRoute: function rebuildCurrentRoute() {
       this.removeFromScene();
-      for ( var i = 0; i < this._graphs.length; i++ ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i++ ) {
          if ( this._graphs[i].rebuildGraph() ) {
             var destination = this._graphs[i].destination();
             if ( destination ) {
@@ -345,10 +355,8 @@ SCMAP.Route.prototype = {
       }
    },
 
-   update: function update( destination ) {
-      var _this = this, i, route, material, system, $entry;
-      var duration = 0, totalDuration = 0;
-      var before = this.toString();
+   buildTemplateData: function() {
+      var system, i, waypoint;
       var templateData = {
          settings: {
             avoidHostile: SCMAP.settings.route.avoidHostile,
@@ -356,101 +364,33 @@ SCMAP.Route.prototype = {
             avoidOffLimits: SCMAP.settings.route.avoidOffLimits
          },
       };
-
-      var waypoint;
-
-      this.__syncGraphs();
-
-      if ( !( destination instanceof SCMAP.System ) ) {
-         var numWaypoints = this.waypoints.length;
-         destination = this.waypoints[numWaypoints-1];
-      }
-
-      this.removeFromScene();
-
-      // building all the parts of the route together in a single geometry group
       var entireRoute = this.currentRoute();
 
-      if ( !entireRoute.length ) {
-         templateData.status = {
-            text: 'No route set',
-            class: 'no-route'
-         };
-         $( SCMAP.UI.Tab('route').id ).empty().append(
-            SCMAP.UI.Templates.routeList({ route: templateData })
-         );
-         return;
-      }
-
-      if ( this.lastError() )
+      if ( !entireRoute.length )
       {
-         templateData.status = {
-            text: this.lastError().message,
-            class: 'impossible'
-         };
-         $( SCMAP.UI.Tab('route').id ).empty().append(
-            SCMAP.UI.Templates.routeList({ route: templateData })
-         );
-         ui.toTab( 'route' );
-         return;
-      }
-
-      this._routeObject = new THREE.Object3D();
-      this._routeObject.matrixAutoUpdate = false;
-
-      var startColour = new THREE.Color( 0xEEEE66 );
-      var endColour   = new THREE.Color( 0xFF3322 );
-
-      for ( i = 0; i < ( entireRoute.length - 1 ); i += 1 ) {
-         var from = entireRoute[i].system;
-         var to = entireRoute[i+1].system;
-         var geometry = this.createRouteGeometry( from, to );
-         if ( geometry ) {
-               
-            material = new THREE.MeshBasicMaterial( { color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) } );
-
-            var mesh = new THREE.Mesh( geometry, material );
-            mesh.position = from.sceneObject.position.clone();
-            mesh.lookAt( to.sceneObject.position );
-            this._routeObject.add( mesh );
+         if ( this.start && this.waypoints.length )
+         {
+            templateData.status = {
+               text: 'No route available with your current settings.',
+               class: 'impossible'
+            };
+         }
+         else
+         {
+            templateData.status = {
+               text: 'No route set',
+               class: 'no-route'
+            };
          }
       }
-
-      if ( entireRoute.length === 0 )
-      {
-         this.removeFromScene();
-         return;
-      }
-
-      if ( typeof this.start.sceneObject === 'object' )
-      {
-         var waypointObject = window.map.createSelectorObject( startColour );
-         waypointObject.scale.set( 3.8, 3.8, 3.8 );
-         waypointObject.position.copy( this.start.sceneObject.position );
-         waypointObject.visible = true;
-         this._routeObject.add( waypointObject );
-
-         for ( i = 0; i < this.waypoints.length; i += 1 ) {
-            if ( typeof this.waypoints[i].sceneObject === 'object' ) {
-               waypointObject = window.map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
-               waypointObject.scale.set( 3.8, 3.8, 3.8 );
-               waypointObject.position.copy( this.waypoints[i].sceneObject.position );
-               waypointObject.visible = true;
-               this._routeObject.add( waypointObject );
-            }
-         }
-
-         scene.add( this._routeObject );
-      }
-
-      if ( entireRoute.length > 1 )
+      else
       {
          templateData.from          = entireRoute[0].system;
          templateData.to            = entireRoute[entireRoute.length-1].system;
          templateData.waypoints     = [];
          templateData.totalDuration = 0;
 
-         for ( i = 0; i < entireRoute.length; i += 1 )
+         for ( i = 0, entireRouteLength = entireRoute.length; i < entireRouteLength; i += 1 )
          {
             system = entireRoute[i].system;
 
@@ -494,22 +434,108 @@ SCMAP.Route.prototype = {
             templateData.waypoints.push( waypoint );
             templateData.totalDuration += waypoint.duration;
          }
-
       }
-      else
+
+      return templateData;
+   },
+
+   update: function update() {
+      var _this = this, i, route, material, system, $entry;
+      var before = this.toString();
+      var entireRouteLength;
+      var waypointsLength;
+
+      this.__syncGraphs();
+
+      this.removeFromScene();
+
+      var entireRoute = this.currentRoute();
+
+      if ( entireRoute.length )
       {
-         templateData.status = {
-            text: 'No route available with your current settings.',
-            class: 'impossible'
-         };
+         // Exception can be thrown and caught to signal the route isn't possible
+         if ( this.lastError() ) {
+            return;
+         }
+
+         destination = this.waypoints[this.waypoints.length-1];
+
+         // Build all the parts of the route together in a single geometry group
+         this._routeObject = new THREE.Object3D();
+         this._routeObject.matrixAutoUpdate = false;
+
+         var startColour = new THREE.Color( 0xEEEE66 );
+         var endColour   = new THREE.Color( 0xFF3322 );
+
+         for ( i = 0, entireRouteLength = entireRoute.length - 1; i < entireRouteLength; i += 1 ) {
+            var from = entireRoute[i].system;
+            var to = entireRoute[i+1].system;
+            var geometry = this.createRouteGeometry( from, to );
+            if ( geometry ) {
+               material = new THREE.MeshBasicMaterial({ color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) });
+               var mesh = new THREE.Mesh( geometry, material );
+               mesh.position = from.sceneObject.position.clone();
+               mesh.lookAt( to.sceneObject.position );
+               this._routeObject.add( mesh );
+            }
+         }
+
+         if ( typeof this.start.sceneObject === 'object' )
+         {
+            var waypointObject = window.map.createSelectorObject( startColour );
+            waypointObject.scale.set( 3.8, 3.8, 3.8 );
+            waypointObject.position.copy( this.start.sceneObject.position );
+            waypointObject.visible = true;
+            this._routeObject.add( waypointObject );
+
+            for ( i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 ) {
+               if ( typeof this.waypoints[i].sceneObject === 'object' ) {
+                  waypointObject = window.map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
+                  waypointObject.scale.set( 3.8, 3.8, 3.8 );
+                  waypointObject.position.copy( this.waypoints[i].sceneObject.position );
+                  waypointObject.visible = true;
+                  this._routeObject.add( waypointObject );
+               }
+            }
+
+            scene.add( this._routeObject );
+         }
       }
 
       $( SCMAP.UI.Tab('route').id )
          .empty()
-         .append( SCMAP.UI.Templates.routeList({ route: templateData }) );
+         .append( SCMAP.UI.Templates.routeList({
+            route: this.buildTemplateData()
+         }));
 
       if ( this.toString() !== before ) {
          ui.toTab( 'route' );
+      }
+   },
+
+   storeToSession: function storeToSession() {
+      if ( hasSessionStorage ) {
+         if ( this.start && ( this.waypoints.length ) ) {
+            window.sessionStorage.currentRoute = JSON.stringify({
+               start: this.start.id,
+               waypoints: $.map( this.waypoints, function ( waypoint, i ) {
+                  return waypoint.id;
+               })
+            });
+         } else {
+            delete window.sessionStorage.currentRoute;
+         }
+      }
+   },
+
+   restoreFromSession: function restoreFromSession() {
+      if ( hasSessionStorage && ( 'currentRoute' in window.sessionStorage ) ) {
+         var data = JSON.parse( window.sessionStorage.currentRoute );
+         this.start = SCMAP.System.getById( data.start );
+         this.waypoints = $.map( data.waypoints, function ( waypoint, i ) {
+            return SCMAP.System.getById( waypoint );
+         });
+         //this.update();
       }
    },
 

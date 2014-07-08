@@ -17,6 +17,7 @@
          data-rotate-speed="0.4"
          data-zoom-speed="1.0"
          data-pan-speed="0.6"
+         data-handle-width="16px"
       ></div>
 
       <div id="sc-map-webgl-container"></div>
@@ -136,7 +137,10 @@
 
       <script id="templateSystemInfo" data-partial="1" type="text/x-handlebars-template">
          {{#if system}}
-            <h1 class="systemname padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.name}}</h1>
+         <h1 class="systemname {{#unless previous}}{{#unless next}}padleft{{/unless}}{{/unless}}" style="color: {{ colourGetStyle system.faction.color }}">
+               {{routeNavLinks previous next}}
+               {{system.name}}
+            </h1>
             {{#if system.nickname}}
                <h2 class="nickname quote padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.nickname}}</h2>
             {{/if}}
@@ -358,8 +362,8 @@
       <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
       <script src="//code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
       <script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r67/three.min.js"></script>
-      <script src="build/starcitizen-webgl-map-libs.js"></script>
-      <script src="build/starcitizen-webgl-map.js"></script>
+      <script src="build/starcitizen-webgl-map-libs.min.js"></script>
+      <script src="build/starcitizen-webgl-map.min.js"></script>
       <script src="build/starcitizen-webgl-map-seed-data.min.js"></script>
 
    </body>

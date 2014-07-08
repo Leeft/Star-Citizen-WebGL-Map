@@ -203,6 +203,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                      var route = window.map.route();
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
+                        route.storeToSession();
                         ui.toTab( 'route' );
                      }
                   }
@@ -219,9 +220,11 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
 
       },
 
-      //error: function( eventName, from, to, args, errorCode, errorMessage ) {
-      //   scope.debug && console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
-      //}
+      error: function( eventName, from, to, args, errorCode, errorMessage ) {
+         if ( scope.debug ) {
+            console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
+         }
+      }
    });
 
    var EPS = 0.000001;
@@ -659,7 +662,8 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                   {
                      route.start = startObject;
                      route.waypoints = [ endObject ];
-                     route.update( endObject );
+                     route.update();
+                     route.storeToSession();
                      if ( scope.debug ) {
                         console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
                      }
@@ -959,6 +963,10 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
       state.idle( event );
    }
 
+   this.idle = function idle() {
+      state.idle();
+   };
+
    state.init();
 
    this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
@@ -969,7 +977,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
    // We need to trigger jquery-mousewheel explicitly, or the WebGL view doesn't
    // get any mousewheel events
    //$( this.domElement ).on( 'mousewheel', onMouseWheel );
-   $( this.domElement ).on( 'mouseenter', function ( event ) { state.idle( event ); });
+   $( this.domElement ).find('.sc-map-ui-padding').on( 'mouseenter', function ( event ) { state.idle( event ); });
 
    // Workaround for a Chrome (WebKit) issue where the scrollable area can vanish
    // when scrolling it

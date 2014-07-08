@@ -1,10 +1,19 @@
 /**
   * @author Lianna Eeftinck / https://github.com/Leeft
   */
-
 SCMAP.UI = function ( map ) {
 
    var me = this;
+
+   var selectedSystem = null;
+   if ( hasSessionStorage() && ( 'selectedSystem' in window.sessionStorage ) ) {
+      selectedSystem = SCMAP.System.getById( window.sessionStorage.selectedSystem );
+      if ( selectedSystem instanceof SCMAP.System ) {
+         map.setSelectionTo( selectedSystem );
+      } else {
+         selectedSystem = null;
+      }
+   }
 
    this.map = map;
 
@@ -35,7 +44,7 @@ SCMAP.UI = function ( map ) {
          ],
          icons: icons,
          systemGroups: SCMAP.UI.buildDynamicLists(),
-         system: null,
+         system: selectedSystem,
          settings: {
             glow: SCMAP.settings.glow,
             labels: SCMAP.settings.labels,
@@ -46,70 +55,59 @@ SCMAP.UI = function ( map ) {
                Bloom: SCMAP.settings.effect.Bloom
             }
          },
-         route: {
-            settings: {
-               avoidHostile: SCMAP.settings.route.avoidHostile,
-               avoidUnknownJumppoints: SCMAP.settings.route.avoidUnknownJumppoints,
-               avoidOffLimits: SCMAP.settings.route.avoidOffLimits
-            },
-            status: {
-               text: 'No route set.',
-               class: 'no-route'
-            }
-         }
+         route: map.route().buildTemplateData()
       })
    );
    $( SCMAP.UI.menuBar ).each( function ( i, menuItem ) {
       $('#sc-map-interface ul.menubar').append( menuItem );
    });
 
-
-      $('#sc-map-3d-mode')
-         .prop( 'checked', SCMAP.settings.mode === '3d' )
-         .on( 'change', function() {
-            if ( this.checked ) {
-               me.map.displayState.to3d();
-            } else {
-               me.map.displayState.to2d();
-            }
-         });
-
-      $('#sc-map-lock-rotation')
-         .prop( 'checked', SCMAP.settings.control.rotationLocked )
-         .on( 'change', function() {
-            renderer.controls.noRotate = this.checked;
-            if ( storage ) {
-               storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
-            }
-         });
-
-      $('#sc-map-resetCamera').on( 'click', function() {
-         renderer.controls.cameraTo(
-            SCMAP.settings.cameraDefaults.target,
-            SCMAP.settings.cameraDefaults.orientation.theta,
-            SCMAP.settings.cameraDefaults.orientation.phi,
-            SCMAP.settings.cameraDefaults.orientation.radius
-         );
+   $('#sc-map-3d-mode')
+      .prop( 'checked', SCMAP.settings.mode === '3d' )
+      .on( 'change', function() {
+         if ( this.checked ) {
+            me.map.displayState.to3d();
+         } else {
+            me.map.displayState.to2d();
+         }
       });
 
-      $('#sc-map-centreCamera').on( 'click', function() {
-         renderer.controls.moveTo( SCMAP.settings.cameraDefaults.target );
+   $('#sc-map-lock-rotation')
+      .prop( 'checked', SCMAP.settings.control.rotationLocked )
+      .on( 'change', function() {
+         renderer.controls.noRotate = this.checked;
+         if ( storage ) {
+            storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+         }
       });
 
-      $('#sc-map-northCamera').on( 'click', function() {
-         renderer.controls.rotateTo( 0, undefined, undefined );
-      });
+   $('#sc-map-resetCamera').on( 'click', function() {
+      renderer.controls.cameraTo(
+         SCMAP.settings.cameraDefaults.target,
+         SCMAP.settings.cameraDefaults.orientation.theta,
+         SCMAP.settings.cameraDefaults.orientation.phi,
+         SCMAP.settings.cameraDefaults.orientation.radius
+      );
+   });
 
-      $('#sc-map-topCamera').on( 'click', function() {
-         renderer.controls.rotateTo( 0, 0, 180 );
-      });
+   $('#sc-map-centreCamera').on( 'click', function() {
+      renderer.controls.moveTo( SCMAP.settings.cameraDefaults.target );
+   });
 
-      $('#sc-map-top2D').on( 'click', function() {
-         renderer.controls.noRotate = true;
-         $('#sc-map-lock-rotation').prop( 'checked', true );
-         me.map.displayState.to2d();
-         renderer.controls.rotateTo( 0, 0, 180 );
-      });
+   $('#sc-map-northCamera').on( 'click', function() {
+      renderer.controls.rotateTo( 0, undefined, undefined );
+   });
+
+   $('#sc-map-topCamera').on( 'click', function() {
+      renderer.controls.rotateTo( 0, 0, 180 );
+   });
+
+   $('#sc-map-top2D').on( 'click', function() {
+      renderer.controls.noRotate = true;
+      $('#sc-map-lock-rotation').prop( 'checked', true );
+      me.map.displayState.to2d();
+      renderer.controls.rotateTo( 0, 0, 180 );
+   });
 
    var tabIndex = 0;
    if ( hasSessionStorage() && ( 'scMapTab' in window.sessionStorage ) ) {
@@ -146,13 +144,14 @@ SCMAP.UI = function ( map ) {
             window.sessionStorage.scMapTab = clicked_on;
          }
 
-         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
-         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
+         /* Browsers show an ugly URL bar if href is set to #, this
+         * makes the HTML invalid but removes the ugly URL bar */
+         $("#sc-map-interface a[href='#']").removeAttr('href');
+
+         me.updateHeight();
+         me.toTabTop();
       }
    });
-
-   /* jScrollPane */
-   //$('#sc-map-interface').jScrollPane({ showArrows: true });
 
    $('#sc-map-toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#sc-map-toggle-labels').prop( 'checked', SCMAP.settings.labels );
@@ -163,22 +162,22 @@ SCMAP.UI = function ( map ) {
    $('#sc-map-interface').on( 'change', '.sc-map-avoid-hostile', function() {
       SCMAP.settings.route.avoidHostile = this.checked;
       SCMAP.settings.save( 'route' );
-      //map.route().rebuildCurrentRoute();
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-interface').on( 'change', '.sc-map-avoid-unknown-jumppoints', function() {
       SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
       SCMAP.settings.save( 'route' );
-      //map.route().rebuildCurrentRoute();
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-interface').on( 'change', '.sc-map-avoid-off-limits', function() {
       SCMAP.settings.route.avoidOffLimits = this.checked;
       SCMAP.settings.save( 'route' );
-      //map.route().rebuildCurrentRoute();
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-toggle-stats')
@@ -278,7 +277,8 @@ SCMAP.UI = function ( map ) {
             delete storage[ title ];
          }
       }
-      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+
+      ui.updateHeight();
    });
 
    $('#sc-map-interface').on( 'click', 'a[data-toggle-child]', function ( event ) {
@@ -291,7 +291,8 @@ SCMAP.UI = function ( map ) {
       } else {
          $this.parent().find('> a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
-      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+
+      ui.updateHeight();
    });
 
    $('#sc-map-interface').on( 'click', "a[data-goto='system']", function( event ) {
@@ -308,10 +309,12 @@ SCMAP.UI = function ( map ) {
       var system = SCMAP.System.getById( $this.data('system') );
       map.route().removeWaypoint( system );
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-interface').on( 'click', 'button.delete-route', function( event ) {
       map.route().destroy();
+      map.route().storeToSession();
    });
 
    var updateComments = function( event ) {
@@ -363,9 +366,8 @@ SCMAP.UI = function ( map ) {
       map.route().rebuildCurrentRoute();
    });
 
-   /* Browsers show an ugly URL bar if href is set to #, this
-    * makes the HTML invalid but removes the ugly URL bar */
-   $("#sc-map-interface a[href='#']").removeAttr('href');
+   /* jScrollPane */
+   $('#sc-map-interface').jScrollPane({ showArrows: true });
 };
 
 SCMAP.UI.prototype = {
@@ -375,17 +377,37 @@ SCMAP.UI.prototype = {
    toTab: function toTab( index ) {
       var tab = SCMAP.UI.Tab( index );
       $('#sc-map-interface').tabs( 'option', 'active', tab.index );
+      this.updateHeight();
    },
 
    toTabTop: function toTabTop() {
-      if ( $('#sc-map-interface').data('jsp') ) {
-         $('#sc-map-interface').data('jsp').scrollToPercentY( 0 );
+      if ( this.jScrollPane() ) {
+         this.jScrollPane().scrollToPercentY( 0 );
       }
    },
 
    updateHeight: function updateHeight() {
+      var _this = this;
+      var activeTab = SCMAP.UI.ActiveTab();
+      if ( activeTab ) {
+         var $images = $( activeTab.id+' img' );
+         if ( $images.length ) {
+            $( activeTab.id ).imagesLoaded( function() {
+               if ( _this.jScrollPane() ) {
+                  _this.jScrollPane().reinitialise();
+               }
+            });
+         } else {
+            if ( _this.jScrollPane() ) {
+               _this.jScrollPane().reinitialise();
+            }
+         }
+      }
+   },
+
+   jScrollPane: function jScrollPane() {
       if ( $('#sc-map-interface').data('jsp') ) {
-         $('#sc-map-interface').data('jsp').reinitialise();
+         return $('#sc-map-interface').data('jsp');
       }
    },
 
@@ -411,6 +433,16 @@ SCMAP.UI.Tab = function Tab( name ) {
    return;
 };
 
+SCMAP.UI.ActiveTab = function ActiveTab() {
+   var activeTabIndex = $('#sc-map-interface').tabs( "option", "active" );
+   for ( var i = 0; i < SCMAP.UI.Tabs.length; i += 1 ) {
+      if ( i === activeTabIndex ) {
+         return SCMAP.UI.Tabs[ i ];
+      }
+   }
+   return;
+};
+
 SCMAP.UI.makeSafeForCSS = function makeSafeForCSS( name ) {
    if ( typeof name !== 'string' ) {
       return;
@@ -427,19 +459,21 @@ SCMAP.UI.fontAwesomeIsReady = false;
 SCMAP.UI.waitForFontAwesome = function waitForFontAwesome( callback ) {
    var retries = 5;
 
-   function checkReady () {
+   var checkReady = function() {
       var canvas, context;
       retries -= 1;
       canvas = document.createElement('canvas');
       canvas.width = 20;
       canvas.height = 20;
       context = canvas.getContext('2d');
+      context.fillStyle = 'rgba(0,0,0,1.0)';
+      context.fillRect( 0, 0, 20, 20 );
       context.font = '16pt FontAwesome';
       context.textAlign = 'center';
       context.fillStyle = 'rgba(255,255,255,1.0)';
       context.fillText( '\uf0c8', 10, 18 );
-      var data = context.getImageData( 10, 10, 1, 1 ).data;
-      if ( data[0] === 0 && data[1] === 0 && data[2] === 0 ) {
+      var data = context.getImageData( 2, 10, 1, 1 ).data;
+      if ( data[0] !== 255 && data[1] !== 255 && data[2] !== 255 ) {
          console.log( "FontAwesome is not yet available, retrying ..." );
          if ( retries > 0 ) {
             setTimeout( checkReady, 200 );
@@ -451,7 +485,7 @@ SCMAP.UI.waitForFontAwesome = function waitForFontAwesome( callback ) {
             callback();
          }
       }
-   }
+   };
 
    checkReady();
 };
@@ -651,6 +685,48 @@ $(function() {
       return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
    });
 
+   Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {
+      var str = '', $elem;
+
+      if ( !prev && !next ) {
+         return new Handlebars.SafeString( '' );
+      }
+
+      if ( prev instanceof SCMAP.System ) {
+         $elem = $( '<a></a>' );
+         if ( ( prev.faction instanceof SCMAP.Faction ) && ( prev.faction.color instanceof THREE.Color ) ) {
+            $elem.css( 'color', prev.faction.color.getStyle() );
+         }
+         $elem.addClass( 'system-link' );
+         $elem.attr( 'data-goto', 'system' );
+         $elem.attr( 'data-system', prev.id );
+         $elem.attr( 'href', '#system='+encodeURIComponent( prev.name ) );
+         $elem.attr( 'title', 'Previous jump, coming from '+prev.name+' ('+prev.faction.name + ' territory)' );
+         $elem.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
+         str += $elem.outerHtml();
+      } else {
+         str += '<i class="left fa fa-fw"></i>';
+      }
+
+      if ( next instanceof SCMAP.System ) {
+         $elem = $( '<a></a>' );
+         if ( ( next.faction instanceof SCMAP.Faction ) && ( next.faction.color instanceof THREE.Color ) ) {
+            $elem.css( 'color', next.faction.color.getStyle() );
+         }
+         $elem.addClass( 'system-link' );
+         $elem.attr( 'data-goto', 'system' );
+         $elem.attr( 'data-system', next.id );
+         $elem.attr( 'href', '#system='+encodeURIComponent( next.name ) );
+         $elem.attr( 'title', 'Next jump, leading to '+next.name+' ('+next.faction.name + ' territory)' );
+         $elem.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
+         str += $elem.outerHtml();
+      } else {
+         str += '<i class="right fa fa-fw"></i>';
+      }
+
+      return new Handlebars.SafeString( str );
+   });
+
    Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
       var attrs = [];
       for ( var prop in options.hash ) {
@@ -722,5 +798,87 @@ $(function() {
       Handlebars.registerPartial( $elem.attr('id'), $elem.html() );
    });
 });
+
+// Courtesy of http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/
+(function(){
+   /*jshint -W082 */
+
+   var attachEvent = document.attachEvent;
+   
+   if (!attachEvent) {
+      var requestFrame = (function(){
+         var raf = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || function(fn){ return window.setTimeout(fn, 20); };
+         return function(fn){ return raf(fn); };
+      })();
+      
+      var cancelFrame = (function(){
+      var cancel = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.clearTimeout;
+      return function(id){ return cancel(id); };
+      })();
+
+      function resetTriggers(element){
+         var triggers = element.__resizeTriggers__,
+            expand = triggers.firstElementChild,
+            contract = triggers.lastElementChild,
+            expandChild = expand.firstElementChild;
+         contract.scrollLeft = contract.scrollWidth;
+         contract.scrollTop = contract.scrollHeight;
+         expandChild.style.width = expand.offsetWidth + 1 + 'px';
+         expandChild.style.height = expand.offsetHeight + 1 + 'px';
+         expand.scrollLeft = expand.scrollWidth;
+         expand.scrollTop = expand.scrollHeight;
+      }
+
+      function checkTriggers(element){
+         return element.offsetWidth != element.__resizeLast__.width || element.offsetHeight != element.__resizeLast__.height;
+      }
+      
+      function scrollListener(e){
+         var element = this;
+         resetTriggers(this);
+         if (this.__resizeRAF__) cancelFrame(this.__resizeRAF__);
+         this.__resizeRAF__ = requestFrame(function(){
+            if (checkTriggers(element)) {
+               element.__resizeLast__.width = element.offsetWidth;
+               element.__resizeLast__.height = element.offsetHeight;
+               element.__resizeListeners__.forEach(function(fn){
+                  fn.call(element, e);
+               });
+            }
+         });
+      }
+   }
+   
+   window.addResizeListener = function(element, fn){
+      if (attachEvent) {
+         element.attachEvent('onresize', fn);
+      } else {
+         if (!element.__resizeTriggers__) {
+            if (getComputedStyle(element).position == 'static') element.style.position = 'relative';
+            element.__resizeLast__ = {};
+            element.__resizeListeners__ = [];
+            (element.__resizeTriggers__ = document.createElement('div')).className = 'resize-triggers';
+            element.__resizeTriggers__.innerHTML = '<div class="expand-trigger"><div></div></div>' +
+               '<div class="contract-trigger"></div>';
+            element.appendChild(element.__resizeTriggers__);
+            resetTriggers(element);
+            element.addEventListener('scroll', scrollListener, true);
+         }
+         element.__resizeListeners__.push(fn);
+      }
+   };
+   
+   window.removeResizeListener = function(element, fn){
+      if (attachEvent) {
+         element.detachEvent('onresize', fn);
+      } else {
+         element.__resizeListeners__.splice(element.__resizeListeners__.indexOf(fn), 1);
+         if (!element.__resizeListeners__.length) {
+            element.removeEventListener('scroll', scrollListener);
+            element.__resizeTriggers__ = !element.removeChild(element.__resizeTriggers__);
+         }
+      }
+   };
+})();
 
 // End of file

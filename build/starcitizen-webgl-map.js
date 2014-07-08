@@ -1,5 +1,5 @@
 /*!
- * starcitizen-webgl-map v0.8.0 by Lianna Eeftinck
+ * starcitizen-webgl-map v0.9.0 by Lianna Eeftinck
  * Copyright 2014 Lianna Eeftinck
  * https://github.com/Leeft/Star-Citizen-WebGL-Map
  * Licensed under http://opensource.org/licenses/MIT
@@ -144,6 +144,9 @@ SCMAP.Settings = function () {
    if ( hasLocalStorage() ) {
       this.storage = window.localStorage;
    }
+
+   this.uiWidth = ( this.storage && Number( this.storage['settings.uiWidth'] ) > 0 ) ?
+      Number( this.storage['settings.uiWidth'] ) : 320;
 
    this.glow = ( this.storage && this.storage['settings.Glow'] === '0' ) ? false : true;
    this.labels = ( this.storage && this.storage['settings.Labels'] === '0' ) ? false : true;
@@ -1051,9 +1054,37 @@ SCMAP.System.prototype = {
 
    displayInfo: function displayInfo( doNotSwitch ) {
       var me = this;
+      var previous = null;
+      var next = null;
+      var currentStep = window.map.route().indexOfCurrentRoute( this );
+
+      if ( typeof currentStep === 'number' )
+      {
+         var currentRoute = window.map.route().currentRoute();
+
+         if ( currentStep > 0 ) {
+            previous = currentRoute[ currentStep - 1 ].system;
+            if ( ( currentStep > 1 ) && ( previous === currentRoute[ currentStep ].system ) ) {
+               previous = currentRoute[ currentStep - 2 ].system;
+            }
+            previous = previous;
+         }
+
+         if ( currentStep < ( currentRoute.length - 1 ) ) {
+            next = currentRoute[ currentStep + 1 ].system;
+            if ( ( currentStep < ( currentRoute.length - 2 ) ) && ( next === currentRoute[ currentStep ].system ) ) {
+               next = currentRoute[ currentStep + 2 ].system;
+            }
+         }
+      }
+
       var $element = $( SCMAP.UI.Tab('system').id )
          .empty()
-         .append( SCMAP.UI.Templates.systemInfo({ system: me }) );
+         .append( SCMAP.UI.Templates.systemInfo({
+            previous: previous,
+            system: me,
+            next: next
+         }));
 
       // Set user's notes and bookmarks
       $element.find('.user-system-ishangar').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
@@ -1068,53 +1099,9 @@ SCMAP.System.prototype = {
          $element.find('.user-system-comments-md').empty();
       }
 
-      // TODO FIXME
-      //var currentStep = window.map.route().indexOfCurrentRoute( this );
-      //if ( typeof currentStep === 'number' )
-      //{
-      //   var currentRoute = window.map.route().currentRoute();
-      //   var header = [];
-      //   var adjacentSystem;
-
-      //   if ( currentStep > 0 ) {
-      //      adjacentSystem = currentRoute[currentStep-1].system;
-      //      if ( (currentStep > 1) && (adjacentSystem === currentRoute[currentStep].system) ) {
-      //         adjacentSystem = currentRoute[currentStep-2].system;
-      //      }
-      //      var $prev = adjacentSystem.createInfoLink();
-      //      $prev.attr( 'title', 'Previous jump to ' + adjacentSystem.name +
-      //         ' (' + adjacentSystem.faction.name + ' territory)' );
-      //      $prev.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
-      //      header.push( $prev );
-      //   } else {
-      //      header.push( $('<i class="left fa fa-fw"></i>') );
-      //   }
-
-      //   if ( currentStep < ( currentRoute.length - 1 ) ) {
-      //      adjacentSystem = currentRoute[currentStep+1].system;
-      //      if ( (currentStep < (currentRoute.length - 2)) && (adjacentSystem === currentRoute[currentStep].system) ) {
-      //         adjacentSystem = currentRoute[currentStep+2].system;
-      //      }
-      //      var $next = adjacentSystem.createInfoLink();
-      //      $next.attr( 'title', 'Next jump to ' + adjacentSystem.name +
-      //         ' (' + adjacentSystem.faction.name + ' territory)'  );
-      //      $next.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
-      //      header.push( $next );
-      //   } else {
-      //      header.push( $('<i class="right fa fa-fw"></i>') );
-      //   }
-
-      //   header.push( this.name );
-
-      //   $('#systemname').removeClass('padleft').empty().append( header );
-      //}
-      //else
-      //{
-      //   $('#systemname').addClass('padleft');
-      //}
-
       if ( !doNotSwitch ) {
          ui.toTab( 'system' );
+         ui.updateHeight();
       }
    },
 
@@ -1736,7 +1723,7 @@ SCMAP.Route = function ( start, waypoints ) {
    if ( waypoints instanceof SCMAP.System ) {
       this.waypoints = [ waypoints ];
    } else if ( Array.isArray( waypoints ) ) {
-      for ( var i = 0; i < waypoints.length; i += 1 ) {
+      for ( var i = 0, waypointsLength = waypoints.length; i < waypointsLength; i += 1 ) {
          if ( waypoints[i] instanceof SCMAP.System ) {
             this.waypoints.push( waypoints[i] );
          }
@@ -1756,7 +1743,7 @@ SCMAP.Route.prototype = {
       var graphs = [];
       var seen = {};
 
-      for ( var i = 0; i < this._graphs.length; i += 1 )
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
       {
          var route = [];
          try {
@@ -1772,7 +1759,7 @@ SCMAP.Route.prototype = {
             }
          }
 
-         for ( var j = 0; j < route.length; j += 1 ) {
+         for ( var j = 0, routeLength = route.length; j < routeLength; j += 1 ) {
             if ( route[j].system === waypoint && !(seen[ route[j].system.id ]) ) {
                seen[ route[j].system.id ] = true;
                graphs.push( this._graphs[i] );
@@ -1797,7 +1784,8 @@ SCMAP.Route.prototype = {
       var routeArray = graph.routeArray();
       var oldEnd = graph.lastNode().system;
       graph.end = waypoint; // set end of graph to wp
-      for ( var i = 0; i < this._graphs.length; i += 1 ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
+      {
          if ( this._graphs[i] === graph ) {
             // insert new graph at wp, starting at wp, ending at oldEnd
             this._graphs.splice( i + 1, 0, new SCMAP.Dijkstra( SCMAP.System.List, waypoint, oldEnd ) );
@@ -1808,9 +1796,11 @@ SCMAP.Route.prototype = {
                }
             }
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          }
       }
+
       console.error( "Couldn't match graph to split" );
    },
 
@@ -1837,7 +1827,8 @@ SCMAP.Route.prototype = {
       var graphTwo = graphs[1];
       graphOne.end = graphTwo.start;
       // And now delete graphTwo
-      for ( var i = 0; i < this._graphs.length; i += 1 ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
+      {
          if ( this._graphs[i] === graphTwo ) {
             console.log( "Matched "+graphTwo+" starting at index "+i );
             console.log( this._graphs );
@@ -1854,6 +1845,7 @@ SCMAP.Route.prototype = {
                }
             }
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          }
       }
@@ -1875,6 +1867,7 @@ SCMAP.Route.prototype = {
          if ( this.waypoints.length !== 1 || destination !== this.waypoints[0] ) {
             this.start = destination;
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          } else {
             return false;
@@ -1886,6 +1879,7 @@ SCMAP.Route.prototype = {
       if ( index > -1 ) {
          this.waypoints[ index ] = destination;
          this.__syncGraphs();
+            this.storeToSession();
          return true;
       }
 
@@ -1895,6 +1889,7 @@ SCMAP.Route.prototype = {
          if ( index > -1 ) {
             this.waypoints[ index ] = destination;
             this.__syncGraphs();
+            this.storeToSession();
             return true;
          }
       }
@@ -1920,6 +1915,7 @@ SCMAP.Route.prototype = {
             this.waypoints[i] = ( this.waypoints[i] instanceof SCMAP.System ) ? this.waypoints[i] : null;
          }
       }
+      this.storeToSession();
    },
 
    // Updates the graphs to match the current waypoints, and recalculates
@@ -1931,7 +1927,7 @@ SCMAP.Route.prototype = {
 
       try {
 
-         for ( var i = 0; i < this.waypoints.length; i += 1 )
+         for ( var i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 )
          {
             var start = ( i === 0 ) ? this.start : this.waypoints[i - 1];
             var end   = this.waypoints[i];
@@ -1983,7 +1979,7 @@ SCMAP.Route.prototype = {
 
    currentRoute: function currentRoute() {
       var route = [];
-      for ( var i = 0; i < this._graphs.length; i += 1 ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 ) {
          if ( this.waypoints[i] instanceof SCMAP.System ) {
             this._graphs[i].rebuildGraph();
             var routePart = this._graphs[i].routeArray( this.waypoints[i] );
@@ -1999,6 +1995,7 @@ SCMAP.Route.prototype = {
    // the route; we can use this to establish the approximate
    // colour of the given point
    alphaOfSystem: function alphaOfSystem( system ) {
+      // TODO: Combine with indexOfCurrentRoute code
       if ( ! system instanceof SCMAP.System ) {
          return 0;
       }
@@ -2007,7 +2004,7 @@ SCMAP.Route.prototype = {
       var currentRoute = this.currentRoute();
 
       if ( currentRoute.length ) {
-         for ( var i = 0; i < currentRoute.length; i++ ) {
+         for ( var i = 0, routeLength = currentRoute.length; i < routeLength; i++ ) {
             if ( currentRoute[i].system === system ) {
                currentStep = i;
                break;
@@ -2031,7 +2028,7 @@ SCMAP.Route.prototype = {
       var currentRoute = this.currentRoute();
 
       if ( currentRoute.length ) {
-         for ( var i = 0; i < currentRoute.length; i++ ) {
+         for ( var i = 0, routeLength = currentRoute.length; i < routeLength; i++ ) {
             if ( currentRoute[i].system === system ) {
                currentStep = i;
                break;
@@ -2044,7 +2041,7 @@ SCMAP.Route.prototype = {
 
    rebuildCurrentRoute: function rebuildCurrentRoute() {
       this.removeFromScene();
-      for ( var i = 0; i < this._graphs.length; i++ ) {
+      for ( var i = 0, graphsLength = this._graphs.length; i < graphsLength; i++ ) {
          if ( this._graphs[i].rebuildGraph() ) {
             var destination = this._graphs[i].destination();
             if ( destination ) {
@@ -2067,10 +2064,8 @@ SCMAP.Route.prototype = {
       }
    },
 
-   update: function update( destination ) {
-      var _this = this, i, route, material, system, $entry;
-      var duration = 0, totalDuration = 0;
-      var before = this.toString();
+   buildTemplateData: function() {
+      var system, i, waypoint;
       var templateData = {
          settings: {
             avoidHostile: SCMAP.settings.route.avoidHostile,
@@ -2078,101 +2073,33 @@ SCMAP.Route.prototype = {
             avoidOffLimits: SCMAP.settings.route.avoidOffLimits
          },
       };
-
-      var waypoint;
-
-      this.__syncGraphs();
-
-      if ( !( destination instanceof SCMAP.System ) ) {
-         var numWaypoints = this.waypoints.length;
-         destination = this.waypoints[numWaypoints-1];
-      }
-
-      this.removeFromScene();
-
-      // building all the parts of the route together in a single geometry group
       var entireRoute = this.currentRoute();
 
-      if ( !entireRoute.length ) {
-         templateData.status = {
-            text: 'No route set',
-            class: 'no-route'
-         };
-         $( SCMAP.UI.Tab('route').id ).empty().append(
-            SCMAP.UI.Templates.routeList({ route: templateData })
-         );
-         return;
-      }
-
-      if ( this.lastError() )
+      if ( !entireRoute.length )
       {
-         templateData.status = {
-            text: this.lastError().message,
-            class: 'impossible'
-         };
-         $( SCMAP.UI.Tab('route').id ).empty().append(
-            SCMAP.UI.Templates.routeList({ route: templateData })
-         );
-         ui.toTab( 'route' );
-         return;
-      }
-
-      this._routeObject = new THREE.Object3D();
-      this._routeObject.matrixAutoUpdate = false;
-
-      var startColour = new THREE.Color( 0xEEEE66 );
-      var endColour   = new THREE.Color( 0xFF3322 );
-
-      for ( i = 0; i < ( entireRoute.length - 1 ); i += 1 ) {
-         var from = entireRoute[i].system;
-         var to = entireRoute[i+1].system;
-         var geometry = this.createRouteGeometry( from, to );
-         if ( geometry ) {
-               
-            material = new THREE.MeshBasicMaterial( { color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) } );
-
-            var mesh = new THREE.Mesh( geometry, material );
-            mesh.position = from.sceneObject.position.clone();
-            mesh.lookAt( to.sceneObject.position );
-            this._routeObject.add( mesh );
+         if ( this.start && this.waypoints.length )
+         {
+            templateData.status = {
+               text: 'No route available with your current settings.',
+               class: 'impossible'
+            };
+         }
+         else
+         {
+            templateData.status = {
+               text: 'No route set',
+               class: 'no-route'
+            };
          }
       }
-
-      if ( entireRoute.length === 0 )
-      {
-         this.removeFromScene();
-         return;
-      }
-
-      if ( typeof this.start.sceneObject === 'object' )
-      {
-         var waypointObject = window.map.createSelectorObject( startColour );
-         waypointObject.scale.set( 3.8, 3.8, 3.8 );
-         waypointObject.position.copy( this.start.sceneObject.position );
-         waypointObject.visible = true;
-         this._routeObject.add( waypointObject );
-
-         for ( i = 0; i < this.waypoints.length; i += 1 ) {
-            if ( typeof this.waypoints[i].sceneObject === 'object' ) {
-               waypointObject = window.map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
-               waypointObject.scale.set( 3.8, 3.8, 3.8 );
-               waypointObject.position.copy( this.waypoints[i].sceneObject.position );
-               waypointObject.visible = true;
-               this._routeObject.add( waypointObject );
-            }
-         }
-
-         scene.add( this._routeObject );
-      }
-
-      if ( entireRoute.length > 1 )
+      else
       {
          templateData.from          = entireRoute[0].system;
          templateData.to            = entireRoute[entireRoute.length-1].system;
          templateData.waypoints     = [];
          templateData.totalDuration = 0;
 
-         for ( i = 0; i < entireRoute.length; i += 1 )
+         for ( i = 0, entireRouteLength = entireRoute.length; i < entireRouteLength; i += 1 )
          {
             system = entireRoute[i].system;
 
@@ -2216,22 +2143,108 @@ SCMAP.Route.prototype = {
             templateData.waypoints.push( waypoint );
             templateData.totalDuration += waypoint.duration;
          }
-
       }
-      else
+
+      return templateData;
+   },
+
+   update: function update() {
+      var _this = this, i, route, material, system, $entry;
+      var before = this.toString();
+      var entireRouteLength;
+      var waypointsLength;
+
+      this.__syncGraphs();
+
+      this.removeFromScene();
+
+      var entireRoute = this.currentRoute();
+
+      if ( entireRoute.length )
       {
-         templateData.status = {
-            text: 'No route available with your current settings.',
-            class: 'impossible'
-         };
+         // Exception can be thrown and caught to signal the route isn't possible
+         if ( this.lastError() ) {
+            return;
+         }
+
+         destination = this.waypoints[this.waypoints.length-1];
+
+         // Build all the parts of the route together in a single geometry group
+         this._routeObject = new THREE.Object3D();
+         this._routeObject.matrixAutoUpdate = false;
+
+         var startColour = new THREE.Color( 0xEEEE66 );
+         var endColour   = new THREE.Color( 0xFF3322 );
+
+         for ( i = 0, entireRouteLength = entireRoute.length - 1; i < entireRouteLength; i += 1 ) {
+            var from = entireRoute[i].system;
+            var to = entireRoute[i+1].system;
+            var geometry = this.createRouteGeometry( from, to );
+            if ( geometry ) {
+               material = new THREE.MeshBasicMaterial({ color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) });
+               var mesh = new THREE.Mesh( geometry, material );
+               mesh.position = from.sceneObject.position.clone();
+               mesh.lookAt( to.sceneObject.position );
+               this._routeObject.add( mesh );
+            }
+         }
+
+         if ( typeof this.start.sceneObject === 'object' )
+         {
+            var waypointObject = window.map.createSelectorObject( startColour );
+            waypointObject.scale.set( 3.8, 3.8, 3.8 );
+            waypointObject.position.copy( this.start.sceneObject.position );
+            waypointObject.visible = true;
+            this._routeObject.add( waypointObject );
+
+            for ( i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 ) {
+               if ( typeof this.waypoints[i].sceneObject === 'object' ) {
+                  waypointObject = window.map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
+                  waypointObject.scale.set( 3.8, 3.8, 3.8 );
+                  waypointObject.position.copy( this.waypoints[i].sceneObject.position );
+                  waypointObject.visible = true;
+                  this._routeObject.add( waypointObject );
+               }
+            }
+
+            scene.add( this._routeObject );
+         }
       }
 
       $( SCMAP.UI.Tab('route').id )
          .empty()
-         .append( SCMAP.UI.Templates.routeList({ route: templateData }) );
+         .append( SCMAP.UI.Templates.routeList({
+            route: this.buildTemplateData()
+         }));
 
       if ( this.toString() !== before ) {
          ui.toTab( 'route' );
+      }
+   },
+
+   storeToSession: function storeToSession() {
+      if ( hasSessionStorage ) {
+         if ( this.start && ( this.waypoints.length ) ) {
+            window.sessionStorage.currentRoute = JSON.stringify({
+               start: this.start.id,
+               waypoints: $.map( this.waypoints, function ( waypoint, i ) {
+                  return waypoint.id;
+               })
+            });
+         } else {
+            delete window.sessionStorage.currentRoute;
+         }
+      }
+   },
+
+   restoreFromSession: function restoreFromSession() {
+      if ( hasSessionStorage && ( 'currentRoute' in window.sessionStorage ) ) {
+         var data = JSON.parse( window.sessionStorage.currentRoute );
+         this.start = SCMAP.System.getById( data.start );
+         this.waypoints = $.map( data.waypoints, function ( waypoint, i ) {
+            return SCMAP.System.getById( waypoint );
+         });
+         //this.update();
       }
    },
 
@@ -2295,13 +2308,29 @@ SCMAP.Map = function () {
       ifModified: true,
       timeout: 5 * 1000
    })
-   .done( function( data, textStatus, jqXHR ) {
+   .done( function xhrDone( data, textStatus, jqXHR ) {
+      var storage = window.sessionStorage;
+      var selectedSystem;
       //console.log( "ajax done", data, textStatus, jqXHR );
       map.populate( data );
       map.scene.add( map.buildReferenceGrid() );
-      ui.updateSystemsList();
+      window.ui.updateSystemsList();
+      window.renderer.controls.idle();
+
+      map.route().restoreFromSession();
+      map.route().update();
+
+      if ( hasSessionStorage() && ( 'selectedSystem' in storage ) ) {
+         selectedSystem = SCMAP.System.getById( storage.selectedSystem );
+         if ( selectedSystem instanceof SCMAP.System ) {
+            map.setSelectionTo( selectedSystem );
+            selectedSystem.displayInfo( true );
+         }
+      }
+
+      window.ui.updateHeight();
    })
-   .fail( function( jqXHR, textStatus, errorThrown ) {
+   .fail( function xhrFail( jqXHR, textStatus, errorThrown ) {
       console.error( "Ajax request failed:", errorThrown, textStatus );
    });
 
@@ -2329,10 +2358,14 @@ SCMAP.Map.prototype = {
    },
 
    setSelected: function setSelected ( system ) {
+      var storage = window.sessionStorage;
       if ( system !== null && !(system instanceof SCMAP.System) ) {
          throw new Error( system, "is not an instance of SCMAP.System" );
       }
       this.__currentlySelected = system;
+      if ( hasSessionStorage() ) {
+         storage.selectedSystem = system.id;
+      }
       return system;
    },
 
@@ -2870,10 +2903,19 @@ SCMAP.Map.BLACK = new THREE.Color( 0x000000 );
 /**
   * @author Lianna Eeftinck / https://github.com/Leeft
   */
-
 SCMAP.UI = function ( map ) {
 
    var me = this;
+
+   var selectedSystem = null;
+   if ( hasSessionStorage() && ( 'selectedSystem' in window.sessionStorage ) ) {
+      selectedSystem = SCMAP.System.getById( window.sessionStorage.selectedSystem );
+      if ( selectedSystem instanceof SCMAP.System ) {
+         map.setSelectionTo( selectedSystem );
+      } else {
+         selectedSystem = null;
+      }
+   }
 
    this.map = map;
 
@@ -2904,7 +2946,7 @@ SCMAP.UI = function ( map ) {
          ],
          icons: icons,
          systemGroups: SCMAP.UI.buildDynamicLists(),
-         system: null,
+         system: selectedSystem,
          settings: {
             glow: SCMAP.settings.glow,
             labels: SCMAP.settings.labels,
@@ -2915,70 +2957,59 @@ SCMAP.UI = function ( map ) {
                Bloom: SCMAP.settings.effect.Bloom
             }
          },
-         route: {
-            settings: {
-               avoidHostile: SCMAP.settings.route.avoidHostile,
-               avoidUnknownJumppoints: SCMAP.settings.route.avoidUnknownJumppoints,
-               avoidOffLimits: SCMAP.settings.route.avoidOffLimits
-            },
-            status: {
-               text: 'No route set.',
-               class: 'no-route'
-            }
-         }
+         route: map.route().buildTemplateData()
       })
    );
    $( SCMAP.UI.menuBar ).each( function ( i, menuItem ) {
       $('#sc-map-interface ul.menubar').append( menuItem );
    });
 
-
-      $('#sc-map-3d-mode')
-         .prop( 'checked', SCMAP.settings.mode === '3d' )
-         .on( 'change', function() {
-            if ( this.checked ) {
-               me.map.displayState.to3d();
-            } else {
-               me.map.displayState.to2d();
-            }
-         });
-
-      $('#sc-map-lock-rotation')
-         .prop( 'checked', SCMAP.settings.control.rotationLocked )
-         .on( 'change', function() {
-            renderer.controls.noRotate = this.checked;
-            if ( storage ) {
-               storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
-            }
-         });
-
-      $('#sc-map-resetCamera').on( 'click', function() {
-         renderer.controls.cameraTo(
-            SCMAP.settings.cameraDefaults.target,
-            SCMAP.settings.cameraDefaults.orientation.theta,
-            SCMAP.settings.cameraDefaults.orientation.phi,
-            SCMAP.settings.cameraDefaults.orientation.radius
-         );
+   $('#sc-map-3d-mode')
+      .prop( 'checked', SCMAP.settings.mode === '3d' )
+      .on( 'change', function() {
+         if ( this.checked ) {
+            me.map.displayState.to3d();
+         } else {
+            me.map.displayState.to2d();
+         }
       });
 
-      $('#sc-map-centreCamera').on( 'click', function() {
-         renderer.controls.moveTo( SCMAP.settings.cameraDefaults.target );
+   $('#sc-map-lock-rotation')
+      .prop( 'checked', SCMAP.settings.control.rotationLocked )
+      .on( 'change', function() {
+         renderer.controls.noRotate = this.checked;
+         if ( storage ) {
+            storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+         }
       });
 
-      $('#sc-map-northCamera').on( 'click', function() {
-         renderer.controls.rotateTo( 0, undefined, undefined );
-      });
+   $('#sc-map-resetCamera').on( 'click', function() {
+      renderer.controls.cameraTo(
+         SCMAP.settings.cameraDefaults.target,
+         SCMAP.settings.cameraDefaults.orientation.theta,
+         SCMAP.settings.cameraDefaults.orientation.phi,
+         SCMAP.settings.cameraDefaults.orientation.radius
+      );
+   });
 
-      $('#sc-map-topCamera').on( 'click', function() {
-         renderer.controls.rotateTo( 0, 0, 180 );
-      });
+   $('#sc-map-centreCamera').on( 'click', function() {
+      renderer.controls.moveTo( SCMAP.settings.cameraDefaults.target );
+   });
 
-      $('#sc-map-top2D').on( 'click', function() {
-         renderer.controls.noRotate = true;
-         $('#sc-map-lock-rotation').prop( 'checked', true );
-         me.map.displayState.to2d();
-         renderer.controls.rotateTo( 0, 0, 180 );
-      });
+   $('#sc-map-northCamera').on( 'click', function() {
+      renderer.controls.rotateTo( 0, undefined, undefined );
+   });
+
+   $('#sc-map-topCamera').on( 'click', function() {
+      renderer.controls.rotateTo( 0, 0, 180 );
+   });
+
+   $('#sc-map-top2D').on( 'click', function() {
+      renderer.controls.noRotate = true;
+      $('#sc-map-lock-rotation').prop( 'checked', true );
+      me.map.displayState.to2d();
+      renderer.controls.rotateTo( 0, 0, 180 );
+   });
 
    var tabIndex = 0;
    if ( hasSessionStorage() && ( 'scMapTab' in window.sessionStorage ) ) {
@@ -3015,13 +3046,14 @@ SCMAP.UI = function ( map ) {
             window.sessionStorage.scMapTab = clicked_on;
          }
 
-         //$('#sc-map-interface').data( 'jsp' ).reinitialise();
-         //$('#sc-map-interface').data( 'jsp' ).scrollToPercentY( 0 );
+         /* Browsers show an ugly URL bar if href is set to #, this
+         * makes the HTML invalid but removes the ugly URL bar */
+         $("#sc-map-interface a[href='#']").removeAttr('href');
+
+         me.updateHeight();
+         me.toTabTop();
       }
    });
-
-   /* jScrollPane */
-   //$('#sc-map-interface').jScrollPane({ showArrows: true });
 
    $('#sc-map-toggle-glow').prop( 'checked', SCMAP.settings.glow );
    $('#sc-map-toggle-labels').prop( 'checked', SCMAP.settings.labels );
@@ -3032,22 +3064,22 @@ SCMAP.UI = function ( map ) {
    $('#sc-map-interface').on( 'change', '.sc-map-avoid-hostile', function() {
       SCMAP.settings.route.avoidHostile = this.checked;
       SCMAP.settings.save( 'route' );
-      //map.route().rebuildCurrentRoute();
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-interface').on( 'change', '.sc-map-avoid-unknown-jumppoints', function() {
       SCMAP.settings.route.avoidUnknownJumppoints = this.checked;
       SCMAP.settings.save( 'route' );
-      //map.route().rebuildCurrentRoute();
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-interface').on( 'change', '.sc-map-avoid-off-limits', function() {
       SCMAP.settings.route.avoidOffLimits = this.checked;
       SCMAP.settings.save( 'route' );
-      //map.route().rebuildCurrentRoute();
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-toggle-stats')
@@ -3147,7 +3179,8 @@ SCMAP.UI = function ( map ) {
             delete storage[ title ];
          }
       }
-      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+
+      ui.updateHeight();
    });
 
    $('#sc-map-interface').on( 'click', 'a[data-toggle-child]', function ( event ) {
@@ -3160,7 +3193,8 @@ SCMAP.UI = function ( map ) {
       } else {
          $this.parent().find('> a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
-      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+
+      ui.updateHeight();
    });
 
    $('#sc-map-interface').on( 'click', "a[data-goto='system']", function( event ) {
@@ -3177,10 +3211,12 @@ SCMAP.UI = function ( map ) {
       var system = SCMAP.System.getById( $this.data('system') );
       map.route().removeWaypoint( system );
       map.route().update();
+      map.route().storeToSession();
    });
 
    $('#sc-map-interface').on( 'click', 'button.delete-route', function( event ) {
       map.route().destroy();
+      map.route().storeToSession();
    });
 
    var updateComments = function( event ) {
@@ -3232,9 +3268,8 @@ SCMAP.UI = function ( map ) {
       map.route().rebuildCurrentRoute();
    });
 
-   /* Browsers show an ugly URL bar if href is set to #, this
-    * makes the HTML invalid but removes the ugly URL bar */
-   $("#sc-map-interface a[href='#']").removeAttr('href');
+   /* jScrollPane */
+   $('#sc-map-interface').jScrollPane({ showArrows: true });
 };
 
 SCMAP.UI.prototype = {
@@ -3244,17 +3279,37 @@ SCMAP.UI.prototype = {
    toTab: function toTab( index ) {
       var tab = SCMAP.UI.Tab( index );
       $('#sc-map-interface').tabs( 'option', 'active', tab.index );
+      this.updateHeight();
    },
 
    toTabTop: function toTabTop() {
-      if ( $('#sc-map-interface').data('jsp') ) {
-         $('#sc-map-interface').data('jsp').scrollToPercentY( 0 );
+      if ( this.jScrollPane() ) {
+         this.jScrollPane().scrollToPercentY( 0 );
       }
    },
 
    updateHeight: function updateHeight() {
+      var _this = this;
+      var activeTab = SCMAP.UI.ActiveTab();
+      if ( activeTab ) {
+         var $images = $( activeTab.id+' img' );
+         if ( $images.length ) {
+            $( activeTab.id ).imagesLoaded( function() {
+               if ( _this.jScrollPane() ) {
+                  _this.jScrollPane().reinitialise();
+               }
+            });
+         } else {
+            if ( _this.jScrollPane() ) {
+               _this.jScrollPane().reinitialise();
+            }
+         }
+      }
+   },
+
+   jScrollPane: function jScrollPane() {
       if ( $('#sc-map-interface').data('jsp') ) {
-         $('#sc-map-interface').data('jsp').reinitialise();
+         return $('#sc-map-interface').data('jsp');
       }
    },
 
@@ -3280,6 +3335,16 @@ SCMAP.UI.Tab = function Tab( name ) {
    return;
 };
 
+SCMAP.UI.ActiveTab = function ActiveTab() {
+   var activeTabIndex = $('#sc-map-interface').tabs( "option", "active" );
+   for ( var i = 0; i < SCMAP.UI.Tabs.length; i += 1 ) {
+      if ( i === activeTabIndex ) {
+         return SCMAP.UI.Tabs[ i ];
+      }
+   }
+   return;
+};
+
 SCMAP.UI.makeSafeForCSS = function makeSafeForCSS( name ) {
    if ( typeof name !== 'string' ) {
       return;
@@ -3296,19 +3361,21 @@ SCMAP.UI.fontAwesomeIsReady = false;
 SCMAP.UI.waitForFontAwesome = function waitForFontAwesome( callback ) {
    var retries = 5;
 
-   function checkReady () {
+   var checkReady = function() {
       var canvas, context;
       retries -= 1;
       canvas = document.createElement('canvas');
       canvas.width = 20;
       canvas.height = 20;
       context = canvas.getContext('2d');
+      context.fillStyle = 'rgba(0,0,0,1.0)';
+      context.fillRect( 0, 0, 20, 20 );
       context.font = '16pt FontAwesome';
       context.textAlign = 'center';
       context.fillStyle = 'rgba(255,255,255,1.0)';
       context.fillText( '\uf0c8', 10, 18 );
-      var data = context.getImageData( 10, 10, 1, 1 ).data;
-      if ( data[0] === 0 && data[1] === 0 && data[2] === 0 ) {
+      var data = context.getImageData( 2, 10, 1, 1 ).data;
+      if ( data[0] !== 255 && data[1] !== 255 && data[2] !== 255 ) {
          console.log( "FontAwesome is not yet available, retrying ..." );
          if ( retries > 0 ) {
             setTimeout( checkReady, 200 );
@@ -3320,7 +3387,7 @@ SCMAP.UI.waitForFontAwesome = function waitForFontAwesome( callback ) {
             callback();
          }
       }
-   }
+   };
 
    checkReady();
 };
@@ -3520,6 +3587,48 @@ $(function() {
       return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
    });
 
+   Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {
+      var str = '', $elem;
+
+      if ( !prev && !next ) {
+         return new Handlebars.SafeString( '' );
+      }
+
+      if ( prev instanceof SCMAP.System ) {
+         $elem = $( '<a></a>' );
+         if ( ( prev.faction instanceof SCMAP.Faction ) && ( prev.faction.color instanceof THREE.Color ) ) {
+            $elem.css( 'color', prev.faction.color.getStyle() );
+         }
+         $elem.addClass( 'system-link' );
+         $elem.attr( 'data-goto', 'system' );
+         $elem.attr( 'data-system', prev.id );
+         $elem.attr( 'href', '#system='+encodeURIComponent( prev.name ) );
+         $elem.attr( 'title', 'Previous jump, coming from '+prev.name+' ('+prev.faction.name + ' territory)' );
+         $elem.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
+         str += $elem.outerHtml();
+      } else {
+         str += '<i class="left fa fa-fw"></i>';
+      }
+
+      if ( next instanceof SCMAP.System ) {
+         $elem = $( '<a></a>' );
+         if ( ( next.faction instanceof SCMAP.Faction ) && ( next.faction.color instanceof THREE.Color ) ) {
+            $elem.css( 'color', next.faction.color.getStyle() );
+         }
+         $elem.addClass( 'system-link' );
+         $elem.attr( 'data-goto', 'system' );
+         $elem.attr( 'data-system', next.id );
+         $elem.attr( 'href', '#system='+encodeURIComponent( next.name ) );
+         $elem.attr( 'title', 'Next jump, leading to '+next.name+' ('+next.faction.name + ' territory)' );
+         $elem.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
+         str += $elem.outerHtml();
+      } else {
+         str += '<i class="right fa fa-fw"></i>';
+      }
+
+      return new Handlebars.SafeString( str );
+   });
+
    Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
       var attrs = [];
       for ( var prop in options.hash ) {
@@ -3592,6 +3701,88 @@ $(function() {
    });
 });
 
+// Courtesy of http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/
+(function(){
+   /*jshint -W082 */
+
+   var attachEvent = document.attachEvent;
+   
+   if (!attachEvent) {
+      var requestFrame = (function(){
+         var raf = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || function(fn){ return window.setTimeout(fn, 20); };
+         return function(fn){ return raf(fn); };
+      })();
+      
+      var cancelFrame = (function(){
+      var cancel = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.clearTimeout;
+      return function(id){ return cancel(id); };
+      })();
+
+      function resetTriggers(element){
+         var triggers = element.__resizeTriggers__,
+            expand = triggers.firstElementChild,
+            contract = triggers.lastElementChild,
+            expandChild = expand.firstElementChild;
+         contract.scrollLeft = contract.scrollWidth;
+         contract.scrollTop = contract.scrollHeight;
+         expandChild.style.width = expand.offsetWidth + 1 + 'px';
+         expandChild.style.height = expand.offsetHeight + 1 + 'px';
+         expand.scrollLeft = expand.scrollWidth;
+         expand.scrollTop = expand.scrollHeight;
+      }
+
+      function checkTriggers(element){
+         return element.offsetWidth != element.__resizeLast__.width || element.offsetHeight != element.__resizeLast__.height;
+      }
+      
+      function scrollListener(e){
+         var element = this;
+         resetTriggers(this);
+         if (this.__resizeRAF__) cancelFrame(this.__resizeRAF__);
+         this.__resizeRAF__ = requestFrame(function(){
+            if (checkTriggers(element)) {
+               element.__resizeLast__.width = element.offsetWidth;
+               element.__resizeLast__.height = element.offsetHeight;
+               element.__resizeListeners__.forEach(function(fn){
+                  fn.call(element, e);
+               });
+            }
+         });
+      }
+   }
+   
+   window.addResizeListener = function(element, fn){
+      if (attachEvent) {
+         element.attachEvent('onresize', fn);
+      } else {
+         if (!element.__resizeTriggers__) {
+            if (getComputedStyle(element).position == 'static') element.style.position = 'relative';
+            element.__resizeLast__ = {};
+            element.__resizeListeners__ = [];
+            (element.__resizeTriggers__ = document.createElement('div')).className = 'resize-triggers';
+            element.__resizeTriggers__.innerHTML = '<div class="expand-trigger"><div></div></div>' +
+               '<div class="contract-trigger"></div>';
+            element.appendChild(element.__resizeTriggers__);
+            resetTriggers(element);
+            element.addEventListener('scroll', scrollListener, true);
+         }
+         element.__resizeListeners__.push(fn);
+      }
+   };
+   
+   window.removeResizeListener = function(element, fn){
+      if (attachEvent) {
+         element.detachEvent('onresize', fn);
+      } else {
+         element.__resizeListeners__.splice(element.__resizeListeners__.indexOf(fn), 1);
+         if (!element.__resizeListeners__.length) {
+            element.removeEventListener('scroll', scrollListener);
+            element.__resizeTriggers__ = !element.removeChild(element.__resizeTriggers__);
+         }
+      }
+   };
+})();
+
 // End of file
 
 /**
@@ -3621,7 +3812,7 @@ SCMAP.Renderer = function ( map ) {
 
    this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
    this.camera.position.copy( SCMAP.settings.camera.camera );
-   this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface').width() / 2 ), 0, this.width, this.height );
+   this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
 
    this.controls = new SCMAP.OrbitControls( this, container );
    this.controls.target.copy( SCMAP.settings.camera.target );
@@ -3695,7 +3886,7 @@ SCMAP.Renderer.prototype = {
       this.width = window.innerWidth;
       this.height = window.innerHeight;
       this.camera.aspect = this.width / this.height;
-      this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface').width() / 2 ), 0, this.width, this.height );
+      this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
       this.camera.updateProjectionMatrix();
 
       if ( this.FXAA ) {
@@ -3706,7 +3897,8 @@ SCMAP.Renderer.prototype = {
       if ( this.composer ) {
          this.composer.reset();
       }
-      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+
+      window.ui.updateHeight();
    },
 
    _animate: function _animate() {
@@ -4006,6 +4198,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                      var route = window.map.route();
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
+                        route.storeToSession();
                         ui.toTab( 'route' );
                      }
                   }
@@ -4022,9 +4215,11 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
 
       },
 
-      //error: function( eventName, from, to, args, errorCode, errorMessage ) {
-      //   scope.debug && console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
-      //}
+      error: function( eventName, from, to, args, errorCode, errorMessage ) {
+         if ( scope.debug ) {
+            console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
+         }
+      }
    });
 
    var EPS = 0.000001;
@@ -4462,7 +4657,8 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                   {
                      route.start = startObject;
                      route.waypoints = [ endObject ];
-                     route.update( endObject );
+                     route.update();
+                     route.storeToSession();
                      if ( scope.debug ) {
                         console.log( 'Intermediate object while dragging is "' + endObject.name + '"' );
                      }
@@ -4762,6 +4958,10 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
       state.idle( event );
    }
 
+   this.idle = function idle() {
+      state.idle();
+   };
+
    state.init();
 
    this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
@@ -4772,7 +4972,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
    // We need to trigger jquery-mousewheel explicitly, or the WebGL view doesn't
    // get any mousewheel events
    //$( this.domElement ).on( 'mousewheel', onMouseWheel );
-   $( this.domElement ).on( 'mouseenter', function ( event ) { state.idle( event ); });
+   $( this.domElement ).find('.sc-map-ui-padding').on( 'mouseenter', function ( event ) { state.idle( event ); });
 
    // Workaround for a Chrome (WebKit) issue where the scrollable area can vanish
    // when scrolling it

@@ -8,6 +8,9 @@ SCMAP.Settings = function () {
       this.storage = window.localStorage;
    }
 
+   this.uiWidth = ( this.storage && Number( this.storage['settings.uiWidth'] ) > 0 ) ?
+      Number( this.storage['settings.uiWidth'] ) : 320;
+
    this.glow = ( this.storage && this.storage['settings.Glow'] === '0' ) ? false : true;
    this.labels = ( this.storage && this.storage['settings.Labels'] === '0' ) ? false : true;
    this.labelIcons = ( this.storage && this.storage['settings.LabelIcons'] === '0' ) ? false : true;

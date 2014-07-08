@@ -25,7 +25,7 @@ SCMAP.Renderer = function ( map ) {
 
    this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
    this.camera.position.copy( SCMAP.settings.camera.camera );
-   this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface').width() / 2 ), 0, this.width, this.height );
+   this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
 
    this.controls = new SCMAP.OrbitControls( this, container );
    this.controls.target.copy( SCMAP.settings.camera.target );
@@ -99,7 +99,7 @@ SCMAP.Renderer.prototype = {
       this.width = window.innerWidth;
       this.height = window.innerHeight;
       this.camera.aspect = this.width / this.height;
-      this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface').width() / 2 ), 0, this.width, this.height );
+      this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
       this.camera.updateProjectionMatrix();
 
       if ( this.FXAA ) {
@@ -110,7 +110,8 @@ SCMAP.Renderer.prototype = {
       if ( this.composer ) {
          this.composer.reset();
       }
-      //$('#sc-map-interface').data( 'jsp' ).reinitialise();
+
+      window.ui.updateHeight();
    },
 
    _animate: function _animate() {

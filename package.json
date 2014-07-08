@@ -1,6 +1,6 @@
 {
   "name": "starcitizen-webgl-map",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "WebGL Star Citizen Map",
   "devDependencies": {
     "clean-css": "^2.1.8",
