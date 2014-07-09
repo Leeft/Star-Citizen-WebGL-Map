@@ -180,6 +180,32 @@ SCMAP.UI = function ( map ) {
       map.route().storeToSession();
    });
 
+   // UI width slider / settings handling
+   //
+   if ( hasSessionStorage() )
+   {
+      window.sessionStorage.uiWidth = SCMAP.UI.widthClasses[ SCMAP.UI.widthClassToIndex( window.sessionStorage.uiWidth ) ];
+      $('#sc-map-interface')
+         .removeClass( SCMAP.UI.widthClasses.join(' ') )
+         .addClass( window.sessionStorage.uiWidth );
+   }
+   //
+   $('#sc-map-interface .sc-map-slider-uiwidth').slider({
+      min: 0,
+      max: SCMAP.UI.widthClasses.length - 1,
+      range: 'min',
+      value: ( hasSessionStorage() ) ? SCMAP.UI.widthClassToIndex( window.sessionStorage.uiWidth ) : SCMAP.UI.defaultWidthIndex,
+      change: function ( event, ui ) {
+         var value = ui.value;
+         $('#sc-map-interface').removeClass( SCMAP.UI.widthClasses.join(' ') ).addClass( SCMAP.UI.widthClasses[ value ] );
+         if ( hasSessionStorage() ) {
+            window.sessionStorage.uiWidth = SCMAP.UI.widthClasses[ value ];
+         }
+         me.updateHeight();
+         renderer.resize();
+      }
+   });
+
    $('#sc-map-toggle-stats')
       .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
       .on( 'change', function() {
@@ -367,7 +393,10 @@ SCMAP.UI = function ( map ) {
    });
 
    /* jScrollPane */
-   $('#sc-map-interface').jScrollPane({ showArrows: true });
+   $('#sc-map-interface').jScrollPane({
+      showArrows: false,
+      horizontalGutter: 6
+   });
 };
 
 SCMAP.UI.prototype = {
@@ -419,9 +448,22 @@ SCMAP.UI.prototype = {
    }
 };
 
-SCMAP.UI.Tabs = [];
-SCMAP.UI.menuBar = [];
+SCMAP.UI.menuBar = []; // Populated by template code
 
+SCMAP.UI.widthClasses = [ 'widthXS', 'widthS', 'widthN', 'widthL', 'widthXL' ];
+SCMAP.UI.defaultWidthIndex = 2;
+SCMAP.UI.widthClassToIndex = function widthClassToIndex( name ) {
+   if ( typeof name === 'string' ) {
+      for ( var i = 0; i < SCMAP.UI.widthClasses.length; i += 1 ) {
+         if ( name === SCMAP.UI.widthClasses[i] ) {
+            return i;
+         }
+      }
+   }
+   return SCMAP.UI.defaultWidthIndex;
+};
+
+SCMAP.UI.Tabs = [];
 SCMAP.UI.Tab = function Tab( name ) {
    for ( var i = 0; i < SCMAP.UI.Tabs.length; i += 1 ) {
       if ( ( typeof name === 'string' ) && ( SCMAP.UI.Tabs[ i ].name === name ) ) {

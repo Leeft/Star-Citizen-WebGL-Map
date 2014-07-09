@@ -17,11 +17,10 @@
          data-rotate-speed="0.4"
          data-zoom-speed="1.0"
          data-pan-speed="0.6"
-         data-handle-width="16px"
       ></div>
 
       <div id="sc-map-webgl-container"></div>
-      <div id="sc-map-interface" class="medium"></div>
+      <div id="sc-map-interface" class="medium widthN"></div>
 
       <script id="templateMapUI" type="text/x-handlebars-template">
          {{! Main UI template, used to set up the tabs and the static info }}
@@ -296,6 +295,12 @@
                <label for="sc-map-toggle-labels">Enable system labels</label>
                <input type="checkbox" id="sc-map-toggle-label-icons"  {{checked settings.labelIcons}}>
                <label for="sc-map-toggle-label-icons"><i class="fa fa-level-up fa-rotate-90 fa-fw"></i> Display icons in system labels</label>
+            </span>
+         </p>
+         <p class="ui-section">
+            <span class="slider-option">
+               <label for="sc-map-slider-uiwidth">UI width:</label>
+               <div id="sc-map-slider-uiwidth" class="sc-map-slider-uiwidth"></div>
             </span>
          </p>
       </script>

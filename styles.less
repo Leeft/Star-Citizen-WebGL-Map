@@ -96,17 +96,22 @@ a {
    left: 0;
    min-width: 1px;
    height: 100%;
-   width: 320px;
    z-index: 100;
    margin: 0;
    padding: 0;
    background: @panel-background;
 
+   &.widthXS { width: 260px !important; }
+   &.widthS  { width: 290px !important; }
+   &.widthN  { width: 320px !important; }
+   &.widthL  { width: 350px !important; }
+   &.widthXL { width: 380px !important; }
+
    /* Spacing around the contents of the user interface */
    .sc-map-ui-padding {
+      width: 92%;
       overflow: inherit;
       margin: 0.6rem;
-      margin-right: 1.2rem;
 
       &.the-verse {
          padding-top: 3.4em;
@@ -311,13 +316,13 @@ a {
       }
    }
 
-   .checkmark-option {
+   .checkmark-option, .slider-option {
 
       margin-bottom: 0.7em;
       display: block;
       margin-right: 1.5em;
-      min-width: 8em;
-      max-width: 22em;
+      min-width: 7em;
+      max-width: 21em;
 
       label {
          .border-radius( 5px );
@@ -347,6 +352,17 @@ a {
          display: block;
          padding-bottom: 0.5em;
       }
+   }
+
+   .slider-option {
+      label {
+         display: block;
+         height: 4.7rem;
+      }
+   }
+   .ui-slider-horizontal {
+      position: relative;
+      top: -2.7rem;
    }
 
    li dl {
@@ -566,6 +582,93 @@ a {
       height: 100%;
       background: #75a874;
       &:after { content: "”"; }
+   }
+
+   .ui-slider {
+      position: relative;
+      text-align: left;
+      border: 1px solid darken( #888, 30% );
+      background: black; // @button-background;
+      width: 75%;
+      margin-left: 2.5rem;
+      .border-radius( 3px );
+
+      &:hover {
+         cursor: pointer;
+      }
+
+      .ui-slider-handle {
+         position: absolute;
+         z-index: 2;
+         width: 1.0em;
+         height: 1.6em;
+         margin-top: -3px;
+         cursor: default;
+         -ms-touch-action: none;
+         touch-action: none;
+         background: lighten( rgba( 60, 60, 60, 1.0 ), 20% );
+         border: 1px solid @brand-alternate;
+         .border-radius( 4px );
+
+         &:hover {
+            cursor: pointer;
+         }
+      }
+
+      .ui-slider-range {
+         position: absolute;
+         z-index: 1;
+         font-size: .7em;
+         display: block;
+         border: 0;
+         background-position: 0 0;
+      }
+   }
+
+   /* For IE8 - See #6727 */
+   .ui-slider.ui-state-disabled .ui-slider-handle,
+   .ui-slider.ui-state-disabled .ui-slider-range {
+      filter: inherit;
+   }
+
+   .ui-slider-horizontal {
+      height: .8em;
+
+      .ui-slider-handle {
+         top: -.3em;
+         margin-left: -.6em;
+      }
+      .ui-slider-range {
+         top: 0;
+         height: 100%;
+      }
+      .ui-slider-range-min {
+         left: 0;
+      }
+      .ui-slider-range-max {
+         right: 0;
+      }
+   }
+
+   .ui-slider-vertical {
+      width: .8em;
+      height: 100px;
+
+      .ui-slider-handle {
+         left: -.3em;
+         margin-left: 0;
+         margin-bottom: -.6em;
+      }
+      .ui-slider-range {
+         left: 0;
+         width: 100%;
+      }
+      .ui-slider-range-min {
+         bottom: 0;
+      }
+      .ui-slider-range-max {
+         top: 0;
+      }
    }
 }
 
