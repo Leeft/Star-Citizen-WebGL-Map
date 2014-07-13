@@ -70,7 +70,7 @@ SCMAP.Symbols.TRADE = {
    faClass: 'fa-exchange',
    description: 'Major trade hub',
    color: 'rgba(255,255,0,1.0)',
-   offset: new THREE.Vector2( 0, -3 )
+   offset: new THREE.Vector2( 0, -1 )
 };
 //SCMAP.Symbols.TRADE = {
 //   code: "\uf0d1",

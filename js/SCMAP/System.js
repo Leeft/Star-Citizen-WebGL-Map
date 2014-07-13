@@ -6,7 +6,7 @@ SCMAP.System = function ( data ) {
    // Defaults, to be filled in from the config
    this.id = undefined;
    this.uuid = undefined;
-   this.name = '';
+   this.name = THREE.Math.generateUUID();
    this.nickname = '';
    this.position = new THREE.Vector3();
    this.faction = new SCMAP.Faction();
@@ -18,6 +18,7 @@ SCMAP.System = function ( data ) {
    this.planetaryRotation = [];
    this.import = [];
    this.export = [];
+   this.status = 'unknown';
    this.crimeStatus = '';
    this.blackMarket = [];
    this.ueeStrategicValue = undefined;
@@ -220,7 +221,6 @@ SCMAP.System.prototype = {
 
       this._drawnText = text;
       this._drawnSymbols = '';
-
       if ( icons && icons.length ) {
          this._drawnSymbols = this.iconsToKey( icons );
          this._drawSymbols( context, textX, textY - 50, icons );
@@ -229,7 +229,7 @@ SCMAP.System.prototype = {
       return canvas;
    },
 
-   // Draws the icon(s) on a label
+   // Draws the icon(s) on a canvas context
    _drawSymbols: function _drawSymbols( context, x, y, symbols ) {
       var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
       var offX, offY;
@@ -311,6 +311,10 @@ SCMAP.System.prototype = {
    },
 
    getIcons: function getIcons() {
+      return this.getSymbols();
+   },
+
+   getSymbols: function getSymbols() {
       var mySymbols = [];
       if ( false && this.name === 'Sol' ) {
          mySymbols.push( SCMAP.Symbols.DANGER );
@@ -427,6 +431,10 @@ SCMAP.System.prototype = {
 
    isBookmarked: function isBookmarked( ) {
       return this.storedSettings().bookmarked === true;
+   },
+
+   isUnknown: function isUnknown( ) {
+      return this.status === 'unknown';
    },
 
    setBookmarkedState: function setBookmarkedState( state ) {
