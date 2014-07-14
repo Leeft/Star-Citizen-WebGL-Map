@@ -252,8 +252,9 @@ SCMAP.Map.prototype = {
       $( SCMAP.System.List ).each( function( index, system ) {
          var sceneObject = system.buildSceneObject();
          map.scene.add( sceneObject );
-         map._interactables.push( sceneObject.children[0] );
+         map._interactables.push( sceneObject.userData.interactable );
          systemCount++;
+         system.sceneObject = sceneObject;
       });
 
       // Then we go through again and add the routes

@@ -59,6 +59,9 @@ module.exports = function(grunt) {
           'js/SCMAP/UI.js',
           'js/SCMAP/Renderer.js',
           'js/SCMAP/OrbitControls.js',
+          'js/SCMAP/SystemLabel.js',
+          'js/SCMAP/Knapsack.js',
+          'js/SCMAP/TextureManager.js',
           'js/main.js'
         ],
         dest: 'build/<%= pkg.name %>.js'

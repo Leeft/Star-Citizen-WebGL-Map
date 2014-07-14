@@ -552,17 +552,17 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
          'Camera distance: '+radius.toFixed(1)
       );
 
-      var newLabelScale = radius - 20;
-      newLabelScale /= 10;
-      if ( newLabelScale < 17 ) {
-         newLabelScale = 17;
-      } else if ( newLabelScale > 22 ) {
-         newLabelScale = 22;
-      }
-      if ( newLabelScale.toFixed(1) !== labelScale ) {
-         window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
-         labelScale = newLabelScale.toFixed(1);
-      }
+      //var newLabelScale = radius - 20;
+      //newLabelScale /= 10;
+      //if ( newLabelScale < 17 ) {
+      //   newLabelScale = 17;
+      //} else if ( newLabelScale > 22 ) {
+      //   newLabelScale = 22;
+      //}
+      //if ( newLabelScale.toFixed(1) !== labelScale ) {
+      //   window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
+      //   labelScale = newLabelScale.toFixed(1);
+      //}
 
       // restrict radius to be between desired limits
       radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );

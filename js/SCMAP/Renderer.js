@@ -8,6 +8,8 @@ SCMAP.Renderer = function ( map ) {
    this.composer = null;
    this.FXAA = null;
    this.camera = null;
+
+   this.textureManager = new SCMAP.TextureManager();
    
    this.width = window.innerWidth;
    this.height = window.innerHeight;

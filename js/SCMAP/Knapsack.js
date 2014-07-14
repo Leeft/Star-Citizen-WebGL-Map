@@ -2,43 +2,36 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 /*
- * Helper class to generate a texture map for the text labels
+ * Helper classes to generate a texture map for the text labels
  *
  * Based on: http://www.blackpawn.com/texts/lightmaps/default.html
  */
 
 SCMAP.Knapsack = function ( canvas ) {
    this.canvas = canvas;
-   this.rootNode = new SCMAP.Knapsack.Node( canvas );
+   this.rootNode = new SCMAP.Knapsack.Node( this );
    this.rootNode.rectangle = new SCMAP.Knapsack.Rectangle( 0, 0, canvas.width - 1, canvas.height - 1 );
 };
+
 SCMAP.Knapsack.prototype = {
    constructor: SCMAP.Knapsack,
 
-   getNode: function getNode( knapsack ) {
-      //if ( this.node ) {
-      //   return this.node;
-      //}
-      var context = knapsack.canvas.getContext('2d');
-      this.node = knapsack.insert({ width: Math.floor( this.width( context ) ) - 1, height: Math.floor( this.height( context ) ) - 1 });
-      return this.node;
-   },
-
    insert: function insert( image ) {
       var node = this.rootNode.insert( image );
+
       if ( node !== null ) {
-         // render into this node
          node.claim();
          //var context = this.canvas.getContext('2d');
-         //context.lineWidth = 1.0;
+         //context.lineWidth = 2.0;
          //context.strokeStyle = 'rgba(0,0,255,1)';
-         //context.strokeRect( node.rectangle.left + 0.5, node.rectangle.top + 0.5, node.rectangle.width() - 1, node.rectangle.height() - 1 );
-         return node;
-      } else {
-         return null;
+         //context.strokeRect( node.rectangle.left + 0.5, node.rectangle.top + 0.5,
+         //   node.rectangle.width() - 1, node.rectangle.height() - 1 );
       }
+
+      return node;
    }
 };
+
 
 SCMAP.Knapsack.Rectangle = function ( left, top, right, bottom ) {
    this.left = ( typeof left === 'number' ) ? Math.floor( left ) : 0;
@@ -67,13 +60,15 @@ SCMAP.Knapsack.Rectangle.prototype = {
    }
 };
 
-SCMAP.Knapsack.Node = function ( canvas ) {
-   this.canvas = canvas;
+
+SCMAP.Knapsack.Node = function ( knapsack ) {
+   this.knapsack = knapsack;
+   this.canvas = knapsack.canvas;
    this.leftChild = null;
    this.rightChild = null;
    this.rectangle = null;
-   this.text = null;
    this.imageID = null;
+   this.texture = null;
 
    this.generateUUID = function generateUUID() {
       return THREE.Math.generateUUID();
@@ -86,7 +81,21 @@ SCMAP.Knapsack.Node.prototype = {
 
    claim: function claim( image ) {
       this.imageID = this.generateUUID();
-      // TODO other stuff?
+   },
+
+   release: function release() {
+      if ( this.leftChild || this.rightChild ) {
+         throw new Error( "Can't release tree nodes" );
+      }
+
+      this.imageID = null;
+      this.clear();
+      return;
+   },
+
+   clear: function clear() {
+      var ctx = this.canvas.getContext('2d');
+      ctx.clearRect( this.rectangle.left, this.rectangle.top, this.rectangle.width() - 1, this.rectangle.height() - 1 );
    },
 
    clipContext: function clipContext() {
@@ -103,12 +112,20 @@ SCMAP.Knapsack.Node.prototype = {
       ctx.restore();
    },
 
+   setUV: function setUV() {
+      var uvExtremes = this.uvCoordinates();
+      this.texture.offset.x = uvExtremes[ 0 ];
+      this.texture.offset.y = uvExtremes[ 1 ];
+      this.texture.repeat.x = ( uvExtremes[ 2 ] - uvExtremes[ 0 ] );
+      this.texture.repeat.y = ( uvExtremes[ 3 ] - uvExtremes[ 1 ] );
+   },
+
    uvCoordinates: function uvCoordinates() {
       return [
          this.rectangle.left / this.canvas.width,
-         this.rectangle.top / this.canvas.height,
+         1 - ( this.rectangle.bottom / this.canvas.height ),
          this.rectangle.right / this.canvas.width,
-         this.rectangle.bottom / this.canvas.height,
+         1 - ( this.rectangle.top / this.canvas.height ),
       ];
    },
 
@@ -142,8 +159,8 @@ SCMAP.Knapsack.Node.prototype = {
          }
         
          // (otherwise, gotta split this node and create some kids)
-         this.leftChild = new SCMAP.Knapsack.Node( this.canvas );
-         this.rightChild = new SCMAP.Knapsack.Node( this.canvas );
+         this.leftChild = new SCMAP.Knapsack.Node( this );
+         this.rightChild = new SCMAP.Knapsack.Node( this );
 
          // (decide which way to split)
          var dw = this.rectangle.width() - image.width;
@@ -152,33 +169,21 @@ SCMAP.Knapsack.Node.prototype = {
          if ( dw > dh )
          {
             this.leftChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left,
-               this.rectangle.top,
-               this.rectangle.left + image.width,
-               this.rectangle.bottom
+               this.rectangle.left, this.rectangle.top, this.rectangle.left + image.width, this.rectangle.bottom
             );
 
             this.rightChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left + image.width,
-               this.rectangle.top,
-               this.rectangle.right,
-               this.rectangle.bottom
+               this.rectangle.left + image.width, this.rectangle.top, this.rectangle.right, this.rectangle.bottom
             );
          }
          else
          {
             this.leftChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left,
-               this.rectangle.top,
-               this.rectangle.right,
-               this.rectangle.top + image.height
+               this.rectangle.left, this.rectangle.top, this.rectangle.right, this.rectangle.top + image.height
             );
 
             this.rightChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left,
-               this.rectangle.top + image.height,
-               this.rectangle.right,
-               this.rectangle.bottom
+               this.rectangle.left, this.rectangle.top + image.height, this.rectangle.right, this.rectangle.bottom
             );
          }
 
@@ -196,3 +201,5 @@ SCMAP.Knapsack.Node.prototype = {
       }
    }
 };
+
+// EOF

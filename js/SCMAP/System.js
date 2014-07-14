@@ -41,70 +41,68 @@ SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
    buildSceneObject: function buildSceneObject() {
-      var star, label, glow, position, lod, boxSize;
+      var interactable, interactableSize, starLOD, star, glow;
 
-      this.sceneObject = new THREE.Object3D();
+      // Grouping all our system related objects in here
+      var sceneObject = new THREE.Object3D();
 
-      // To make systems easier to click, we add an invisible cube to them
-      // (probably also easier for the raycaster)
-      star = new THREE.Mesh( SCMAP.System.CUBE, SCMAP.System.CUBE_MATERIAL );
-      star.visible = false;
-      boxSize = Math.min( 5.75, Math.max( 3.5, 5 * this.scale ) );
-      star.scale.set( boxSize, boxSize, boxSize );
-      this.sceneObject.add( star );
+      // To make systems easier to click, we add an invisible sprite to them
+      // (probably also easier for the raycaster) and use that as the object
+      // to interact with
+      interactable = new THREE.Sprite( SCMAP.System.INTERACTABLE_DEBUG_MATERIAL );
+      interactableSize = Math.min( 5.75, Math.max( 5.5, 6 * this.scale ) );
+      interactable.scale.set( interactableSize, interactableSize, interactableSize );
+      sceneObject.userData.interactable = interactable;
+      sceneObject.add( interactable );
 
-      // LOD for the systems to make them properly round up close
-      lod = new THREE.LOD();
-      for ( i = 0; i < SCMAP.System.LODMESH.length; i++ ) {
-         star = new THREE.Mesh( SCMAP.System.LODMESH[ i ][ 0 ], this.starMaterial() );
+      // LOD for the stars to make them properly rounded when viewed up close
+      // yet low on geometry at a distance
+      starLOD = new THREE.LOD();
+      for ( i = 0; i < SCMAP.System.STAR_LOD_MESHES.length; i++ ) {
+         star = new THREE.Mesh( SCMAP.System.STAR_LOD_MESHES[ i ][ 0 ], this.starMaterial() );
          star.scale.set( this.scale, this.scale, this.scale );
          star.updateMatrix();
          star.matrixAutoUpdate = false;
-         lod.addLevel( star, SCMAP.System.LODMESH[ i ][ 1 ] );
+         starLOD.addLevel( star, SCMAP.System.STAR_LOD_MESHES[ i ][ 1 ] );
       }
-      lod.updateMatrix();
-      lod.matrixAutoUpdate = false;
-      this.sceneObject.add( lod );
+      starLOD.updateMatrix();
+      starLOD.matrixAutoUpdate = false;
+      sceneObject.userData.starLOD = starLOD;
+      sceneObject.add( starLOD );
 
-//if ( this.name === 'Nul' ) {
-//      var customMaterial = this.glowShaderMaterial( this.color );
-//      var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
-//      moonGlow.scale.multiplyScalar( 2.3 * this.scale );
-//      moonGlow.userData.isGlow = true;
-//      this.sceneObject.add( moonGlow );
-//}
-
+      // Glow sprite for the star
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
       glow.userData.isGlow = true;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
-      this.sceneObject.add( glow );
+      sceneObject.userData.glowSprite = glow;
+      sceneObject.add( glow );
 
-      label = new THREE.Sprite( this.labelSprite( SCMAP.settings.labelIcons ) );
-      label.position.set( 0, 3.5, 0 );
-      label.position.set( 0, this.scale * 3, 0 );
-      label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
-      label.userData.isLabel = true;
-      label.sortParticles = true;
-      label.visible = SCMAP.settings.labels;
-      this.sceneObject.add( label );
-
-      position = this.position.clone();
-      if ( storage && storage.mode === '2d' ) {
-         position.setY( position.y * 0.005 );
+      this.systemLabel = this.systemLabel( SCMAP.settings.labelIcons );
+      if ( this.systemLabel && this.systemLabel.sceneObject ) {
+         this.systemLabel.sceneObject.userData.isLabel = true;
+         this.systemLabel.sceneObject.visible = SCMAP.settings.labels;
+         sceneObject.add( this.systemLabel.sceneObject );
       }
-      this.sceneObject.position = position;
-      this.sceneObject.userData.system = this;
-      this.sceneObject.userData.scaleY = this.scaleY;
-      return this.sceneObject;
+
+      sceneObject.position = this.position.clone();
+      if ( storage && storage.mode === '2d' ) {
+         sceneObject.position.setY( sceneObject.position.y * 0.005 );
+      }
+
+      sceneObject.userData.system = this;
+      sceneObject.userData.scaleY = this.scaleY;
+      return sceneObject;
    },
 
    updateSceneObject: function updateSceneObject( scene ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          var object = this.sceneObject.children[i];
          if ( object.userData.isLabel ) {
-            this.updateLabelSprite( object.material, SCMAP.settings.labelIcons );
+            if ( this.systemLabel instanceof SCMAP.SystemLabel ) {
+               this.systemLabel.update( SCMAP.settings.labelIcons );
+            }
             object.visible = SCMAP.settings.labels;
          } else if ( object.userData.isGlow ) {
             object.visible = SCMAP.settings.glow;
@@ -121,7 +119,7 @@ SCMAP.System.prototype = {
    },
 
    starMaterial: function starMaterial() {
-      return SCMAP.System.STAR_MATERIAL_WHITE;
+      return SCMAP.System.STAR_MATERIAL;
    },
 
    //glowShaderMaterial: function glowShaderMaterial( color ) {
@@ -144,131 +142,43 @@ SCMAP.System.prototype = {
       });
    },
 
-   labelSprite: function labelSprite( drawIcons ) {
-      var canvas, texture, material;
+   systemLabel: function systemLabel( drawSymbols ) {
+      var texture, material, label, node, uvExtremes;
 
-      if ( !SCMAP.UI.fontAwesomeIsReady ) {
-         drawIcons = false;
+      if ( ! SCMAP.UI.fontAwesomeIsReady ) {
+         drawSymbols = false;
       }
 
-      var icons = ( drawIcons ) ? this.getIcons() : [];
-      canvas = this.drawSystemText( this.name, icons );
+      label = new SCMAP.SystemLabel( this );
+      node = window.renderer.textureManager.allocateTextureNode( label.width(), label.height() );
+      if ( ! node ) {
+         return null;
+      }
 
-      texture = new THREE.Texture( canvas ) ;
-      texture.needsUpdate = true;
+      label.node = node;
+      label.drawText();
+      if ( drawSymbols ) {
+         label.drawSymbols();
+      }
 
-      material = new THREE.SpriteMaterial({
-         map: texture,
-         useScreenCoordinates: false,
-         blending: THREE.CustomBlending
-      });
+      node.setUV();
 
-      return material;
+      //label.geometry = SCMAP.System.labelSpriteGeometry;
+      //label.geometry.needsUpdate = true;
+
+      //label.position.set( 0, 3.5, 0 );
+      //label.position.set( 0, this.scale * 3, 0 );
+      //label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
+      //sprite.position.set( 0, SCMAP.System.LABEL_SCALE / 2, 0 );
+
+      label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
+      label.sceneObject.position.set( 0, 5, 0 );
+      label.scaleSprite();
+
+      return label;
    },
 
-   // Refreshes the text and icons on the system's label
-   updateLabelSprite: function updateLabelSprite( spriteMaterial, drawLabels ) {
-      var canvas, texture;
-      var icons = ( drawLabels ) ? this.getIcons() : [];
-      var iconsKey = this.iconsToKey( icons );
-      if ( this._drawnText !== this.name || this._drawnSymbols !== iconsKey ) {
-         canvas = this.drawSystemText( this.name, icons );
-         texture = new THREE.Texture( canvas );
-         texture.needsUpdate = true;
-         spriteMaterial.map = texture;
-      }
-   },
-
-   // Draws the text on a label
-   drawSystemText: function drawSystemText( text, icons ) {
-      var canvas, context, texture, actualWidth;
-      var textX, textY;
-
-      canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 256;
-      context = canvas.getContext('2d');
-
-      context.font = '36pt Electrolize, Calibri, sans-serif';
-      context.textAlign = 'center';
-      context.strokeStyle = 'rgba(0,0,0,1.0)';
-      context.lineWidth = 5;
-      actualWidth = Math.ceil( context.measureText( text ).width + 1 );
-      while ( actualWidth > canvas.width ) {
-         canvas.width *= 2;
-         canvas.height *= 2;
-      }
-
-      if ( false ) {
-         context.beginPath();
-         context.rect( 0, 0, canvas.width, canvas.height );
-         context.lineWidth = 5;
-         context.strokeStyle = 'yellow';
-         context.stroke();
-      }
-
-      textX = canvas.width / 2;
-      textY = canvas.height / 2;
-
-      context.font = '36pt Electrolize, Calibri, sans-serif';
-      context.strokeStyle = 'rgba(0,0,0,1.0)';
-      context.textAlign = 'center';
-      context.lineWidth = 5;
-      context.strokeText( text, textX, textY );
-
-      context.fillStyle = this.faction.color.getStyle();
-      context.fillText( text, textX, textY );
-
-      this._drawnText = text;
-      this._drawnSymbols = '';
-      if ( icons && icons.length ) {
-         this._drawnSymbols = this.iconsToKey( icons );
-         this._drawSymbols( context, textX, textY - 50, icons );
-      }
-
-      return canvas;
-   },
-
-   // Draws the icon(s) on a canvas context
-   _drawSymbols: function _drawSymbols( context, x, y, symbols ) {
-      var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
-      var offX, offY;
-      x -= totalWidth / 2;
-
-      for ( i = 0; i < symbols.length; i++ )
-      {
-         symbol = symbols[ i ];
-
-         offX = 0;
-         offY = 0;
-
-         if ( false ) {
-            context.beginPath();
-            context.rect( x - 1, y - SCMAP.Symbol.SIZE - 1, SCMAP.Symbol.SIZE + 2, SCMAP.Symbol.SIZE + 2 );
-            context.lineWidth = 5;
-            context.strokeStyle = 'yellow';
-            context.stroke();
-         }
-
-         if ( symbol.offset ) {
-            offX = symbol.offset.x;
-            offY = symbol.offset.y;
-         }
-
-         context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
-         context.strokeStyle = 'rgba(0,0,0,1.0)';
-         context.textAlign = 'center';
-         context.lineWidth = 5;
-         context.strokeText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
-
-         context.fillStyle = symbol.color;
-         context.fillText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
-
-         x += SCMAP.Symbol.SIZE + SCMAP.Symbol.SPACING;
-      }
-   },
-
-   createInfoLink: function createInfoLink( noIcons, noTarget ) {
+   createInfoLink: function createInfoLink( noSymbols, noTarget ) {
       var $line = $( '<a></a>' );
 
       if ( typeof this.faction !== 'undefined' && typeof this.faction !== 'undefined' ) {
@@ -286,14 +196,14 @@ SCMAP.System.prototype = {
          $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
       }
 
-      if ( !noIcons )
+      if ( !noSymbols )
       {
-         var icons = this.getIcons();
-         if ( icons.length )
+         var symbols = this.getSymbols();
+         if ( symbols.length )
          {
             var $span = $('<span class="icons"></span>');
-            for ( var i = 0; i < icons.length; i++ ) {
-               $span.append( SCMAP.Symbol.getTag( icons[i] ) );
+            for ( var i = 0; i < symbols.length; i++ ) {
+               $span.append( SCMAP.Symbol.getTag( symbols[i] ) );
             }
             $line.append( $span );
          }
@@ -302,10 +212,10 @@ SCMAP.System.prototype = {
       return $line;
    },
 
-   iconsToKey: function iconsToKey( icons ) {
+   symbolsToKey: function symbolsToKey( symbols ) {
       var list = [];
-      for ( var i = 0; i < icons.length; i++ ) {
-         list.push( icons[i].code );
+      for ( var i = 0; i < symbols.length; i++ ) {
+         list.push( symbols[i].code );
       }
       return list.join( ';' );
    },
@@ -434,7 +344,7 @@ SCMAP.System.prototype = {
    },
 
    isUnknown: function isUnknown( ) {
-      return this.status === 'unknown';
+      return ( this.status === 'unknown' ) ? true : false;
    },
 
    setBookmarkedState: function setBookmarkedState( state ) {
@@ -503,6 +413,10 @@ SCMAP.System.prototype = {
       }
       var value = this[ key ];
       return value;
+   },
+
+   factionStyle: function factionStyle() {
+      return this.faction.color.getStyle();
    },
 
    _fixJumpPoints: function _fixJumpPoints( cleanup ) {
@@ -634,6 +548,15 @@ SCMAP.System.preprocessSystems = function ( data ) {
 
 SCMAP.System.List = [];
 
+SCMAP.System.labelSpriteVertices = new THREE.Float32Attribute( 3, 3 );
+SCMAP.System.labelSpriteVertices.set( [
+   - 0.5, - 0.5 + 0.5, 0,
+     0.5, - 0.5 + 0.5, 0,
+     0.5,   0.5 + 0.5, 0
+] );
+SCMAP.System.labelSpriteGeometry = new THREE.BufferGeometry();
+SCMAP.System.labelSpriteGeometry.addAttribute( 'position', SCMAP.System.labelSpriteVertices );
+
 SCMAP.System.SortSystemList = function SortSystemList( systems ) {
    var array = [];
    var i = systems.length;
@@ -665,6 +588,7 @@ SCMAP.System.fromJSON = function fromJSON( data ) {
       'nickname': data.nickname,
       'size': data.size,
       'info': data.info,
+      'status': data.status,
       'crimeStatus': SCMAP.data.crimeLevels[ data.crimeLevel ],
       'ueeStrategicValue': SCMAP.data.ueeStrategicValues[ ""+data.ueeStrategicValue ],
       'import': data.import,
@@ -696,22 +620,23 @@ SCMAP.System.COLORS = {
    ORANGE: 0xF0F080,
    UNKNOWN: 0xFFFFFF //0xC0FFC0
 };
-SCMAP.System.LABEL_SCALE = 0.06;
+SCMAP.System.LABEL_SCALE = 5;
 SCMAP.System.GLOW_SCALE = 6.5;
+SCMAP.System.UNKNOWN_SYSTEM_SCALE = 0.65;
 
-SCMAP.System.CUBE = new THREE.BoxGeometry( 1, 1, 1 );
-
-SCMAP.System.LODMESH = [
-   [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],
-   [ new THREE.IcosahedronGeometry( 1, 2 ), 50 ],
+SCMAP.System.STAR_LOD_MESHES = [
+   [ new THREE.IcosahedronGeometry( 1, 3 ),  20 ],
+   [ new THREE.IcosahedronGeometry( 1, 2 ),  50 ],
    [ new THREE.IcosahedronGeometry( 1, 1 ), 150 ]
 ];
 
-SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
+SCMAP.System.STAR_MATERIAL = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL' });
 
-SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true });
-SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
-SCMAP.System.CUBE_MATERIAL.transparent = true;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL = new THREE.MeshBasicMaterial();
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.color = 0xFFFF00;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.depthWrite = false;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.map = null;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.blending = THREE.AdditiveBlending;
 
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configuration').data('glow-image') );
 

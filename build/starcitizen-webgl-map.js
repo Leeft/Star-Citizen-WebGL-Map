@@ -34,7 +34,7 @@ SCMAP.Symbol = {};
 SCMAP.Symbols = {};
 
 SCMAP.Symbol.SIZE = 24;
-SCMAP.Symbol.SPACING = 9;
+SCMAP.Symbol.SPACING = 2;
 
 SCMAP.Symbol.getTag = function ( icon ) {
    var $icon = $( '<i title="'+icon.description+'" class="fa fa-fw '+icon.faClass+'"></i>' );
@@ -78,7 +78,7 @@ SCMAP.Symbols.TRADE = {
    faClass: 'fa-exchange',
    description: 'Major trade hub',
    color: 'rgba(255,255,0,1.0)',
-   offset: new THREE.Vector2( 0, -3 )
+   offset: new THREE.Vector2( 0, -1 )
 };
 //SCMAP.Symbols.TRADE = {
 //   code: "\uf0d1",
@@ -722,7 +722,7 @@ SCMAP.System = function ( data ) {
    // Defaults, to be filled in from the config
    this.id = undefined;
    this.uuid = undefined;
-   this.name = '';
+   this.name = THREE.Math.generateUUID();
    this.nickname = '';
    this.position = new THREE.Vector3();
    this.faction = new SCMAP.Faction();
@@ -734,6 +734,7 @@ SCMAP.System = function ( data ) {
    this.planetaryRotation = [];
    this.import = [];
    this.export = [];
+   this.status = 'unknown';
    this.crimeStatus = '';
    this.blackMarket = [];
    this.ueeStrategicValue = undefined;
@@ -756,70 +757,68 @@ SCMAP.System.prototype = {
    constructor: SCMAP.System,
 
    buildSceneObject: function buildSceneObject() {
-      var star, label, glow, position, lod, boxSize;
+      var interactable, interactableSize, starLOD, star, glow;
 
-      this.sceneObject = new THREE.Object3D();
+      // Grouping all our system related objects in here
+      var sceneObject = new THREE.Object3D();
 
-      // To make systems easier to click, we add an invisible cube to them
-      // (probably also easier for the raycaster)
-      star = new THREE.Mesh( SCMAP.System.CUBE, SCMAP.System.CUBE_MATERIAL );
-      star.visible = false;
-      boxSize = Math.min( 5.75, Math.max( 3.5, 5 * this.scale ) );
-      star.scale.set( boxSize, boxSize, boxSize );
-      this.sceneObject.add( star );
+      // To make systems easier to click, we add an invisible sprite to them
+      // (probably also easier for the raycaster) and use that as the object
+      // to interact with
+      interactable = new THREE.Sprite( SCMAP.System.INTERACTABLE_DEBUG_MATERIAL );
+      interactableSize = Math.min( 5.75, Math.max( 5.5, 6 * this.scale ) );
+      interactable.scale.set( interactableSize, interactableSize, interactableSize );
+      sceneObject.userData.interactable = interactable;
+      sceneObject.add( interactable );
 
-      // LOD for the systems to make them properly round up close
-      lod = new THREE.LOD();
-      for ( i = 0; i < SCMAP.System.LODMESH.length; i++ ) {
-         star = new THREE.Mesh( SCMAP.System.LODMESH[ i ][ 0 ], this.starMaterial() );
+      // LOD for the stars to make them properly rounded when viewed up close
+      // yet low on geometry at a distance
+      starLOD = new THREE.LOD();
+      for ( i = 0; i < SCMAP.System.STAR_LOD_MESHES.length; i++ ) {
+         star = new THREE.Mesh( SCMAP.System.STAR_LOD_MESHES[ i ][ 0 ], this.starMaterial() );
          star.scale.set( this.scale, this.scale, this.scale );
          star.updateMatrix();
          star.matrixAutoUpdate = false;
-         lod.addLevel( star, SCMAP.System.LODMESH[ i ][ 1 ] );
+         starLOD.addLevel( star, SCMAP.System.STAR_LOD_MESHES[ i ][ 1 ] );
       }
-      lod.updateMatrix();
-      lod.matrixAutoUpdate = false;
-      this.sceneObject.add( lod );
+      starLOD.updateMatrix();
+      starLOD.matrixAutoUpdate = false;
+      sceneObject.userData.starLOD = starLOD;
+      sceneObject.add( starLOD );
 
-//if ( this.name === 'Nul' ) {
-//      var customMaterial = this.glowShaderMaterial( this.color );
-//      var moonGlow = new THREE.Mesh( SCMAP.System.LODMESH[ 1 ][ 0 ].clone(), customMaterial );
-//      moonGlow.scale.multiplyScalar( 2.3 * this.scale );
-//      moonGlow.userData.isGlow = true;
-//      this.sceneObject.add( moonGlow );
-//}
-
+      // Glow sprite for the star
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
       glow.userData.isGlow = true;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
-      this.sceneObject.add( glow );
+      sceneObject.userData.glowSprite = glow;
+      sceneObject.add( glow );
 
-      label = new THREE.Sprite( this.labelSprite( SCMAP.settings.labelIcons ) );
-      label.position.set( 0, 3.5, 0 );
-      label.position.set( 0, this.scale * 3, 0 );
-      label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
-      label.userData.isLabel = true;
-      label.sortParticles = true;
-      label.visible = SCMAP.settings.labels;
-      this.sceneObject.add( label );
-
-      position = this.position.clone();
-      if ( storage && storage.mode === '2d' ) {
-         position.setY( position.y * 0.005 );
+      this.systemLabel = this.systemLabel( SCMAP.settings.labelIcons );
+      if ( this.systemLabel && this.systemLabel.sceneObject ) {
+         this.systemLabel.sceneObject.userData.isLabel = true;
+         this.systemLabel.sceneObject.visible = SCMAP.settings.labels;
+         sceneObject.add( this.systemLabel.sceneObject );
       }
-      this.sceneObject.position = position;
-      this.sceneObject.userData.system = this;
-      this.sceneObject.userData.scaleY = this.scaleY;
-      return this.sceneObject;
+
+      sceneObject.position = this.position.clone();
+      if ( storage && storage.mode === '2d' ) {
+         sceneObject.position.setY( sceneObject.position.y * 0.005 );
+      }
+
+      sceneObject.userData.system = this;
+      sceneObject.userData.scaleY = this.scaleY;
+      return sceneObject;
    },
 
    updateSceneObject: function updateSceneObject( scene ) {
       for ( var i = 0; i < this.sceneObject.children.length; i++ ) {
          var object = this.sceneObject.children[i];
          if ( object.userData.isLabel ) {
-            this.updateLabelSprite( object.material, SCMAP.settings.labelIcons );
+            if ( this.systemLabel instanceof SCMAP.SystemLabel ) {
+               this.systemLabel.update( SCMAP.settings.labelIcons );
+            }
             object.visible = SCMAP.settings.labels;
          } else if ( object.userData.isGlow ) {
             object.visible = SCMAP.settings.glow;
@@ -836,7 +835,7 @@ SCMAP.System.prototype = {
    },
 
    starMaterial: function starMaterial() {
-      return SCMAP.System.STAR_MATERIAL_WHITE;
+      return SCMAP.System.STAR_MATERIAL;
    },
 
    //glowShaderMaterial: function glowShaderMaterial( color ) {
@@ -859,132 +858,43 @@ SCMAP.System.prototype = {
       });
    },
 
-   labelSprite: function labelSprite( drawIcons ) {
-      var canvas, texture, material;
+   systemLabel: function systemLabel( drawSymbols ) {
+      var texture, material, label, node, uvExtremes;
 
-      if ( !SCMAP.UI.fontAwesomeIsReady ) {
-         drawIcons = false;
+      if ( ! SCMAP.UI.fontAwesomeIsReady ) {
+         drawSymbols = false;
       }
 
-      var icons = ( drawIcons ) ? this.getIcons() : [];
-      canvas = this.drawSystemText( this.name, icons );
+      label = new SCMAP.SystemLabel( this );
+      node = window.renderer.textureManager.allocateTextureNode( label.width(), label.height() );
+      if ( ! node ) {
+         return null;
+      }
 
-      texture = new THREE.Texture( canvas ) ;
-      texture.needsUpdate = true;
+      label.node = node;
+      label.drawText();
+      if ( drawSymbols ) {
+         label.drawSymbols();
+      }
 
-      material = new THREE.SpriteMaterial({
-         map: texture,
-         useScreenCoordinates: false,
-         blending: THREE.CustomBlending
-      });
+      node.setUV();
 
-      return material;
+      //label.geometry = SCMAP.System.labelSpriteGeometry;
+      //label.geometry.needsUpdate = true;
+
+      //label.position.set( 0, 3.5, 0 );
+      //label.position.set( 0, this.scale * 3, 0 );
+      //label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
+      //sprite.position.set( 0, SCMAP.System.LABEL_SCALE / 2, 0 );
+
+      label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
+      label.sceneObject.position.set( 0, 5, 0 );
+      label.scaleSprite();
+
+      return label;
    },
 
-   // Refreshes the text and icons on the system's label
-   updateLabelSprite: function updateLabelSprite( spriteMaterial, drawLabels ) {
-      var canvas, texture;
-      var icons = ( drawLabels ) ? this.getIcons() : [];
-      var iconsKey = this.iconsToKey( icons );
-      if ( this._drawnText !== this.name || this._drawnSymbols !== iconsKey ) {
-         canvas = this.drawSystemText( this.name, icons );
-         texture = new THREE.Texture( canvas );
-         texture.needsUpdate = true;
-         spriteMaterial.map = texture;
-      }
-   },
-
-   // Draws the text on a label
-   drawSystemText: function drawSystemText( text, icons ) {
-      var canvas, context, texture, actualWidth;
-      var textX, textY;
-
-      canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 256;
-      context = canvas.getContext('2d');
-
-      context.font = '36pt Electrolize, Calibri, sans-serif';
-      context.textAlign = 'center';
-      context.strokeStyle = 'rgba(0,0,0,1.0)';
-      context.lineWidth = 5;
-      actualWidth = Math.ceil( context.measureText( text ).width + 1 );
-      while ( actualWidth > canvas.width ) {
-         canvas.width *= 2;
-         canvas.height *= 2;
-      }
-
-      if ( false ) {
-         context.beginPath();
-         context.rect( 0, 0, canvas.width, canvas.height );
-         context.lineWidth = 5;
-         context.strokeStyle = 'yellow';
-         context.stroke();
-      }
-
-      textX = canvas.width / 2;
-      textY = canvas.height / 2;
-
-      context.font = '36pt Electrolize, Calibri, sans-serif';
-      context.strokeStyle = 'rgba(0,0,0,1.0)';
-      context.textAlign = 'center';
-      context.lineWidth = 5;
-      context.strokeText( text, textX, textY );
-
-      context.fillStyle = this.faction.color.getStyle();
-      context.fillText( text, textX, textY );
-
-      this._drawnText = text;
-      this._drawnSymbols = '';
-
-      if ( icons && icons.length ) {
-         this._drawnSymbols = this.iconsToKey( icons );
-         this._drawSymbols( context, textX, textY - 50, icons );
-      }
-
-      return canvas;
-   },
-
-   // Draws the icon(s) on a label
-   _drawSymbols: function _drawSymbols( context, x, y, symbols ) {
-      var i, symbol, totalWidth = ( SCMAP.Symbol.SIZE * symbols.length ) + ( SCMAP.Symbol.SPACING * ( symbols.length - 1 ) );
-      var offX, offY;
-      x -= totalWidth / 2;
-
-      for ( i = 0; i < symbols.length; i++ )
-      {
-         symbol = symbols[ i ];
-
-         offX = 0;
-         offY = 0;
-
-         if ( false ) {
-            context.beginPath();
-            context.rect( x - 1, y - SCMAP.Symbol.SIZE - 1, SCMAP.Symbol.SIZE + 2, SCMAP.Symbol.SIZE + 2 );
-            context.lineWidth = 5;
-            context.strokeStyle = 'yellow';
-            context.stroke();
-         }
-
-         if ( symbol.offset ) {
-            offX = symbol.offset.x;
-            offY = symbol.offset.y;
-         }
-
-         context.font = ( SCMAP.Symbol.SIZE * symbol.scale).toFixed(1) + 'pt FontAwesome';
-         context.strokeStyle = 'rgba(0,0,0,1.0)';
-         context.textAlign = 'center';
-         context.lineWidth = 5;
-         context.strokeText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
-
-         context.fillStyle = symbol.color;
-         context.fillText( symbol.code, x + offX + ( SCMAP.Symbol.SIZE / 2 ), y + offY );
-
-         x += SCMAP.Symbol.SIZE + SCMAP.Symbol.SPACING;
-      }
-   },
-
-   createInfoLink: function createInfoLink( noIcons, noTarget ) {
+   createInfoLink: function createInfoLink( noSymbols, noTarget ) {
       var $line = $( '<a></a>' );
 
       if ( typeof this.faction !== 'undefined' && typeof this.faction !== 'undefined' ) {
@@ -1002,14 +912,14 @@ SCMAP.System.prototype = {
          $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
       }
 
-      if ( !noIcons )
+      if ( !noSymbols )
       {
-         var icons = this.getIcons();
-         if ( icons.length )
+         var symbols = this.getSymbols();
+         if ( symbols.length )
          {
             var $span = $('<span class="icons"></span>');
-            for ( var i = 0; i < icons.length; i++ ) {
-               $span.append( SCMAP.Symbol.getTag( icons[i] ) );
+            for ( var i = 0; i < symbols.length; i++ ) {
+               $span.append( SCMAP.Symbol.getTag( symbols[i] ) );
             }
             $line.append( $span );
          }
@@ -1018,15 +928,19 @@ SCMAP.System.prototype = {
       return $line;
    },
 
-   iconsToKey: function iconsToKey( icons ) {
+   symbolsToKey: function symbolsToKey( symbols ) {
       var list = [];
-      for ( var i = 0; i < icons.length; i++ ) {
-         list.push( icons[i].code );
+      for ( var i = 0; i < symbols.length; i++ ) {
+         list.push( symbols[i].code );
       }
       return list.join( ';' );
    },
 
    getIcons: function getIcons() {
+      return this.getSymbols();
+   },
+
+   getSymbols: function getSymbols() {
       var mySymbols = [];
       if ( false && this.name === 'Sol' ) {
          mySymbols.push( SCMAP.Symbols.DANGER );
@@ -1145,6 +1059,10 @@ SCMAP.System.prototype = {
       return this.storedSettings().bookmarked === true;
    },
 
+   isUnknown: function isUnknown( ) {
+      return ( this.status === 'unknown' ) ? true : false;
+   },
+
    setBookmarkedState: function setBookmarkedState( state ) {
       this.storedSettings().bookmarked = ( state ) ? true : false;
       this.saveSettings();
@@ -1211,6 +1129,10 @@ SCMAP.System.prototype = {
       }
       var value = this[ key ];
       return value;
+   },
+
+   factionStyle: function factionStyle() {
+      return this.faction.color.getStyle();
    },
 
    _fixJumpPoints: function _fixJumpPoints( cleanup ) {
@@ -1342,6 +1264,15 @@ SCMAP.System.preprocessSystems = function ( data ) {
 
 SCMAP.System.List = [];
 
+SCMAP.System.labelSpriteVertices = new THREE.Float32Attribute( 3, 3 );
+SCMAP.System.labelSpriteVertices.set( [
+   - 0.5, - 0.5 + 0.5, 0,
+     0.5, - 0.5 + 0.5, 0,
+     0.5,   0.5 + 0.5, 0
+] );
+SCMAP.System.labelSpriteGeometry = new THREE.BufferGeometry();
+SCMAP.System.labelSpriteGeometry.addAttribute( 'position', SCMAP.System.labelSpriteVertices );
+
 SCMAP.System.SortSystemList = function SortSystemList( systems ) {
    var array = [];
    var i = systems.length;
@@ -1373,6 +1304,7 @@ SCMAP.System.fromJSON = function fromJSON( data ) {
       'nickname': data.nickname,
       'size': data.size,
       'info': data.info,
+      'status': data.status,
       'crimeStatus': SCMAP.data.crimeLevels[ data.crimeLevel ],
       'ueeStrategicValue': SCMAP.data.ueeStrategicValues[ ""+data.ueeStrategicValue ],
       'import': data.import,
@@ -1404,22 +1336,23 @@ SCMAP.System.COLORS = {
    ORANGE: 0xF0F080,
    UNKNOWN: 0xFFFFFF //0xC0FFC0
 };
-SCMAP.System.LABEL_SCALE = 0.06;
+SCMAP.System.LABEL_SCALE = 5;
 SCMAP.System.GLOW_SCALE = 6.5;
+SCMAP.System.UNKNOWN_SYSTEM_SCALE = 0.65;
 
-SCMAP.System.CUBE = new THREE.BoxGeometry( 1, 1, 1 );
-
-SCMAP.System.LODMESH = [
-   [ new THREE.IcosahedronGeometry( 1, 3 ), 20 ],
-   [ new THREE.IcosahedronGeometry( 1, 2 ), 50 ],
+SCMAP.System.STAR_LOD_MESHES = [
+   [ new THREE.IcosahedronGeometry( 1, 3 ),  20 ],
+   [ new THREE.IcosahedronGeometry( 1, 2 ),  50 ],
    [ new THREE.IcosahedronGeometry( 1, 1 ), 150 ]
 ];
 
-SCMAP.System.STAR_MATERIAL_WHITE = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL_WHITE' });
+SCMAP.System.STAR_MATERIAL = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL' });
 
-SCMAP.System.CUBE_MATERIAL = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true });
-SCMAP.System.CUBE_MATERIAL.opacity = 0.3;
-SCMAP.System.CUBE_MATERIAL.transparent = true;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL = new THREE.MeshBasicMaterial();
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.color = 0xFFFF00;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.depthWrite = false;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.map = null;
+SCMAP.System.INTERACTABLE_DEBUG_MATERIAL.blending = THREE.AdditiveBlending;
 
 SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configuration').data('glow-image') );
 
@@ -2523,8 +2456,9 @@ SCMAP.Map.prototype = {
       $( SCMAP.System.List ).each( function( index, system ) {
          var sceneObject = system.buildSceneObject();
          map.scene.add( sceneObject );
-         map._interactables.push( sceneObject.children[0] );
+         map._interactables.push( sceneObject.userData.interactable );
          systemCount++;
+         system.sceneObject = sceneObject;
       });
 
       // Then we go through again and add the routes
@@ -3837,6 +3771,8 @@ SCMAP.Renderer = function ( map ) {
    this.composer = null;
    this.FXAA = null;
    this.camera = null;
+
+   this.textureManager = new SCMAP.TextureManager();
    
    this.width = window.innerWidth;
    this.height = window.innerHeight;
@@ -4589,17 +4525,17 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
          'Camera distance: '+radius.toFixed(1)
       );
 
-      var newLabelScale = radius - 20;
-      newLabelScale /= 10;
-      if ( newLabelScale < 17 ) {
-         newLabelScale = 17;
-      } else if ( newLabelScale > 22 ) {
-         newLabelScale = 22;
-      }
-      if ( newLabelScale.toFixed(1) !== labelScale ) {
-         window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
-         labelScale = newLabelScale.toFixed(1);
-      }
+      //var newLabelScale = radius - 20;
+      //newLabelScale /= 10;
+      //if ( newLabelScale < 17 ) {
+      //   newLabelScale = 17;
+      //} else if ( newLabelScale > 22 ) {
+      //   newLabelScale = 22;
+      //}
+      //if ( newLabelScale.toFixed(1) !== labelScale ) {
+      //   window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
+      //   labelScale = newLabelScale.toFixed(1);
+      //}
 
       // restrict radius to be between desired limits
       radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );
@@ -5039,6 +4975,504 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
 };
 
 SCMAP.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+
+/**
+* @author Lianna Eeftinck / https://github.com/Leeft
+*/
+
+SCMAP.SystemLabel = function ( system ) {
+   this.system = system;
+
+   this.node = null;
+   this.fontFamily = "'Segoe UI', 'Lucida Grande', 'Tahoma', 'Calibri', 'Roboto', sans-serif";
+
+   this.textsize = 58; // px
+   this.textVerticalOffset = 8.5; // number of scale 1.0 unit the text is shifted by
+   this.symbolVerticalOffset = -22.5; // number of scale 1.0 units the symbols are shifted by
+   this.paddingX = 6; // number of scale 1.0 units to add to the width
+   this.paddingY = 36.5; // number of scale 1.0 units to add to the height
+
+   this.symbolSize = 24;
+   this.symbolSpacing = 2;
+   this.outline = 2.4;
+
+   this._width = null; // computed and cached width
+   this._height = null; // computed and cached height
+
+   // Governing label scale, can be used to shrink or enlarge the rendering
+   this.scale = 1.2;
+   if ( this.system.isUnknown() ) {
+      this.scale = 0.8;
+   }
+
+   this.scale *= 0.75;
+};
+SCMAP.SystemLabel.prototype = {
+   constructor: SCMAP.SystemLabel,
+
+   clear: function clear() {
+      if ( ! this.node ) {
+         return;
+      }
+      this.node.clear();
+   },
+
+   uvCoordinates: function uvCoordinates() {
+      if ( ! this.node ) {
+         return null;
+      }
+      return this.node.uvCoordinates();
+   },
+
+   getNode: function getNode( knapsack ) {
+      if ( this.node ) {
+         return this.node;
+      }
+      var context = knapsack.canvas.getContext('2d');
+      this.node = knapsack.insert({ width: Math.floor( this.width( context ) ) - 1, height: Math.floor( this.height( context ) ) - 1 });
+      return this.node;
+   },
+
+   drawText: function drawText() {
+      if ( ! this.node ) {
+         return false;
+      }
+      var ctx = this.node.clipContext();
+      ctx.scale( this.scale, this.scale );
+      ctx.font = 'Bold '+(this.textsize)+'px '+this.fontFamily;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = this.system.factionStyle();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = this.outline;
+      ctx.miterLimit = 2;
+      ctx.fillText( this.system.name, 0, this.textVerticalOffset );
+      ctx.strokeStyle = 'rgb(0,0,0)';
+      ctx.strokeText( this.system.name, 0, this.textVerticalOffset );
+      this.node.restoreContext();
+      return true;
+   },
+
+   // Draws the icon(s) on a canvas context
+   drawSymbols: function drawSymbols() {
+      var symbols = this.system.getSymbols();
+      var x = - ( this.symbolsWidth( symbols ) / 2 );
+      var i, symbol;
+      var offX, offY;
+
+      if ( ! this.node ) {
+         return false;
+      }
+
+      var ctx = this.node.clipContext();
+      ctx.scale( this.scale, this.scale );
+
+      for ( i = 0; i < symbols.length; i++ )
+      {
+         symbol = symbols[ i ];
+
+         //ctx.beginPath();
+         //ctx.rect( x, y - this.symbolSize - 1, this.symbolSize + 2, this.symbolSize + 2 );
+         //ctx.lineWidth = 3;
+         //ctx.strokeStyle = 'green';
+         //ctx.stroke();
+
+         offX = 0;
+         offY = 0;
+         if ( symbol.offset ) {
+            offX = symbol.offset.x;
+            offY = symbol.offset.y;
+         }
+
+         ctx.font = ( this.symbolSize * symbol.scale ).toFixed(2) + 'px FontAwesome';
+         ctx.strokeStyle = 'rgba(0,0,0,1.0)';
+         ctx.textAlign = 'center';
+         ctx.lineWidth = 4;
+         ctx.strokeText( symbol.code, x + offX + ( this.symbolSize / 2 ), this.symbolVerticalOffset + offY );
+
+         ctx.fillStyle = symbol.color;
+         ctx.fillText( symbol.code, x + offX + ( this.symbolSize / 2 ), this.symbolVerticalOffset + offY );
+
+         x += this.symbolSize + this.symbolSpacing;
+      }
+
+      this.node.restoreContext();
+   },
+
+   update: function update( drawSymbols ) {
+      // TODO: optimisation; redraw in same node when the size is still the same
+
+      var curKnapsack = this.node.knapsack;
+
+      if ( this.node ) {
+         this.node.release();
+         this.node = null;
+      }
+
+      this._width = null;
+      this._height = null;
+      this.node = window.renderer.textureManager.allocateTextureNode( this.width(), this.height() );
+      if ( ! this.node ) {
+         return null;
+      }
+
+      this.drawText();
+      if ( drawSymbols ) {
+         this.drawSymbols();
+      }
+
+      // Detect whether the texture map has been changed, then update the material
+      if ( this.node.knapsack !== curKnapsack ) {
+         this.sceneObject.material = new THREE.SpriteMaterial({ map: this.node.texture });
+      }
+
+      this.node.setUV();
+      this.sceneObject.material.texture = this.node.texture;
+      this.sceneObject.material.map.needsUpdate = true;
+      this.scaleSprite();
+
+      return true;
+   },
+
+   scaleSprite: function scaleSprite() {
+      this.sceneObject.scale.set( SCMAP.System.LABEL_SCALE * ( this.node.rectangle.width() / this.node.rectangle.height() ), SCMAP.System.LABEL_SCALE, 1 );
+      if ( this.system.isUnknown() ) {
+         this.sceneObject.scale.x *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;
+         this.sceneObject.scale.y *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;
+      }
+   },
+
+   symbolsWidth: function symbolsWidth( symbols ) {
+      return ( ( this.symbolSize * symbols.length ) + ( this.symbolSpacing * ( symbols.length - 1 ) ) );
+   },
+
+   width: function width( context ) {
+      var tmpWidth;
+      var symbolsWidth;
+      var canvas;
+
+      if ( this._width ) {
+         return this._width;
+      }
+
+      if ( !context ) {
+         canvas = document.createElement( 'canvas' );
+         canvas.width = 256;
+         canvas.height = 100;
+         context = canvas.getContext('2d');
+      }
+
+      context.font = 'Bold '+this.textsize+'px '+this.fontFamily;
+      context.textBaseline = 'bottom';
+      context.lineWidth = this.outline;
+      tmpWidth = context.measureText( this.system.name ).width + this.paddingX;
+      symbolsWidth = this.symbolsWidth( this.system.getSymbols() );
+      if ( tmpWidth < symbolsWidth ) {
+         tmpWidth = symbolsWidth + ( 4 * this.paddingX );
+      }
+      this._width = Math.floor( tmpWidth * this.scale );
+      return this._width;
+   },
+
+   height: function height() {
+      if ( this._height ) {
+         return this._height;
+      }
+      this._height = Math.floor( ( this.textsize + this.paddingY ) * this.scale );
+      return this._height;
+   }
+};
+
+// EOF
+
+/**
+* @author Lianna Eeftinck / https://github.com/Leeft
+*/
+/*
+ * Helper classes to generate a texture map for the text labels
+ *
+ * Based on: http://www.blackpawn.com/texts/lightmaps/default.html
+ */
+
+SCMAP.Knapsack = function ( canvas ) {
+   this.canvas = canvas;
+   this.rootNode = new SCMAP.Knapsack.Node( this );
+   this.rootNode.rectangle = new SCMAP.Knapsack.Rectangle( 0, 0, canvas.width - 1, canvas.height - 1 );
+};
+
+SCMAP.Knapsack.prototype = {
+   constructor: SCMAP.Knapsack,
+
+   insert: function insert( image ) {
+      var node = this.rootNode.insert( image );
+
+      if ( node !== null ) {
+         node.claim();
+         //var context = this.canvas.getContext('2d');
+         //context.lineWidth = 2.0;
+         //context.strokeStyle = 'rgba(0,0,255,1)';
+         //context.strokeRect( node.rectangle.left + 0.5, node.rectangle.top + 0.5,
+         //   node.rectangle.width() - 1, node.rectangle.height() - 1 );
+      }
+
+      return node;
+   }
+};
+
+
+SCMAP.Knapsack.Rectangle = function ( left, top, right, bottom ) {
+   this.left = ( typeof left === 'number' ) ? Math.floor( left ) : 0;
+   this.top = ( typeof top === 'number' ) ? Math.floor( top ) : 0;
+   this.right = ( typeof right === 'number' ) ? Math.floor( right ) : 0;
+   this.bottom = ( typeof bottom === 'number' ) ? Math.floor( bottom ) : 0;
+};
+
+SCMAP.Knapsack.Rectangle.prototype = {
+   constructor: SCMAP.Knapsack.Node,
+
+   Xcentre: function Xcentre() {
+      return Math.floor( ( ( this.right - this.left ) / 2 ) + this.left ) - 0.5;
+   },
+
+   Ycentre: function Ycentre() {
+      return Math.floor( ( ( this.bottom - this.top ) / 2 ) + this.top ) - 0.5;
+   },
+
+   width: function width() {
+      return( this.right - this.left );
+   },
+
+   height: function height() {
+      return( this.bottom - this.top );
+   }
+};
+
+
+SCMAP.Knapsack.Node = function ( knapsack ) {
+   this.knapsack = knapsack;
+   this.canvas = knapsack.canvas;
+   this.leftChild = null;
+   this.rightChild = null;
+   this.rectangle = null;
+   this.imageID = null;
+   this.texture = null;
+
+   this.generateUUID = function generateUUID() {
+      return THREE.Math.generateUUID();
+   };
+};
+
+SCMAP.Knapsack.Node.prototype = {
+
+   constructor: SCMAP.Knapsack.Node,
+
+   claim: function claim( image ) {
+      this.imageID = this.generateUUID();
+   },
+
+   release: function release() {
+      if ( this.leftChild || this.rightChild ) {
+         throw new Error( "Can't release tree nodes" );
+      }
+
+      this.imageID = null;
+      this.clear();
+      return;
+   },
+
+   clear: function clear() {
+      var ctx = this.canvas.getContext('2d');
+      ctx.clearRect( this.rectangle.left, this.rectangle.top, this.rectangle.width() - 1, this.rectangle.height() - 1 );
+   },
+
+   clipContext: function clipContext() {
+      var ctx = this.canvas.getContext('2d');
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect( this.rectangle.left + 1, this.rectangle.top + 1, this.rectangle.width() - 2, this.rectangle.height() - 2 );
+      ctx.clip();
+      ctx.translate( this.rectangle.Xcentre(), this.rectangle.Ycentre() );
+      return ctx;
+   },
+   restoreContext: function restoreContext() {
+      var ctx = this.canvas.getContext('2d');
+      ctx.restore();
+   },
+
+   setUV: function setUV() {
+      var uvExtremes = this.uvCoordinates();
+      this.texture.offset.x = uvExtremes[ 0 ];
+      this.texture.offset.y = uvExtremes[ 1 ];
+      this.texture.repeat.x = ( uvExtremes[ 2 ] - uvExtremes[ 0 ] );
+      this.texture.repeat.y = ( uvExtremes[ 3 ] - uvExtremes[ 1 ] );
+   },
+
+   uvCoordinates: function uvCoordinates() {
+      return [
+         this.rectangle.left / this.canvas.width,
+         1 - ( this.rectangle.bottom / this.canvas.height ),
+         this.rectangle.right / this.canvas.width,
+         1 - ( this.rectangle.top / this.canvas.height ),
+      ];
+   },
+
+   insert: function insert( image ) {
+      // if we're not a leaf then
+      if ( this.leftChild || this.rightChild )
+      {
+         // (try inserting into first child)
+         var newNode = this.leftChild.insert( image );
+         if ( newNode instanceof SCMAP.Knapsack.Node ) {
+            return newNode;
+         }
+         // (no room, insert into second)
+         return this.rightChild.insert( image );
+      }
+      else
+      {
+         // (if there's already an image here, return)
+         if ( this.imageID ) {
+            return null;
+         }
+
+         // (if we're too small, return)
+         if ( ( image.width > this.rectangle.width() ) || ( image.height > this.rectangle.height() ) ) {
+            return null;
+         }
+
+         // (if we're just right, accept)
+         if ( image.width === this.rectangle.width() && image.height === this.rectangle.height() ) {
+            return this;
+         }
+        
+         // (otherwise, gotta split this node and create some kids)
+         this.leftChild = new SCMAP.Knapsack.Node( this );
+         this.rightChild = new SCMAP.Knapsack.Node( this );
+
+         // (decide which way to split)
+         var dw = this.rectangle.width() - image.width;
+         var dh = this.rectangle.height() - image.height;
+
+         if ( dw > dh )
+         {
+            this.leftChild.rectangle = new SCMAP.Knapsack.Rectangle(
+               this.rectangle.left, this.rectangle.top, this.rectangle.left + image.width, this.rectangle.bottom
+            );
+
+            this.rightChild.rectangle = new SCMAP.Knapsack.Rectangle(
+               this.rectangle.left + image.width, this.rectangle.top, this.rectangle.right, this.rectangle.bottom
+            );
+         }
+         else
+         {
+            this.leftChild.rectangle = new SCMAP.Knapsack.Rectangle(
+               this.rectangle.left, this.rectangle.top, this.rectangle.right, this.rectangle.top + image.height
+            );
+
+            this.rightChild.rectangle = new SCMAP.Knapsack.Rectangle(
+               this.rectangle.left, this.rectangle.top + image.height, this.rectangle.right, this.rectangle.bottom
+            );
+         }
+
+         //var context = this.canvas.getContext('2d');
+         //context.lineWidth = 1.0;
+         //context.strokeStyle = 'rgba(255,0,0,1)';
+         //context.strokeRect( this.leftChild.rectangle.left, this.leftChild.rectangle.top, this.leftChild.rectangle.width(), this.leftChild.rectangle.height() );
+
+         //context.lineWidth = 1.0;
+         //context.strokeStyle = 'rgba(0,255,0,1)';
+         //context.strokeRect( this.rightChild.rectangle.left, this.rightChild.rectangle.top, this.rightChild.rectangle.width(), this.rightChild.rectangle.height() );
+
+         // Recurse into first child we created
+         return this.leftChild.insert( image );
+      }
+   }
+};
+
+// EOF
+
+/**
+* @author Lianna Eeftinck / https://github.com/Leeft
+*/
+/*
+ * Manages the texture canvas(es) for the system labels using the SCMAP.Knapsack class
+ */
+
+SCMAP.TextureManager = function () {
+   var canvas = document.createElement('canvas');
+   canvas.width = 256;
+   canvas.height = canvas.width; // * 0.4;
+   //if ( window.jQuery ) {
+   //   $('#debug-canvases').append( canvas );
+   //}
+   console.log( "SCMAP.TextureManager: Allocated "+canvas.width+"px texture map #1" );
+   this.knapsacks = [ new SCMAP.Knapsack( canvas ) ];
+   this.textures = [ new THREE.Texture( canvas, THREE.UVMapping ) ];
+};
+
+SCMAP.TextureManager.prototype = {
+   constructor: SCMAP.TextureManager,
+
+   allocateTextureNode: function allocateTextureNode( width, height ) {
+      var knapsack, node, texture, canvas, i;
+
+      for ( i = 0; i < this.knapsacks.length; i++ )
+      {
+         knapsack = this.knapsacks[ i ];
+         node = knapsack.insert({ width: width, height: height });
+         if ( node ) {
+            node.texture = this.textures[ i ].clone();
+            node.texture.needsUpdate = true;
+            node.setUV();
+            return node;
+         }
+      }
+
+      if ( width < knapsack.canvas.width ) {
+
+         // Didn't get a node but it *should* fit, so get a new canvas
+         canvas = document.createElement('canvas');
+         canvas.width = this.knapsacks[0].canvas.width;
+         canvas.height = this.knapsacks[0].canvas.height;
+         //if ( window.jQuery ) {
+         //   $('#debug-canvases').append( canvas );
+         //}
+         knapsack = new SCMAP.Knapsack( canvas );
+         texture = new THREE.Texture( canvas, THREE.UVMapping );
+         this.knapsacks.push( knapsack );
+         this.textures.push( texture );
+         console.log( "SCMAP.TextureManager: Allocated "+canvas.width+"px texture map #"+(this.knapsacks.length) );
+         node = knapsack.insert({ width: width, height: height });
+         if ( node ) {
+            node.texture = texture.clone();
+            node.texture.needsUpdate = true;
+            node.setUV();
+            return node;
+         }
+      } 
+
+      return null;
+   },
+
+   freeTextureNode: function freeTextureNode( node ) {
+      if ( !node || !node.imageID ) {
+         return;
+      }
+
+      node.release();
+   },
+
+   getCanvases: function getCanvases() {
+      var canvases = [];
+      for ( var i = 0; i < this.knapsacks.length; i += 1 ) {
+         canvases.push( this.knapsacks[ i ].canvas );
+      }
+      return canvases;
+   }
+};
+
+// EOF
 
 var scene, map, ui, storage, renderer;
 

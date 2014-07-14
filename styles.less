@@ -7,6 +7,8 @@
 @button-hover-background: lighten( rgba( 60, 60, 60, 0.7 ), 20% );
 @panel-background: rgba( 0, 0, 0, 0.7 );
 
+@import url(http://fonts.googleapis.com/css?family=Roboto:400,700);
+
 .border-radius( @radius ) {
            border-radius: @radius;
 }
@@ -668,6 +670,15 @@ a {
       }
       .ui-slider-range-max {
          top: 0;
+      }
+   }
+
+   #debug-canvases {
+      display: none;
+
+      canvas {
+         max-width: 100%;
+         height: auto;
       }
    }
 }
