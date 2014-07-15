@@ -7,7 +7,7 @@
 
 SCMAP.TextureManager = function () {
    var canvas = document.createElement('canvas');
-   canvas.width = 256;
+   canvas.width = 256 * 2;
    canvas.height = canvas.width; // * 0.4;
    //if ( window.jQuery ) {
    //   $('#debug-canvases').append( canvas );
