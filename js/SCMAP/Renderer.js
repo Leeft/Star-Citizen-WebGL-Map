@@ -135,14 +135,17 @@ SCMAP.Renderer.prototype = {
             $('#debug-camera-is-moving').text( 'Camera is moving' );
          }
          var camera = this.camera;
+
+         var euler = new THREE.Euler( camera.userData.phi + Math.PI / 2, camera.userData.theta, 0, 'YXZ' );
+         var spriteOffset = new THREE.Vector3( 0, -5.5, -0.1 );
+         spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
+
          this.map.scene.traverse( function ( object ) {
             if ( object instanceof THREE.LOD ) {
                object.update( camera );
+            } else if ( ( object instanceof THREE.Sprite ) && object.userData.isLabel ) {
+               object.position.copy( spriteOffset );
             }
-            // Needed for the shader glow:
-            //if ( object.userData.isGlow ) {
-            //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
-            //}
          } );
       } else {
          if ( $('#debug-camera-is-moving') ) {

@@ -541,28 +541,19 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
       // restrict phi to be between EPS and PI-EPS
       phi = Math.max( EPS, Math.min( Math.PI - EPS, phi ) );
 
+      this.object.userData.phi = phi;
+      this.object.userData.theta = theta;
+
       var radius = offset.length() * scale;
       if ( rotationRadius !== undefined ) {
          radius = rotationRadius;
       }
 
       $('#debug-angle').html(
-         'Camera heading: '+THREE.Math.radToDeg( theta ).toFixed(1)+'&deg;<br>'+
-         'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg;<br>'+
+         'Camera heading: '+THREE.Math.radToDeg( theta ).toFixed(1)+'&deg; ('+theta.toFixed(2)+')<br>'+
+         'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg; ('+phi.toFixed(2)+')<br>'+
          'Camera distance: '+radius.toFixed(1)
       );
-
-      //var newLabelScale = radius - 20;
-      //newLabelScale /= 10;
-      //if ( newLabelScale < 17 ) {
-      //   newLabelScale = 17;
-      //} else if ( newLabelScale > 22 ) {
-      //   newLabelScale = 22;
-      //}
-      //if ( newLabelScale.toFixed(1) !== labelScale ) {
-      //   window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
-      //   labelScale = newLabelScale.toFixed(1);
-      //}
 
       // restrict radius to be between desired limits
       radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );

@@ -73,6 +73,7 @@ SCMAP.System.prototype = {
       // Glow sprite for the star
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
+      glow.position.set( 0, 0, -0.2 );
       glow.userData.isGlow = true;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
@@ -163,16 +164,12 @@ SCMAP.System.prototype = {
 
       node.setUV();
 
-      //label.geometry = SCMAP.System.labelSpriteGeometry;
-      //label.geometry.needsUpdate = true;
-
-      //label.position.set( 0, 3.5, 0 );
-      //label.position.set( 0, this.scale * 3, 0 );
-      //label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
-      //sprite.position.set( 0, SCMAP.System.LABEL_SCALE / 2, 0 );
+      var euler = new THREE.Euler( window.renderer.camera.userData.phi + Math.PI / 2, window.renderer.camera.userData.theta, 0, 'YXZ' );
+      var spriteOffset = new THREE.Vector3( 0, -5.5, -0.1 );
+      spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
 
       label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
-      label.sceneObject.position.set( 0, 5, 0 );
+      label.sceneObject.position.copy( spriteOffset );
       label.scaleSprite();
 
       return label;
