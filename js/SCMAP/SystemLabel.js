@@ -27,7 +27,7 @@ SCMAP.SystemLabel = function ( system ) {
       this.scale = 0.8;
    }
 
-   this.scale *= 0.75;
+   this.scale *= 0.74 * 2;
 };
 SCMAP.SystemLabel.prototype = {
    constructor: SCMAP.SystemLabel,

@@ -5005,7 +5005,7 @@ SCMAP.SystemLabel = function ( system ) {
       this.scale = 0.8;
    }
 
-   this.scale *= 0.75;
+   this.scale *= 0.74 * 2;
 };
 SCMAP.SystemLabel.prototype = {
    constructor: SCMAP.SystemLabel,
@@ -5401,7 +5401,7 @@ SCMAP.Knapsack.Node.prototype = {
 
 SCMAP.TextureManager = function () {
    var canvas = document.createElement('canvas');
-   canvas.width = 256;
+   canvas.width = 256 * 2;
    canvas.height = canvas.width; // * 0.4;
    //if ( window.jQuery ) {
    //   $('#debug-canvases').append( canvas );
