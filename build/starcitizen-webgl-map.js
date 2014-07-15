@@ -789,6 +789,7 @@ SCMAP.System.prototype = {
       // Glow sprite for the star
       glow = new THREE.Sprite( this.glowMaterial() );
       glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
+      glow.position.set( 0, 0, -0.2 );
       glow.userData.isGlow = true;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
@@ -879,16 +880,12 @@ SCMAP.System.prototype = {
 
       node.setUV();
 
-      //label.geometry = SCMAP.System.labelSpriteGeometry;
-      //label.geometry.needsUpdate = true;
-
-      //label.position.set( 0, 3.5, 0 );
-      //label.position.set( 0, this.scale * 3, 0 );
-      //label.scale.set( SCMAP.System.LABEL_SCALE * label.material.map.image.width, SCMAP.System.LABEL_SCALE * label.material.map.image.height, 1 );
-      //sprite.position.set( 0, SCMAP.System.LABEL_SCALE / 2, 0 );
+      var euler = new THREE.Euler( window.renderer.camera.userData.phi + Math.PI / 2, window.renderer.camera.userData.theta, 0, 'YXZ' );
+      var spriteOffset = new THREE.Vector3( 0, -5.5, -0.1 );
+      spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
 
       label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
-      label.sceneObject.position.set( 0, 5, 0 );
+      label.sceneObject.position.copy( spriteOffset );
       label.scaleSprite();
 
       return label;
@@ -3898,14 +3895,17 @@ SCMAP.Renderer.prototype = {
             $('#debug-camera-is-moving').text( 'Camera is moving' );
          }
          var camera = this.camera;
+
+         var euler = new THREE.Euler( camera.userData.phi + Math.PI / 2, camera.userData.theta, 0, 'YXZ' );
+         var spriteOffset = new THREE.Vector3( 0, -5.5, -0.1 );
+         spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
+
          this.map.scene.traverse( function ( object ) {
             if ( object instanceof THREE.LOD ) {
                object.update( camera );
+            } else if ( ( object instanceof THREE.Sprite ) && object.userData.isLabel ) {
+               object.position.copy( spriteOffset );
             }
-            // Needed for the shader glow:
-            //if ( object.userData.isGlow ) {
-            //   object.material.uniforms.viewVector.value = new THREE.Vector3().subVectors( camera.position, object.parent.position );
-            //}
          } );
       } else {
          if ( $('#debug-camera-is-moving') ) {
@@ -4514,28 +4514,19 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
       // restrict phi to be between EPS and PI-EPS
       phi = Math.max( EPS, Math.min( Math.PI - EPS, phi ) );
 
+      this.object.userData.phi = phi;
+      this.object.userData.theta = theta;
+
       var radius = offset.length() * scale;
       if ( rotationRadius !== undefined ) {
          radius = rotationRadius;
       }
 
       $('#debug-angle').html(
-         'Camera heading: '+THREE.Math.radToDeg( theta ).toFixed(1)+'&deg;<br>'+
-         'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg;<br>'+
+         'Camera heading: '+THREE.Math.radToDeg( theta ).toFixed(1)+'&deg; ('+theta.toFixed(2)+')<br>'+
+         'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg; ('+phi.toFixed(2)+')<br>'+
          'Camera distance: '+radius.toFixed(1)
       );
-
-      //var newLabelScale = radius - 20;
-      //newLabelScale /= 10;
-      //if ( newLabelScale < 17 ) {
-      //   newLabelScale = 17;
-      //} else if ( newLabelScale > 22 ) {
-      //   newLabelScale = 22;
-      //}
-      //if ( newLabelScale.toFixed(1) !== labelScale ) {
-      //   window.map.setAllLabelSizes( new THREE.Vector3( newLabelScale, newLabelScale, 1 ) );
-      //   labelScale = newLabelScale.toFixed(1);
-      //}
 
       // restrict radius to be between desired limits
       radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );
