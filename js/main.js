@@ -13,6 +13,17 @@ $(function() {
    ui       = new SCMAP.UI( map );
    renderer = new SCMAP.Renderer( map );
    scene    = map.scene;
+
+   // Workaround for a Chrome (WebKit) issue where the
+   // scrollable area can vanish when scrolling it
+   if ( /webkit/i.test( navigator.userAgent ) ) {
+      var elem = document.getElementById( 'sc-map-interface' );
+      elem.addEventListener( 'scroll', function( event ) {
+         var width = $('#sc-map-interface').width();
+         $('#sc-map-interface').css( 'width', width + 0.1 );
+      }, false );
+   }
+
 });
 
 function smokeTest () {

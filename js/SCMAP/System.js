@@ -87,7 +87,7 @@ SCMAP.System.prototype = {
          sceneObject.add( this.systemLabel.sceneObject );
       }
 
-      sceneObject.position = this.position.clone();
+      sceneObject.position.copy( this.position );
       if ( storage && storage.mode === '2d' ) {
          sceneObject.position.setY( sceneObject.position.y * 0.005 );
       }
@@ -165,10 +165,13 @@ SCMAP.System.prototype = {
       node.setUV();
 
       var euler = new THREE.Euler( window.renderer.camera.userData.phi + Math.PI / 2, window.renderer.camera.userData.theta, 0, 'YXZ' );
-      var spriteOffset = new THREE.Vector3( 0, -5.5, -0.1 );
-      spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
 
       label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
+      label.sceneObject.userData.position = new THREE.Vector3( 0, - 5.0, - 0.1 );
+
+      var spriteOffset = label.sceneObject.userData.position.clone();
+          spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
+
       label.sceneObject.position.copy( spriteOffset );
       label.scaleSprite();
 
@@ -545,15 +548,6 @@ SCMAP.System.preprocessSystems = function ( data ) {
 
 SCMAP.System.List = [];
 
-SCMAP.System.labelSpriteVertices = new THREE.Float32Attribute( 3, 3 );
-SCMAP.System.labelSpriteVertices.set( [
-   - 0.5, - 0.5 + 0.5, 0,
-     0.5, - 0.5 + 0.5, 0,
-     0.5,   0.5 + 0.5, 0
-] );
-SCMAP.System.labelSpriteGeometry = new THREE.BufferGeometry();
-SCMAP.System.labelSpriteGeometry.addAttribute( 'position', SCMAP.System.labelSpriteVertices );
-
 SCMAP.System.SortSystemList = function SortSystemList( systems ) {
    var array = [];
    var i = systems.length;
@@ -623,8 +617,9 @@ SCMAP.System.UNKNOWN_SYSTEM_SCALE = 0.65;
 
 SCMAP.System.STAR_LOD_MESHES = [
    [ new THREE.IcosahedronGeometry( 1, 3 ),  20 ],
-   [ new THREE.IcosahedronGeometry( 1, 2 ),  50 ],
-   [ new THREE.IcosahedronGeometry( 1, 1 ), 150 ]
+   [ new THREE.IcosahedronGeometry( 1, 2 ), 150 ],
+   [ new THREE.IcosahedronGeometry( 1, 1 ), 250 ],
+   [ new THREE.IcosahedronGeometry( 1, 0 ), 500 ]
 ];
 
 SCMAP.System.STAR_MATERIAL = new THREE.MeshBasicMaterial({ color: SCMAP.System.COLORS.WHITE, name: 'STAR_MATERIAL' });

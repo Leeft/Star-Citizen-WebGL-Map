@@ -46,6 +46,30 @@ SCMAP.Map = function () {
       window.ui.updateSystemsList();
       window.renderer.controls.idle();
 
+      window.renderer.controls.throttledEventListener.init( 'change', function ()
+      {
+         var euler = new THREE.Euler( window.renderer.camera.userData.phi + Math.PI / 2, window.renderer.camera.userData.theta, 0, 'YXZ' );
+         var rotationMatrix = new THREE.Matrix4().makeRotationFromEuler( euler );
+         //map.scene.updateMatrixWorld();
+
+         if ( $('#debug-camera-is-moving') ) {
+            $('#debug-camera-is-moving').text( 'Camera is moving' );
+         }
+
+         window.renderer.controls.rememberPosition();
+
+         map.scene.traverse( function ( object ) {
+            if ( ( object instanceof THREE.Sprite ) && object.userData.isLabel )
+            {
+               object.position.copy( object.userData.position.clone().applyMatrix4( rotationMatrix ) );
+            }
+            else if ( object instanceof THREE.LOD )
+            {
+               object.update( window.renderer.camera );
+            }
+         });
+      });
+
       map.route().restoreFromSession();
       map.route().update();
 

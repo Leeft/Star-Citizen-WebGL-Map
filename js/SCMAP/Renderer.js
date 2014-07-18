@@ -129,30 +129,6 @@ SCMAP.Renderer.prototype = {
    },
 
    _render: function _render() {
-      if ( this.controls.cameraIsMoving() ) {
-         this.map.scene.updateMatrixWorld();
-         if ( $('#debug-camera-is-moving') ) {
-            $('#debug-camera-is-moving').text( 'Camera is moving' );
-         }
-         var camera = this.camera;
-
-         var euler = new THREE.Euler( camera.userData.phi + Math.PI / 2, camera.userData.theta, 0, 'YXZ' );
-         var spriteOffset = new THREE.Vector3( 0, -5.5, -0.1 );
-         spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
-
-         this.map.scene.traverse( function ( object ) {
-            if ( object instanceof THREE.LOD ) {
-               object.update( camera );
-            } else if ( ( object instanceof THREE.Sprite ) && object.userData.isLabel ) {
-               object.position.copy( spriteOffset );
-            }
-         } );
-      } else {
-         if ( $('#debug-camera-is-moving') ) {
-            $('#debug-camera-is-moving').text( 'Camera is not moving' );
-         }
-      }
-
       if ( this.composer ) {
          this.threeRenderer.clear();
          this.composer.render();
