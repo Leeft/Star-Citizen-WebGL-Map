@@ -148,6 +148,27 @@ SCMAP.Settings = function () {
    this.uiWidth = ( this.storage && Number( this.storage['settings.uiWidth'] ) > 0 ) ?
       Number( this.storage['settings.uiWidth'] ) : 320;
 
+   this.labelScale = ( this.storage && Number( this.storage['settings.labelScale'] ) > 0 ) ?
+      Number( this.storage['settings.labelScale'] ) : $("#sc-map-configuration").data('defaultLabelScale') || 1.0;
+   this.labelScale = Math.max(
+      Number( $("#sc-map-configuration").data('minLabelScale') ) || 0.4,
+      Math.min( this.labelScale, $("#sc-map-configuration").data('maxLabelScale') || 2.0 )
+   );
+
+   this.labelOffset = ( this.storage && Number( this.storage['settings.labelOffset'] ) > 0 ) ?
+      Number( this.storage['settings.labelOffset'] ) : $("#sc-map-configuration").data('defaultLabelOffset') || 5.0;
+   this.labelOffset = Math.max(
+      Number( $("#sc-map-configuration").data('minLabelOffset') ) || -3.5,
+      Math.min( this.labelOffset, $("#sc-map-configuration").data('maxLabelOffset') || 7.5 )
+   );
+
+   this.systemScale = ( this.storage && Number( this.storage['settings.systemScale'] ) > 0 ) ?
+      Number( this.storage['settings.systemScale'] ) : $("#sc-map-configuration").data('defaultSystemScale') || 1.0;
+   this.systemScale = Math.max(
+      Number( $("#sc-map-configuration").data('minSystemScale') ) || 0.5,
+      Math.min( this.systemScale, $("#sc-map-configuration").data('maxSystemScale') || 2.0 )
+   );
+
    this.glow = ( this.storage && this.storage['settings.Glow'] === '0' ) ? false : true;
    this.labels = ( this.storage && this.storage['settings.Labels'] === '0' ) ? false : true;
    this.labelIcons = ( this.storage && this.storage['settings.LabelIcons'] === '0' ) ? false : true;
@@ -771,6 +792,8 @@ SCMAP.System.prototype = {
       sceneObject.userData.interactable = interactable;
       sceneObject.add( interactable );
 
+      var scale = this.scale * SCMAP.settings.systemScale;
+
       // LOD for the stars to make them properly rounded when viewed up close
       // yet low on geometry at a distance
       starLOD = new THREE.LOD();
@@ -781,16 +804,20 @@ SCMAP.System.prototype = {
          star.matrixAutoUpdate = false;
          starLOD.addLevel( star, SCMAP.System.STAR_LOD_MESHES[ i ][ 1 ] );
       }
+      starLOD.scale.set( SCMAP.settings.systemScale, SCMAP.settings.systemScale, SCMAP.settings.systemScale );
       starLOD.updateMatrix();
       starLOD.matrixAutoUpdate = false;
+      starLOD.userData.scale = SCMAP.settings.systemScale;
+      starLOD.userData.isSystem = true;
       sceneObject.userData.starLOD = starLOD;
       sceneObject.add( starLOD );
 
       // Glow sprite for the star
       glow = new THREE.Sprite( this.glowMaterial() );
-      glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
+      glow.scale.set( SCMAP.System.GLOW_SCALE * scale, SCMAP.System.GLOW_SCALE * scale, 1.0 );
       glow.position.set( 0, 0, -0.2 );
       glow.userData.isGlow = true;
+      glow.userData.scale = this.scale;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
       sceneObject.userData.glowSprite = glow;
@@ -853,7 +880,6 @@ SCMAP.System.prototype = {
       return new THREE.SpriteMaterial({
          map: SCMAP.System.GLOW_MAP,
          blending: THREE.AdditiveBlending,
-         transparent: false,
          useScreenCoordinates: false,
          color: color
       });
@@ -880,15 +906,15 @@ SCMAP.System.prototype = {
 
       node.setUV();
 
-      var euler = new THREE.Euler( window.renderer.camera.userData.phi + Math.PI / 2, window.renderer.camera.userData.theta, 0, 'YXZ' );
-
       label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
-      label.sceneObject.userData.position = new THREE.Vector3( 0, - 5.0, - 0.1 );
 
-      var spriteOffset = label.sceneObject.userData.position.clone();
-          spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
+      label.sceneObject.addEventListener( 'removed', function() {
+         // Removes the label on disposal as it's a recursive structure
+         label.sceneObject.userData.systemLabel = null;
+      });
+      label.sceneObject.userData.systemLabel = label;
 
-      label.sceneObject.position.copy( spriteOffset );
+      label.positionSprite( window.renderer.cameraRotationMatrix() );
       label.scaleSprite();
 
       return label;
@@ -1191,11 +1217,11 @@ SCMAP.System.prototype = {
 
             if ( key == 'size' ) {
                switch ( newValue ) {
-                  case 'dwarf': this.scale = 0.6; break;
+                  case 'dwarf': this.scale = 0.90; break;
                   case 'medium': this.scale = 1.0; break;
-                  case 'large': this.scale = 1.25; break;
-                  case 'giant': this.scale = 1.6; break;
-                  case 'binary': this.scale = 1.6; this.binary = true; break;
+                  case 'large': this.scale = 1.15; break;
+                  case 'giant': this.scale = 1.27; break;
+                  case 'binary': this.scale = 1.4; this.binary = true; break;
                }
                this[ key ] = newValue;
             }
@@ -1206,6 +1232,7 @@ SCMAP.System.prototype = {
                   this[ key ] = newValue;
                } else {
                   newValue = newValue.replace( '0x', '#' );
+                  this[ '_'+key ] = newValue;
                   this[ key ] = new THREE.Color( newValue );
                }
 
@@ -1328,7 +1355,7 @@ SCMAP.System.COLORS = {
    UNKNOWN: 0xFFFFFF //0xC0FFC0
 };
 SCMAP.System.LABEL_SCALE = 5;
-SCMAP.System.GLOW_SCALE = 6.5;
+SCMAP.System.GLOW_SCALE = 5.5;
 SCMAP.System.UNKNOWN_SYSTEM_SCALE = 0.65;
 
 SCMAP.System.STAR_LOD_MESHES = [
@@ -3058,6 +3085,78 @@ SCMAP.UI = function ( map ) {
       }
    });
 
+   var updateLabelSize = function( event, ui ) {
+      var value = ui.value;
+      SCMAP.settings.labelScale = value / 100;
+      if ( SCMAP.settings.storage ) {
+         SCMAP.settings.storage['settings.labelScale'] = SCMAP.settings.labelScale;
+      }
+      map.scene.traverse( function ( object ) {
+         if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
+            object.userData.systemLabel.scaleSprite();
+         }
+      });
+   };
+   // UI width slider / settings handling
+   $('#sc-map-interface .sc-map-slider-label-size').slider({
+      min: ( Number( $("#sc-map-configuration").data('minLabelScale') ) || 0.4 ) * 100,
+      max: ( Number( $("#sc-map-configuration").data('maxLabelScale') ) || 2.0 ) * 100,
+      value: SCMAP.settings.labelScale * 100,
+      change: updateLabelSize,
+      slide: updateLabelSize
+   });
+
+   var updateLabelOffset = function( event, ui ) {
+      var value = ui.value;
+      SCMAP.settings.labelOffset = value / 100;
+      if ( SCMAP.settings.storage ) {
+         SCMAP.settings.storage['settings.labelOffset'] = SCMAP.settings.labelOffset;
+      }
+      var matrix = window.renderer.cameraRotationMatrix();
+      map.scene.traverse( function ( object ) {
+         if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
+            object.userData.systemLabel.positionSprite( matrix );
+         }
+      });
+   };
+   // UI width slider / settings handling
+   $('#sc-map-interface .sc-map-slider-label-offset').slider({
+      min: ( Number( $("#sc-map-configuration").data('minLabelOffset') ) || -6.5 ) * 100,
+      max: ( Number( $("#sc-map-configuration").data('maxLabelOffset') ) ||  7.5 ) * 100,
+      value: SCMAP.settings.labelOffset * 100,
+      change: updateLabelOffset,
+      slide: updateLabelOffset
+   });
+
+   var updateSystemScale = function( event, ui ) {
+      var value = ui.value;
+      SCMAP.settings.systemScale = value / 100;
+      if ( SCMAP.settings.storage ) {
+         SCMAP.settings.storage['settings.systemScale'] = SCMAP.settings.systemScale;
+      }
+      var matrix = window.renderer.cameraRotationMatrix();
+      var scale;
+      map.scene.traverse( function ( object ) {
+         if ( object.userData.scale && object.userData.isSystem ) {
+            scale = SCMAP.settings.systemScale;
+            object.scale.set( scale, scale, scale );
+            object.updateMatrix();
+         //   object.userData.systemLabel.positionSprite( matrix );
+         } else if ( object.userData.scale && object.userData.isGlow ) {
+            scale = object.userData.scale * SCMAP.System.GLOW_SCALE * SCMAP.settings.systemScale;
+            object.scale.set( scale, scale, scale );
+         }
+      });
+   };
+   // UI width slider / settings handling
+   $('#sc-map-interface .sc-map-slider-system-size').slider({
+      min: ( Number( $("#sc-map-configuration").data('minSystemScale') ) || 0.5 ) * 100,
+      max: ( Number( $("#sc-map-configuration").data('maxSystemScale') ) || 2.0 ) * 100,
+      value: SCMAP.settings.systemScale * 100,
+      change: updateSystemScale,
+      slide: updateSystemScale
+   });
+
    $('#sc-map-toggle-stats')
       .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
       .on( 'change', function() {
@@ -3875,6 +3974,11 @@ SCMAP.Renderer = function ( map ) {
 
 SCMAP.Renderer.prototype = {
    constructor: SCMAP.Renderer,
+
+   cameraRotationMatrix: function cameraRotationMatrix() {
+      var euler = new THREE.Euler( this.camera.userData.phi + Math.PI / 2, this.camera.userData.theta, 0, 'YXZ' );
+      return new THREE.Matrix4().makeRotationFromEuler( euler );
+   },
 
    _resize: function _resize() {
       this.width = window.innerWidth;
@@ -5261,11 +5365,21 @@ SCMAP.SystemLabel.prototype = {
    },
 
    scaleSprite: function scaleSprite() {
-      this.sceneObject.scale.set( SCMAP.System.LABEL_SCALE * ( this.node.rectangle.width() / this.node.rectangle.height() ), SCMAP.System.LABEL_SCALE, 1 );
+      var scale = SCMAP.settings.labelScale * SCMAP.System.LABEL_SCALE;
+      this.sceneObject.scale.set(
+         scale * ( this.node.rectangle.width() / this.node.rectangle.height() ), scale, 1
+      );
       if ( this.system.isUnknown() ) {
          this.sceneObject.scale.x *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;
          this.sceneObject.scale.y *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;
       }
+   },
+
+   positionSprite: function positionSprite( matrix ) {
+      this.sceneObject.userData.position = new THREE.Vector3( 0, - SCMAP.settings.labelOffset, - 0.1 );
+      var spriteOffset = this.sceneObject.userData.position.clone();
+          spriteOffset.applyMatrix4( matrix );
+      this.sceneObject.position.copy( spriteOffset );
    },
 
    symbolsWidth: function symbolsWidth( symbols ) {
@@ -5611,8 +5725,8 @@ $(function() {
    }
 
    map      = new SCMAP.Map();
-   ui       = new SCMAP.UI( map );
    renderer = new SCMAP.Renderer( map );
+   ui       = new SCMAP.UI( map );
    scene    = map.scene;
 
    // Workaround for a Chrome (WebKit) issue where the

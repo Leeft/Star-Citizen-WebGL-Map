@@ -55,6 +55,8 @@ SCMAP.System.prototype = {
       sceneObject.userData.interactable = interactable;
       sceneObject.add( interactable );
 
+      var scale = this.scale * SCMAP.settings.systemScale;
+
       // LOD for the stars to make them properly rounded when viewed up close
       // yet low on geometry at a distance
       starLOD = new THREE.LOD();
@@ -65,16 +67,20 @@ SCMAP.System.prototype = {
          star.matrixAutoUpdate = false;
          starLOD.addLevel( star, SCMAP.System.STAR_LOD_MESHES[ i ][ 1 ] );
       }
+      starLOD.scale.set( SCMAP.settings.systemScale, SCMAP.settings.systemScale, SCMAP.settings.systemScale );
       starLOD.updateMatrix();
       starLOD.matrixAutoUpdate = false;
+      starLOD.userData.scale = SCMAP.settings.systemScale;
+      starLOD.userData.isSystem = true;
       sceneObject.userData.starLOD = starLOD;
       sceneObject.add( starLOD );
 
       // Glow sprite for the star
       glow = new THREE.Sprite( this.glowMaterial() );
-      glow.scale.set( SCMAP.System.GLOW_SCALE * this.scale, SCMAP.System.GLOW_SCALE * this.scale, 1.0 );
+      glow.scale.set( SCMAP.System.GLOW_SCALE * scale, SCMAP.System.GLOW_SCALE * scale, 1.0 );
       glow.position.set( 0, 0, -0.2 );
       glow.userData.isGlow = true;
+      glow.userData.scale = this.scale;
       glow.sortParticles = true;
       glow.visible = SCMAP.settings.glow;
       sceneObject.userData.glowSprite = glow;
@@ -137,7 +143,6 @@ SCMAP.System.prototype = {
       return new THREE.SpriteMaterial({
          map: SCMAP.System.GLOW_MAP,
          blending: THREE.AdditiveBlending,
-         transparent: false,
          useScreenCoordinates: false,
          color: color
       });
@@ -164,15 +169,15 @@ SCMAP.System.prototype = {
 
       node.setUV();
 
-      var euler = new THREE.Euler( window.renderer.camera.userData.phi + Math.PI / 2, window.renderer.camera.userData.theta, 0, 'YXZ' );
-
       label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
-      label.sceneObject.userData.position = new THREE.Vector3( 0, - 5.0, - 0.1 );
 
-      var spriteOffset = label.sceneObject.userData.position.clone();
-          spriteOffset.applyMatrix4( new THREE.Matrix4().makeRotationFromEuler( euler ) );
+      label.sceneObject.addEventListener( 'removed', function() {
+         // Removes the label on disposal as it's a recursive structure
+         label.sceneObject.userData.systemLabel = null;
+      });
+      label.sceneObject.userData.systemLabel = label;
 
-      label.sceneObject.position.copy( spriteOffset );
+      label.positionSprite( window.renderer.cameraRotationMatrix() );
       label.scaleSprite();
 
       return label;
@@ -475,11 +480,11 @@ SCMAP.System.prototype = {
 
             if ( key == 'size' ) {
                switch ( newValue ) {
-                  case 'dwarf': this.scale = 0.6; break;
+                  case 'dwarf': this.scale = 0.90; break;
                   case 'medium': this.scale = 1.0; break;
-                  case 'large': this.scale = 1.25; break;
-                  case 'giant': this.scale = 1.6; break;
-                  case 'binary': this.scale = 1.6; this.binary = true; break;
+                  case 'large': this.scale = 1.15; break;
+                  case 'giant': this.scale = 1.27; break;
+                  case 'binary': this.scale = 1.4; this.binary = true; break;
                }
                this[ key ] = newValue;
             }
@@ -490,6 +495,7 @@ SCMAP.System.prototype = {
                   this[ key ] = newValue;
                } else {
                   newValue = newValue.replace( '0x', '#' );
+                  this[ '_'+key ] = newValue;
                   this[ key ] = new THREE.Color( newValue );
                }
 
@@ -612,7 +618,7 @@ SCMAP.System.COLORS = {
    UNKNOWN: 0xFFFFFF //0xC0FFC0
 };
 SCMAP.System.LABEL_SCALE = 5;
-SCMAP.System.GLOW_SCALE = 6.5;
+SCMAP.System.GLOW_SCALE = 5.5;
 SCMAP.System.UNKNOWN_SYSTEM_SCALE = 0.65;
 
 SCMAP.System.STAR_LOD_MESHES = [

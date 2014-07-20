@@ -206,6 +206,78 @@ SCMAP.UI = function ( map ) {
       }
    });
 
+   var updateLabelSize = function( event, ui ) {
+      var value = ui.value;
+      SCMAP.settings.labelScale = value / 100;
+      if ( SCMAP.settings.storage ) {
+         SCMAP.settings.storage['settings.labelScale'] = SCMAP.settings.labelScale;
+      }
+      map.scene.traverse( function ( object ) {
+         if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
+            object.userData.systemLabel.scaleSprite();
+         }
+      });
+   };
+   // UI width slider / settings handling
+   $('#sc-map-interface .sc-map-slider-label-size').slider({
+      min: ( Number( $("#sc-map-configuration").data('minLabelScale') ) || 0.4 ) * 100,
+      max: ( Number( $("#sc-map-configuration").data('maxLabelScale') ) || 2.0 ) * 100,
+      value: SCMAP.settings.labelScale * 100,
+      change: updateLabelSize,
+      slide: updateLabelSize
+   });
+
+   var updateLabelOffset = function( event, ui ) {
+      var value = ui.value;
+      SCMAP.settings.labelOffset = value / 100;
+      if ( SCMAP.settings.storage ) {
+         SCMAP.settings.storage['settings.labelOffset'] = SCMAP.settings.labelOffset;
+      }
+      var matrix = window.renderer.cameraRotationMatrix();
+      map.scene.traverse( function ( object ) {
+         if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
+            object.userData.systemLabel.positionSprite( matrix );
+         }
+      });
+   };
+   // UI width slider / settings handling
+   $('#sc-map-interface .sc-map-slider-label-offset').slider({
+      min: ( Number( $("#sc-map-configuration").data('minLabelOffset') ) || -6.5 ) * 100,
+      max: ( Number( $("#sc-map-configuration").data('maxLabelOffset') ) ||  7.5 ) * 100,
+      value: SCMAP.settings.labelOffset * 100,
+      change: updateLabelOffset,
+      slide: updateLabelOffset
+   });
+
+   var updateSystemScale = function( event, ui ) {
+      var value = ui.value;
+      SCMAP.settings.systemScale = value / 100;
+      if ( SCMAP.settings.storage ) {
+         SCMAP.settings.storage['settings.systemScale'] = SCMAP.settings.systemScale;
+      }
+      var matrix = window.renderer.cameraRotationMatrix();
+      var scale;
+      map.scene.traverse( function ( object ) {
+         if ( object.userData.scale && object.userData.isSystem ) {
+            scale = SCMAP.settings.systemScale;
+            object.scale.set( scale, scale, scale );
+            object.updateMatrix();
+         //   object.userData.systemLabel.positionSprite( matrix );
+         } else if ( object.userData.scale && object.userData.isGlow ) {
+            scale = object.userData.scale * SCMAP.System.GLOW_SCALE * SCMAP.settings.systemScale;
+            object.scale.set( scale, scale, scale );
+         }
+      });
+   };
+   // UI width slider / settings handling
+   $('#sc-map-interface .sc-map-slider-system-size').slider({
+      min: ( Number( $("#sc-map-configuration").data('minSystemScale') ) || 0.5 ) * 100,
+      max: ( Number( $("#sc-map-configuration").data('maxSystemScale') ) || 2.0 ) * 100,
+      value: SCMAP.settings.systemScale * 100,
+      change: updateSystemScale,
+      slide: updateSystemScale
+   });
+
    $('#sc-map-toggle-stats')
       .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
       .on( 'change', function() {

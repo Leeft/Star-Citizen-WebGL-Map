@@ -158,11 +158,21 @@ SCMAP.SystemLabel.prototype = {
    },
 
    scaleSprite: function scaleSprite() {
-      this.sceneObject.scale.set( SCMAP.System.LABEL_SCALE * ( this.node.rectangle.width() / this.node.rectangle.height() ), SCMAP.System.LABEL_SCALE, 1 );
+      var scale = SCMAP.settings.labelScale * SCMAP.System.LABEL_SCALE;
+      this.sceneObject.scale.set(
+         scale * ( this.node.rectangle.width() / this.node.rectangle.height() ), scale, 1
+      );
       if ( this.system.isUnknown() ) {
          this.sceneObject.scale.x *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;
          this.sceneObject.scale.y *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;
       }
+   },
+
+   positionSprite: function positionSprite( matrix ) {
+      this.sceneObject.userData.position = new THREE.Vector3( 0, - SCMAP.settings.labelOffset, - 0.1 );
+      var spriteOffset = this.sceneObject.userData.position.clone();
+          spriteOffset.applyMatrix4( matrix );
+      this.sceneObject.position.copy( spriteOffset );
    },
 
    symbolsWidth: function symbolsWidth( symbols ) {

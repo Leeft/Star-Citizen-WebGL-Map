@@ -10,8 +10,8 @@ $(function() {
    }
 
    map      = new SCMAP.Map();
-   ui       = new SCMAP.UI( map );
    renderer = new SCMAP.Renderer( map );
+   ui       = new SCMAP.UI( map );
    scene    = map.scene;
 
    // Workaround for a Chrome (WebKit) issue where the

@@ -318,9 +318,12 @@ a {
       }
    }
 
+   .checkmark-option {
+      margin-bottom: 0.7em;
+   }
+
    .checkmark-option, .slider-option {
 
-      margin-bottom: 0.7em;
       display: block;
       margin-right: 1.5em;
       min-width: 7em;
@@ -362,14 +365,20 @@ a {
          height: 4.7rem;
       }
    }
-   .ui-slider-horizontal {
-      position: relative;
-      top: -2.7rem;
-   }
 
    li dl {
       margin-top: 1em;
       margin-bottom: 1em;
+   }
+
+   .ui-slider + p {
+      margin: 0;
+      padding: 0;
+
+      &.ui-section-width {
+         padding-left: 1.3rem;
+         padding-right: 0.5rem;
+      }
    }
 
    .ui-section {
@@ -377,6 +386,12 @@ a {
       padding-right: 0.5rem;
       margin-top: 0.7rem;
       margin-bottom: 0.7rem;
+   }
+
+   .ui-section-width {
+      padding-left: 1.3rem;
+      padding-right: 0.5rem;
+      margin: 0;
    }
 
    .text-danger {
@@ -602,9 +617,9 @@ a {
       .ui-slider-handle {
          position: absolute;
          z-index: 2;
-         width: 1.0em;
-         height: 1.6em;
-         margin-top: -3px;
+         width: 2rem;
+         height: 2rem;
+         margin-top: -6px;
          cursor: default;
          -ms-touch-action: none;
          touch-action: none;
@@ -635,6 +650,9 @@ a {
 
    .ui-slider-horizontal {
       height: .8em;
+      margin-top: .8rem;
+      position: relative;
+      top: -2.7rem;
 
       .ui-slider-handle {
          top: -.3em;

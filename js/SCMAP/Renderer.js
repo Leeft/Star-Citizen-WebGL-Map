@@ -97,6 +97,11 @@ SCMAP.Renderer = function ( map ) {
 SCMAP.Renderer.prototype = {
    constructor: SCMAP.Renderer,
 
+   cameraRotationMatrix: function cameraRotationMatrix() {
+      var euler = new THREE.Euler( this.camera.userData.phi + Math.PI / 2, this.camera.userData.theta, 0, 'YXZ' );
+      return new THREE.Matrix4().makeRotationFromEuler( euler );
+   },
+
    _resize: function _resize() {
       this.width = window.innerWidth;
       this.height = window.innerHeight;

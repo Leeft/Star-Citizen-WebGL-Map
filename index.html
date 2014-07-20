@@ -17,6 +17,15 @@
          data-rotate-speed="0.4"
          data-zoom-speed="1.0"
          data-pan-speed="0.6"
+         data-min-system-scale="0.5"
+         data-default-system-scale="1.0"
+         data-max-system-scale="1.50"
+         data-min-label-scale="0.4"
+         data-default-label-scale="1.0"
+         data-max-label-scale="2.0"
+         data-min-label-offset="-6.5"
+         data-default-label-offset="5.0"
+         data-max-label-offset="7.5"
       ></div>
 
       <div id="sc-map-webgl-container"></div>
@@ -287,7 +296,29 @@
                "Disable postprocessing; forces reload.<br>Note: antialiasing does not work everywhere."}}
             {{checkboxOption "sc-map-toggle-fxaa" settings.effect.FXAA "Postprocess: FXAA" ""}}
             {{checkboxOption "sc-map-toggle-bloom" settings.effect.Bloom "Postprocess: Bloom" ""}}
+
+            <p class="ui-section-width">
+               <span class="slider-option">
+                  <label for="sc-map-slider-system-size">System size:</label>
+                  <div id="sc-map-slider-system-size" class="sc-map-slider-system-size"></div>
+               </span>
+            </p>
+
+            <p class="ui-section-width">
+               <span class="slider-option">
+                  <label for="sc-map-slider-label-size">Label size:</label>
+                  <div id="sc-map-slider-label-size" class="sc-map-slider-label-size"></div>
+               </span>
+            </p>
+
+            <p class="ui-section-width">
+               <span class="slider-option">
+                  <label for="sc-map-slider-label-offset">Label offset:</label>
+                  <div id="sc-map-slider-label-offset" class="sc-map-slider-label-offset"></div>
+               </span>
+            </p>
          </p>
+
          <p class="ui-section">
             {{checkboxOption "sc-map-toggle-glow" settings.glow "Enable star glow" ""}}
             <span class="checkmark-option">
