@@ -474,7 +474,7 @@ SCMAP.Route.prototype = {
             if ( geometry ) {
                material = new THREE.MeshBasicMaterial({ color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) });
                var mesh = new THREE.Mesh( geometry, material );
-               mesh.position.copy( from.sceneObject.position.clone() );
+               mesh.position.copy( from.sceneObject.position );
                mesh.lookAt( to.sceneObject.position );
                this._routeObject.add( mesh );
             }
