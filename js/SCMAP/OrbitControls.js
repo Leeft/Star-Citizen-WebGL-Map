@@ -874,11 +874,11 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
 
       if ( delta > 0 ) {
 
-         scope.dollyOut();
+         scope.dollyIn();
 
       } else if ( delta < 0 ) {
 
-         scope.dollyIn();
+         scope.dollyOut();
 
       }
 
