@@ -1,0 +1,27 @@
+Entities
+--------
+System (MapPosition, Size, Scale, Colour)
+Selector (MapPosition, Size, Scale, Rotation, Colour, MovementSpeed)
+RouteSegment (StartPosition, EndPosition, ColourSet)
+JumpPoint
+
+Components
+----------
+MapPosition (vector3)
+Size (vector3)
+Scale (float)
+Name (string)
+Rotating (angle)
+Colour (THREE.Color)
+ColourSet (THREE.Color, THREE.Color)
+StartPosition (entityUUID)
+EndPosition (entityUUID)
+MovementSpeed (...)
+Clickable ()
+Hoverable ()
+
+Systems
+-------
+RotateSelectorSystem
+FlatnessSystem
+AnimateSelectorSystem

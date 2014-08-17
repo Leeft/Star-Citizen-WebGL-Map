@@ -1,11 +1,11 @@
-# grunt-contrib-less v0.11.0 [![Build Status](https://travis-ci.org/gruntjs/grunt-contrib-less.png?branch=master)](https://travis-ci.org/gruntjs/grunt-contrib-less)
+# grunt-contrib-less v0.11.4 [![Build Status: Linux](https://travis-ci.org/gruntjs/grunt-contrib-less.png?branch=master)](https://travis-ci.org/gruntjs/grunt-contrib-less) <a href="https://ci.appveyor.com/project/gruntjs/grunt-contrib-less"><img src="https://ci.appveyor.com/api/projects/status/e3aa4d07xe4w4u05/branch/master" alt="Build Status: Windows" height="18" /></a>
 
 > Compile LESS files to CSS.
 
 
 
 ## Getting Started
-This plugin requires Grunt `^0.4.0`
+This plugin requires Grunt `~0.4.0`
 
 If you haven't used [Grunt](http://gruntjs.com/) before, be sure to check out the [Getting Started](http://gruntjs.com/getting-started) guide, as it explains how to create a [Gruntfile](http://gruntjs.com/sample-gruntfile) as well as install and use Grunt plugins. Once you're familiar with that process, you may install this plugin with this command:
 
@@ -184,6 +184,11 @@ Default: none
 
 Overrides global variables. Equivalent to ```--modify-vars='VAR=VALUE'``` option in less.
 
+#### banner
+Type: `String`
+
+Default: none
+
 ### Usage Examples
 
 ```js
@@ -215,6 +220,10 @@ less: {
 
 ## Release History
 
+ * ----------   v0.11.4   Fix 'banner', 'urlArgs' LESS options Fixes npm 2 peerDependencies issues
+ * 2014-06-20   v0.11.3   Update to Less ~1.7.2.
+ * 2014-06-01   v0.11.2   Lock to less 1.7.0.
+ * 2014-05-26   v0.11.1   Fix `modifyVars` to work when less file ends with a comment.
  * 2014-03-19   v0.11.0   Custom functions can return types defined by less paths option now accepts a function Replaced deprecated grunt.util methods Removes deprecated grunt.lib.contrib
  * 2014-03-01   v0.10.0   sourceMapBasepath accepts a function. Update copyright to 2014. Update .gitattributes. Update less.js to v1.7.0. Prevent CRLF in the repo. Adds modify-vars option. Changed to async stack call. Fixes data-uri test. Normalize line endings on tests.
  * 2014-01-07   v0.9.0   Bump to less 1.6
@@ -243,4 +252,4 @@ less: {
 
 Task submitted by [Tyler Kellen](http://goingslowly.com/)
 
-*This file was generated on Wed Mar 19 2014 21:07:24.*
+*This file was generated on Tue Jul 29 2014 14:43:30.*
