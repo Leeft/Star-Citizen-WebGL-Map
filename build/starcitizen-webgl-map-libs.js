@@ -757,13 +757,8 @@ k.id="msText";k.style.cssText="color:#0f0;font-family:Helvetica,Arial,sans-serif
 "block";d.style.display="none";break;case 1:a.style.display="none",d.style.display="block"}};return{REVISION:11,domElement:f,setMode:t,begin:function(){l=Date.now()},end:function(){var b=Date.now();g=b-l;n=Math.min(n,g);o=Math.max(o,g);k.textContent=g+" MS ("+n+"-"+o+")";var a=Math.min(30,30-30*(g/200));e.appendChild(e.firstChild).style.height=a+"px";r++;b>m+1E3&&(h=Math.round(1E3*r/(b-m)),p=Math.min(p,h),q=Math.max(q,h),i.textContent=h+" FPS ("+p+"-"+q+")",a=Math.min(30,30-30*(h/100)),c.appendChild(c.firstChild).style.height=
 a+"px",m=b,r=0);return b},update:function(){l=this.end()}}};
 
-/*!
- * imagesLoaded PACKAGED v3.1.8
- * JavaScript is all like "You images are done yet or what?"
- * MIT License
- */
-
-(function(){function e(){}function t(e,t){for(var n=e.length;n--;)if(e[n].listener===t)return n;return-1}function n(e){return function(){return this[e].apply(this,arguments)}}var i=e.prototype,r=this,o=r.EventEmitter;i.getListeners=function(e){var t,n,i=this._getEvents();if("object"==typeof e){t={};for(n in i)i.hasOwnProperty(n)&&e.test(n)&&(t[n]=i[n])}else t=i[e]||(i[e]=[]);return t},i.flattenListeners=function(e){var t,n=[];for(t=0;e.length>t;t+=1)n.push(e[t].listener);return n},i.getListenersAsObject=function(e){var t,n=this.getListeners(e);return n instanceof Array&&(t={},t[e]=n),t||n},i.addListener=function(e,n){var i,r=this.getListenersAsObject(e),o="object"==typeof n;for(i in r)r.hasOwnProperty(i)&&-1===t(r[i],n)&&r[i].push(o?n:{listener:n,once:!1});return this},i.on=n("addListener"),i.addOnceListener=function(e,t){return this.addListener(e,{listener:t,once:!0})},i.once=n("addOnceListener"),i.defineEvent=function(e){return this.getListeners(e),this},i.defineEvents=function(e){for(var t=0;e.length>t;t+=1)this.defineEvent(e[t]);return this},i.removeListener=function(e,n){var i,r,o=this.getListenersAsObject(e);for(r in o)o.hasOwnProperty(r)&&(i=t(o[r],n),-1!==i&&o[r].splice(i,1));return this},i.off=n("removeListener"),i.addListeners=function(e,t){return this.manipulateListeners(!1,e,t)},i.removeListeners=function(e,t){return this.manipulateListeners(!0,e,t)},i.manipulateListeners=function(e,t,n){var i,r,o=e?this.removeListener:this.addListener,s=e?this.removeListeners:this.addListeners;if("object"!=typeof t||t instanceof RegExp)for(i=n.length;i--;)o.call(this,t,n[i]);else for(i in t)t.hasOwnProperty(i)&&(r=t[i])&&("function"==typeof r?o.call(this,i,r):s.call(this,i,r));return this},i.removeEvent=function(e){var t,n=typeof e,i=this._getEvents();if("string"===n)delete i[e];else if("object"===n)for(t in i)i.hasOwnProperty(t)&&e.test(t)&&delete i[t];else delete this._events;return this},i.removeAllListeners=n("removeEvent"),i.emitEvent=function(e,t){var n,i,r,o,s=this.getListenersAsObject(e);for(r in s)if(s.hasOwnProperty(r))for(i=s[r].length;i--;)n=s[r][i],n.once===!0&&this.removeListener(e,n.listener),o=n.listener.apply(this,t||[]),o===this._getOnceReturnValue()&&this.removeListener(e,n.listener);return this},i.trigger=n("emitEvent"),i.emit=function(e){var t=Array.prototype.slice.call(arguments,1);return this.emitEvent(e,t)},i.setOnceReturnValue=function(e){return this._onceReturnValue=e,this},i._getOnceReturnValue=function(){return this.hasOwnProperty("_onceReturnValue")?this._onceReturnValue:!0},i._getEvents=function(){return this._events||(this._events={})},e.noConflict=function(){return r.EventEmitter=o,e},"function"==typeof define&&define.amd?define("eventEmitter/EventEmitter",[],function(){return e}):"object"==typeof module&&module.exports?module.exports=e:this.EventEmitter=e}).call(this),function(e){function t(t){var n=e.event;return n.target=n.target||n.srcElement||t,n}var n=document.documentElement,i=function(){};n.addEventListener?i=function(e,t,n){e.addEventListener(t,n,!1)}:n.attachEvent&&(i=function(e,n,i){e[n+i]=i.handleEvent?function(){var n=t(e);i.handleEvent.call(i,n)}:function(){var n=t(e);i.call(e,n)},e.attachEvent("on"+n,e[n+i])});var r=function(){};n.removeEventListener?r=function(e,t,n){e.removeEventListener(t,n,!1)}:n.detachEvent&&(r=function(e,t,n){e.detachEvent("on"+t,e[t+n]);try{delete e[t+n]}catch(i){e[t+n]=void 0}});var o={bind:i,unbind:r};"function"==typeof define&&define.amd?define("eventie/eventie",o):e.eventie=o}(this),function(e,t){"function"==typeof define&&define.amd?define(["eventEmitter/EventEmitter","eventie/eventie"],function(n,i){return t(e,n,i)}):"object"==typeof exports?module.exports=t(e,require("wolfy87-eventemitter"),require("eventie")):e.imagesLoaded=t(e,e.EventEmitter,e.eventie)}(window,function(e,t,n){function i(e,t){for(var n in t)e[n]=t[n];return e}function r(e){return"[object Array]"===d.call(e)}function o(e){var t=[];if(r(e))t=e;else if("number"==typeof e.length)for(var n=0,i=e.length;i>n;n++)t.push(e[n]);else t.push(e);return t}function s(e,t,n){if(!(this instanceof s))return new s(e,t);"string"==typeof e&&(e=document.querySelectorAll(e)),this.elements=o(e),this.options=i({},this.options),"function"==typeof t?n=t:i(this.options,t),n&&this.on("always",n),this.getImages(),a&&(this.jqDeferred=new a.Deferred);var r=this;setTimeout(function(){r.check()})}function f(e){this.img=e}function c(e){this.src=e,v[e]=this}var a=e.jQuery,u=e.console,h=u!==void 0,d=Object.prototype.toString;s.prototype=new t,s.prototype.options={},s.prototype.getImages=function(){this.images=[];for(var e=0,t=this.elements.length;t>e;e++){var n=this.elements[e];"IMG"===n.nodeName&&this.addImage(n);var i=n.nodeType;if(i&&(1===i||9===i||11===i))for(var r=n.querySelectorAll("img"),o=0,s=r.length;s>o;o++){var f=r[o];this.addImage(f)}}},s.prototype.addImage=function(e){var t=new f(e);this.images.push(t)},s.prototype.check=function(){function e(e,r){return t.options.debug&&h&&u.log("confirm",e,r),t.progress(e),n++,n===i&&t.complete(),!0}var t=this,n=0,i=this.images.length;if(this.hasAnyBroken=!1,!i)return this.complete(),void 0;for(var r=0;i>r;r++){var o=this.images[r];o.on("confirm",e),o.check()}},s.prototype.progress=function(e){this.hasAnyBroken=this.hasAnyBroken||!e.isLoaded;var t=this;setTimeout(function(){t.emit("progress",t,e),t.jqDeferred&&t.jqDeferred.notify&&t.jqDeferred.notify(t,e)})},s.prototype.complete=function(){var e=this.hasAnyBroken?"fail":"done";this.isComplete=!0;var t=this;setTimeout(function(){if(t.emit(e,t),t.emit("always",t),t.jqDeferred){var n=t.hasAnyBroken?"reject":"resolve";t.jqDeferred[n](t)}})},a&&(a.fn.imagesLoaded=function(e,t){var n=new s(this,e,t);return n.jqDeferred.promise(a(this))}),f.prototype=new t,f.prototype.check=function(){var e=v[this.img.src]||new c(this.img.src);if(e.isConfirmed)return this.confirm(e.isLoaded,"cached was confirmed"),void 0;if(this.img.complete&&void 0!==this.img.naturalWidth)return this.confirm(0!==this.img.naturalWidth,"naturalWidth"),void 0;var t=this;e.on("confirm",function(e,n){return t.confirm(e.isLoaded,n),!0}),e.check()},f.prototype.confirm=function(e,t){this.isLoaded=e,this.emit("confirm",this,t)};var v={};return c.prototype=new t,c.prototype.check=function(){if(!this.isChecked){var e=new Image;n.bind(e,"load",this),n.bind(e,"error",this),e.src=this.src,this.isChecked=!0}},c.prototype.handleEvent=function(e){var t="on"+e.type;this[t]&&this[t](e)},c.prototype.onload=function(e){this.confirm(!0,"onload"),this.unbindProxyEvents(e)},c.prototype.onerror=function(e){this.confirm(!1,"onerror"),this.unbindProxyEvents(e)},c.prototype.confirm=function(e,t){this.isConfirmed=!0,this.isLoaded=e,this.emit("confirm",this,t)},c.prototype.unbindProxyEvents=function(e){n.unbind(e.target,"load",this),n.unbind(e.target,"error",this)},s});
+// tween.js v.0.15.0 https://github.com/sole/tween.js
+void 0===Date.now&&(Date.now=function(){return(new Date).valueOf()});var TWEEN=TWEEN||function(){var n=[];return{REVISION:"14",getAll:function(){return n},removeAll:function(){n=[]},add:function(t){n.push(t)},remove:function(t){var r=n.indexOf(t);-1!==r&&n.splice(r,1)},update:function(t){if(0===n.length)return!1;var r=0;for(t=void 0!==t?t:"undefined"!=typeof window&&void 0!==window.performance&&void 0!==window.performance.now?window.performance.now():Date.now();r<n.length;)n[r].update(t)?r++:n.splice(r,1);return!0}}}();TWEEN.Tween=function(n){var t=n,r={},i={},u={},o=1e3,e=0,a=!1,f=!1,c=!1,s=0,h=null,l=TWEEN.Easing.Linear.None,p=TWEEN.Interpolation.Linear,E=[],d=null,v=!1,I=null,w=null,M=null;for(var O in n)r[O]=parseFloat(n[O],10);this.to=function(n,t){return void 0!==t&&(o=t),i=n,this},this.start=function(n){TWEEN.add(this),f=!0,v=!1,h=void 0!==n?n:"undefined"!=typeof window&&void 0!==window.performance&&void 0!==window.performance.now?window.performance.now():Date.now(),h+=s;for(var o in i){if(i[o]instanceof Array){if(0===i[o].length)continue;i[o]=[t[o]].concat(i[o])}r[o]=t[o],r[o]instanceof Array==!1&&(r[o]*=1),u[o]=r[o]||0}return this},this.stop=function(){return f?(TWEEN.remove(this),f=!1,null!==M&&M.call(t),this.stopChainedTweens(),this):this},this.stopChainedTweens=function(){for(var n=0,t=E.length;t>n;n++)E[n].stop()},this.delay=function(n){return s=n,this},this.repeat=function(n){return e=n,this},this.yoyo=function(n){return a=n,this},this.easing=function(n){return l=n,this},this.interpolation=function(n){return p=n,this},this.chain=function(){return E=arguments,this},this.onStart=function(n){return d=n,this},this.onUpdate=function(n){return I=n,this},this.onComplete=function(n){return w=n,this},this.onStop=function(n){return M=n,this},this.update=function(n){var f;if(h>n)return!0;v===!1&&(null!==d&&d.call(t),v=!0);var M=(n-h)/o;M=M>1?1:M;var O=l(M);for(f in i){var m=r[f]||0,N=i[f];N instanceof Array?t[f]=p(N,O):("string"==typeof N&&(N=m+parseFloat(N,10)),"number"==typeof N&&(t[f]=m+(N-m)*O))}if(null!==I&&I.call(t,O),1==M){if(e>0){isFinite(e)&&e--;for(f in u){if("string"==typeof i[f]&&(u[f]=u[f]+parseFloat(i[f],10)),a){var T=u[f];u[f]=i[f],i[f]=T}r[f]=u[f]}return a&&(c=!c),h=n+s,!0}null!==w&&w.call(t);for(var g=0,W=E.length;W>g;g++)E[g].start(n);return!1}return!0}},TWEEN.Easing={Linear:{None:function(n){return n}},Quadratic:{In:function(n){return n*n},Out:function(n){return n*(2-n)},InOut:function(n){return(n*=2)<1?.5*n*n:-.5*(--n*(n-2)-1)}},Cubic:{In:function(n){return n*n*n},Out:function(n){return--n*n*n+1},InOut:function(n){return(n*=2)<1?.5*n*n*n:.5*((n-=2)*n*n+2)}},Quartic:{In:function(n){return n*n*n*n},Out:function(n){return 1- --n*n*n*n},InOut:function(n){return(n*=2)<1?.5*n*n*n*n:-.5*((n-=2)*n*n*n-2)}},Quintic:{In:function(n){return n*n*n*n*n},Out:function(n){return--n*n*n*n*n+1},InOut:function(n){return(n*=2)<1?.5*n*n*n*n*n:.5*((n-=2)*n*n*n*n+2)}},Sinusoidal:{In:function(n){return 1-Math.cos(n*Math.PI/2)},Out:function(n){return Math.sin(n*Math.PI/2)},InOut:function(n){return.5*(1-Math.cos(Math.PI*n))}},Exponential:{In:function(n){return 0===n?0:Math.pow(1024,n-1)},Out:function(n){return 1===n?1:1-Math.pow(2,-10*n)},InOut:function(n){return 0===n?0:1===n?1:(n*=2)<1?.5*Math.pow(1024,n-1):.5*(-Math.pow(2,-10*(n-1))+2)}},Circular:{In:function(n){return 1-Math.sqrt(1-n*n)},Out:function(n){return Math.sqrt(1- --n*n)},InOut:function(n){return(n*=2)<1?-.5*(Math.sqrt(1-n*n)-1):.5*(Math.sqrt(1-(n-=2)*n)+1)}},Elastic:{In:function(n){var t,r=.1,i=.4;return 0===n?0:1===n?1:(!r||1>r?(r=1,t=i/4):t=i*Math.asin(1/r)/(2*Math.PI),-(r*Math.pow(2,10*(n-=1))*Math.sin(2*(n-t)*Math.PI/i)))},Out:function(n){var t,r=.1,i=.4;return 0===n?0:1===n?1:(!r||1>r?(r=1,t=i/4):t=i*Math.asin(1/r)/(2*Math.PI),r*Math.pow(2,-10*n)*Math.sin(2*(n-t)*Math.PI/i)+1)},InOut:function(n){var t,r=.1,i=.4;return 0===n?0:1===n?1:(!r||1>r?(r=1,t=i/4):t=i*Math.asin(1/r)/(2*Math.PI),(n*=2)<1?-.5*r*Math.pow(2,10*(n-=1))*Math.sin(2*(n-t)*Math.PI/i):r*Math.pow(2,-10*(n-=1))*Math.sin(2*(n-t)*Math.PI/i)*.5+1)}},Back:{In:function(n){var t=1.70158;return n*n*((t+1)*n-t)},Out:function(n){var t=1.70158;return--n*n*((t+1)*n+t)+1},InOut:function(n){var t=2.5949095;return(n*=2)<1?.5*n*n*((t+1)*n-t):.5*((n-=2)*n*((t+1)*n+t)+2)}},Bounce:{In:function(n){return 1-TWEEN.Easing.Bounce.Out(1-n)},Out:function(n){return 1/2.75>n?7.5625*n*n:2/2.75>n?7.5625*(n-=1.5/2.75)*n+.75:2.5/2.75>n?7.5625*(n-=2.25/2.75)*n+.9375:7.5625*(n-=2.625/2.75)*n+.984375},InOut:function(n){return.5>n?.5*TWEEN.Easing.Bounce.In(2*n):.5*TWEEN.Easing.Bounce.Out(2*n-1)+.5}}},TWEEN.Interpolation={Linear:function(n,t){var r=n.length-1,i=r*t,u=Math.floor(i),o=TWEEN.Interpolation.Utils.Linear;return 0>t?o(n[0],n[1],i):t>1?o(n[r],n[r-1],r-i):o(n[u],n[u+1>r?r:u+1],i-u)},Bezier:function(n,t){var r,i=0,u=n.length-1,o=Math.pow,e=TWEEN.Interpolation.Utils.Bernstein;for(r=0;u>=r;r++)i+=o(1-t,u-r)*o(t,r)*n[r]*e(u,r);return i},CatmullRom:function(n,t){var r=n.length-1,i=r*t,u=Math.floor(i),o=TWEEN.Interpolation.Utils.CatmullRom;return n[0]===n[r]?(0>t&&(u=Math.floor(i=r*(1+t))),o(n[(u-1+r)%r],n[u],n[(u+1)%r],n[(u+2)%r],i-u)):0>t?n[0]-(o(n[0],n[0],n[1],n[1],-i)-n[0]):t>1?n[r]-(o(n[r],n[r],n[r-1],n[r-1],i-r)-n[r]):o(n[u?u-1:0],n[u],n[u+1>r?r:u+1],n[u+2>r?r:u+2],i-u)},Utils:{Linear:function(n,t,r){return(t-n)*r+n},Bernstein:function(n,t){var r=TWEEN.Interpolation.Utils.Factorial;return r(n)/r(t)/r(n-t)},Factorial:function(){var n=[1];return function(t){var r,i=1;if(n[t])return n[t];for(r=t;r>1;r--)i*=r;return n[t]=i}}(),CatmullRom:function(n,t,r,i,u){var o=.5*(r-n),e=.5*(i-t),a=u*u,f=u*a;return(2*t-2*r+o+e)*f+(-3*t+3*r-2*o-e)*a+o*u+t}}},"undefined"!=typeof module&&module.exports&&(module.exports=TWEEN);
 /*!
 
  handlebars v1.3.0
@@ -3511,22 +3506,1781 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
   return __module0__;
 })();
 
+/*
+
+  Javascript State Machine Library - https://github.com/jakesgordon/javascript-state-machine
+
+  Copyright (c) 2012, 2013, 2014, Jake Gordon and contributors
+  Released under the MIT license - https://github.com/jakesgordon/javascript-state-machine/blob/master/LICENSE
+
+*/
+
+(function () {
+
+  var StateMachine = {
+
+    //---------------------------------------------------------------------------
+
+    VERSION: "2.3.0",
+
+    //---------------------------------------------------------------------------
+
+    Result: {
+      SUCCEEDED:    1, // the event transitioned successfully from one state to another
+      NOTRANSITION: 2, // the event was successfull but no state transition was necessary
+      CANCELLED:    3, // the event was cancelled by the caller in a beforeEvent callback
+      PENDING:      4  // the event is asynchronous and the caller is in control of when the transition occurs
+    },
+
+    Error: {
+      INVALID_TRANSITION: 100, // caller tried to fire an event that was innapropriate in the current state
+      PENDING_TRANSITION: 200, // caller tried to fire an event while an async transition was still pending
+      INVALID_CALLBACK:   300 // caller provided callback function threw an exception
+    },
+
+    WILDCARD: '*',
+    ASYNC: 'async',
+
+    //---------------------------------------------------------------------------
+
+    create: function(cfg, target) {
+
+      var initial   = (typeof cfg.initial == 'string') ? { state: cfg.initial } : cfg.initial; // allow for a simple string, or an object with { state: 'foo', event: 'setup', defer: true|false }
+      var terminal  = cfg.terminal || cfg['final'];
+      var fsm       = target || cfg.target  || {};
+      var events    = cfg.events || [];
+      var callbacks = cfg.callbacks || {};
+      var map       = {};
+
+      var add = function(e) {
+        var from = (e.from instanceof Array) ? e.from : (e.from ? [e.from] : [StateMachine.WILDCARD]); // allow 'wildcard' transition if 'from' is not specified
+        map[e.name] = map[e.name] || {};
+        for (var n = 0 ; n < from.length ; n++)
+          map[e.name][from[n]] = e.to || from[n]; // allow no-op transition if 'to' is not specified
+      };
+
+      if (initial) {
+        initial.event = initial.event || 'startup';
+        add({ name: initial.event, from: 'none', to: initial.state });
+      }
+
+      for(var n = 0 ; n < events.length ; n++)
+        add(events[n]);
+
+      for(var name in map) {
+        if (map.hasOwnProperty(name))
+          fsm[name] = StateMachine.buildEvent(name, map[name]);
+      }
+
+      for(var name in callbacks) {
+        if (callbacks.hasOwnProperty(name))
+          fsm[name] = callbacks[name]
+      }
+
+      fsm.current = 'none';
+      fsm.is      = function(state) { return (state instanceof Array) ? (state.indexOf(this.current) >= 0) : (this.current === state); };
+      fsm.can     = function(event) { return !this.transition && (map[event].hasOwnProperty(this.current) || map[event].hasOwnProperty(StateMachine.WILDCARD)); }
+      fsm.cannot  = function(event) { return !this.can(event); };
+      fsm.error   = cfg.error || function(name, from, to, args, error, msg, e) { throw e || msg; }; // default behavior when something unexpected happens is to throw an exception, but caller can override this behavior if desired (see github issue #3 and #17)
+
+      fsm.isFinished = function() { return this.is(terminal); };
+
+      if (initial && !initial.defer)
+        fsm[initial.event]();
+
+      return fsm;
+
+    },
+
+    //===========================================================================
+
+    doCallback: function(fsm, func, name, from, to, args) {
+      if (func) {
+        try {
+          return func.apply(fsm, [name, from, to].concat(args));
+        }
+        catch(e) {
+          return fsm.error(name, from, to, args, StateMachine.Error.INVALID_CALLBACK, "an exception occurred in a caller-provided callback function", e);
+        }
+      }
+    },
+
+    beforeAnyEvent:  function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onbeforeevent'],                       name, from, to, args); },
+    afterAnyEvent:   function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onafterevent'] || fsm['onevent'],      name, from, to, args); },
+    leaveAnyState:   function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onleavestate'],                        name, from, to, args); },
+    enterAnyState:   function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onenterstate'] || fsm['onstate'],      name, from, to, args); },
+    changeState:     function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onchangestate'],                       name, from, to, args); },
+
+    beforeThisEvent: function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onbefore' + name],                     name, from, to, args); },
+    afterThisEvent:  function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onafter'  + name] || fsm['on' + name], name, from, to, args); },
+    leaveThisState:  function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onleave'  + from],                     name, from, to, args); },
+    enterThisState:  function(fsm, name, from, to, args) { return StateMachine.doCallback(fsm, fsm['onenter'  + to]   || fsm['on' + to],   name, from, to, args); },
+
+    beforeEvent: function(fsm, name, from, to, args) {
+      if ((false === StateMachine.beforeThisEvent(fsm, name, from, to, args)) ||
+          (false === StateMachine.beforeAnyEvent( fsm, name, from, to, args)))
+        return false;
+    },
+
+    afterEvent: function(fsm, name, from, to, args) {
+      StateMachine.afterThisEvent(fsm, name, from, to, args);
+      StateMachine.afterAnyEvent( fsm, name, from, to, args);
+    },
+
+    leaveState: function(fsm, name, from, to, args) {
+      var specific = StateMachine.leaveThisState(fsm, name, from, to, args),
+          general  = StateMachine.leaveAnyState( fsm, name, from, to, args);
+      if ((false === specific) || (false === general))
+        return false;
+      else if ((StateMachine.ASYNC === specific) || (StateMachine.ASYNC === general))
+        return StateMachine.ASYNC;
+    },
+
+    enterState: function(fsm, name, from, to, args) {
+      StateMachine.enterThisState(fsm, name, from, to, args);
+      StateMachine.enterAnyState( fsm, name, from, to, args);
+    },
+
+    //===========================================================================
+
+    buildEvent: function(name, map) {
+      return function() {
+
+        var from  = this.current;
+        var to    = map[from] || map[StateMachine.WILDCARD] || from;
+        var args  = Array.prototype.slice.call(arguments); // turn arguments into pure array
+
+        if (this.transition)
+          return this.error(name, from, to, args, StateMachine.Error.PENDING_TRANSITION, "event " + name + " inappropriate because previous transition did not complete");
+
+        if (this.cannot(name))
+          return this.error(name, from, to, args, StateMachine.Error.INVALID_TRANSITION, "event " + name + " inappropriate in current state " + this.current);
+
+        if (false === StateMachine.beforeEvent(this, name, from, to, args))
+          return StateMachine.Result.CANCELLED;
+
+        if (from === to) {
+          StateMachine.afterEvent(this, name, from, to, args);
+          return StateMachine.Result.NOTRANSITION;
+        }
+
+        // prepare a transition method for use EITHER lower down, or by caller if they want an async transition (indicated by an ASYNC return value from leaveState)
+        var fsm = this;
+        this.transition = function() {
+          fsm.transition = null; // this method should only ever be called once
+          fsm.current = to;
+          StateMachine.enterState( fsm, name, from, to, args);
+          StateMachine.changeState(fsm, name, from, to, args);
+          StateMachine.afterEvent( fsm, name, from, to, args);
+          return StateMachine.Result.SUCCEEDED;
+        };
+        this.transition.cancel = function() { // provide a way for caller to cancel async transition if desired (issue #22)
+          fsm.transition = null;
+          StateMachine.afterEvent(fsm, name, from, to, args);
+        }
+
+        var leave = StateMachine.leaveState(this, name, from, to, args);
+        if (false === leave) {
+          this.transition = null;
+          return StateMachine.Result.CANCELLED;
+        }
+        else if (StateMachine.ASYNC === leave) {
+          return StateMachine.Result.PENDING;
+        }
+        else {
+          if (this.transition) // need to check in case user manually called transition() but forgot to return StateMachine.ASYNC
+            return this.transition();
+        }
+
+      };
+    }
+
+  }; // StateMachine
+
+  //===========================================================================
+
+  //======
+  // NODE
+  //======
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = StateMachine;
+    }
+    exports.StateMachine = StateMachine;
+  }
+  //============
+  // AMD/REQUIRE
+  //============
+  else if (typeof define === 'function' && define.amd) {
+    define(function(require) { return StateMachine; });
+  }
+  //========
+  // BROWSER
+  //========
+  else if (window) {
+    window.StateMachine = StateMachine;
+  }
+
+}());
+
+
 /*!
- * jScrollPane - v2.0.19 - 2013-11-16
+ * jScrollPane - v2.0.14 - 2013-05-01
  * http://jscrollpane.kelvinluck.com/
  *
- * Copyright (c) 2013 Kelvin Luck
+ * Copyright (c) 2010 Kelvin Luck
  * Dual licensed under the MIT or GPL licenses.
  */
-!function(a,b,c){a.fn.jScrollPane=function(d){function e(d,e){function f(b){var e,h,j,l,m,n,q=!1,r=!1;if(P=b,Q===c)m=d.scrollTop(),n=d.scrollLeft(),d.css({overflow:"hidden",padding:0}),R=d.innerWidth()+tb,S=d.innerHeight(),d.width(R),Q=a('<div class="jspPane" />').css("padding",sb).append(d.children()),T=a('<div class="jspContainer" />').css({width:R+"px",height:S+"px"}).append(Q).appendTo(d);else{if(d.css("width",""),q=P.stickToBottom&&C(),r=P.stickToRight&&D(),l=d.innerWidth()+tb!=R||d.outerHeight()!=S,l&&(R=d.innerWidth()+tb,S=d.innerHeight(),T.css({width:R+"px",height:S+"px"})),!l&&ub==U&&Q.outerHeight()==V)return d.width(R),void 0;ub=U,Q.css("width",""),d.width(R),T.find(">.jspVerticalBar,>.jspHorizontalBar").remove().end()}Q.css("overflow","auto"),U=b.contentWidth?b.contentWidth:Q[0].scrollWidth,V=Q[0].scrollHeight,Q.css("overflow",""),W=U/R,X=V/S,Y=X>1,Z=W>1,Z||Y?(d.addClass("jspScrollable"),e=P.maintainPosition&&(ab||db),e&&(h=A(),j=B()),g(),i(),k(),e&&(y(r?U-R:h,!1),x(q?V-S:j,!1)),H(),E(),N(),P.enableKeyboardNavigation&&J(),P.clickOnTrack&&o(),L(),P.hijackInternalLinks&&M()):(d.removeClass("jspScrollable"),Q.css({top:0,left:0,width:T.width()-tb}),F(),I(),K(),p()),P.autoReinitialise&&!rb?rb=setInterval(function(){f(P)},P.autoReinitialiseDelay):!P.autoReinitialise&&rb&&clearInterval(rb),m&&d.scrollTop(0)&&x(m,!1),n&&d.scrollLeft(0)&&y(n,!1),d.trigger("jsp-initialised",[Z||Y])}function g(){Y&&(T.append(a('<div class="jspVerticalBar" />').append(a('<div class="jspCap jspCapTop" />'),a('<div class="jspTrack" />').append(a('<div class="jspDrag" />').append(a('<div class="jspDragTop" />'),a('<div class="jspDragBottom" />'))),a('<div class="jspCap jspCapBottom" />'))),eb=T.find(">.jspVerticalBar"),fb=eb.find(">.jspTrack"),$=fb.find(">.jspDrag"),P.showArrows&&(jb=a('<a class="jspArrow jspArrowUp" />').bind("mousedown.jsp",m(0,-1)).bind("click.jsp",G),kb=a('<a class="jspArrow jspArrowDown" />').bind("mousedown.jsp",m(0,1)).bind("click.jsp",G),P.arrowScrollOnHover&&(jb.bind("mouseover.jsp",m(0,-1,jb)),kb.bind("mouseover.jsp",m(0,1,kb))),l(fb,P.verticalArrowPositions,jb,kb)),hb=S,T.find(">.jspVerticalBar>.jspCap:visible,>.jspVerticalBar>.jspArrow").each(function(){hb-=a(this).outerHeight()}),$.hover(function(){$.addClass("jspHover")},function(){$.removeClass("jspHover")}).bind("mousedown.jsp",function(b){a("html").bind("dragstart.jsp selectstart.jsp",G),$.addClass("jspActive");var c=b.pageY-$.position().top;return a("html").bind("mousemove.jsp",function(a){r(a.pageY-c,!1)}).bind("mouseup.jsp mouseleave.jsp",q),!1}),h())}function h(){fb.height(hb+"px"),ab=0,gb=P.verticalGutter+fb.outerWidth(),Q.width(R-gb-tb);try{0===eb.position().left&&Q.css("margin-left",gb+"px")}catch(a){}}function i(){Z&&(T.append(a('<div class="jspHorizontalBar" />').append(a('<div class="jspCap jspCapLeft" />'),a('<div class="jspTrack" />').append(a('<div class="jspDrag" />').append(a('<div class="jspDragLeft" />'),a('<div class="jspDragRight" />'))),a('<div class="jspCap jspCapRight" />'))),lb=T.find(">.jspHorizontalBar"),mb=lb.find(">.jspTrack"),bb=mb.find(">.jspDrag"),P.showArrows&&(pb=a('<a class="jspArrow jspArrowLeft" />').bind("mousedown.jsp",m(-1,0)).bind("click.jsp",G),qb=a('<a class="jspArrow jspArrowRight" />').bind("mousedown.jsp",m(1,0)).bind("click.jsp",G),P.arrowScrollOnHover&&(pb.bind("mouseover.jsp",m(-1,0,pb)),qb.bind("mouseover.jsp",m(1,0,qb))),l(mb,P.horizontalArrowPositions,pb,qb)),bb.hover(function(){bb.addClass("jspHover")},function(){bb.removeClass("jspHover")}).bind("mousedown.jsp",function(b){a("html").bind("dragstart.jsp selectstart.jsp",G),bb.addClass("jspActive");var c=b.pageX-bb.position().left;return a("html").bind("mousemove.jsp",function(a){t(a.pageX-c,!1)}).bind("mouseup.jsp mouseleave.jsp",q),!1}),nb=T.innerWidth(),j())}function j(){T.find(">.jspHorizontalBar>.jspCap:visible,>.jspHorizontalBar>.jspArrow").each(function(){nb-=a(this).outerWidth()}),mb.width(nb+"px"),db=0}function k(){if(Z&&Y){var b=mb.outerHeight(),c=fb.outerWidth();hb-=b,a(lb).find(">.jspCap:visible,>.jspArrow").each(function(){nb+=a(this).outerWidth()}),nb-=c,S-=c,R-=b,mb.parent().append(a('<div class="jspCorner" />').css("width",b+"px")),h(),j()}Z&&Q.width(T.outerWidth()-tb+"px"),V=Q.outerHeight(),X=V/S,Z&&(ob=Math.ceil(1/W*nb),ob>P.horizontalDragMaxWidth?ob=P.horizontalDragMaxWidth:ob<P.horizontalDragMinWidth&&(ob=P.horizontalDragMinWidth),bb.width(ob+"px"),cb=nb-ob,u(db)),Y&&(ib=Math.ceil(1/X*hb),ib>P.verticalDragMaxHeight?ib=P.verticalDragMaxHeight:ib<P.verticalDragMinHeight&&(ib=P.verticalDragMinHeight),$.height(ib+"px"),_=hb-ib,s(ab))}function l(a,b,c,d){var e,f="before",g="after";"os"==b&&(b=/Mac/.test(navigator.platform)?"after":"split"),b==f?g=b:b==g&&(f=b,e=c,c=d,d=e),a[f](c)[g](d)}function m(a,b,c){return function(){return n(a,b,this,c),this.blur(),!1}}function n(b,c,d,e){d=a(d).addClass("jspActive");var f,g,h=!0,i=function(){0!==b&&vb.scrollByX(b*P.arrowButtonSpeed),0!==c&&vb.scrollByY(c*P.arrowButtonSpeed),g=setTimeout(i,h?P.initialDelay:P.arrowRepeatFreq),h=!1};i(),f=e?"mouseout.jsp":"mouseup.jsp",e=e||a("html"),e.bind(f,function(){d.removeClass("jspActive"),g&&clearTimeout(g),g=null,e.unbind(f)})}function o(){p(),Y&&fb.bind("mousedown.jsp",function(b){if(b.originalTarget===c||b.originalTarget==b.currentTarget){var d,e=a(this),f=e.offset(),g=b.pageY-f.top-ab,h=!0,i=function(){var a=e.offset(),c=b.pageY-a.top-ib/2,f=S*P.scrollPagePercent,k=_*f/(V-S);if(0>g)ab-k>c?vb.scrollByY(-f):r(c);else{if(!(g>0))return j(),void 0;c>ab+k?vb.scrollByY(f):r(c)}d=setTimeout(i,h?P.initialDelay:P.trackClickRepeatFreq),h=!1},j=function(){d&&clearTimeout(d),d=null,a(document).unbind("mouseup.jsp",j)};return i(),a(document).bind("mouseup.jsp",j),!1}}),Z&&mb.bind("mousedown.jsp",function(b){if(b.originalTarget===c||b.originalTarget==b.currentTarget){var d,e=a(this),f=e.offset(),g=b.pageX-f.left-db,h=!0,i=function(){var a=e.offset(),c=b.pageX-a.left-ob/2,f=R*P.scrollPagePercent,k=cb*f/(U-R);if(0>g)db-k>c?vb.scrollByX(-f):t(c);else{if(!(g>0))return j(),void 0;c>db+k?vb.scrollByX(f):t(c)}d=setTimeout(i,h?P.initialDelay:P.trackClickRepeatFreq),h=!1},j=function(){d&&clearTimeout(d),d=null,a(document).unbind("mouseup.jsp",j)};return i(),a(document).bind("mouseup.jsp",j),!1}})}function p(){mb&&mb.unbind("mousedown.jsp"),fb&&fb.unbind("mousedown.jsp")}function q(){a("html").unbind("dragstart.jsp selectstart.jsp mousemove.jsp mouseup.jsp mouseleave.jsp"),$&&$.removeClass("jspActive"),bb&&bb.removeClass("jspActive")}function r(a,b){Y&&(0>a?a=0:a>_&&(a=_),b===c&&(b=P.animateScroll),b?vb.animate($,"top",a,s):($.css("top",a),s(a)))}function s(a){a===c&&(a=$.position().top),T.scrollTop(0),ab=a;var b=0===ab,e=ab==_,f=a/_,g=-f*(V-S);(wb!=b||yb!=e)&&(wb=b,yb=e,d.trigger("jsp-arrow-change",[wb,yb,xb,zb])),v(b,e),Q.css("top",g),d.trigger("jsp-scroll-y",[-g,b,e]).trigger("scroll")}function t(a,b){Z&&(0>a?a=0:a>cb&&(a=cb),b===c&&(b=P.animateScroll),b?vb.animate(bb,"left",a,u):(bb.css("left",a),u(a)))}function u(a){a===c&&(a=bb.position().left),T.scrollTop(0),db=a;var b=0===db,e=db==cb,f=a/cb,g=-f*(U-R);(xb!=b||zb!=e)&&(xb=b,zb=e,d.trigger("jsp-arrow-change",[wb,yb,xb,zb])),w(b,e),Q.css("left",g),d.trigger("jsp-scroll-x",[-g,b,e]).trigger("scroll")}function v(a,b){P.showArrows&&(jb[a?"addClass":"removeClass"]("jspDisabled"),kb[b?"addClass":"removeClass"]("jspDisabled"))}function w(a,b){P.showArrows&&(pb[a?"addClass":"removeClass"]("jspDisabled"),qb[b?"addClass":"removeClass"]("jspDisabled"))}function x(a,b){var c=a/(V-S);r(c*_,b)}function y(a,b){var c=a/(U-R);t(c*cb,b)}function z(b,c,d){var e,f,g,h,i,j,k,l,m,n=0,o=0;try{e=a(b)}catch(p){return}for(f=e.outerHeight(),g=e.outerWidth(),T.scrollTop(0),T.scrollLeft(0);!e.is(".jspPane");)if(n+=e.position().top,o+=e.position().left,e=e.offsetParent(),/^body|html$/i.test(e[0].nodeName))return;h=B(),j=h+S,h>n||c?l=n-P.horizontalGutter:n+f>j&&(l=n-S+f+P.horizontalGutter),isNaN(l)||x(l,d),i=A(),k=i+R,i>o||c?m=o-P.horizontalGutter:o+g>k&&(m=o-R+g+P.horizontalGutter),isNaN(m)||y(m,d)}function A(){return-Q.position().left}function B(){return-Q.position().top}function C(){var a=V-S;return a>20&&a-B()<10}function D(){var a=U-R;return a>20&&a-A()<10}function E(){T.unbind(Bb).bind(Bb,function(a,b,c,d){var e=db,f=ab,g=a.deltaFactor||P.mouseWheelSpeed;return vb.scrollBy(c*g,-d*g,!1),e==db&&f==ab})}function F(){T.unbind(Bb)}function G(){return!1}function H(){Q.find(":input,a").unbind("focus.jsp").bind("focus.jsp",function(a){z(a.target,!1)})}function I(){Q.find(":input,a").unbind("focus.jsp")}function J(){function b(){var a=db,b=ab;switch(c){case 40:vb.scrollByY(P.keyboardSpeed,!1);break;case 38:vb.scrollByY(-P.keyboardSpeed,!1);break;case 34:case 32:vb.scrollByY(S*P.scrollPagePercent,!1);break;case 33:vb.scrollByY(-S*P.scrollPagePercent,!1);break;case 39:vb.scrollByX(P.keyboardSpeed,!1);break;case 37:vb.scrollByX(-P.keyboardSpeed,!1)}return e=a!=db||b!=ab}var c,e,f=[];Z&&f.push(lb[0]),Y&&f.push(eb[0]),Q.focus(function(){d.focus()}),d.attr("tabindex",0).unbind("keydown.jsp keypress.jsp").bind("keydown.jsp",function(d){if(d.target===this||f.length&&a(d.target).closest(f).length){var g=db,h=ab;switch(d.keyCode){case 40:case 38:case 34:case 32:case 33:case 39:case 37:c=d.keyCode,b();break;case 35:x(V-S),c=null;break;case 36:x(0),c=null}return e=d.keyCode==c&&g!=db||h!=ab,!e}}).bind("keypress.jsp",function(a){return a.keyCode==c&&b(),!e}),P.hideFocus?(d.css("outline","none"),"hideFocus"in T[0]&&d.attr("hideFocus",!0)):(d.css("outline",""),"hideFocus"in T[0]&&d.attr("hideFocus",!1))}function K(){d.attr("tabindex","-1").removeAttr("tabindex").unbind("keydown.jsp keypress.jsp")}function L(){if(location.hash&&location.hash.length>1){var b,c,d=escape(location.hash.substr(1));try{b=a("#"+d+', a[name="'+d+'"]')}catch(e){return}b.length&&Q.find(d)&&(0===T.scrollTop()?c=setInterval(function(){T.scrollTop()>0&&(z(b,!0),a(document).scrollTop(T.position().top),clearInterval(c))},50):(z(b,!0),a(document).scrollTop(T.position().top)))}}function M(){a(document.body).data("jspHijack")||(a(document.body).data("jspHijack",!0),a(document.body).delegate("a[href*=#]","click",function(c){var d,e,f,g,h,i,j=this.href.substr(0,this.href.indexOf("#")),k=location.href;if(-1!==location.href.indexOf("#")&&(k=location.href.substr(0,location.href.indexOf("#"))),j===k){d=escape(this.href.substr(this.href.indexOf("#")+1));try{e=a("#"+d+', a[name="'+d+'"]')}catch(l){return}e.length&&(f=e.closest(".jspScrollable"),g=f.data("jsp"),g.scrollToElement(e,!0),f[0].scrollIntoView&&(h=a(b).scrollTop(),i=e.offset().top,(h>i||i>h+a(b).height())&&f[0].scrollIntoView()),c.preventDefault())}}))}function N(){var a,b,c,d,e,f=!1;T.unbind("touchstart.jsp touchmove.jsp touchend.jsp click.jsp-touchclick").bind("touchstart.jsp",function(g){var h=g.originalEvent.touches[0];a=A(),b=B(),c=h.pageX,d=h.pageY,e=!1,f=!0}).bind("touchmove.jsp",function(g){if(f){var h=g.originalEvent.touches[0],i=db,j=ab;return vb.scrollTo(a+c-h.pageX,b+d-h.pageY),e=e||Math.abs(c-h.pageX)>5||Math.abs(d-h.pageY)>5,i==db&&j==ab}}).bind("touchend.jsp",function(){f=!1}).bind("click.jsp-touchclick",function(){return e?(e=!1,!1):void 0})}function O(){var a=B(),b=A();d.removeClass("jspScrollable").unbind(".jsp"),d.replaceWith(Ab.append(Q.children())),Ab.scrollTop(a),Ab.scrollLeft(b),rb&&clearInterval(rb)}var P,Q,R,S,T,U,V,W,X,Y,Z,$,_,ab,bb,cb,db,eb,fb,gb,hb,ib,jb,kb,lb,mb,nb,ob,pb,qb,rb,sb,tb,ub,vb=this,wb=!0,xb=!0,yb=!1,zb=!1,Ab=d.clone(!1,!1).empty(),Bb=a.fn.mwheelIntent?"mwheelIntent.jsp":"mousewheel.jsp";"border-box"===d.css("box-sizing")?(sb=0,tb=0):(sb=d.css("paddingTop")+" "+d.css("paddingRight")+" "+d.css("paddingBottom")+" "+d.css("paddingLeft"),tb=(parseInt(d.css("paddingLeft"),10)||0)+(parseInt(d.css("paddingRight"),10)||0)),a.extend(vb,{reinitialise:function(b){b=a.extend({},P,b),f(b)},scrollToElement:function(a,b,c){z(a,b,c)},scrollTo:function(a,b,c){y(a,c),x(b,c)},scrollToX:function(a,b){y(a,b)},scrollToY:function(a,b){x(a,b)},scrollToPercentX:function(a,b){y(a*(U-R),b)},scrollToPercentY:function(a,b){x(a*(V-S),b)},scrollBy:function(a,b,c){vb.scrollByX(a,c),vb.scrollByY(b,c)},scrollByX:function(a,b){var c=A()+Math[0>a?"floor":"ceil"](a),d=c/(U-R);t(d*cb,b)},scrollByY:function(a,b){var c=B()+Math[0>a?"floor":"ceil"](a),d=c/(V-S);r(d*_,b)},positionDragX:function(a,b){t(a,b)},positionDragY:function(a,b){r(a,b)},animate:function(a,b,c,d){var e={};e[b]=c,a.animate(e,{duration:P.animateDuration,easing:P.animateEase,queue:!1,step:d})},getContentPositionX:function(){return A()},getContentPositionY:function(){return B()},getContentWidth:function(){return U},getContentHeight:function(){return V},getPercentScrolledX:function(){return A()/(U-R)},getPercentScrolledY:function(){return B()/(V-S)},getIsScrollableH:function(){return Z},getIsScrollableV:function(){return Y},getContentPane:function(){return Q},scrollToBottom:function(a){r(_,a)},hijackInternalLinks:a.noop,destroy:function(){O()}}),f(e)}return d=a.extend({},a.fn.jScrollPane.defaults,d),a.each(["arrowButtonSpeed","trackClickSpeed","keyboardSpeed"],function(){d[this]=d[this]||d.speed}),this.each(function(){var b=a(this),c=b.data("jsp");c?c.reinitialise(d):(a("script",b).filter('[type="text/javascript"],:not([type])').remove(),c=new e(b,d),b.data("jsp",c))})},a.fn.jScrollPane.defaults={showArrows:!1,maintainPosition:!0,stickToBottom:!1,stickToRight:!1,clickOnTrack:!0,autoReinitialise:!1,autoReinitialiseDelay:500,verticalDragMinHeight:0,verticalDragMaxHeight:99999,horizontalDragMinWidth:0,horizontalDragMaxWidth:99999,contentWidth:c,animateScroll:!1,animateDuration:300,animateEase:"linear",hijackInternalLinks:!1,verticalGutter:4,horizontalGutter:4,mouseWheelSpeed:3,arrowButtonSpeed:0,arrowRepeatFreq:50,arrowScrollOnHover:!1,trackClickSpeed:0,trackClickRepeatFreq:70,verticalArrowPositions:"split",horizontalArrowPositions:"split",enableKeyboardNavigation:!0,hideFocus:!1,keyboardSpeed:0,initialDelay:300,speed:30,scrollPagePercent:.8}}(jQuery,this);
-/*! Copyright (c) 2013 Brandon Aaron (http://brandon.aaron.sh)
+
+// Script: jScrollPane - cross browser customisable scrollbars
+//
+// *Version: 2.0.14, Last updated: 2013-05-01*
+//
+// Project Home - http://jscrollpane.kelvinluck.com/
+// GitHub       - http://github.com/vitch/jScrollPane
+// Source       - http://github.com/vitch/jScrollPane/raw/master/script/jquery.jscrollpane.js
+// (Minified)   - http://github.com/vitch/jScrollPane/raw/master/script/jquery.jscrollpane.min.js
+//
+// About: License
+//
+// Copyright (c) 2013 Kelvin Luck
+// Dual licensed under the MIT or GPL Version 2 licenses.
+// http://jscrollpane.kelvinluck.com/MIT-LICENSE.txt
+// http://jscrollpane.kelvinluck.com/GPL-LICENSE.txt
+//
+// About: Examples
+//
+// All examples and demos are available through the jScrollPane example site at:
+// http://jscrollpane.kelvinluck.com/
+//
+// About: Support and Testing
+//
+// This plugin is tested on the browsers below and has been found to work reliably on them. If you run
+// into a problem on one of the supported browsers then please visit the support section on the jScrollPane
+// website (http://jscrollpane.kelvinluck.com/) for more information on getting support. You are also
+// welcome to fork the project on GitHub if you can contribute a fix for a given issue. 
+//
+// jQuery Versions - tested in 1.4.2+ - reported to work in 1.3.x
+// Browsers Tested - Firefox 3.6.8, Safari 5, Opera 10.6, Chrome 5.0, IE 6, 7, 8
+//
+// About: Release History
+//
+// 2.0.14 - (2013-05-01) Updated to most recent mouse wheel plugin (see #106) and related changes for sensible scroll speed
+// 2.0.13 - (2013-05-01) Switched to semver compatible version name
+// 2.0.0beta12 - (2012-09-27) fix for jQuery 1.8+
+// 2.0.0beta11 - (2012-05-14)
+// 2.0.0beta10 - (2011-04-17) cleaner required size calculation, improved keyboard support, stickToBottom/Left, other small fixes
+// 2.0.0beta9 - (2011-01-31) new API methods, bug fixes and correct keyboard support for FF/OSX
+// 2.0.0beta8 - (2011-01-29) touchscreen support, improved keyboard support
+// 2.0.0beta7 - (2011-01-23) scroll speed consistent (thanks Aivo Paas)
+// 2.0.0beta6 - (2010-12-07) scrollToElement horizontal support
+// 2.0.0beta5 - (2010-10-18) jQuery 1.4.3 support, various bug fixes
+// 2.0.0beta4 - (2010-09-17) clickOnTrack support, bug fixes
+// 2.0.0beta3 - (2010-08-27) Horizontal mousewheel, mwheelIntent, keyboard support, bug fixes
+// 2.0.0beta2 - (2010-08-21) Bug fixes
+// 2.0.0beta1 - (2010-08-17) Rewrite to follow modern best practices and enable horizontal scrolling, initially hidden
+//							 elements and dynamically sized elements.
+// 1.x - (2006-12-31 - 2010-07-31) Initial version, hosted at googlecode, deprecated
+
+(function($,window,undefined){
+
+	$.fn.jScrollPane = function(settings)
+	{
+		// JScrollPane "class" - public methods are available through $('selector').data('jsp')
+		function JScrollPane(elem, s)
+		{
+			var settings, jsp = this, pane, paneWidth, paneHeight, container, contentWidth, contentHeight,
+				percentInViewH, percentInViewV, isScrollableV, isScrollableH, verticalDrag, dragMaxY,
+				verticalDragPosition, horizontalDrag, dragMaxX, horizontalDragPosition,
+				verticalBar, verticalTrack, scrollbarWidth, verticalTrackHeight, verticalDragHeight, arrowUp, arrowDown,
+				horizontalBar, horizontalTrack, horizontalTrackWidth, horizontalDragWidth, arrowLeft, arrowRight,
+				reinitialiseInterval, originalPadding, originalPaddingTotalWidth, previousContentWidth,
+				wasAtTop = true, wasAtLeft = true, wasAtBottom = false, wasAtRight = false,
+				originalElement = elem.clone(false, false).empty(),
+				mwEvent = $.fn.mwheelIntent ? 'mwheelIntent.jsp' : 'mousewheel.jsp';
+
+			originalPadding = elem.css('paddingTop') + ' ' +
+								elem.css('paddingRight') + ' ' +
+								elem.css('paddingBottom') + ' ' +
+								elem.css('paddingLeft');
+			originalPaddingTotalWidth = (parseInt(elem.css('paddingLeft'), 10) || 0) +
+										(parseInt(elem.css('paddingRight'), 10) || 0);
+
+			function initialise(s)
+			{
+
+				var /*firstChild, lastChild, */isMaintainingPositon, lastContentX, lastContentY,
+						hasContainingSpaceChanged, originalScrollTop, originalScrollLeft,
+						maintainAtBottom = false, maintainAtRight = false;
+
+				settings = s;
+
+				if (pane === undefined) {
+					originalScrollTop = elem.scrollTop();
+					originalScrollLeft = elem.scrollLeft();
+
+					elem.css(
+						{
+							overflow: 'hidden',
+							padding: 0
+						}
+					);
+					// TODO: Deal with where width/ height is 0 as it probably means the element is hidden and we should
+					// come back to it later and check once it is unhidden...
+					paneWidth = elem.innerWidth() + originalPaddingTotalWidth;
+					paneHeight = elem.innerHeight();
+
+					elem.width(paneWidth);
+					
+					pane = $('<div class="jspPane" />').css('padding', originalPadding).append(elem.children());
+					container = $('<div class="jspContainer" />')
+						.css({
+							'width': paneWidth + 'px',
+							'height': paneHeight + 'px'
+						}
+					).append(pane).appendTo(elem);
+
+					/*
+					// Move any margins from the first and last children up to the container so they can still
+					// collapse with neighbouring elements as they would before jScrollPane 
+					firstChild = pane.find(':first-child');
+					lastChild = pane.find(':last-child');
+					elem.css(
+						{
+							'margin-top': firstChild.css('margin-top'),
+							'margin-bottom': lastChild.css('margin-bottom')
+						}
+					);
+					firstChild.css('margin-top', 0);
+					lastChild.css('margin-bottom', 0);
+					*/
+				} else {
+					elem.css('width', '');
+
+					maintainAtBottom = settings.stickToBottom && isCloseToBottom();
+					maintainAtRight  = settings.stickToRight  && isCloseToRight();
+
+					hasContainingSpaceChanged = elem.innerWidth() + originalPaddingTotalWidth != paneWidth || elem.outerHeight() != paneHeight;
+
+					if (hasContainingSpaceChanged) {
+						paneWidth = elem.innerWidth() + originalPaddingTotalWidth;
+						paneHeight = elem.innerHeight();
+						container.css({
+							width: paneWidth + 'px',
+							height: paneHeight + 'px'
+						});
+					}
+
+					// If nothing changed since last check...
+					if (!hasContainingSpaceChanged && previousContentWidth == contentWidth && pane.outerHeight() == contentHeight) {
+						elem.width(paneWidth);
+						return;
+					}
+					previousContentWidth = contentWidth;
+					
+					pane.css('width', '');
+					elem.width(paneWidth);
+
+					container.find('>.jspVerticalBar,>.jspHorizontalBar').remove().end();
+				}
+
+				pane.css('overflow', 'auto');
+				if (s.contentWidth) {
+					contentWidth = s.contentWidth;
+				} else {
+					contentWidth = pane[0].scrollWidth;
+				}
+				contentHeight = pane[0].scrollHeight;
+				pane.css('overflow', '');
+
+				percentInViewH = contentWidth / paneWidth;
+				percentInViewV = contentHeight / paneHeight;
+				isScrollableV = percentInViewV > 1;
+
+				isScrollableH = percentInViewH > 1;
+
+				//console.log(paneWidth, paneHeight, contentWidth, contentHeight, percentInViewH, percentInViewV, isScrollableH, isScrollableV);
+
+				if (!(isScrollableH || isScrollableV)) {
+					elem.removeClass('jspScrollable');
+					pane.css({
+						top: 0,
+						width: container.width() - originalPaddingTotalWidth
+					});
+					removeMousewheel();
+					removeFocusHandler();
+					removeKeyboardNav();
+					removeClickOnTrack();
+				} else {
+					elem.addClass('jspScrollable');
+
+					isMaintainingPositon = settings.maintainPosition && (verticalDragPosition || horizontalDragPosition);
+					if (isMaintainingPositon) {
+						lastContentX = contentPositionX();
+						lastContentY = contentPositionY();
+					}
+
+					initialiseVerticalScroll();
+					initialiseHorizontalScroll();
+					resizeScrollbars();
+
+					if (isMaintainingPositon) {
+						scrollToX(maintainAtRight  ? (contentWidth  - paneWidth ) : lastContentX, false);
+						scrollToY(maintainAtBottom ? (contentHeight - paneHeight) : lastContentY, false);
+					}
+
+					initFocusHandler();
+					initMousewheel();
+					initTouch();
+					
+					if (settings.enableKeyboardNavigation) {
+						initKeyboardNav();
+					}
+					if (settings.clickOnTrack) {
+						initClickOnTrack();
+					}
+					
+					observeHash();
+					if (settings.hijackInternalLinks) {
+						hijackInternalLinks();
+					}
+				}
+
+				if (settings.autoReinitialise && !reinitialiseInterval) {
+					reinitialiseInterval = setInterval(
+						function()
+						{
+							initialise(settings);
+						},
+						settings.autoReinitialiseDelay
+					);
+				} else if (!settings.autoReinitialise && reinitialiseInterval) {
+					clearInterval(reinitialiseInterval);
+				}
+
+				originalScrollTop && elem.scrollTop(0) && scrollToY(originalScrollTop, false);
+				originalScrollLeft && elem.scrollLeft(0) && scrollToX(originalScrollLeft, false);
+
+				elem.trigger('jsp-initialised', [isScrollableH || isScrollableV]);
+			}
+
+			function initialiseVerticalScroll()
+			{
+				if (isScrollableV) {
+
+					container.append(
+						$('<div class="jspVerticalBar" />').append(
+							$('<div class="jspCap jspCapTop" />'),
+							$('<div class="jspTrack" />').append(
+								$('<div class="jspDrag" />').append(
+									$('<div class="jspDragTop" />'),
+									$('<div class="jspDragBottom" />')
+								)
+							),
+							$('<div class="jspCap jspCapBottom" />')
+						)
+					);
+
+					verticalBar = container.find('>.jspVerticalBar');
+					verticalTrack = verticalBar.find('>.jspTrack');
+					verticalDrag = verticalTrack.find('>.jspDrag');
+
+					if (settings.showArrows) {
+						arrowUp = $('<a class="jspArrow jspArrowUp" />').bind(
+							'mousedown.jsp', getArrowScroll(0, -1)
+						).bind('click.jsp', nil);
+						arrowDown = $('<a class="jspArrow jspArrowDown" />').bind(
+							'mousedown.jsp', getArrowScroll(0, 1)
+						).bind('click.jsp', nil);
+						if (settings.arrowScrollOnHover) {
+							arrowUp.bind('mouseover.jsp', getArrowScroll(0, -1, arrowUp));
+							arrowDown.bind('mouseover.jsp', getArrowScroll(0, 1, arrowDown));
+						}
+
+						appendArrows(verticalTrack, settings.verticalArrowPositions, arrowUp, arrowDown);
+					}
+
+					verticalTrackHeight = paneHeight;
+					container.find('>.jspVerticalBar>.jspCap:visible,>.jspVerticalBar>.jspArrow').each(
+						function()
+						{
+							verticalTrackHeight -= $(this).outerHeight();
+						}
+					);
+
+
+					verticalDrag.hover(
+						function()
+						{
+							verticalDrag.addClass('jspHover');
+						},
+						function()
+						{
+							verticalDrag.removeClass('jspHover');
+						}
+					).bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							// Stop IE from allowing text selection
+							$('html').bind('dragstart.jsp selectstart.jsp', nil);
+
+							verticalDrag.addClass('jspActive');
+
+							var startY = e.pageY - verticalDrag.position().top;
+
+							$('html').bind(
+								'mousemove.jsp',
+								function(e)
+								{
+									positionDragY(e.pageY - startY, false);
+								}
+							).bind('mouseup.jsp mouseleave.jsp', cancelDrag);
+							return false;
+						}
+					);
+					sizeVerticalScrollbar();
+				}
+			}
+
+			function sizeVerticalScrollbar()
+			{
+				verticalTrack.height(verticalTrackHeight + 'px');
+				verticalDragPosition = 0;
+				scrollbarWidth = settings.verticalGutter + verticalTrack.outerWidth();
+
+				// Make the pane thinner to allow for the vertical scrollbar
+				pane.width(paneWidth - scrollbarWidth - originalPaddingTotalWidth);
+
+				// Add margin to the left of the pane if scrollbars are on that side (to position
+				// the scrollbar on the left or right set it's left or right property in CSS)
+				try {
+					if (verticalBar.position().left === 0) {
+						pane.css('margin-left', scrollbarWidth + 'px');
+					}
+				} catch (err) {
+				}
+			}
+
+			function initialiseHorizontalScroll()
+			{
+				if (isScrollableH) {
+
+					container.append(
+						$('<div class="jspHorizontalBar" />').append(
+							$('<div class="jspCap jspCapLeft" />'),
+							$('<div class="jspTrack" />').append(
+								$('<div class="jspDrag" />').append(
+									$('<div class="jspDragLeft" />'),
+									$('<div class="jspDragRight" />')
+								)
+							),
+							$('<div class="jspCap jspCapRight" />')
+						)
+					);
+
+					horizontalBar = container.find('>.jspHorizontalBar');
+					horizontalTrack = horizontalBar.find('>.jspTrack');
+					horizontalDrag = horizontalTrack.find('>.jspDrag');
+
+					if (settings.showArrows) {
+						arrowLeft = $('<a class="jspArrow jspArrowLeft" />').bind(
+							'mousedown.jsp', getArrowScroll(-1, 0)
+						).bind('click.jsp', nil);
+						arrowRight = $('<a class="jspArrow jspArrowRight" />').bind(
+							'mousedown.jsp', getArrowScroll(1, 0)
+						).bind('click.jsp', nil);
+						if (settings.arrowScrollOnHover) {
+							arrowLeft.bind('mouseover.jsp', getArrowScroll(-1, 0, arrowLeft));
+							arrowRight.bind('mouseover.jsp', getArrowScroll(1, 0, arrowRight));
+						}
+						appendArrows(horizontalTrack, settings.horizontalArrowPositions, arrowLeft, arrowRight);
+					}
+
+					horizontalDrag.hover(
+						function()
+						{
+							horizontalDrag.addClass('jspHover');
+						},
+						function()
+						{
+							horizontalDrag.removeClass('jspHover');
+						}
+					).bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							// Stop IE from allowing text selection
+							$('html').bind('dragstart.jsp selectstart.jsp', nil);
+
+							horizontalDrag.addClass('jspActive');
+
+							var startX = e.pageX - horizontalDrag.position().left;
+
+							$('html').bind(
+								'mousemove.jsp',
+								function(e)
+								{
+									positionDragX(e.pageX - startX, false);
+								}
+							).bind('mouseup.jsp mouseleave.jsp', cancelDrag);
+							return false;
+						}
+					);
+					horizontalTrackWidth = container.innerWidth();
+					sizeHorizontalScrollbar();
+				}
+			}
+
+			function sizeHorizontalScrollbar()
+			{
+				container.find('>.jspHorizontalBar>.jspCap:visible,>.jspHorizontalBar>.jspArrow').each(
+					function()
+					{
+						horizontalTrackWidth -= $(this).outerWidth();
+					}
+				);
+
+				horizontalTrack.width(horizontalTrackWidth + 'px');
+				horizontalDragPosition = 0;
+			}
+
+			function resizeScrollbars()
+			{
+				if (isScrollableH && isScrollableV) {
+					var horizontalTrackHeight = horizontalTrack.outerHeight(),
+						verticalTrackWidth = verticalTrack.outerWidth();
+					verticalTrackHeight -= horizontalTrackHeight;
+					$(horizontalBar).find('>.jspCap:visible,>.jspArrow').each(
+						function()
+						{
+							horizontalTrackWidth += $(this).outerWidth();
+						}
+					);
+					horizontalTrackWidth -= verticalTrackWidth;
+					paneHeight -= verticalTrackWidth;
+					paneWidth -= horizontalTrackHeight;
+					horizontalTrack.parent().append(
+						$('<div class="jspCorner" />').css('width', horizontalTrackHeight + 'px')
+					);
+					sizeVerticalScrollbar();
+					sizeHorizontalScrollbar();
+				}
+				// reflow content
+				if (isScrollableH) {
+					pane.width((container.outerWidth() - originalPaddingTotalWidth) + 'px');
+				}
+				contentHeight = pane.outerHeight();
+				percentInViewV = contentHeight / paneHeight;
+
+				if (isScrollableH) {
+					horizontalDragWidth = Math.ceil(1 / percentInViewH * horizontalTrackWidth);
+					if (horizontalDragWidth > settings.horizontalDragMaxWidth) {
+						horizontalDragWidth = settings.horizontalDragMaxWidth;
+					} else if (horizontalDragWidth < settings.horizontalDragMinWidth) {
+						horizontalDragWidth = settings.horizontalDragMinWidth;
+					}
+					horizontalDrag.width(horizontalDragWidth + 'px');
+					dragMaxX = horizontalTrackWidth - horizontalDragWidth;
+					_positionDragX(horizontalDragPosition); // To update the state for the arrow buttons
+				}
+				if (isScrollableV) {
+					verticalDragHeight = Math.ceil(1 / percentInViewV * verticalTrackHeight);
+					if (verticalDragHeight > settings.verticalDragMaxHeight) {
+						verticalDragHeight = settings.verticalDragMaxHeight;
+					} else if (verticalDragHeight < settings.verticalDragMinHeight) {
+						verticalDragHeight = settings.verticalDragMinHeight;
+					}
+					verticalDrag.height(verticalDragHeight + 'px');
+					dragMaxY = verticalTrackHeight - verticalDragHeight;
+					_positionDragY(verticalDragPosition); // To update the state for the arrow buttons
+				}
+			}
+
+			function appendArrows(ele, p, a1, a2)
+			{
+				var p1 = "before", p2 = "after", aTemp;
+				
+				// Sniff for mac... Is there a better way to determine whether the arrows would naturally appear
+				// at the top or the bottom of the bar?
+				if (p == "os") {
+					p = /Mac/.test(navigator.platform) ? "after" : "split";
+				}
+				if (p == p1) {
+					p2 = p;
+				} else if (p == p2) {
+					p1 = p;
+					aTemp = a1;
+					a1 = a2;
+					a2 = aTemp;
+				}
+
+				ele[p1](a1)[p2](a2);
+			}
+
+			function getArrowScroll(dirX, dirY, ele)
+			{
+				return function()
+				{
+					arrowScroll(dirX, dirY, this, ele);
+					this.blur();
+					return false;
+				};
+			}
+
+			function arrowScroll(dirX, dirY, arrow, ele)
+			{
+				arrow = $(arrow).addClass('jspActive');
+
+				var eve,
+					scrollTimeout,
+					isFirst = true,
+					doScroll = function()
+					{
+						if (dirX !== 0) {
+							jsp.scrollByX(dirX * settings.arrowButtonSpeed);
+						}
+						if (dirY !== 0) {
+							jsp.scrollByY(dirY * settings.arrowButtonSpeed);
+						}
+						scrollTimeout = setTimeout(doScroll, isFirst ? settings.initialDelay : settings.arrowRepeatFreq);
+						isFirst = false;
+					};
+
+				doScroll();
+
+				eve = ele ? 'mouseout.jsp' : 'mouseup.jsp';
+				ele = ele || $('html');
+				ele.bind(
+					eve,
+					function()
+					{
+						arrow.removeClass('jspActive');
+						scrollTimeout && clearTimeout(scrollTimeout);
+						scrollTimeout = null;
+						ele.unbind(eve);
+					}
+				);
+			}
+
+			function initClickOnTrack()
+			{
+				removeClickOnTrack();
+				if (isScrollableV) {
+					verticalTrack.bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							if (e.originalTarget === undefined || e.originalTarget == e.currentTarget) {
+								var clickedTrack = $(this),
+									offset = clickedTrack.offset(),
+									direction = e.pageY - offset.top - verticalDragPosition,
+									scrollTimeout,
+									isFirst = true,
+									doScroll = function()
+									{
+										var offset = clickedTrack.offset(),
+											pos = e.pageY - offset.top - verticalDragHeight / 2,
+											contentDragY = paneHeight * settings.scrollPagePercent,
+											dragY = dragMaxY * contentDragY / (contentHeight - paneHeight);
+										if (direction < 0) {
+											if (verticalDragPosition - dragY > pos) {
+												jsp.scrollByY(-contentDragY);
+											} else {
+												positionDragY(pos);
+											}
+										} else if (direction > 0) {
+											if (verticalDragPosition + dragY < pos) {
+												jsp.scrollByY(contentDragY);
+											} else {
+												positionDragY(pos);
+											}
+										} else {
+											cancelClick();
+											return;
+										}
+										scrollTimeout = setTimeout(doScroll, isFirst ? settings.initialDelay : settings.trackClickRepeatFreq);
+										isFirst = false;
+									},
+									cancelClick = function()
+									{
+										scrollTimeout && clearTimeout(scrollTimeout);
+										scrollTimeout = null;
+										$(document).unbind('mouseup.jsp', cancelClick);
+									};
+								doScroll();
+								$(document).bind('mouseup.jsp', cancelClick);
+								return false;
+							}
+						}
+					);
+				}
+				
+				if (isScrollableH) {
+					horizontalTrack.bind(
+						'mousedown.jsp',
+						function(e)
+						{
+							if (e.originalTarget === undefined || e.originalTarget == e.currentTarget) {
+								var clickedTrack = $(this),
+									offset = clickedTrack.offset(),
+									direction = e.pageX - offset.left - horizontalDragPosition,
+									scrollTimeout,
+									isFirst = true,
+									doScroll = function()
+									{
+										var offset = clickedTrack.offset(),
+											pos = e.pageX - offset.left - horizontalDragWidth / 2,
+											contentDragX = paneWidth * settings.scrollPagePercent,
+											dragX = dragMaxX * contentDragX / (contentWidth - paneWidth);
+										if (direction < 0) {
+											if (horizontalDragPosition - dragX > pos) {
+												jsp.scrollByX(-contentDragX);
+											} else {
+												positionDragX(pos);
+											}
+										} else if (direction > 0) {
+											if (horizontalDragPosition + dragX < pos) {
+												jsp.scrollByX(contentDragX);
+											} else {
+												positionDragX(pos);
+											}
+										} else {
+											cancelClick();
+											return;
+										}
+										scrollTimeout = setTimeout(doScroll, isFirst ? settings.initialDelay : settings.trackClickRepeatFreq);
+										isFirst = false;
+									},
+									cancelClick = function()
+									{
+										scrollTimeout && clearTimeout(scrollTimeout);
+										scrollTimeout = null;
+										$(document).unbind('mouseup.jsp', cancelClick);
+									};
+								doScroll();
+								$(document).bind('mouseup.jsp', cancelClick);
+								return false;
+							}
+						}
+					);
+				}
+			}
+
+			function removeClickOnTrack()
+			{
+				if (horizontalTrack) {
+					horizontalTrack.unbind('mousedown.jsp');
+				}
+				if (verticalTrack) {
+					verticalTrack.unbind('mousedown.jsp');
+				}
+			}
+
+			function cancelDrag()
+			{
+				$('html').unbind('dragstart.jsp selectstart.jsp mousemove.jsp mouseup.jsp mouseleave.jsp');
+
+				if (verticalDrag) {
+					verticalDrag.removeClass('jspActive');
+				}
+				if (horizontalDrag) {
+					horizontalDrag.removeClass('jspActive');
+				}
+			}
+
+			function positionDragY(destY, animate)
+			{
+				if (!isScrollableV) {
+					return;
+				}
+				if (destY < 0) {
+					destY = 0;
+				} else if (destY > dragMaxY) {
+					destY = dragMaxY;
+				}
+
+				// can't just check if(animate) because false is a valid value that could be passed in...
+				if (animate === undefined) {
+					animate = settings.animateScroll;
+				}
+				if (animate) {
+					jsp.animate(verticalDrag, 'top', destY,	_positionDragY);
+				} else {
+					verticalDrag.css('top', destY);
+					_positionDragY(destY);
+				}
+
+			}
+
+			function _positionDragY(destY)
+			{
+				if (destY === undefined) {
+					destY = verticalDrag.position().top;
+				}
+
+				container.scrollTop(0);
+				verticalDragPosition = destY;
+
+				var isAtTop = verticalDragPosition === 0,
+					isAtBottom = verticalDragPosition == dragMaxY,
+					percentScrolled = destY/ dragMaxY,
+					destTop = -percentScrolled * (contentHeight - paneHeight);
+
+				if (wasAtTop != isAtTop || wasAtBottom != isAtBottom) {
+					wasAtTop = isAtTop;
+					wasAtBottom = isAtBottom;
+					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
+				}
+				
+				updateVerticalArrows(isAtTop, isAtBottom);
+				pane.css('top', destTop);
+				elem.trigger('jsp-scroll-y', [-destTop, isAtTop, isAtBottom]).trigger('scroll');
+			}
+
+			function positionDragX(destX, animate)
+			{
+				if (!isScrollableH) {
+					return;
+				}
+				if (destX < 0) {
+					destX = 0;
+				} else if (destX > dragMaxX) {
+					destX = dragMaxX;
+				}
+
+				if (animate === undefined) {
+					animate = settings.animateScroll;
+				}
+				if (animate) {
+					jsp.animate(horizontalDrag, 'left', destX,	_positionDragX);
+				} else {
+					horizontalDrag.css('left', destX);
+					_positionDragX(destX);
+				}
+			}
+
+			function _positionDragX(destX)
+			{
+				if (destX === undefined) {
+					destX = horizontalDrag.position().left;
+				}
+
+				container.scrollTop(0);
+				horizontalDragPosition = destX;
+
+				var isAtLeft = horizontalDragPosition === 0,
+					isAtRight = horizontalDragPosition == dragMaxX,
+					percentScrolled = destX / dragMaxX,
+					destLeft = -percentScrolled * (contentWidth - paneWidth);
+
+				if (wasAtLeft != isAtLeft || wasAtRight != isAtRight) {
+					wasAtLeft = isAtLeft;
+					wasAtRight = isAtRight;
+					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
+				}
+				
+				updateHorizontalArrows(isAtLeft, isAtRight);
+				pane.css('left', destLeft);
+				elem.trigger('jsp-scroll-x', [-destLeft, isAtLeft, isAtRight]).trigger('scroll');
+			}
+
+			function updateVerticalArrows(isAtTop, isAtBottom)
+			{
+				if (settings.showArrows) {
+					arrowUp[isAtTop ? 'addClass' : 'removeClass']('jspDisabled');
+					arrowDown[isAtBottom ? 'addClass' : 'removeClass']('jspDisabled');
+				}
+			}
+
+			function updateHorizontalArrows(isAtLeft, isAtRight)
+			{
+				if (settings.showArrows) {
+					arrowLeft[isAtLeft ? 'addClass' : 'removeClass']('jspDisabled');
+					arrowRight[isAtRight ? 'addClass' : 'removeClass']('jspDisabled');
+				}
+			}
+
+			function scrollToY(destY, animate)
+			{
+				var percentScrolled = destY / (contentHeight - paneHeight);
+				positionDragY(percentScrolled * dragMaxY, animate);
+			}
+
+			function scrollToX(destX, animate)
+			{
+				var percentScrolled = destX / (contentWidth - paneWidth);
+				positionDragX(percentScrolled * dragMaxX, animate);
+			}
+
+			function scrollToElement(ele, stickToTop, animate)
+			{
+				var e, eleHeight, eleWidth, eleTop = 0, eleLeft = 0, viewportTop, viewportLeft, maxVisibleEleTop, maxVisibleEleLeft, destY, destX;
+
+				// Legal hash values aren't necessarily legal jQuery selectors so we need to catch any
+				// errors from the lookup...
+				try {
+					e = $(ele);
+				} catch (err) {
+					return;
+				}
+				eleHeight = e.outerHeight();
+				eleWidth= e.outerWidth();
+
+				container.scrollTop(0);
+				container.scrollLeft(0);
+				
+				// loop through parents adding the offset top of any elements that are relatively positioned between
+				// the focused element and the jspPane so we can get the true distance from the top
+				// of the focused element to the top of the scrollpane...
+				while (!e.is('.jspPane')) {
+					eleTop += e.position().top;
+					eleLeft += e.position().left;
+					e = e.offsetParent();
+					if (/^body|html$/i.test(e[0].nodeName)) {
+						// we ended up too high in the document structure. Quit!
+						return;
+					}
+				}
+
+				viewportTop = contentPositionY();
+				maxVisibleEleTop = viewportTop + paneHeight;
+				if (eleTop < viewportTop || stickToTop) { // element is above viewport
+					destY = eleTop - settings.verticalGutter;
+				} else if (eleTop + eleHeight > maxVisibleEleTop) { // element is below viewport
+					destY = eleTop - paneHeight + eleHeight + settings.verticalGutter;
+				}
+				if (destY) {
+					scrollToY(destY, animate);
+				}
+				
+				viewportLeft = contentPositionX();
+	            maxVisibleEleLeft = viewportLeft + paneWidth;
+	            if (eleLeft < viewportLeft || stickToTop) { // element is to the left of viewport
+	                destX = eleLeft - settings.horizontalGutter;
+	            } else if (eleLeft + eleWidth > maxVisibleEleLeft) { // element is to the right viewport
+	                destX = eleLeft - paneWidth + eleWidth + settings.horizontalGutter;
+	            }
+	            if (destX) {
+	                scrollToX(destX, animate);
+	            }
+
+			}
+
+			function contentPositionX()
+			{
+				return -pane.position().left;
+			}
+
+			function contentPositionY()
+			{
+				return -pane.position().top;
+			}
+
+			function isCloseToBottom()
+			{
+				var scrollableHeight = contentHeight - paneHeight;
+				return (scrollableHeight > 20) && (scrollableHeight - contentPositionY() < 10);
+			}
+
+			function isCloseToRight()
+			{
+				var scrollableWidth = contentWidth - paneWidth;
+				return (scrollableWidth > 20) && (scrollableWidth - contentPositionX() < 10);
+			}
+
+			function initMousewheel()
+			{
+				container.unbind(mwEvent).bind(
+					mwEvent,
+					function (event, delta, deltaX, deltaY) {
+						var dX = horizontalDragPosition, dY = verticalDragPosition;
+						jsp.scrollBy(deltaX * settings.mouseWheelSpeed, -deltaY * settings.mouseWheelSpeed, false);
+						// return true if there was no movement so rest of screen can scroll
+						return dX == horizontalDragPosition && dY == verticalDragPosition;
+					}
+				);
+			}
+
+			function removeMousewheel()
+			{
+				container.unbind(mwEvent);
+			}
+
+			function nil()
+			{
+				return false;
+			}
+
+			function initFocusHandler()
+			{
+				pane.find(':input,a').unbind('focus.jsp').bind(
+					'focus.jsp',
+					function(e)
+					{
+						scrollToElement(e.target, false);
+					}
+				);
+			}
+
+			function removeFocusHandler()
+			{
+				pane.find(':input,a').unbind('focus.jsp');
+			}
+			
+			function initKeyboardNav()
+			{
+				var keyDown, elementHasScrolled, validParents = [];
+				isScrollableH && validParents.push(horizontalBar[0]);
+				isScrollableV && validParents.push(verticalBar[0]);
+				
+				// IE also focuses elements that don't have tabindex set.
+				pane.focus(
+					function()
+					{
+						elem.focus();
+					}
+				);
+				
+				elem.attr('tabindex', 0)
+					.unbind('keydown.jsp keypress.jsp')
+					.bind(
+						'keydown.jsp',
+						function(e)
+						{
+							if (e.target !== this && !(validParents.length && $(e.target).closest(validParents).length)){
+								return;
+							}
+							var dX = horizontalDragPosition, dY = verticalDragPosition;
+							switch(e.keyCode) {
+								case 40: // down
+								case 38: // up
+								case 34: // page down
+								case 32: // space
+								case 33: // page up
+								case 39: // right
+								case 37: // left
+									keyDown = e.keyCode;
+									keyDownHandler();
+									break;
+								case 35: // end
+									scrollToY(contentHeight - paneHeight);
+									keyDown = null;
+									break;
+								case 36: // home
+									scrollToY(0);
+									keyDown = null;
+									break;
+							}
+
+							elementHasScrolled = e.keyCode == keyDown && dX != horizontalDragPosition || dY != verticalDragPosition;
+							return !elementHasScrolled;
+						}
+					).bind(
+						'keypress.jsp', // For FF/ OSX so that we can cancel the repeat key presses if the JSP scrolls...
+						function(e)
+						{
+							if (e.keyCode == keyDown) {
+								keyDownHandler();
+							}
+							return !elementHasScrolled;
+						}
+					);
+				
+				if (settings.hideFocus) {
+					elem.css('outline', 'none');
+					if ('hideFocus' in container[0]){
+						elem.attr('hideFocus', true);
+					}
+				} else {
+					elem.css('outline', '');
+					if ('hideFocus' in container[0]){
+						elem.attr('hideFocus', false);
+					}
+				}
+				
+				function keyDownHandler()
+				{
+					var dX = horizontalDragPosition, dY = verticalDragPosition;
+					switch(keyDown) {
+						case 40: // down
+							jsp.scrollByY(settings.keyboardSpeed, false);
+							break;
+						case 38: // up
+							jsp.scrollByY(-settings.keyboardSpeed, false);
+							break;
+						case 34: // page down
+						case 32: // space
+							jsp.scrollByY(paneHeight * settings.scrollPagePercent, false);
+							break;
+						case 33: // page up
+							jsp.scrollByY(-paneHeight * settings.scrollPagePercent, false);
+							break;
+						case 39: // right
+							jsp.scrollByX(settings.keyboardSpeed, false);
+							break;
+						case 37: // left
+							jsp.scrollByX(-settings.keyboardSpeed, false);
+							break;
+					}
+
+					elementHasScrolled = dX != horizontalDragPosition || dY != verticalDragPosition;
+					return elementHasScrolled;
+				}
+			}
+			
+			function removeKeyboardNav()
+			{
+				elem.attr('tabindex', '-1')
+					.removeAttr('tabindex')
+					.unbind('keydown.jsp keypress.jsp');
+			}
+
+			function observeHash()
+			{
+				if (location.hash && location.hash.length > 1) {
+					var e,
+						retryInt,
+						hash = escape(location.hash.substr(1)) // hash must be escaped to prevent XSS
+						;
+					try {
+						e = $('#' + hash + ', a[name="' + hash + '"]');
+					} catch (err) {
+						return;
+					}
+
+					if (e.length && pane.find(hash)) {
+						// nasty workaround but it appears to take a little while before the hash has done its thing
+						// to the rendered page so we just wait until the container's scrollTop has been messed up.
+						if (container.scrollTop() === 0) {
+							retryInt = setInterval(
+								function()
+								{
+									if (container.scrollTop() > 0) {
+										scrollToElement(e, true);
+										$(document).scrollTop(container.position().top);
+										clearInterval(retryInt);
+									}
+								},
+								50
+							);
+						} else {
+							scrollToElement(e, true);
+							$(document).scrollTop(container.position().top);
+						}
+					}
+				}
+			}
+
+			function hijackInternalLinks()
+			{
+				// only register the link handler once
+				if ($(document.body).data('jspHijack')) {
+					return;
+				}
+
+				// remember that the handler was bound
+				$(document.body).data('jspHijack', true);
+
+				// use live handler to also capture newly created links
+				$(document.body).delegate('a[href*=#]', 'click', function(event) {
+					// does the link point to the same page?
+					// this also takes care of cases with a <base>-Tag or Links not starting with the hash #
+					// e.g. <a href="index.html#test"> when the current url already is index.html
+					var href = this.href.substr(0, this.href.indexOf('#')),
+						locationHref = location.href,
+						hash,
+						element,
+						container,
+						jsp,
+						scrollTop,
+						elementTop;
+					if (location.href.indexOf('#') !== -1) {
+						locationHref = location.href.substr(0, location.href.indexOf('#'));
+					}
+					if (href !== locationHref) {
+						// the link points to another page
+						return;
+					}
+
+					// check if jScrollPane should handle this click event
+					hash = escape(this.href.substr(this.href.indexOf('#') + 1));
+
+					// find the element on the page
+					element;
+					try {
+						element = $('#' + hash + ', a[name="' + hash + '"]');
+					} catch (e) {
+						// hash is not a valid jQuery identifier
+						return;
+					}
+
+					if (!element.length) {
+						// this link does not point to an element on this page
+						return;
+					}
+
+					container = element.closest('.jspScrollable');
+					jsp = container.data('jsp');
+
+					// jsp might be another jsp instance than the one, that bound this event
+					// remember: this event is only bound once for all instances.
+					jsp.scrollToElement(element, true);
+
+					if (container[0].scrollIntoView) {
+						// also scroll to the top of the container (if it is not visible)
+						scrollTop = $(window).scrollTop();
+						elementTop = element.offset().top;
+						if (elementTop < scrollTop || elementTop > scrollTop + $(window).height()) {
+							container[0].scrollIntoView();
+						}
+					}
+
+					// jsp handled this event, prevent the browser default (scrolling :P)
+					event.preventDefault();
+				});
+			}
+			
+			// Init touch on iPad, iPhone, iPod, Android
+			function initTouch()
+			{
+				var startX,
+					startY,
+					touchStartX,
+					touchStartY,
+					moved,
+					moving = false;
+  
+				container.unbind('touchstart.jsp touchmove.jsp touchend.jsp click.jsp-touchclick').bind(
+					'touchstart.jsp',
+					function(e)
+					{
+						var touch = e.originalEvent.touches[0];
+						startX = contentPositionX();
+						startY = contentPositionY();
+						touchStartX = touch.pageX;
+						touchStartY = touch.pageY;
+						moved = false;
+						moving = true;
+					}
+				).bind(
+					'touchmove.jsp',
+					function(ev)
+					{
+						if(!moving) {
+							return;
+						}
+						
+						var touchPos = ev.originalEvent.touches[0],
+							dX = horizontalDragPosition, dY = verticalDragPosition;
+						
+						jsp.scrollTo(startX + touchStartX - touchPos.pageX, startY + touchStartY - touchPos.pageY);
+						
+						moved = moved || Math.abs(touchStartX - touchPos.pageX) > 5 || Math.abs(touchStartY - touchPos.pageY) > 5;
+						
+						// return true if there was no movement so rest of screen can scroll
+						return dX == horizontalDragPosition && dY == verticalDragPosition;
+					}
+				).bind(
+					'touchend.jsp',
+					function(e)
+					{
+						moving = false;
+						/*if(moved) {
+							return false;
+						}*/
+					}
+				).bind(
+					'click.jsp-touchclick',
+					function(e)
+					{
+						if(moved) {
+							moved = false;
+							return false;
+						}
+					}
+				);
+			}
+			
+			function destroy(){
+				var currentY = contentPositionY(),
+					currentX = contentPositionX();
+				elem.removeClass('jspScrollable').unbind('.jsp');
+				elem.replaceWith(originalElement.append(pane.children()));
+				originalElement.scrollTop(currentY);
+				originalElement.scrollLeft(currentX);
+
+				// clear reinitialize timer if active
+				if (reinitialiseInterval) {
+					clearInterval(reinitialiseInterval);
+				}
+			}
+
+			// Public API
+			$.extend(
+				jsp,
+				{
+					// Reinitialises the scroll pane (if it's internal dimensions have changed since the last time it
+					// was initialised). The settings object which is passed in will override any settings from the
+					// previous time it was initialised - if you don't pass any settings then the ones from the previous
+					// initialisation will be used.
+					reinitialise: function(s)
+					{
+						s = $.extend({}, settings, s);
+						initialise(s);
+					},
+					// Scrolls the specified element (a jQuery object, DOM node or jQuery selector string) into view so
+					// that it can be seen within the viewport. If stickToTop is true then the element will appear at
+					// the top of the viewport, if it is false then the viewport will scroll as little as possible to
+					// show the element. You can also specify if you want animation to occur. If you don't provide this
+					// argument then the animateScroll value from the settings object is used instead.
+					scrollToElement: function(ele, stickToTop, animate)
+					{
+						scrollToElement(ele, stickToTop, animate);
+					},
+					// Scrolls the pane so that the specified co-ordinates within the content are at the top left
+					// of the viewport. animate is optional and if not passed then the value of animateScroll from
+					// the settings object this jScrollPane was initialised with is used.
+					scrollTo: function(destX, destY, animate)
+					{
+						scrollToX(destX, animate);
+						scrollToY(destY, animate);
+					},
+					// Scrolls the pane so that the specified co-ordinate within the content is at the left of the
+					// viewport. animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					scrollToX: function(destX, animate)
+					{
+						scrollToX(destX, animate);
+					},
+					// Scrolls the pane so that the specified co-ordinate within the content is at the top of the
+					// viewport. animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					scrollToY: function(destY, animate)
+					{
+						scrollToY(destY, animate);
+					},
+					// Scrolls the pane to the specified percentage of its maximum horizontal scroll position. animate
+					// is optional and if not passed then the value of animateScroll from the settings object this
+					// jScrollPane was initialised with is used.
+					scrollToPercentX: function(destPercentX, animate)
+					{
+						scrollToX(destPercentX * (contentWidth - paneWidth), animate);
+					},
+					// Scrolls the pane to the specified percentage of its maximum vertical scroll position. animate
+					// is optional and if not passed then the value of animateScroll from the settings object this
+					// jScrollPane was initialised with is used.
+					scrollToPercentY: function(destPercentY, animate)
+					{
+						scrollToY(destPercentY * (contentHeight - paneHeight), animate);
+					},
+					// Scrolls the pane by the specified amount of pixels. animate is optional and if not passed then
+					// the value of animateScroll from the settings object this jScrollPane was initialised with is used.
+					scrollBy: function(deltaX, deltaY, animate)
+					{
+						jsp.scrollByX(deltaX, animate);
+						jsp.scrollByY(deltaY, animate);
+					},
+					// Scrolls the pane by the specified amount of pixels. animate is optional and if not passed then
+					// the value of animateScroll from the settings object this jScrollPane was initialised with is used.
+					scrollByX: function(deltaX, animate)
+					{
+						var destX = contentPositionX() + Math[deltaX<0 ? 'floor' : 'ceil'](deltaX),
+							percentScrolled = destX / (contentWidth - paneWidth);
+						positionDragX(percentScrolled * dragMaxX, animate);
+					},
+					// Scrolls the pane by the specified amount of pixels. animate is optional and if not passed then
+					// the value of animateScroll from the settings object this jScrollPane was initialised with is used.
+					scrollByY: function(deltaY, animate)
+					{
+						var destY = contentPositionY() + Math[deltaY<0 ? 'floor' : 'ceil'](deltaY),
+							percentScrolled = destY / (contentHeight - paneHeight);
+						positionDragY(percentScrolled * dragMaxY, animate);
+					},
+					// Positions the horizontal drag at the specified x position (and updates the viewport to reflect
+					// this). animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					positionDragX: function(x, animate)
+					{
+						positionDragX(x, animate);
+					},
+					// Positions the vertical drag at the specified y position (and updates the viewport to reflect
+					// this). animate is optional and if not passed then the value of animateScroll from the settings
+					// object this jScrollPane was initialised with is used.
+					positionDragY: function(y, animate)
+					{
+						positionDragY(y, animate);
+					},
+					// This method is called when jScrollPane is trying to animate to a new position. You can override
+					// it if you want to provide advanced animation functionality. It is passed the following arguments:
+					//  * ele          - the element whose position is being animated
+					//  * prop         - the property that is being animated
+					//  * value        - the value it's being animated to
+					//  * stepCallback - a function that you must execute each time you update the value of the property
+					// You can use the default implementation (below) as a starting point for your own implementation.
+					animate: function(ele, prop, value, stepCallback)
+					{
+						var params = {};
+						params[prop] = value;
+						ele.animate(
+							params,
+							{
+								'duration'	: settings.animateDuration,
+								'easing'	: settings.animateEase,
+								'queue'		: false,
+								'step'		: stepCallback
+							}
+						);
+					},
+					// Returns the current x position of the viewport with regards to the content pane.
+					getContentPositionX: function()
+					{
+						return contentPositionX();
+					},
+					// Returns the current y position of the viewport with regards to the content pane.
+					getContentPositionY: function()
+					{
+						return contentPositionY();
+					},
+					// Returns the width of the content within the scroll pane.
+					getContentWidth: function()
+					{
+						return contentWidth;
+					},
+					// Returns the height of the content within the scroll pane.
+					getContentHeight: function()
+					{
+						return contentHeight;
+					},
+					// Returns the horizontal position of the viewport within the pane content.
+					getPercentScrolledX: function()
+					{
+						return contentPositionX() / (contentWidth - paneWidth);
+					},
+					// Returns the vertical position of the viewport within the pane content.
+					getPercentScrolledY: function()
+					{
+						return contentPositionY() / (contentHeight - paneHeight);
+					},
+					// Returns whether or not this scrollpane has a horizontal scrollbar.
+					getIsScrollableH: function()
+					{
+						return isScrollableH;
+					},
+					// Returns whether or not this scrollpane has a vertical scrollbar.
+					getIsScrollableV: function()
+					{
+						return isScrollableV;
+					},
+					// Gets a reference to the content pane. It is important that you use this method if you want to
+					// edit the content of your jScrollPane as if you access the element directly then you may have some
+					// problems (as your original element has had additional elements for the scrollbars etc added into
+					// it).
+					getContentPane: function()
+					{
+						return pane;
+					},
+					// Scrolls this jScrollPane down as far as it can currently scroll. If animate isn't passed then the
+					// animateScroll value from settings is used instead.
+					scrollToBottom: function(animate)
+					{
+						positionDragY(dragMaxY, animate);
+					},
+					// Hijacks the links on the page which link to content inside the scrollpane. If you have changed
+					// the content of your page (e.g. via AJAX) and want to make sure any new anchor links to the
+					// contents of your scroll pane will work then call this function.
+					hijackInternalLinks: $.noop,
+					// Removes the jScrollPane and returns the page to the state it was in before jScrollPane was
+					// initialised.
+					destroy: function()
+					{
+							destroy();
+					}
+				}
+			);
+			
+			initialise(s);
+		}
+
+		// Pluginifying code...
+		settings = $.extend({}, $.fn.jScrollPane.defaults, settings);
+		
+		// Apply default speed
+		$.each(['arrowButtonSpeed', 'trackClickSpeed', 'keyboardSpeed'], function() {
+			settings[this] = settings[this] || settings.speed;
+		});
+
+		return this.each(
+			function()
+			{
+				var elem = $(this), jspApi = elem.data('jsp');
+				if (jspApi) {
+					jspApi.reinitialise(settings);
+				} else {
+					$("script",elem).filter('[type="text/javascript"],:not([type])').remove();
+					jspApi = new JScrollPane(elem, settings);
+					elem.data('jsp', jspApi);
+				}
+			}
+		);
+	};
+
+	$.fn.jScrollPane.defaults = {
+		showArrows					: false,
+		maintainPosition			: true,
+		stickToBottom				: false,
+		stickToRight				: false,
+		clickOnTrack				: true,
+		autoReinitialise			: false,
+		autoReinitialiseDelay		: 500,
+		verticalDragMinHeight		: 0,
+		verticalDragMaxHeight		: 99999,
+		horizontalDragMinWidth		: 0,
+		horizontalDragMaxWidth		: 99999,
+		contentWidth				: undefined,
+		animateScroll				: false,
+		animateDuration				: 300,
+		animateEase					: 'linear',
+		hijackInternalLinks			: false,
+		verticalGutter				: 4,
+		horizontalGutter			: 4,
+		mouseWheelSpeed				: 3,
+		arrowButtonSpeed			: 0,
+		arrowRepeatFreq				: 50,
+		arrowScrollOnHover			: false,
+		trackClickSpeed				: 0,
+		trackClickRepeatFreq		: 70,
+		verticalArrowPositions		: 'split',
+		horizontalArrowPositions	: 'split',
+		enableKeyboardNavigation	: true,
+		hideFocus					: false,
+		keyboardSpeed				: 0,
+		initialDelay                : 300,        // Delay before starting repeating
+		speed						: 30,		// Default speed when others falsey
+		scrollPagePercent			: .8		// Percent of visible area scrolled when pageUp/Down or track area pressed
+	};
+
+})(jQuery,this);
+
+
+/*! Copyright (c) 2013 Brandon Aaron (http://brandonaaron.net)
  * Licensed under the MIT License (LICENSE.txt).
  *
- * Version: 3.1.9
+ * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
+ * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
+ * Thanks to: Seamus Leahy for adding deltaX and deltaY
  *
- * Requires: jQuery 1.2.2+
+ * Version: 3.1.3
+ *
+ * Requires: 1.2.2+
  */
-!function(a){"function"==typeof define&&define.amd?define(["jquery"],a):"object"==typeof exports?module.exports=a:a(jQuery)}(function(a){function b(b){var g=b||window.event,h=i.call(arguments,1),j=0,k=0,l=0,m=0;if(b=a.event.fix(g),b.type="mousewheel","detail"in g&&(l=-1*g.detail),"wheelDelta"in g&&(l=g.wheelDelta),"wheelDeltaY"in g&&(l=g.wheelDeltaY),"wheelDeltaX"in g&&(k=-1*g.wheelDeltaX),"axis"in g&&g.axis===g.HORIZONTAL_AXIS&&(k=-1*l,l=0),j=0===l?k:l,"deltaY"in g&&(l=-1*g.deltaY,j=l),"deltaX"in g&&(k=g.deltaX,0===l&&(j=-1*k)),0!==l||0!==k){if(1===g.deltaMode){var n=a.data(this,"mousewheel-line-height");j*=n,l*=n,k*=n}else if(2===g.deltaMode){var o=a.data(this,"mousewheel-page-height");j*=o,l*=o,k*=o}return m=Math.max(Math.abs(l),Math.abs(k)),(!f||f>m)&&(f=m,d(g,m)&&(f/=40)),d(g,m)&&(j/=40,k/=40,l/=40),j=Math[j>=1?"floor":"ceil"](j/f),k=Math[k>=1?"floor":"ceil"](k/f),l=Math[l>=1?"floor":"ceil"](l/f),b.deltaX=k,b.deltaY=l,b.deltaFactor=f,b.deltaMode=0,h.unshift(b,j,k,l),e&&clearTimeout(e),e=setTimeout(c,200),(a.event.dispatch||a.event.handle).apply(this,h)}}function c(){f=null}function d(a,b){return k.settings.adjustOldDeltas&&"mousewheel"===a.type&&b%120===0}var e,f,g=["wheel","mousewheel","DOMMouseScroll","MozMousePixelScroll"],h="onwheel"in document||document.documentMode>=9?["wheel"]:["mousewheel","DomMouseScroll","MozMousePixelScroll"],i=Array.prototype.slice;if(a.event.fixHooks)for(var j=g.length;j;)a.event.fixHooks[g[--j]]=a.event.mouseHooks;var k=a.event.special.mousewheel={version:"3.1.9",setup:function(){if(this.addEventListener)for(var c=h.length;c;)this.addEventListener(h[--c],b,!1);else this.onmousewheel=b;a.data(this,"mousewheel-line-height",k.getLineHeight(this)),a.data(this,"mousewheel-page-height",k.getPageHeight(this))},teardown:function(){if(this.removeEventListener)for(var a=h.length;a;)this.removeEventListener(h[--a],b,!1);else this.onmousewheel=null},getLineHeight:function(b){return parseInt(a(b)["offsetParent"in a.fn?"offsetParent":"parent"]().css("fontSize"),10)},getPageHeight:function(b){return a(b).height()},settings:{adjustOldDeltas:!0}};a.fn.extend({mousewheel:function(a){return a?this.bind("mousewheel",a):this.trigger("mousewheel")},unmousewheel:function(a){return this.unbind("mousewheel",a)}})});
+
+(function (factory) {
+    if ( typeof define === 'function' && define.amd ) {
+        // AMD. Register as an anonymous module.
+        define(['jquery'], factory);
+    } else if (typeof exports === 'object') {
+        // Node/CommonJS style for Browserify
+        module.exports = factory;
+    } else {
+        // Browser globals
+        factory(jQuery);
+    }
+}(function ($) {
+
+    var toFix = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'];
+    var toBind = 'onwheel' in document || document.documentMode >= 9 ? ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
+    var lowestDelta, lowestDeltaXY;
+
+    if ( $.event.fixHooks ) {
+        for ( var i = toFix.length; i; ) {
+            $.event.fixHooks[ toFix[--i] ] = $.event.mouseHooks;
+        }
+    }
+
+    $.event.special.mousewheel = {
+        setup: function() {
+            if ( this.addEventListener ) {
+                for ( var i = toBind.length; i; ) {
+                    this.addEventListener( toBind[--i], handler, false );
+                }
+            } else {
+                this.onmousewheel = handler;
+            }
+        },
+
+        teardown: function() {
+            if ( this.removeEventListener ) {
+                for ( var i = toBind.length; i; ) {
+                    this.removeEventListener( toBind[--i], handler, false );
+                }
+            } else {
+                this.onmousewheel = null;
+            }
+        }
+    };
+
+    $.fn.extend({
+        mousewheel: function(fn) {
+            return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+        },
+
+        unmousewheel: function(fn) {
+            return this.unbind("mousewheel", fn);
+        }
+    });
+
+
+    function handler(event) {
+        var orgEvent = event || window.event,
+            args = [].slice.call(arguments, 1),
+            delta = 0,
+            deltaX = 0,
+            deltaY = 0,
+            absDelta = 0,
+            absDeltaXY = 0,
+            fn;
+        event = $.event.fix(orgEvent);
+        event.type = "mousewheel";
+
+        // Old school scrollwheel delta
+        if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta; }
+        if ( orgEvent.detail )     { delta = orgEvent.detail * -1; }
+
+        // New school wheel delta (wheel event)
+        if ( orgEvent.deltaY ) {
+            deltaY = orgEvent.deltaY * -1;
+            delta  = deltaY;
+        }
+        if ( orgEvent.deltaX ) {
+            deltaX = orgEvent.deltaX;
+            delta  = deltaX * -1;
+        }
+
+        // Webkit
+        if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY; }
+        if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = orgEvent.wheelDeltaX * -1; }
+
+        // Look for lowest delta to normalize the delta values
+        absDelta = Math.abs(delta);
+        if ( !lowestDelta || absDelta < lowestDelta ) { lowestDelta = absDelta; }
+        absDeltaXY = Math.max(Math.abs(deltaY), Math.abs(deltaX));
+        if ( !lowestDeltaXY || absDeltaXY < lowestDeltaXY ) { lowestDeltaXY = absDeltaXY; }
+
+        // Get a whole value for the deltas
+        fn = delta > 0 ? 'floor' : 'ceil';
+        delta  = Math[fn](delta / lowestDelta);
+        deltaX = Math[fn](deltaX / lowestDeltaXY);
+        deltaY = Math[fn](deltaY / lowestDeltaXY);
+
+        // Add event and delta to the front of the arguments
+        args.unshift(event, delta, deltaX, deltaY);
+
+        return ($.event.dispatch || $.event.handle).apply(this, args);
+    }
+
+}));
+
 /*!
  * Markdown
  * Released under MIT license
@@ -3534,23 +5288,1805 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
  * Copyright (c) 2009-2010 Ash Berlin
  * Copyright (c) 2011 Christoph Dorn <christoph@christophdorn.com> (http://www.christophdorn.com)
  * Version: 0.6.0-beta1
- * Date: 2014-06-16T21:08Z
+ * Date: 2014-07-28T16:38Z
  */
-!function(a){function b(){return"Markdown.mk_block( "+uneval(this.toString())+", "+uneval(this.trailing)+", "+uneval(this.lineNumber)+" )"}function c(){var a=require("util");return"Markdown.mk_block( "+a.inspect(this.toString())+", "+a.inspect(this.trailing)+", "+a.inspect(this.lineNumber)+" )"}function d(a){return a.split("\n").length-1}function e(a){return a.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}function f(a){if("string"==typeof a)return e(a);var b=a.shift(),c={},d=[];for(!a.length||"object"!=typeof a[0]||a[0]instanceof Array||(c=a.shift());a.length;)d.push(f(a.shift()));var g="";"undefined"!=typeof c.src&&(g+=' src="'+e(c.src)+'"',delete c.src);for(var h in c)g+=" "+h+'="'+e(c[h])+'"';return"img"===b||"br"===b||"hr"===b?"<"+b+g+"/>":"<"+b+g+">"+d.join("")+"</"+b+">"}function g(a,b,c){var d;c=c||{};var e=a.slice(0);"function"==typeof c.preprocessTreeNode&&(e=c.preprocessTreeNode(e,b));var f=q(e);if(f){e[1]={};for(d in f)e[1][d]=f[d];f=e[1]}if("string"==typeof e)return e;switch(e[0]){case"header":e[0]="h"+e[1].level,delete e[1].level;break;case"bulletlist":e[0]="ul";break;case"numberlist":e[0]="ol";break;case"listitem":e[0]="li";break;case"para":e[0]="p";break;case"markdown":e[0]="html",f&&delete f.references;break;case"code_block":e[0]="pre",d=f?2:1;var h=["code"];h.push.apply(h,e.splice(d,e.length-d)),e[d]=h;break;case"inlinecode":e[0]="code";break;case"img":e[1].src=e[1].href,delete e[1].href;break;case"linebreak":e[0]="br";break;case"link":e[0]="a";break;case"link_ref":e[0]="a";var i=b[f.ref];if(!i)return f.original;delete f.ref,f.href=i.href,i.title&&(f.title=i.title),delete f.original;break;case"img_ref":e[0]="img";var i=b[f.ref];if(!i)return f.original;delete f.ref,f.src=i.href,i.title&&(f.title=i.title),delete f.original}if(d=1,f){for(var j in e[1]){d=2;break}1===d&&e.splice(d,1)}for(;d<e.length;++d)e[d]=g(e[d],b,c);return e}function h(a){for(var b=q(a)?2:1;b<a.length;)"string"==typeof a[b]?b+1<a.length&&"string"==typeof a[b+1]?a[b]+=a.splice(b+1,1)[0]:++b:(h(a[b]),++b)}function i(a,b){function c(a){this.len_after=a,this.name="close_"+b}var d=a+"_state",e="strong"===a?"em_state":"strong_state";return function(f){if(this[d][0]===b)return this[d].shift(),[f.length,new c(f.length-b.length)];var g=this[e].slice(),h=this[d].slice();this[d].unshift(b);{var i=this.processInline(f.substr(b.length)),j=i[i.length-1];this[d].shift()}if(j instanceof c){i.pop();var k=f.length-j.len_after;return[k,[a].concat(i)]}return this[e]=g,this[d]=h,[b.length,b]}}function j(){q(this.tree)||this.tree.splice(1,0,{});var a=q(this.tree);return void 0===a.references&&(a.references={}),a}function k(a,b){b[2]&&"<"===b[2][0]&&">"===b[2][b[2].length-1]&&(b[2]=b[2].substring(1,b[2].length-1));var c=a.references[b[1].toLowerCase()]={href:b[2]};void 0!==b[4]?c.title=b[4]:void 0!==b[5]&&(c.title=b[5])}function l(a){for(var b=a.split(""),c=[""],d=!1;b.length;){var e=b.shift();switch(e){case" ":d?c[c.length-1]+=e:c.push("");break;case"'":case'"':d=!d;break;case"\\":e=b.shift();default:c[c.length-1]+=e}}return c}var m={};m.mk_block=function(a,d,e){1===arguments.length&&(d="\n\n");var f=new String(a);return f.trailing=d,f.inspect=c,f.toSource=b,void 0!==e&&(f.lineNumber=e),f};var n=m.isArray=Array.isArray||function(a){return"[object Array]"===Object.prototype.toString.call(a)};m.forEach=Array.prototype.forEach?function(a,b,c){return a.forEach(b,c)}:function(a,b,c){for(var d=0;d<a.length;d++)b.call(c||a,a[d],d,a)},m.isEmpty=function(a){for(var b in a)if(hasOwnProperty.call(a,b))return!1;return!0},m.extract_attr=function(a){return n(a)&&a.length>1&&"object"==typeof a[1]&&!n(a[1])?a[1]:void 0};var o=function(a){switch(typeof a){case"undefined":this.dialect=o.dialects.Gruber;break;case"object":this.dialect=a;break;default:if(!(a in o.dialects))throw new Error("Unknown Markdown dialect '"+String(a)+"'");this.dialect=o.dialects[a]}this.em_state=[],this.strong_state=[],this.debug_indent=""};o.dialects={};var p=o.mk_block=m.mk_block,n=m.isArray;o.parse=function(a,b){var c=new o(b);return c.toTree(a)},o.prototype.split_blocks=function(a){a=a.replace(/\r\n?/g,"\n");var b,c=/([\s\S]+?)($|\n#|\n(?:\s*\n|$)+)/g,e=[],f=1;for(null!==(b=/^(\s*\n)/.exec(a))&&(f+=d(b[0]),c.lastIndex=b[0].length);null!==(b=c.exec(a));)"\n#"===b[2]&&(b[2]="\n",c.lastIndex--),e.push(p(b[1],b[2],f)),f+=d(b[0]);return e},o.prototype.processBlock=function(a,b){var c=this.dialect.block,d=c.__order__;if("__call__"in c)return c.__call__.call(this,a,b);for(var e=0;e<d.length;e++){var f=c[d[e]].call(this,a,b);if(f)return(!n(f)||f.length>0&&!n(f[0])&&"string"!=typeof f[0])&&this.debug(d[e],"didn't return proper JsonML"),f}return[]},o.prototype.processInline=function(a){return this.dialect.inline.__call__.call(this,String(a))},o.prototype.toTree=function(a,b){var c=a instanceof Array?a:this.split_blocks(a),d=this.tree;try{for(this.tree=b||this.tree||["markdown"];c.length;){var e=this.processBlock(c.shift(),c);e.length&&this.tree.push.apply(this.tree,e)}return this.tree}finally{b&&(this.tree=d)}},o.prototype.debug=function(){var a=Array.prototype.slice.call(arguments);a.unshift(this.debug_indent),"undefined"!=typeof print&&print.apply(print,a),"undefined"!=typeof console&&"undefined"!=typeof console.log&&console.log.apply(null,a)},o.prototype.loop_re_over_block=function(a,b,c){for(var d,e=b.valueOf();e.length&&null!==(d=a.exec(e));)e=e.substr(d[0].length),c.call(this,d);return e},o.buildBlockOrder=function(a){var b=[];for(var c in a)"__order__"!==c&&"__call__"!==c&&b.push(c);a.__order__=b},o.buildInlinePatterns=function(a){var b=[];for(var c in a)if(!c.match(/^__.*__$/)){var d=c.replace(/([\\.*+?^$|()\[\]{}])/g,"\\$1").replace(/\n/,"\\n");b.push(1===c.length?d:"(?:"+d+")")}b=b.join("|"),a.__patterns__=b;var e=a.__call__;a.__call__=function(a,c){return void 0!==c?e.call(this,a,c):e.call(this,a,b)}};var q=m.extract_attr;o.renderJsonML=function(a,b){b=b||{},b.root=b.root||!1;var c=[];if(b.root)c.push(f(a));else for(a.shift(),!a.length||"object"!=typeof a[0]||a[0]instanceof Array||a.shift();a.length;)c.push(f(a.shift()));return c.join("\n\n")},o.toHTMLTree=function(a,b,c){"string"==typeof a&&(a=this.parse(a,b));var d=q(a),e={};d&&d.references&&(e=d.references);var f=g(a,e,c);return h(f),f},o.toHTML=function(a,b,c){var d=this.toHTMLTree(a,b,c);return this.renderJsonML(d)};var r={};r.inline_until_char=function(a,b){for(var c=0,d=[];;){if(a.charAt(c)===b)return c++,[c,d];if(c>=a.length)return[c,null,d];var e=this.dialect.inline.__oneElement__.call(this,a.substr(c));c+=e[0],d.push.apply(d,e.slice(1))}},r.subclassDialect=function(a){function b(){}function c(){}return b.prototype=a.block,c.prototype=a.inline,{block:new b,inline:new c}};var s=m.forEach,q=m.extract_attr,p=m.mk_block,t=m.isEmpty,u=r.inline_until_char,v=/(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?/i.source,w={block:{atxHeader:function(a,b){var c=a.match(/^(#{1,6})\s*(.*?)\s*#*\s*(?:\n|$)/);if(!c)return void 0;var d=["header",{level:c[1].length}];return Array.prototype.push.apply(d,this.processInline(c[2])),c[0].length<a.length&&b.unshift(p(a.substr(c[0].length),a.trailing,a.lineNumber+2)),[d]},setextHeader:function(a,b){var c=a.match(/^(.*)\n([-=])\2\2+(?:\n|$)/);if(!c)return void 0;var d="="===c[2]?1:2,e=["header",{level:d}].concat(this.processInline(c[1]));return c[0].length<a.length&&b.unshift(p(a.substr(c[0].length),a.trailing,a.lineNumber+2)),[e]},code:function(a,b){var c=[],d=/^(?: {0,3}\t| {4})(.*)\n?/;if(!a.match(d))return void 0;a:for(;;){var e=this.loop_re_over_block(d,a.valueOf(),function(a){c.push(a[1])});if(e.length){b.unshift(p(e,a.trailing));break a}if(!b.length)break a;if(!b[0].match(d))break a;c.push(a.trailing.replace(/[^\n]/g,"").substring(2)),a=b.shift()}return[["code_block",c.join("\n")]]},horizRule:function(a,b){var c=a.match(/^(?:([\s\S]*?)\n)?[ \t]*([-_*])(?:[ \t]*\2){2,}[ \t]*(?:\n([\s\S]*))?$/);if(!c)return void 0;var d=[["hr"]];if(c[1]){var e=p(c[1],"",a.lineNumber);d.unshift.apply(d,this.toTree(e,[]))}return c[3]&&b.unshift(p(c[3],a.trailing,a.lineNumber+1)),d},lists:function(){function a(a){return new RegExp("(?:^("+i+"{0,"+a+"} {0,3})("+f+")\\s+)|(^"+i+"{0,"+(a-1)+"}[ ]{0,4})")}function b(a){return a.replace(/ {0,3}\t/g,"    ")}function c(a,b,c,d){if(b)return a.push(["para"].concat(c)),void 0;var e=a[a.length-1]instanceof Array&&"para"===a[a.length-1][0]?a[a.length-1]:a;d&&a.length>1&&c.unshift(d);for(var f=0;f<c.length;f++){var g=c[f],h="string"==typeof g;h&&e.length>1&&"string"==typeof e[e.length-1]?e[e.length-1]+=g:e.push(g)}}function d(a,b){for(var c=new RegExp("^("+i+"{"+a+"}.*?\\n?)*$"),d=new RegExp("^"+i+"{"+a+"}","gm"),e=[];b.length>0&&c.exec(b[0]);){var f=b.shift(),g=f.replace(d,"");e.push(p(g,f.trailing,f.lineNumber))}return e}function e(a,b,c){var d=a.list,e=d[d.length-1];if(!(e[1]instanceof Array&&"para"===e[1][0]))if(b+1===c.length)e.push(["para"].concat(e.splice(1,e.length-1)));else{var f=e.pop();e.push(["para"].concat(e.splice(1,e.length-1)),f)}}var f="[*+-]|\\d+\\.",g=/[*+-]/,h=new RegExp("^( {0,3})("+f+")[ 	]+"),i="(?: {0,3}\\t| {4})";return function(f,i){function j(a){var b=g.exec(a[2])?["bulletlist"]:["numberlist"];return n.push({list:b,indent:a[1]}),b}var k=f.match(h);if(!k)return void 0;for(var l,m,n=[],o=j(k),p=!1,q=[n[0].list];;){for(var r=f.split(/(?=\n)/),t="",u="",v=0;v<r.length;v++){u="";var w=r[v].replace(/^\n/,function(a){return u=a,""}),x=a(n.length);if(k=w.match(x),void 0!==k[1]){t.length&&(c(l,p,this.processInline(t),u),p=!1,t=""),k[1]=b(k[1]);var y=Math.floor(k[1].length/4)+1;if(y>n.length)o=j(k),l.push(o),l=o[1]=["listitem"];else{var z=!1;for(m=0;m<n.length;m++)if(n[m].indent===k[1]){o=n[m].list,n.splice(m+1,n.length-(m+1)),z=!0;break}z||(y++,y<=n.length?(n.splice(y,n.length-y),o=n[y-1].list):(o=j(k),l.push(o))),l=["listitem"],o.push(l)}u=""}w.length>k[0].length&&(t+=u+w.substr(k[0].length))}if(t.length){var A=this.processBlock(t,[]),B=A[0];B&&(B.shift(),A.splice.apply(A,[0,1].concat(B)),c(l,p,A,u),"\n"===l[l.length-1]&&l.pop(),p=!1,t="")}var C=d(n.length,i);C.length>0&&(s(n,e,this),l.push.apply(l,this.toTree(C,[])));var D=i[0]&&i[0].valueOf()||"";if(!D.match(h)&&!D.match(/^ /))break;f=i.shift();var E=this.dialect.block.horizRule.call(this,f,i);if(E){q.push.apply(q,E);break}n[n.length-1].indent===f.match(/^\s*/)[0]&&s(n,e,this),p=!0}return q}}(),blockquote:function(a,b){var c=/(^|\n) +(\>[\s\S]*)/.exec(a);if(c&&c[2]&&c[2].length){var d=a.replace(/(^|\n) +\>/,"$1>");return b.unshift(d),[]}if(!a.match(/^>/m))return void 0;var e=[];if(">"!==a[0]){for(var f=a.split(/\n/),g=[],h=a.lineNumber;f.length&&">"!==f[0][0];)g.push(f.shift()),h++;var i=p(g.join("\n"),"\n",a.lineNumber);e.push.apply(e,this.processBlock(i,[])),a=p(f.join("\n"),a.trailing,h)}for(;b.length&&">"===b[0][0];){var j=b.shift();a=p(a+a.trailing+j,j.trailing,a.lineNumber)}var k=a.replace(/^> ?/gm,""),l=(this.tree,this.toTree(k,["blockquote"])),m=q(l);return m&&m.references&&(delete m.references,t(m)&&l.splice(1,1)),e.push(l),e},referenceDefn:function(a,b){var c=/^\s*\[(.*?)\]:\s*(\S+)(?:\s+(?:(['"])(.*)\3|\((.*?)\)))?\n?/;if(!a.match(c))return void 0;var d=j.call(this),e=this.loop_re_over_block(c,a,function(a){k(d,a)});return e.length&&b.unshift(p(e,a.trailing)),[]},para:function(a){return[["para"].concat(this.processInline(a))]}},inline:{__oneElement__:function(a,b,c){var d,e;b=b||this.dialect.inline.__patterns__;var f=new RegExp("([\\s\\S]*?)("+(b.source||b)+")");if(d=f.exec(a),!d)return[a.length,a];if(d[1])return[d[1].length,d[1]];var e;return d[2]in this.dialect.inline&&(e=this.dialect.inline[d[2]].call(this,a.substr(d.index),d,c||[])),e=e||[d[2].length,d[2]]},__call__:function(a,b){function c(a){"string"==typeof a&&"string"==typeof e[e.length-1]?e[e.length-1]+=a:e.push(a)}for(var d,e=[];a.length>0;)d=this.dialect.inline.__oneElement__.call(this,a,b,e),a=a.substr(d.shift()),s(d,c);return e},"]":function(){},"}":function(){},__escape__:/^\\[\\`\*_{}<>\[\]()#\+.!\-]/,"\\":function(a){return this.dialect.inline.__escape__.exec(a)?[2,a.charAt(1)]:[1,"\\"]},"![":function(a){if(!(a.indexOf("(")>=0&&-1===a.indexOf(")"))){var b=a.match(new RegExp("^!\\[(.*?)][ \\t]*\\(("+v+")\\)([ \\t])*([\"'].*[\"'])?"))||a.match(/^!\[(.*?)\][ \t]*\([ \t]*([^")]*?)(?:[ \t]+(["'])(.*?)\3)?[ \t]*\)/);if(b){b[2]&&"<"===b[2][0]&&">"===b[2][b[2].length-1]&&(b[2]=b[2].substring(1,b[2].length-1)),b[2]=this.dialect.inline.__call__.call(this,b[2],/\\/)[0];var c={alt:b[1],href:b[2]||""};return void 0!==b[4]&&(c.title=b[4]),[b[0].length,["img",c]]}return b=a.match(/^!\[(.*?)\][ \t]*\[(.*?)\]/),b?[b[0].length,["img_ref",{alt:b[1],ref:b[2].toLowerCase(),original:b[0]}]]:[2,"!["]}},"[":function y(a){for(var b=1,c=0;c<a.length;c++){var d=a.charAt(c);if("["===d&&b++,"]"===d&&b--,b>3)return[1,"["]}var e=String(a),f=u.call(this,a.substr(1),"]");if(!f[1])return[f[0]+1,a.charAt(0)].concat(f[2]);var y,g,h=1+f[0],i=f[1];a=a.substr(h);var l=a.match(/^\s*\([ \t]*([^"']*)(?:[ \t]+(["'])(.*?)\2)?[ \t]*\)/);if(l){var m=l[1].replace(/\s+$/,"");if(h+=l[0].length,m&&"<"===m[0]&&">"===m[m.length-1]&&(m=m.substring(1,m.length-1)),!l[3])for(var n=1,o=0;o<m.length;o++)switch(m[o]){case"(":n++;break;case")":0===--n&&(h-=m.length-o,m=m.substring(0,o))}return m=this.dialect.inline.__call__.call(this,m,/\\/)[0],g={href:m||""},void 0!==l[3]&&(g.title=l[3]),y=["link",g].concat(i),[h,y]}if(l=a.match(new RegExp("^\\(("+v+")\\)")),l&&l[1])return h+=l[0].length,y=["link",{href:l[1]}].concat(i),[h,y];if(l=a.match(/^\s*\[(.*?)\]/),l&&(h+=l[0].length,g={ref:(l[1]||String(i)).toLowerCase(),original:e.substr(0,h)},i&&i.length>0))return y=["link_ref",g].concat(i),[h,y];if(l=e.match(/^\s*\[(.*?)\]:\s*(\S+)(?:\s+(?:(['"])(.*?)\3|\((.*?)\)))?\n?/)){var g=j.call(this);return k(g,l),[l[0].length]}if(1===i.length&&"string"==typeof i[0]){var p=i[0].toLowerCase().replace(/\s+/," ");return g={ref:p,original:e.substr(0,h)},y=["link_ref",g,i[0]],[h,y]}return[1,"["]},"<":function(a){var b;return null!==(b=a.match(/^<(?:((https?|ftp|mailto):[^>]+)|(.*?@.*?\.[a-zA-Z]+))>/))?b[3]?[b[0].length,["link",{href:"mailto:"+b[3]},b[3]]]:"mailto"===b[2]?[b[0].length,["link",{href:b[1]},b[1].substr("mailto:".length)]]:[b[0].length,["link",{href:b[1]},b[1]]]:[1,"<"]},"`":function(a){var b=a.match(/(`+)(([\s\S]*?)\1)/);return b&&b[2]?[b[1].length+b[2].length,["inlinecode",b[3]]]:[1,"`"]},"  \n":function(){return[3,["linebreak"]]}}};w.inline["**"]=i("strong","**"),w.inline.__=i("strong","__"),w.inline["*"]=i("em","*"),w.inline._=i("em","_"),o.dialects.Gruber=w,o.buildBlockOrder(o.dialects.Gruber.block),o.buildInlinePatterns(o.dialects.Gruber.inline);var x=r.subclassDialect(w),q=m.extract_attr,s=m.forEach;x.processMetaHash=function(a){for(var b=l(a),c={},d=0;d<b.length;++d)if(/^#/.test(b[d]))c.id=b[d].substring(1);else if(/^\./.test(b[d]))c["class"]=c["class"]?c["class"]+b[d].replace(/./," "):b[d].substring(1);else if(/\=/.test(b[d])){var e=b[d].split(/\=/);c[e[0]]=e[1]}return c},x.block.document_meta=function(a){if(a.lineNumber>1)return void 0;if(!a.match(/^(?:\w+:.*\n)*\w+:.*$/))return void 0;q(this.tree)||this.tree.splice(1,0,{});var b=a.split(/\n/);for(var c in b){var d=b[c].match(/(\w+):\s*(.*)$/),e=d[1].toLowerCase(),f=d[2];this.tree[1][e]=f}return[]},x.block.block_meta=function(a){var b=a.match(/(^|\n) {0,3}\{:\s*((?:\\\}|[^\}])*)\s*\}$/);if(!b)return void 0;var c,d=this.dialect.processMetaHash(b[2]);if(""===b[1]){var e=this.tree[this.tree.length-1];if(c=q(e),"string"==typeof e)return void 0;c||(c={},e.splice(1,0,c));for(var f in d)c[f]=d[f];return[]}var g=a.replace(/\n.*$/,""),h=this.processBlock(g,[]);c=q(h[0]),c||(c={},h[0].splice(1,0,c));for(var f in d)c[f]=d[f];return h},x.block.definition_list=function(a,b){var c,d,e=/^((?:[^\s:].*\n)+):\s+([\s\S]+)$/,f=["dl"];if(!(d=a.match(e)))return void 0;for(var g=[a];b.length&&e.exec(b[0]);)g.push(b.shift());for(var h=0;h<g.length;++h){var d=g[h].match(e),i=d[1].replace(/\n$/,"").split(/\n/),j=d[2].split(/\n:\s+/);for(c=0;c<i.length;++c)f.push(["dt",i[c]]);for(c=0;c<j.length;++c)f.push(["dd"].concat(this.processInline(j[c].replace(/(\n)\s+/,"$1"))))}return[f]},x.block.table=function z(a){var b,c,d=function(a,b){b=b||"\\s",b.match(/^[\\|\[\]{}?*.+^$]$/)&&(b="\\"+b);for(var c,d=[],e=new RegExp("^((?:\\\\.|[^\\\\"+b+"])*)"+b+"(.*)");c=a.match(e);)d.push(c[1]),a=c[2];return d.push(a),d},e=/^ {0,3}\|(.+)\n {0,3}\|\s*([\-:]+[\-| :]*)\n((?:\s*\|.*(?:\n|$))*)(?=\n|$)/,f=/^ {0,3}(\S(?:\\.|[^\\|])*\|.*)\n {0,3}([\-:]+\s*\|[\-| :]*)\n((?:(?:\\.|[^\\|])*\|.*(?:\n|$))*)(?=\n|$)/;if(c=a.match(e))c[3]=c[3].replace(/^\s*\|/gm,"");else if(!(c=a.match(f)))return void 0;var z=["table",["thead",["tr"]],["tbody"]];c[2]=c[2].replace(/\|\s*$/,"").split("|");var g=[];for(s(c[2],function(a){a.match(/^\s*-+:\s*$/)?g.push({align:"right"}):a.match(/^\s*:-+\s*$/)?g.push({align:"left"}):a.match(/^\s*:-+:\s*$/)?g.push({align:"center"}):g.push({})}),c[1]=d(c[1].replace(/\|\s*$/,""),"|"),b=0;b<c[1].length;b++)z[1][1].push(["th",g[b]||{}].concat(this.processInline(c[1][b].trim())));return s(c[3].replace(/\|\s*$/gm,"").split("\n"),function(a){var c=["tr"];for(a=d(a,"|"),b=0;b<a.length;b++)c.push(["td",g[b]||{}].concat(this.processInline(a[b].trim())));z[2].push(c)},this),[z]},x.inline["{:"]=function(a,b,c){if(!c.length)return[2,"{:"];var d=c[c.length-1];if("string"==typeof d)return[2,"{:"];var e=a.match(/^\{:\s*((?:\\\}|[^\}])*)\s*\}/);if(!e)return[2,"{:"];var f=this.dialect.processMetaHash(e[1]),g=q(d);g||(g={},d.splice(1,0,g));for(var h in f)g[h]=f[h];return[e[0].length,""]},o.dialects.Maruku=x,o.dialects.Maruku.inline.__escape__=/^\\[\\`\*_{}\[\]()#\+.!\-|:]/,o.buildBlockOrder(o.dialects.Maruku.block),o.buildInlinePatterns(o.dialects.Maruku.inline),a.Markdown=o,a.parse=o.parse,a.toHTML=o.toHTML,a.toHTMLTree=o.toHTMLTree,a.renderJsonML=o.renderJsonML,a.DialectHelpers=r}(function(){return window.markdown={},window.markdown}());
-// tween.js - http://github.com/sole/tween.js - Licensed under the MIT License
-'use strict';void 0===Date.now&&(Date.now=function(){return(new Date).valueOf()});
-var TWEEN=TWEEN||function(){var a=[];return{REVISION:"14",getAll:function(){return a},removeAll:function(){a=[]},add:function(c){a.push(c)},remove:function(c){c=a.indexOf(c);-1!==c&&a.splice(c,1)},update:function(c){if(0===a.length)return!1;for(var b=0,c=void 0!==c?c:"undefined"!==typeof window&&void 0!==window.performance&&void 0!==window.performance.now?window.performance.now():Date.now();b<a.length;)a[b].update(c)?b++:a.splice(b,1);return!0}}}();
-TWEEN.Tween=function(a){var c={},b={},d={},e=1E3,g=0,h=!1,j=!1,q=0,m=null,w=TWEEN.Easing.Linear.None,x=TWEEN.Interpolation.Linear,n=[],r=null,s=!1,t=null,u=null,k=null,v;for(v in a)c[v]=parseFloat(a[v],10);this.to=function(a,c){void 0!==c&&(e=c);b=a;return this};this.start=function(e){TWEEN.add(this);j=!0;s=!1;m=void 0!==e?e:"undefined"!==typeof window&&void 0!==window.performance&&void 0!==window.performance.now?window.performance.now():Date.now();m+=q;for(var f in b){if(b[f]instanceof Array){if(0===
-b[f].length)continue;b[f]=[a[f]].concat(b[f])}c[f]=a[f];!1===c[f]instanceof Array&&(c[f]*=1);d[f]=c[f]||0}return this};this.stop=function(){if(!j)return this;TWEEN.remove(this);j=!1;null!==k&&k.call(a);this.stopChainedTweens();return this};this.stopChainedTweens=function(){for(var a=0,b=n.length;a<b;a++)n[a].stop()};this.delay=function(a){q=a;return this};this.repeat=function(a){g=a;return this};this.yoyo=function(a){h=a;return this};this.easing=function(a){w=a;return this};this.interpolation=function(a){x=
-a;return this};this.chain=function(){n=arguments;return this};this.onStart=function(a){r=a;return this};this.onUpdate=function(a){t=a;return this};this.onComplete=function(a){u=a;return this};this.onStop=function(a){k=a;return this};this.update=function(p){var f;if(p<m)return!0;!1===s&&(null!==r&&r.call(a),s=!0);var i=(p-m)/e,i=1<i?1:i,j=w(i);for(f in b){var k=c[f]||0,l=b[f];l instanceof Array?a[f]=x(l,j):("string"===typeof l&&(l=k+parseFloat(l,10)),"number"===typeof l&&(a[f]=k+(l-k)*j))}null!==t&&
-t.call(a,j);if(1==i)if(0<g){isFinite(g)&&g--;for(f in d)"string"===typeof b[f]&&(d[f]+=parseFloat(b[f],10)),h&&(i=d[f],d[f]=b[f],b[f]=i),c[f]=d[f];m=p+q}else{null!==u&&u.call(a);f=0;for(i=n.length;f<i;f++)n[f].start(p);return!1}return!0}};
-TWEEN.Easing={Linear:{None:function(a){return a}},Quadratic:{In:function(a){return a*a},Out:function(a){return a*(2-a)},InOut:function(a){return 1>(a*=2)?0.5*a*a:-0.5*(--a*(a-2)-1)}},Cubic:{In:function(a){return a*a*a},Out:function(a){return--a*a*a+1},InOut:function(a){return 1>(a*=2)?0.5*a*a*a:0.5*((a-=2)*a*a+2)}},Quartic:{In:function(a){return a*a*a*a},Out:function(a){return 1- --a*a*a*a},InOut:function(a){return 1>(a*=2)?0.5*a*a*a*a:-0.5*((a-=2)*a*a*a-2)}},Quintic:{In:function(a){return a*a*a*
-a*a},Out:function(a){return--a*a*a*a*a+1},InOut:function(a){return 1>(a*=2)?0.5*a*a*a*a*a:0.5*((a-=2)*a*a*a*a+2)}},Sinusoidal:{In:function(a){return 1-Math.cos(a*Math.PI/2)},Out:function(a){return Math.sin(a*Math.PI/2)},InOut:function(a){return 0.5*(1-Math.cos(Math.PI*a))}},Exponential:{In:function(a){return 0===a?0:Math.pow(1024,a-1)},Out:function(a){return 1===a?1:1-Math.pow(2,-10*a)},InOut:function(a){return 0===a?0:1===a?1:1>(a*=2)?0.5*Math.pow(1024,a-1):0.5*(-Math.pow(2,-10*(a-1))+2)}},Circular:{In:function(a){return 1-
-Math.sqrt(1-a*a)},Out:function(a){return Math.sqrt(1- --a*a)},InOut:function(a){return 1>(a*=2)?-0.5*(Math.sqrt(1-a*a)-1):0.5*(Math.sqrt(1-(a-=2)*a)+1)}},Elastic:{In:function(a){var c,b=0.1;if(0===a)return 0;if(1===a)return 1;!b||1>b?(b=1,c=0.1):c=0.4*Math.asin(1/b)/(2*Math.PI);return-(b*Math.pow(2,10*(a-=1))*Math.sin((a-c)*2*Math.PI/0.4))},Out:function(a){var c,b=0.1;if(0===a)return 0;if(1===a)return 1;!b||1>b?(b=1,c=0.1):c=0.4*Math.asin(1/b)/(2*Math.PI);return b*Math.pow(2,-10*a)*Math.sin((a-c)*
-2*Math.PI/0.4)+1},InOut:function(a){var c,b=0.1;if(0===a)return 0;if(1===a)return 1;!b||1>b?(b=1,c=0.1):c=0.4*Math.asin(1/b)/(2*Math.PI);return 1>(a*=2)?-0.5*b*Math.pow(2,10*(a-=1))*Math.sin((a-c)*2*Math.PI/0.4):0.5*b*Math.pow(2,-10*(a-=1))*Math.sin((a-c)*2*Math.PI/0.4)+1}},Back:{In:function(a){return a*a*(2.70158*a-1.70158)},Out:function(a){return--a*a*(2.70158*a+1.70158)+1},InOut:function(a){return 1>(a*=2)?0.5*a*a*(3.5949095*a-2.5949095):0.5*((a-=2)*a*(3.5949095*a+2.5949095)+2)}},Bounce:{In:function(a){return 1-
-TWEEN.Easing.Bounce.Out(1-a)},Out:function(a){return a<1/2.75?7.5625*a*a:a<2/2.75?7.5625*(a-=1.5/2.75)*a+0.75:a<2.5/2.75?7.5625*(a-=2.25/2.75)*a+0.9375:7.5625*(a-=2.625/2.75)*a+0.984375},InOut:function(a){return 0.5>a?0.5*TWEEN.Easing.Bounce.In(2*a):0.5*TWEEN.Easing.Bounce.Out(2*a-1)+0.5}}};
-TWEEN.Interpolation={Linear:function(a,c){var b=a.length-1,d=b*c,e=Math.floor(d),g=TWEEN.Interpolation.Utils.Linear;return 0>c?g(a[0],a[1],d):1<c?g(a[b],a[b-1],b-d):g(a[e],a[e+1>b?b:e+1],d-e)},Bezier:function(a,c){var b=0,d=a.length-1,e=Math.pow,g=TWEEN.Interpolation.Utils.Bernstein,h;for(h=0;h<=d;h++)b+=e(1-c,d-h)*e(c,h)*a[h]*g(d,h);return b},CatmullRom:function(a,c){var b=a.length-1,d=b*c,e=Math.floor(d),g=TWEEN.Interpolation.Utils.CatmullRom;return a[0]===a[b]?(0>c&&(e=Math.floor(d=b*(1+c))),g(a[(e-
-1+b)%b],a[e],a[(e+1)%b],a[(e+2)%b],d-e)):0>c?a[0]-(g(a[0],a[0],a[1],a[1],-d)-a[0]):1<c?a[b]-(g(a[b],a[b],a[b-1],a[b-1],d-b)-a[b]):g(a[e?e-1:0],a[e],a[b<e+1?b:e+1],a[b<e+2?b:e+2],d-e)},Utils:{Linear:function(a,c,b){return(c-a)*b+a},Bernstein:function(a,c){var b=TWEEN.Interpolation.Utils.Factorial;return b(a)/b(c)/b(a-c)},Factorial:function(){var a=[1];return function(c){var b=1,d;if(a[c])return a[c];for(d=c;1<d;d--)b*=d;return a[c]=b}}(),CatmullRom:function(a,c,b,d,e){var a=0.5*(b-a),d=0.5*(d-c),g=
-e*e;return(2*c-2*b+a+d)*e*g+(-3*c+3*b-2*a-d)*g+a*e+c}}};
 
-(function(){var a={VERSION:"2.3.2",Result:{SUCCEEDED:1,NOTRANSITION:2,CANCELLED:3,PENDING:4},Error:{INVALID_TRANSITION:100,PENDING_TRANSITION:200,INVALID_CALLBACK:300},WILDCARD:"*",ASYNC:"async",create:function(g,h){var j=(typeof g.initial=="string")?{state:g.initial}:g.initial;var f=g.terminal||g["final"];var e=h||g.target||{};var l=g.events||[];var i=g.callbacks||{};var c={};var k=function(m){var p=(m.from instanceof Array)?m.from:(m.from?[m.from]:[a.WILDCARD]);c[m.name]=c[m.name]||{};for(var o=0;o<p.length;o++){c[m.name][p[o]]=m.to||p[o]}};if(j){j.event=j.event||"startup";k({name:j.event,from:"none",to:j.state})}for(var d=0;d<l.length;d++){k(l[d])}for(var b in c){if(c.hasOwnProperty(b)){e[b]=a.buildEvent(b,c[b])}}for(var b in i){if(i.hasOwnProperty(b)){e[b]=i[b]}}e.current="none";e.is=function(m){return(m instanceof Array)?(m.indexOf(this.current)>=0):(this.current===m)};e.can=function(m){return !this.transition&&(c[m].hasOwnProperty(this.current)||c[m].hasOwnProperty(a.WILDCARD))};e.cannot=function(m){return !this.can(m)};e.error=g.error||function(o,s,r,n,m,q,p){throw p||q};e.isFinished=function(){return this.is(f)};if(j&&!j.defer){e[j.event]()}return e},doCallback:function(g,d,c,i,h,b){if(d){try{return d.apply(g,[c,i,h].concat(b))}catch(f){return g.error(c,i,h,b,a.Error.INVALID_CALLBACK,"an exception occurred in a caller-provided callback function",f)}}},beforeAnyEvent:function(d,c,f,e,b){return a.doCallback(d,d.onbeforeevent,c,f,e,b)},afterAnyEvent:function(d,c,f,e,b){return a.doCallback(d,d.onafterevent||d.onevent,c,f,e,b)},leaveAnyState:function(d,c,f,e,b){return a.doCallback(d,d.onleavestate,c,f,e,b)},enterAnyState:function(d,c,f,e,b){return a.doCallback(d,d.onenterstate||d.onstate,c,f,e,b)},changeState:function(d,c,f,e,b){return a.doCallback(d,d.onchangestate,c,f,e,b)},beforeThisEvent:function(d,c,f,e,b){return a.doCallback(d,d["onbefore"+c],c,f,e,b)},afterThisEvent:function(d,c,f,e,b){return a.doCallback(d,d["onafter"+c]||d["on"+c],c,f,e,b)},leaveThisState:function(d,c,f,e,b){return a.doCallback(d,d["onleave"+f],c,f,e,b)},enterThisState:function(d,c,f,e,b){return a.doCallback(d,d["onenter"+e]||d["on"+e],c,f,e,b)},beforeEvent:function(d,c,f,e,b){if((false===a.beforeThisEvent(d,c,f,e,b))||(false===a.beforeAnyEvent(d,c,f,e,b))){return false}},afterEvent:function(d,c,f,e,b){a.afterThisEvent(d,c,f,e,b);a.afterAnyEvent(d,c,f,e,b)},leaveState:function(f,e,h,g,d){var c=a.leaveThisState(f,e,h,g,d),b=a.leaveAnyState(f,e,h,g,d);if((false===c)||(false===b)){return false}else{if((a.ASYNC===c)||(a.ASYNC===b)){return a.ASYNC}}},enterState:function(d,c,f,e,b){a.enterThisState(d,c,f,e,b);a.enterAnyState(d,c,f,e,b)},buildEvent:function(b,c){return function(){var h=this.current;var g=c[h]||c[a.WILDCARD]||h;var e=Array.prototype.slice.call(arguments);if(this.transition){return this.error(b,h,g,e,a.Error.PENDING_TRANSITION,"event "+b+" inappropriate because previous transition did not complete")}if(this.cannot(b)){return this.error(b,h,g,e,a.Error.INVALID_TRANSITION,"event "+b+" inappropriate in current state "+this.current)}if(false===a.beforeEvent(this,b,h,g,e)){return a.Result.CANCELLED}if(h===g){a.afterEvent(this,b,h,g,e);return a.Result.NOTRANSITION}var f=this;this.transition=function(){f.transition=null;f.current=g;a.enterState(f,b,h,g,e);a.changeState(f,b,h,g,e);a.afterEvent(f,b,h,g,e);return a.Result.SUCCEEDED};this.transition.cancel=function(){f.transition=null;a.afterEvent(f,b,h,g,e)};var d=a.leaveState(this,b,h,g,e);if(false===d){this.transition=null;return a.Result.CANCELLED}else{if(a.ASYNC===d){return a.Result.PENDING}else{if(this.transition){return this.transition()}}}}}};if(typeof exports!=="undefined"){if(typeof module!=="undefined"&&module.exports){exports=module.exports=a}exports.StateMachine=a}else{if(typeof define==="function"&&define.amd){define(function(b){return a})}else{if(window){window.StateMachine=a}}}}());
+(function(expose) {
+
+  var MarkdownHelpers = {};
+
+  // For Spidermonkey based engines
+  function mk_block_toSource() {
+    return "Markdown.mk_block( " +
+            uneval(this.toString()) +
+            ", " +
+            uneval(this.trailing) +
+            ", " +
+            uneval(this.lineNumber) +
+            " )";
+  }
+
+  // node
+  function mk_block_inspect() {
+    var util = require("util");
+    return "Markdown.mk_block( " +
+            util.inspect(this.toString()) +
+            ", " +
+            util.inspect(this.trailing) +
+            ", " +
+            util.inspect(this.lineNumber) +
+            " )";
+
+  }
+
+  MarkdownHelpers.mk_block = function(block, trail, line) {
+    // Be helpful for default case in tests.
+    if ( arguments.length === 1 )
+      trail = "\n\n";
+
+    // We actually need a String object, not a string primitive
+    /* jshint -W053 */
+    var s = new String(block);
+    s.trailing = trail;
+    // To make it clear its not just a string
+    s.inspect = mk_block_inspect;
+    s.toSource = mk_block_toSource;
+
+    if ( line !== undefined )
+      s.lineNumber = line;
+
+    return s;
+  };
+
+  var isArray = MarkdownHelpers.isArray = Array.isArray || function(obj) {
+    return Object.prototype.toString.call(obj) === "[object Array]";
+  };
+
+  // Don't mess with Array.prototype. Its not friendly
+  if ( Array.prototype.forEach ) {
+    MarkdownHelpers.forEach = function forEach( arr, cb, thisp ) {
+      return arr.forEach( cb, thisp );
+    };
+  }
+  else {
+    MarkdownHelpers.forEach = function forEach(arr, cb, thisp) {
+      for (var i = 0; i < arr.length; i++)
+        cb.call(thisp || arr, arr[i], i, arr);
+    };
+  }
+
+  MarkdownHelpers.isEmpty = function isEmpty( obj ) {
+    for ( var key in obj ) {
+      if ( hasOwnProperty.call( obj, key ) )
+        return false;
+    }
+    return true;
+  };
+
+  MarkdownHelpers.extract_attr = function extract_attr( jsonml ) {
+    return isArray(jsonml)
+        && jsonml.length > 1
+        && typeof jsonml[ 1 ] === "object"
+        && !( isArray(jsonml[ 1 ]) )
+        ? jsonml[ 1 ]
+        : undefined;
+  };
+
+ /**
+   *  class Markdown
+   *
+   *  Markdown processing in Javascript done right. We have very particular views
+   *  on what constitutes 'right' which include:
+   *
+   *  - produces well-formed HTML (this means that em and strong nesting is
+   *    important)
+   *
+   *  - has an intermediate representation to allow processing of parsed data (We
+   *    in fact have two, both as [JsonML]: a markdown tree and an HTML tree).
+   *
+   *  - is easily extensible to add new dialects without having to rewrite the
+   *    entire parsing mechanics
+   *
+   *  - has a good test suite
+   *
+   *  This implementation fulfills all of these (except that the test suite could
+   *  do with expanding to automatically run all the fixtures from other Markdown
+   *  implementations.)
+   *
+   *  ##### Intermediate Representation
+   *
+   *  *TODO* Talk about this :) Its JsonML, but document the node names we use.
+   *
+   *  [JsonML]: http://jsonml.org/ "JSON Markup Language"
+   **/
+  var Markdown = function(dialect) {
+    switch (typeof dialect) {
+    case "undefined":
+      this.dialect = Markdown.dialects.Gruber;
+      break;
+    case "object":
+      this.dialect = dialect;
+      break;
+    default:
+      if ( dialect in Markdown.dialects )
+        this.dialect = Markdown.dialects[dialect];
+      else
+        throw new Error("Unknown Markdown dialect '" + String(dialect) + "'");
+      break;
+    }
+    this.em_state = [];
+    this.strong_state = [];
+    this.debug_indent = "";
+  };
+
+  /**
+   * Markdown.dialects
+   *
+   * Namespace of built-in dialects.
+   **/
+  Markdown.dialects = {};
+
+  // Imported functions
+  var mk_block = Markdown.mk_block = MarkdownHelpers.mk_block,
+      isArray = MarkdownHelpers.isArray;
+
+  /**
+   *  parse( markdown, [dialect] ) -> JsonML
+   *  - markdown (String): markdown string to parse
+   *  - dialect (String | Dialect): the dialect to use, defaults to gruber
+   *
+   *  Parse `markdown` and return a markdown document as a Markdown.JsonML tree.
+   **/
+  Markdown.parse = function( source, dialect ) {
+    // dialect will default if undefined
+    var md = new Markdown( dialect );
+    return md.toTree( source );
+  };
+
+  /**
+   *  count_lines( str ) -> count
+   *  - str (String): String whose lines we want to count
+   *
+   *  Counts the number of linebreaks in `str`
+   **/
+  function count_lines( str ) {
+    return str.split("\n").length - 1;
+  }
+
+  // Internal - split source into rough blocks
+  Markdown.prototype.split_blocks = function splitBlocks( input ) {
+    // Normalize linebreaks to \n.
+    input = input.replace(/\r\n?/g, "\n");
+    // Match until the end of the string, a newline followed by #, or two or more newlines.
+    // [\s\S] matches _anything_ (newline or space)
+    // [^] is equivalent but doesn't work in IEs.
+    var re = /([\s\S]+?)($|\n#|\n(?:\s*\n|$)+)/g,
+        blocks = [],
+        m;
+
+    var line_no = 1;
+
+    if ( ( m = /^(\s*\n)/.exec(input) ) !== null ) {
+      // skip (but count) leading blank lines
+      line_no += count_lines( m[0] );
+      re.lastIndex = m[0].length;
+    }
+
+    while ( ( m = re.exec(input) ) !== null ) {
+      if (m[2] === "\n#") {
+        m[2] = "\n";
+        re.lastIndex--;
+      }
+      blocks.push( mk_block( m[1], m[2], line_no ) );
+      line_no += count_lines( m[0] );
+    }
+
+    return blocks;
+  };
+
+  /**
+   *  Markdown#processBlock( block, next ) -> undefined | [ JsonML, ... ]
+   *  - block (String): the block to process
+   *  - next (Array): the following blocks
+   *
+   * Process `block` and return an array of JsonML nodes representing `block`.
+   *
+   * It does this by asking each block level function in the dialect to process
+   * the block until one can. Succesful handling is indicated by returning an
+   * array (with zero or more JsonML nodes), failure by a false value.
+   *
+   * Blocks handlers are responsible for calling [[Markdown#processInline]]
+   * themselves as appropriate.
+   *
+   * If the blocks were split incorrectly or adjacent blocks need collapsing you
+   * can adjust `next` in place using shift/splice etc.
+   *
+   * If any of this default behaviour is not right for the dialect, you can
+   * define a `__call__` method on the dialect that will get invoked to handle
+   * the block processing.
+   */
+  Markdown.prototype.processBlock = function processBlock( block, next ) {
+    var cbs = this.dialect.block,
+        ord = cbs.__order__;
+
+    if ( "__call__" in cbs )
+      return cbs.__call__.call(this, block, next);
+
+    for ( var i = 0; i < ord.length; i++ ) {
+      //D:this.debug( "Testing", ord[i] );
+      var res = cbs[ ord[i] ].call( this, block, next );
+      if ( res ) {
+
+        if ( !isArray(res) || ( res.length > 0 && !( isArray(res[0]) ) && ( typeof res[0] !== "string")) ) {
+          this.debug(ord[i], "didn't return proper JsonML");
+        }
+
+        return res;
+      }
+    }
+
+    // Uhoh! no match! Should we throw an error?
+    return [];
+  };
+
+  Markdown.prototype.processInline = function processInline( block ) {
+    return this.dialect.inline.__call__.call( this, String( block ) );
+  };
+
+  /**
+   *  Markdown#toTree( source ) -> JsonML
+   *  - source (String): markdown source to parse
+   *
+   *  Parse `source` into a JsonML tree representing the markdown document.
+   **/
+  // custom_tree means set this.tree to `custom_tree` and restore old value on return
+  Markdown.prototype.toTree = function toTree( source, custom_root ) {
+    var blocks = source instanceof Array ? source : this.split_blocks( source );
+
+    // Make tree a member variable so its easier to mess with in extensions
+    var old_tree = this.tree;
+    try {
+      this.tree = custom_root || this.tree || [ "markdown" ];
+
+      blocks_loop:
+      while ( blocks.length ) {
+        var b = this.processBlock( blocks.shift(), blocks );
+
+        // Reference blocks and the like won't return any content
+        if ( !b.length )
+          continue blocks_loop;
+
+        this.tree.push.apply( this.tree, b );
+      }
+      return this.tree;
+    }
+    finally {
+      if ( custom_root )
+        this.tree = old_tree;
+    }
+  };
+
+  // Noop by default
+  Markdown.prototype.debug = function () {
+    var args = Array.prototype.slice.call( arguments);
+    args.unshift(this.debug_indent);
+    if ( typeof print !== "undefined" )
+      print.apply( print, args );
+    if ( typeof console !== "undefined" && typeof console.log !== "undefined" )
+      console.log.apply( null, args );
+  };
+
+  Markdown.prototype.loop_re_over_block = function( re, block, cb ) {
+    // Dont use /g regexps with this
+    var m,
+        b = block.valueOf();
+
+    while ( b.length && (m = re.exec(b) ) !== null ) {
+      b = b.substr( m[0].length );
+      cb.call(this, m);
+    }
+    return b;
+  };
+
+  // Build default order from insertion order.
+  Markdown.buildBlockOrder = function(d) {
+    var ord = [];
+    for ( var i in d ) {
+      if ( i === "__order__" || i === "__call__" )
+        continue;
+      ord.push( i );
+    }
+    d.__order__ = ord;
+  };
+
+  // Build patterns for inline matcher
+  Markdown.buildInlinePatterns = function(d) {
+    var patterns = [];
+
+    for ( var i in d ) {
+      // __foo__ is reserved and not a pattern
+      if ( i.match( /^__.*__$/) )
+        continue;
+      var l = i.replace( /([\\.*+?^$|()\[\]{}])/g, "\\$1" )
+               .replace( /\n/, "\\n" );
+      patterns.push( i.length === 1 ? l : "(?:" + l + ")" );
+    }
+
+    patterns = patterns.join("|");
+    d.__patterns__ = patterns;
+    //print("patterns:", uneval( patterns ) );
+
+    var fn = d.__call__;
+    d.__call__ = function(text, pattern) {
+      if ( pattern !== undefined )
+        return fn.call(this, text, pattern);
+      else
+        return fn.call(this, text, patterns);
+    };
+  };
+
+  var extract_attr = MarkdownHelpers.extract_attr;
+
+  /**
+   *  renderJsonML( jsonml[, options] ) -> String
+   *  - jsonml (Array): JsonML array to render to XML
+   *  - options (Object): options
+   *
+   *  Converts the given JsonML into well-formed XML.
+   *
+   *  The options currently understood are:
+   *
+   *  - root (Boolean): wether or not the root node should be included in the
+   *    output, or just its children. The default `false` is to not include the
+   *    root itself.
+   */
+  Markdown.renderJsonML = function( jsonml, options ) {
+    options = options || {};
+    // include the root element in the rendered output?
+    options.root = options.root || false;
+
+    var content = [];
+
+    if ( options.root ) {
+      content.push( render_tree( jsonml ) );
+    }
+    else {
+      jsonml.shift(); // get rid of the tag
+      if ( jsonml.length && typeof jsonml[ 0 ] === "object" && !( jsonml[ 0 ] instanceof Array ) )
+        jsonml.shift(); // get rid of the attributes
+
+      while ( jsonml.length )
+        content.push( render_tree( jsonml.shift() ) );
+    }
+
+    return content.join( "\n\n" );
+  };
+
+  /**
+   *  toHTMLTree( markdown, [dialect] ) -> JsonML
+   *  toHTMLTree( md_tree ) -> JsonML
+   *  - markdown (String): markdown string to parse
+   *  - dialect (String | Dialect): the dialect to use, defaults to gruber
+   *  - md_tree (Markdown.JsonML): parsed markdown tree
+   *
+   *  Turn markdown into HTML, represented as a JsonML tree. If a string is given
+   *  to this function, it is first parsed into a markdown tree by calling
+   *  [[parse]].
+   **/
+  Markdown.toHTMLTree = function toHTMLTree( input, dialect , options ) {
+
+    // convert string input to an MD tree
+    if ( typeof input === "string" )
+      input = this.parse( input, dialect );
+
+    // Now convert the MD tree to an HTML tree
+
+    // remove references from the tree
+    var attrs = extract_attr( input ),
+        refs = {};
+
+    if ( attrs && attrs.references )
+      refs = attrs.references;
+
+    var html = convert_tree_to_html( input, refs , options );
+    merge_text_nodes( html );
+    return html;
+  };
+
+  /**
+   *  toHTML( markdown, [dialect]  ) -> String
+   *  toHTML( md_tree ) -> String
+   *  - markdown (String): markdown string to parse
+   *  - md_tree (Markdown.JsonML): parsed markdown tree
+   *
+   *  Take markdown (either as a string or as a JsonML tree) and run it through
+   *  [[toHTMLTree]] then turn it into a well-formated HTML fragment.
+   **/
+  Markdown.toHTML = function toHTML( source , dialect , options ) {
+    var input = this.toHTMLTree( source , dialect , options );
+
+    return this.renderJsonML( input );
+  };
+
+  function escapeHTML( text ) {
+    if (text && text.length > 0) {
+      return text.replace( /&/g, "&amp;" )
+                 .replace( /</g, "&lt;" )
+                 .replace( />/g, "&gt;" )
+                 .replace( /"/g, "&quot;" )
+                 .replace( /'/g, "&#39;" );
+    } else {
+      return "";
+    }
+  }
+
+  function render_tree( jsonml ) {
+    // basic case
+    if ( typeof jsonml === "string" )
+      return escapeHTML( jsonml );
+
+    var tag = jsonml.shift(),
+        attributes = {},
+        content = [];
+
+    if ( jsonml.length && typeof jsonml[ 0 ] === "object" && !( jsonml[ 0 ] instanceof Array ) )
+      attributes = jsonml.shift();
+
+    while ( jsonml.length )
+      content.push( render_tree( jsonml.shift() ) );
+
+    var tag_attrs = "";
+    if (typeof attributes.src !== 'undefined') {
+      tag_attrs += ' src="' + escapeHTML( attributes.src ) + '"';
+      delete attributes.src;
+    }
+
+    for ( var a in attributes ) {
+      var escaped = escapeHTML( attributes[ a ]);
+      if (escaped && escaped.length) {
+        tag_attrs += " " + a + '="' + escaped + '"';
+      }
+    }
+
+    // be careful about adding whitespace here for inline elements
+    if ( tag === "img" || tag === "br" || tag === "hr" )
+      return "<"+ tag + tag_attrs + "/>";
+    else
+      return "<"+ tag + tag_attrs + ">" + content.join( "" ) + "</" + tag + ">";
+  }
+
+  function convert_tree_to_html( tree, references, options ) {
+    var i;
+    options = options || {};
+
+    // shallow clone
+    var jsonml = tree.slice( 0 );
+
+    if ( typeof options.preprocessTreeNode === "function" )
+      jsonml = options.preprocessTreeNode(jsonml, references);
+
+    // Clone attributes if they exist
+    var attrs = extract_attr( jsonml );
+    if ( attrs ) {
+      jsonml[ 1 ] = {};
+      for ( i in attrs ) {
+        jsonml[ 1 ][ i ] = attrs[ i ];
+      }
+      attrs = jsonml[ 1 ];
+    }
+
+    // basic case
+    if ( typeof jsonml === "string" )
+      return jsonml;
+
+    // convert this node
+    switch ( jsonml[ 0 ] ) {
+    case "header":
+      jsonml[ 0 ] = "h" + jsonml[ 1 ].level;
+      delete jsonml[ 1 ].level;
+      break;
+    case "bulletlist":
+      jsonml[ 0 ] = "ul";
+      break;
+    case "numberlist":
+      jsonml[ 0 ] = "ol";
+      break;
+    case "listitem":
+      jsonml[ 0 ] = "li";
+      break;
+    case "para":
+      jsonml[ 0 ] = "p";
+      break;
+    case "markdown":
+      jsonml[ 0 ] = "html";
+      if ( attrs )
+        delete attrs.references;
+      break;
+    case "code_block":
+      jsonml[ 0 ] = "pre";
+      i = attrs ? 2 : 1;
+      var code = [ "code" ];
+      code.push.apply( code, jsonml.splice( i, jsonml.length - i ) );
+      jsonml[ i ] = code;
+      break;
+    case "inlinecode":
+      jsonml[ 0 ] = "code";
+      break;
+    case "img":
+      jsonml[ 1 ].src = jsonml[ 1 ].href;
+      delete jsonml[ 1 ].href;
+      break;
+    case "linebreak":
+      jsonml[ 0 ] = "br";
+      break;
+    case "link":
+      jsonml[ 0 ] = "a";
+      break;
+    case "link_ref":
+      jsonml[ 0 ] = "a";
+
+      // grab this ref and clean up the attribute node
+      var ref = references[ attrs.ref ];
+
+      // if the reference exists, make the link
+      if ( ref ) {
+        delete attrs.ref;
+
+        // add in the href and title, if present
+        attrs.href = ref.href;
+        if ( ref.title )
+          attrs.title = ref.title;
+
+        // get rid of the unneeded original text
+        delete attrs.original;
+      }
+      // the reference doesn't exist, so revert to plain text
+      else {
+        return attrs.original;
+      }
+      break;
+    case "img_ref":
+      jsonml[ 0 ] = "img";
+
+      // grab this ref and clean up the attribute node
+      var ref = references[ attrs.ref ];
+
+      // if the reference exists, make the link
+      if ( ref ) {
+        delete attrs.ref;
+
+        // add in the href and title, if present
+        attrs.src = ref.href;
+        if ( ref.title )
+          attrs.title = ref.title;
+
+        // get rid of the unneeded original text
+        delete attrs.original;
+      }
+      // the reference doesn't exist, so revert to plain text
+      else {
+        return attrs.original;
+      }
+      break;
+    }
+
+    // convert all the children
+    i = 1;
+
+    // deal with the attribute node, if it exists
+    if ( attrs ) {
+      // if there are keys, skip over it
+      for ( var key in jsonml[ 1 ] ) {
+        i = 2;
+        break;
+      }
+      // if there aren't, remove it
+      if ( i === 1 )
+        jsonml.splice( i, 1 );
+    }
+
+    for ( ; i < jsonml.length; ++i ) {
+      jsonml[ i ] = convert_tree_to_html( jsonml[ i ], references, options );
+    }
+
+    return jsonml;
+  }
+
+  // merges adjacent text nodes into a single node
+  function merge_text_nodes( jsonml ) {
+    // skip the tag name and attribute hash
+    var i = extract_attr( jsonml ) ? 2 : 1;
+
+    while ( i < jsonml.length ) {
+      // if it's a string check the next item too
+      if ( typeof jsonml[ i ] === "string" ) {
+        if ( i + 1 < jsonml.length && typeof jsonml[ i + 1 ] === "string" ) {
+          // merge the second string into the first and remove it
+          jsonml[ i ] += jsonml.splice( i + 1, 1 )[ 0 ];
+        }
+        else {
+          ++i;
+        }
+      }
+      // if it's not a string recurse
+      else {
+        merge_text_nodes( jsonml[ i ] );
+        ++i;
+      }
+    }
+  }
+
+  var DialectHelpers = {};
+  DialectHelpers.inline_until_char = function( text, want ) {
+    var consumed = 0,
+        nodes = [];
+
+    while ( true ) {
+      if ( text.charAt( consumed ) === want ) {
+        // Found the character we were looking for
+        consumed++;
+        return [ consumed, nodes ];
+      }
+
+      if ( consumed >= text.length ) {
+        // No closing char found. Abort.
+        return [consumed, null, nodes];
+      }
+
+      var res = this.dialect.inline.__oneElement__.call(this, text.substr( consumed ) );
+      consumed += res[ 0 ];
+      // Add any returned nodes.
+      nodes.push.apply( nodes, res.slice( 1 ) );
+    }
+  };
+
+  // Helper function to make sub-classing a dialect easier
+  DialectHelpers.subclassDialect = function( d ) {
+    function Block() {}
+    Block.prototype = d.block;
+    function Inline() {}
+    Inline.prototype = d.inline;
+
+    return { block: new Block(), inline: new Inline() };
+  };
+
+  var forEach = MarkdownHelpers.forEach,
+      extract_attr = MarkdownHelpers.extract_attr,
+      mk_block = MarkdownHelpers.mk_block,
+      isEmpty = MarkdownHelpers.isEmpty,
+      inline_until_char = DialectHelpers.inline_until_char;
+
+  // A robust regexp for matching URLs. Thanks: https://gist.github.com/dperini/729294
+  var urlRegexp = /(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!10(?:\.\d{1,3}){3})(?!127(?:\.\d{1,3}){3})(?!169\.254(?:\.\d{1,3}){2})(?!192\.168(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:\/[^\s]*)?/i.source;
+
+  /**
+   * Gruber dialect
+   *
+   * The default dialect that follows the rules set out by John Gruber's
+   * markdown.pl as closely as possible. Well actually we follow the behaviour of
+   * that script which in some places is not exactly what the syntax web page
+   * says.
+   **/
+  var Gruber = {
+    block: {
+      atxHeader: function atxHeader( block, next ) {
+        var m = block.match( /^(#{1,6})\s*(.*?)\s*#*\s*(?:\n|$)/ );
+
+        if ( !m )
+          return undefined;
+
+        var header = [ "header", { level: m[ 1 ].length } ];
+        Array.prototype.push.apply(header, this.processInline(m[ 2 ]));
+
+        if ( m[0].length < block.length )
+          next.unshift( mk_block( block.substr( m[0].length ), block.trailing, block.lineNumber + 2 ) );
+
+        return [ header ];
+      },
+
+      setextHeader: function setextHeader( block, next ) {
+        var m = block.match( /^(.*)\n([-=])\2\2+(?:\n|$)/ );
+
+        if ( !m )
+          return undefined;
+
+        var level = ( m[ 2 ] === "=" ) ? 1 : 2,
+            header = [ "header", { level : level } ].concat( this.processInline(m[ 1 ]) );
+
+        if ( m[0].length < block.length )
+          next.unshift( mk_block( block.substr( m[0].length ), block.trailing, block.lineNumber + 2 ) );
+
+        return [ header ];
+      },
+
+      code: function code( block, next ) {
+        // |    Foo
+        // |bar
+        // should be a code block followed by a paragraph. Fun
+        //
+        // There might also be adjacent code block to merge.
+
+        var ret = [],
+            re = /^(?: {0,3}\t| {4})(.*)\n?/;
+
+        // 4 spaces + content
+        if ( !block.match( re ) )
+          return undefined;
+
+        block_search:
+        do {
+          // Now pull out the rest of the lines
+          var b = this.loop_re_over_block(
+                    re, block.valueOf(), function( m ) { ret.push( m[1] ); } );
+
+          if ( b.length ) {
+            // Case alluded to in first comment. push it back on as a new block
+            next.unshift( mk_block(b, block.trailing) );
+            break block_search;
+          }
+          else if ( next.length ) {
+            // Check the next block - it might be code too
+            if ( !next[0].match( re ) )
+              break block_search;
+
+            // Pull how how many blanks lines follow - minus two to account for .join
+            ret.push ( block.trailing.replace(/[^\n]/g, "").substring(2) );
+
+            block = next.shift();
+          }
+          else {
+            break block_search;
+          }
+        } while ( true );
+
+        return [ [ "code_block", ret.join("\n") ] ];
+      },
+
+      horizRule: function horizRule( block, next ) {
+        // this needs to find any hr in the block to handle abutting blocks
+        var m = block.match( /^(?:([\s\S]*?)\n)?[ \t]*([-_*])(?:[ \t]*\2){2,}[ \t]*(?:\n([\s\S]*))?$/ );
+
+        if ( !m )
+          return undefined;
+
+        var jsonml = [ [ "hr" ] ];
+
+        // if there's a leading abutting block, process it
+        if ( m[ 1 ] ) {
+          var contained = mk_block( m[ 1 ], "", block.lineNumber );
+          jsonml.unshift.apply( jsonml, this.toTree( contained, [] ) );
+        }
+
+        // if there's a trailing abutting block, stick it into next
+        if ( m[ 3 ] )
+          next.unshift( mk_block( m[ 3 ], block.trailing, block.lineNumber + 1 ) );
+
+        return jsonml;
+      },
+
+      // There are two types of lists. Tight and loose. Tight lists have no whitespace
+      // between the items (and result in text just in the <li>) and loose lists,
+      // which have an empty line between list items, resulting in (one or more)
+      // paragraphs inside the <li>.
+      //
+      // There are all sorts weird edge cases about the original markdown.pl's
+      // handling of lists:
+      //
+      // * Nested lists are supposed to be indented by four chars per level. But
+      //   if they aren't, you can get a nested list by indenting by less than
+      //   four so long as the indent doesn't match an indent of an existing list
+      //   item in the 'nest stack'.
+      //
+      // * The type of the list (bullet or number) is controlled just by the
+      //    first item at the indent. Subsequent changes are ignored unless they
+      //    are for nested lists
+      //
+      lists: (function( ) {
+        // Use a closure to hide a few variables.
+        var any_list = "[*+-]|\\d+\\.",
+            bullet_list = /[*+-]/,
+            // Capture leading indent as it matters for determining nested lists.
+            is_list_re = new RegExp( "^( {0,3})(" + any_list + ")[ \t]+" ),
+            indent_re = "(?: {0,3}\\t| {4})";
+
+        // TODO: Cache this regexp for certain depths.
+        // Create a regexp suitable for matching an li for a given stack depth
+        function regex_for_depth( depth ) {
+
+          return new RegExp(
+            // m[1] = indent, m[2] = list_type
+            "(?:^(" + indent_re + "{0," + depth + "} {0,3})(" + any_list + ")\\s+)|" +
+            // m[3] = cont
+            "(^" + indent_re + "{0," + (depth-1) + "}[ ]{0,4})"
+          );
+        }
+        function expand_tab( input ) {
+          return input.replace( / {0,3}\t/g, "    " );
+        }
+
+        // Add inline content `inline` to `li`. inline comes from processInline
+        // so is an array of content
+        function add(li, loose, inline, nl) {
+          if ( loose ) {
+            li.push( [ "para" ].concat(inline) );
+            return;
+          }
+          // Hmmm, should this be any block level element or just paras?
+          var add_to = li[li.length -1] instanceof Array && li[li.length - 1][0] === "para"
+                     ? li[li.length -1]
+                     : li;
+
+          // If there is already some content in this list, add the new line in
+          if ( nl && li.length > 1 )
+            inline.unshift(nl);
+
+          for ( var i = 0; i < inline.length; i++ ) {
+            var what = inline[i],
+                is_str = typeof what === "string";
+            if ( is_str && add_to.length > 1 && typeof add_to[add_to.length-1] === "string" )
+              add_to[ add_to.length-1 ] += what;
+            else
+              add_to.push( what );
+          }
+        }
+
+        // contained means have an indent greater than the current one. On
+        // *every* line in the block
+        function get_contained_blocks( depth, blocks ) {
+
+          var re = new RegExp( "^(" + indent_re + "{" + depth + "}.*?\\n?)*$" ),
+              replace = new RegExp("^" + indent_re + "{" + depth + "}", "gm"),
+              ret = [];
+
+          while ( blocks.length > 0 ) {
+            if ( re.exec( blocks[0] ) ) {
+              var b = blocks.shift(),
+                  // Now remove that indent
+                  x = b.replace( replace, "");
+
+              ret.push( mk_block( x, b.trailing, b.lineNumber ) );
+            }
+            else
+              break;
+          }
+          return ret;
+        }
+
+        // passed to stack.forEach to turn list items up the stack into paras
+        function paragraphify(s, i, stack) {
+          var list = s.list;
+          var last_li = list[list.length-1];
+
+          if ( last_li[1] instanceof Array && last_li[1][0] === "para" )
+            return;
+
+          if ( i + 1 === stack.length ) {
+            // Last stack frame
+            // Keep the same array, but replace the contents
+            last_li.push( ["para"].concat( last_li.splice(1, last_li.length - 1) ) );
+          }
+          else {
+            var sublist = last_li.pop();
+            last_li.push( ["para"].concat( last_li.splice(1, last_li.length - 1) ), sublist );
+          }
+        }
+
+        // The matcher function
+        return function( block, next ) {
+          var m = block.match( is_list_re );
+          if ( !m )
+            return undefined;
+
+          function make_list( m ) {
+            var list = bullet_list.exec( m[2] )
+                     ? ["bulletlist"]
+                     : ["numberlist"];
+
+            stack.push( { list: list, indent: m[1] } );
+            return list;
+          }
+
+          var stack = [], // Stack of lists for nesting.
+              list = make_list( m ),
+              last_li,
+              loose = false,
+              ret = [ stack[0].list ],
+              i;
+
+          // Loop to search over block looking for inner block elements and loose lists
+          loose_search:
+          while ( true ) {
+            // Split into lines preserving new lines at end of line
+            var lines = block.split( /(?=\n)/ );
+
+            // We have to grab all lines for a li and call processInline on them
+            // once as there are some inline things that can span lines.
+            var li_accumulate = "", nl = "";
+
+            // Loop over the lines in this block looking for tight lists.
+            tight_search:
+            for ( var line_no = 0; line_no < lines.length; line_no++ ) {
+              nl = "";
+              var l = lines[line_no].replace(/^\n/, function(n) { nl = n; return ""; });
+
+              // TODO: really should cache this
+              var line_re = regex_for_depth( stack.length );
+
+              m = l.match( line_re );
+              //print( "line:", uneval(l), "\nline match:", uneval(m) );
+
+              // We have a list item
+              if ( m[1] !== undefined ) {
+                // Process the previous list item, if any
+                if ( li_accumulate.length ) {
+                  add( last_li, loose, this.processInline( li_accumulate ), nl );
+                  // Loose mode will have been dealt with. Reset it
+                  loose = false;
+                  li_accumulate = "";
+                }
+
+                m[1] = expand_tab( m[1] );
+                var wanted_depth = Math.floor(m[1].length/4)+1;
+                //print( "want:", wanted_depth, "stack:", stack.length);
+                if ( wanted_depth > stack.length ) {
+                  // Deep enough for a nested list outright
+                  //print ( "new nested list" );
+                  list = make_list( m );
+                  last_li.push( list );
+                  last_li = list[1] = [ "listitem" ];
+                }
+                else {
+                  // We aren't deep enough to be strictly a new level. This is
+                  // where Md.pl goes nuts. If the indent matches a level in the
+                  // stack, put it there, else put it one deeper then the
+                  // wanted_depth deserves.
+                  var found = false;
+                  for ( i = 0; i < stack.length; i++ ) {
+                    if ( stack[ i ].indent !== m[1] )
+                      continue;
+
+                    list = stack[ i ].list;
+                    stack.splice( i+1, stack.length - (i+1) );
+                    found = true;
+                    break;
+                  }
+
+                  if (!found) {
+                    //print("not found. l:", uneval(l));
+                    wanted_depth++;
+                    if ( wanted_depth <= stack.length ) {
+                      stack.splice(wanted_depth, stack.length - wanted_depth);
+                      //print("Desired depth now", wanted_depth, "stack:", stack.length);
+                      list = stack[wanted_depth-1].list;
+                      //print("list:", uneval(list) );
+                    }
+                    else {
+                      //print ("made new stack for messy indent");
+                      list = make_list(m);
+                      last_li.push(list);
+                    }
+                  }
+
+                  //print( uneval(list), "last", list === stack[stack.length-1].list );
+                  last_li = [ "listitem" ];
+                  list.push(last_li);
+                } // end depth of shenegains
+                nl = "";
+              }
+
+              // Add content
+              if ( l.length > m[0].length )
+                li_accumulate += nl + l.substr( m[0].length );
+            } // tight_search
+
+            if ( li_accumulate.length ) {
+
+              var contents = this.processBlock(li_accumulate, []),
+                  firstBlock = contents[0];
+
+              if (firstBlock) {
+                firstBlock.shift();
+                contents.splice.apply(contents, [0, 1].concat(firstBlock));
+                add( last_li, loose, contents, nl );
+
+                // Let's not creating a trailing \n after content in the li
+                if(last_li[last_li.length-1] === "\n") {
+                  last_li.pop();
+                }
+
+                // Loose mode will have been dealt with. Reset it
+                loose = false;
+                li_accumulate = "";
+              }
+            }
+
+            // Look at the next block - we might have a loose list. Or an extra
+            // paragraph for the current li
+            var contained = get_contained_blocks( stack.length, next );
+
+            // Deal with code blocks or properly nested lists
+            if ( contained.length > 0 ) {
+              // Make sure all listitems up the stack are paragraphs
+              forEach( stack, paragraphify, this);
+
+              last_li.push.apply( last_li, this.toTree( contained, [] ) );
+            }
+
+            var next_block = next[0] && next[0].valueOf() || "";
+
+            if ( next_block.match(is_list_re) || next_block.match( /^ / ) ) {
+              block = next.shift();
+
+              // Check for an HR following a list: features/lists/hr_abutting
+              var hr = this.dialect.block.horizRule.call( this, block, next );
+
+              if ( hr ) {
+                ret.push.apply(ret, hr);
+                break;
+              }
+
+              // Add paragraphs if the indentation level stays the same
+              if (stack[stack.length-1].indent === block.match(/^\s*/)[0]) {
+                forEach( stack, paragraphify, this);
+              }
+
+              loose = true;
+              continue loose_search;
+            }
+            break;
+          } // loose_search
+
+          return ret;
+        };
+      })(),
+
+      blockquote: function blockquote( block, next ) {
+
+        // Handle quotes that have spaces before them
+        var m = /(^|\n) +(\>[\s\S]*)/.exec(block);
+        if (m && m[2] && m[2].length) {
+          var blockContents = block.replace(/(^|\n) +\>/, "$1>");
+          next.unshift(blockContents);
+          return [];
+        }
+
+        if ( !block.match( /^>/m ) )
+          return undefined;
+
+        var jsonml = [];
+
+        // separate out the leading abutting block, if any. I.e. in this case:
+        //
+        //  a
+        //  > b
+        //
+        if ( block[ 0 ] !== ">" ) {
+          var lines = block.split( /\n/ ),
+              prev = [],
+              line_no = block.lineNumber;
+
+          // keep shifting lines until you find a crotchet
+          while ( lines.length && lines[ 0 ][ 0 ] !== ">" ) {
+            prev.push( lines.shift() );
+            line_no++;
+          }
+
+          var abutting = mk_block( prev.join( "\n" ), "\n", block.lineNumber );
+          jsonml.push.apply( jsonml, this.processBlock( abutting, [] ) );
+          // reassemble new block of just block quotes!
+          block = mk_block( lines.join( "\n" ), block.trailing, line_no );
+        }
+
+        // if the next block is also a blockquote merge it in
+        while ( next.length && next[ 0 ][ 0 ] === ">" ) {
+          var b = next.shift();
+          block = mk_block( block + block.trailing + b, b.trailing, block.lineNumber );
+        }
+
+        // Strip off the leading "> " and re-process as a block.
+        var input = block.replace( /^> ?/gm, "" ),
+            old_tree = this.tree,
+            processedBlock = this.toTree( input, [ "blockquote" ] ),
+            attr = extract_attr( processedBlock );
+
+        // If any link references were found get rid of them
+        if ( attr && attr.references ) {
+          delete attr.references;
+          // And then remove the attribute object if it's empty
+          if ( isEmpty( attr ) )
+            processedBlock.splice( 1, 1 );
+        }
+
+        jsonml.push( processedBlock );
+        return jsonml;
+      },
+
+      referenceDefn: function referenceDefn( block, next) {
+        var re = /^\s*\[(.*?)\]:\s*(\S+)(?:\s+(?:(['"])(.*)\3|\((.*?)\)))?\n?/;
+        // interesting matches are [ , ref_id, url, , title, title ]
+
+        if ( !block.match(re) )
+          return undefined;
+
+        var attrs = create_attrs.call( this );
+
+        var b = this.loop_re_over_block(re, block, function( m ) {
+          create_reference(attrs, m);
+        } );
+
+        if ( b.length )
+          next.unshift( mk_block( b, block.trailing ) );
+
+        return [];
+      },
+
+      para: function para( block ) {
+        // everything's a para!
+        return [ ["para"].concat( this.processInline( block ) ) ];
+      }
+    },
+
+    inline: {
+
+      __oneElement__: function oneElement( text, patterns_or_re, previous_nodes ) {
+        var m,
+            res;
+
+        patterns_or_re = patterns_or_re || this.dialect.inline.__patterns__;
+        var re = new RegExp( "([\\s\\S]*?)(" + (patterns_or_re.source || patterns_or_re) + ")" );
+
+        m = re.exec( text );
+        if (!m) {
+          // Just boring text
+          return [ text.length, text ];
+        }
+        else if ( m[1] ) {
+          // Some un-interesting text matched. Return that first
+          return [ m[1].length, m[1] ];
+        }
+
+        var res;
+        if ( m[2] in this.dialect.inline ) {
+          res = this.dialect.inline[ m[2] ].call(
+                    this,
+                    text.substr( m.index ), m, previous_nodes || [] );
+        }
+        // Default for now to make dev easier. just slurp special and output it.
+        res = res || [ m[2].length, m[2] ];
+        return res;
+      },
+
+      __call__: function inline( text, patterns ) {
+
+        var out = [],
+            res;
+
+        function add(x) {
+          //D:self.debug("  adding output", uneval(x));
+          if ( typeof x === "string" && typeof out[out.length-1] === "string" )
+            out[ out.length-1 ] += x;
+          else
+            out.push(x);
+        }
+
+        while ( text.length > 0 ) {
+          res = this.dialect.inline.__oneElement__.call(this, text, patterns, out );
+          text = text.substr( res.shift() );
+          forEach(res, add );
+        }
+
+        return out;
+      },
+
+      // These characters are interesting elsewhere, so have rules for them so that
+      // chunks of plain text blocks don't include them
+      "]": function () {},
+      "}": function () {},
+
+      __escape__ : /^\\[\\`\*_{}<>\[\]()#\+.!\-]/,
+
+      "\\": function escaped( text ) {
+        // [ length of input processed, node/children to add... ]
+        // Only esacape: \ ` * _ { } [ ] ( ) # * + - . !
+        if ( this.dialect.inline.__escape__.exec( text ) )
+          return [ 2, text.charAt( 1 ) ];
+        else
+          // Not an esacpe
+          return [ 1, "\\" ];
+      },
+
+      "![": function image( text ) {
+
+        // Without this guard V8 crashes hard on the RegExp
+        if (text.indexOf('(') >= 0 && text.indexOf(')') === -1) { return; }
+
+        // Unlike images, alt text is plain text only. no other elements are
+        // allowed in there
+
+        // ![Alt text](/path/to/img.jpg "Optional title")
+        //      1          2            3       4         <--- captures
+        //
+        // First attempt to use a strong URL regexp to catch things like parentheses. If it misses, use the
+        // old one.
+        var m = text.match(new RegExp("^!\\[(.*?)][ \\t]*\\((" + urlRegexp + ")\\)([ \\t])*([\"'].*[\"'])?")) ||
+                text.match( /^!\[(.*?)\][ \t]*\([ \t]*([^")]*?)(?:[ \t]+(["'])(.*?)\3)?[ \t]*\)/ );
+
+        if ( m ) {
+          if ( m[2] && m[2][0] === "<" && m[2][m[2].length-1] === ">" )
+            m[2] = m[2].substring( 1, m[2].length - 1 );
+
+          m[2] = this.dialect.inline.__call__.call( this, m[2], /\\/ )[0];
+
+          var attrs = { alt: m[1], href: m[2] || "" };
+          if ( m[4] !== undefined)
+            attrs.title = m[4];
+
+          return [ m[0].length, [ "img", attrs ] ];
+        }
+
+        // ![Alt text][id]
+        m = text.match( /^!\[(.*?)\][ \t]*\[(.*?)\]/ );
+
+        if ( m ) {
+          // We can't check if the reference is known here as it likely wont be
+          // found till after. Check it in md tree->hmtl tree conversion
+          return [ m[0].length, [ "img_ref", { alt: m[1], ref: m[2].toLowerCase(), original: m[0] } ] ];
+        }
+
+        // Just consume the '!['
+        return [ 2, "![" ];
+      },
+
+      "[": function link( text ) {
+
+        var open = 1;
+        for (var i=0; i<text.length; i++) {
+          var c = text.charAt(i);
+          if (c === '[') { open++; }
+          if (c === ']') { open--; }
+
+          if (open > 3) { return [1, "["]; }
+        }
+
+        var orig = String(text);
+        // Inline content is possible inside `link text`
+        var res = inline_until_char.call( this, text.substr(1), "]" );
+
+        // No closing ']' found. Just consume the [
+        if ( !res[1] ) {
+          return [ res[0] + 1, text.charAt(0) ].concat(res[2]);
+        }
+
+        var consumed = 1 + res[ 0 ],
+            children = res[ 1 ],
+            link,
+            attrs;
+
+        // At this point the first [...] has been parsed. See what follows to find
+        // out which kind of link we are (reference or direct url)
+        text = text.substr( consumed );
+
+        // [link text](/path/to/img.jpg "Optional title")
+        //                 1            2       3         <--- captures
+        // This will capture up to the last paren in the block. We then pull
+        // back based on if there a matching ones in the url
+        //    ([here](/url/(test))
+        // The parens have to be balanced
+        var m = text.match( /^\s*\([ \t]*([^"']*)(?:[ \t]+(["'])(.*?)\2)?[ \t]*\)/ );
+        if ( m ) {
+          var url = m[1].replace(/\s+$/, '');
+          consumed += m[0].length;
+
+          if ( url && url[0] === "<" && url[url.length-1] === ">" )
+            url = url.substring( 1, url.length - 1 );
+
+          // If there is a title we don't have to worry about parens in the url
+          if ( !m[3] ) {
+            var open_parens = 1; // One open that isn't in the capture
+            for ( var len = 0; len < url.length; len++ ) {
+              switch ( url[len] ) {
+              case "(":
+                open_parens++;
+                break;
+              case ")":
+                if ( --open_parens === 0) {
+                  consumed -= url.length - len;
+                  url = url.substring(0, len);
+                }
+                break;
+              }
+            }
+          }
+
+          // Process escapes only
+          url = this.dialect.inline.__call__.call( this, url, /\\/ )[0];
+
+          attrs = { href: url || "" };
+          if ( m[3] !== undefined)
+            attrs.title = m[3];
+
+          link = [ "link", attrs ].concat( children );
+          return [ consumed, link ];
+        }
+
+        m = text.match(new RegExp("^\\((" + urlRegexp + ")\\)"));
+        if (m && m[1]) {
+          consumed += m[0].length;
+          link = ["link", {href: m[1]}].concat(children);
+          return [consumed, link];
+        }
+
+        // [Alt text][id]
+        // [Alt text] [id]
+        m = text.match( /^\s*\[(.*?)\]/ );
+        if ( m ) {
+
+          consumed += m[ 0 ].length;
+
+          // [links][] uses links as its reference
+          attrs = { ref: ( m[ 1 ] || String(children) ).toLowerCase(),  original: orig.substr( 0, consumed ) };
+
+          if (children && children.length > 0) {
+            link = [ "link_ref", attrs ].concat( children );
+
+            // We can't check if the reference is known here as it likely wont be
+            // found till after. Check it in md tree->hmtl tree conversion.
+            // Store the original so that conversion can revert if the ref isn't found.
+            return [ consumed, link ];
+          }
+        }
+
+        // Another check for references
+        m = orig.match(/^\s*\[(.*?)\]:\s*(\S+)(?:\s+(?:(['"])(.*?)\3|\((.*?)\)))?\n?/);
+        if (m) {
+          var attrs = create_attrs.call(this);
+          create_reference(attrs, m);
+          return [ m[0].length ];
+        }
+
+        // [id]
+        // Only if id is plain (no formatting.)
+        if ( children.length === 1 && typeof children[0] === "string" ) {
+
+          var normalized = children[0].toLowerCase().replace(/\s+/, ' ');
+          attrs = { ref: normalized,  original: orig.substr( 0, consumed ) };
+          link = [ "link_ref", attrs, children[0] ];
+          return [ consumed, link ];
+        }
+
+        // Just consume the "["
+        return [ 1, "[" ];
+      },
+
+      "<": function autoLink( text ) {
+        var m;
+
+        if ( ( m = text.match( /^<(?:((https?|ftp|mailto):[^>]+)|(.*?@.*?\.[a-zA-Z]+))>/ ) ) !== null ) {
+          if ( m[3] )
+            return [ m[0].length, [ "link", { href: "mailto:" + m[3] }, m[3] ] ];
+          else if ( m[2] === "mailto" )
+            return [ m[0].length, [ "link", { href: m[1] }, m[1].substr("mailto:".length ) ] ];
+          else
+            return [ m[0].length, [ "link", { href: m[1] }, m[1] ] ];
+        }
+
+        return [ 1, "<" ];
+      },
+
+      "`": function inlineCode( text ) {
+        // Inline code block. as many backticks as you like to start it
+        // Always skip over the opening ticks.
+        var m = text.match( /(`+)(([\s\S]*?)\1)/ );
+
+        if ( m && m[2] )
+          return [ m[1].length + m[2].length, [ "inlinecode", m[3] ] ];
+        else {
+          // TODO: No matching end code found - warn!
+          return [ 1, "`" ];
+        }
+      },
+
+      "  \n": function lineBreak() {
+        return [ 3, [ "linebreak" ] ];
+      }
+
+    }
+  };
+
+  // Meta Helper/generator method for em and strong handling
+  function strong_em( tag, md ) {
+
+    var state_slot = tag + "_state",
+        other_slot = tag === "strong" ? "em_state" : "strong_state";
+
+    function CloseTag(len) {
+      this.len_after = len;
+      this.name = "close_" + md;
+    }
+
+    return function ( text ) {
+
+      if ( this[state_slot][0] === md ) {
+        // Most recent em is of this type
+        //D:this.debug("closing", md);
+        this[state_slot].shift();
+
+        // "Consume" everything to go back to the recursion in the else-block below
+        return[ text.length, new CloseTag(text.length-md.length) ];
+      }
+      else {
+        // Store a clone of the em/strong states
+        var other = this[other_slot].slice(),
+            state = this[state_slot].slice();
+
+        this[state_slot].unshift(md);
+
+        //D:this.debug_indent += "  ";
+
+        // Recurse
+        var res = this.processInline( text.substr( md.length ) );
+        //D:this.debug_indent = this.debug_indent.substr(2);
+
+        var last = res[res.length - 1];
+
+        //D:this.debug("processInline from", tag + ": ", uneval( res ) );
+
+        var check = this[state_slot].shift();
+        if ( last instanceof CloseTag ) {
+          res.pop();
+          // We matched! Huzzah.
+          var consumed = text.length - last.len_after;
+          return [ consumed, [ tag ].concat(res) ];
+        }
+        else {
+          // Restore the state of the other kind. We might have mistakenly closed it.
+          this[other_slot] = other;
+          this[state_slot] = state;
+
+          // We can't reuse the processed result as it could have wrong parsing contexts in it.
+          return [ md.length, md ];
+        }
+      }
+    }; // End returned function
+  }
+
+  // A helper function to create attributes
+  function create_attrs() {
+    if ( !extract_attr( this.tree ) ) {
+      this.tree.splice( 1, 0, {} );
+    }
+
+    var attrs = extract_attr( this.tree );
+
+    // make a references hash if it doesn't exist
+    if ( attrs.references === undefined ) {
+      attrs.references = {};
+    }
+
+    return attrs;
+  }
+
+  // Create references for attributes
+  function create_reference(attrs, m) {
+    if ( m[2] && m[2][0] === "<" && m[2][m[2].length-1] === ">" )
+      m[2] = m[2].substring( 1, m[2].length - 1 );
+
+    var ref = attrs.references[ m[1].toLowerCase() ] = {
+      href: m[2]
+    };
+
+    if ( m[4] !== undefined )
+      ref.title = m[4];
+    else if ( m[5] !== undefined )
+      ref.title = m[5];
+  }
+
+  Gruber.inline["**"] = strong_em("strong", "**");
+  Gruber.inline["__"] = strong_em("strong", "__");
+  Gruber.inline["*"]  = strong_em("em", "*");
+  Gruber.inline["_"]  = strong_em("em", "_");
+
+  Markdown.dialects.Gruber = Gruber;
+  Markdown.buildBlockOrder ( Markdown.dialects.Gruber.block );
+  Markdown.buildInlinePatterns( Markdown.dialects.Gruber.inline );
+
+  var Maruku = DialectHelpers.subclassDialect( Gruber ),
+      extract_attr = MarkdownHelpers.extract_attr,
+      forEach = MarkdownHelpers.forEach;
+
+  Maruku.processMetaHash = function processMetaHash( meta_string ) {
+    var meta = split_meta_hash( meta_string ),
+        attr = {};
+
+    for ( var i = 0; i < meta.length; ++i ) {
+      // id: #foo
+      if ( /^#/.test( meta[ i ] ) )
+        attr.id = meta[ i ].substring( 1 );
+      // class: .foo
+      else if ( /^\./.test( meta[ i ] ) ) {
+        // if class already exists, append the new one
+        if ( attr["class"] )
+          attr["class"] = attr["class"] + meta[ i ].replace( /./, " " );
+        else
+          attr["class"] = meta[ i ].substring( 1 );
+      }
+      // attribute: foo=bar
+      else if ( /\=/.test( meta[ i ] ) ) {
+        var s = meta[ i ].split( /\=/ );
+        attr[ s[ 0 ] ] = s[ 1 ];
+      }
+    }
+
+    return attr;
+  };
+
+  function split_meta_hash( meta_string ) {
+    var meta = meta_string.split( "" ),
+        parts = [ "" ],
+        in_quotes = false;
+
+    while ( meta.length ) {
+      var letter = meta.shift();
+      switch ( letter ) {
+      case " " :
+        // if we're in a quoted section, keep it
+        if ( in_quotes )
+          parts[ parts.length - 1 ] += letter;
+        // otherwise make a new part
+        else
+          parts.push( "" );
+        break;
+      case "'" :
+      case '"' :
+        // reverse the quotes and move straight on
+        in_quotes = !in_quotes;
+        break;
+      case "\\" :
+        // shift off the next letter to be used straight away.
+        // it was escaped so we'll keep it whatever it is
+        letter = meta.shift();
+        /* falls through */
+      default :
+        parts[ parts.length - 1 ] += letter;
+        break;
+      }
+    }
+
+    return parts;
+  }
+
+  Maruku.block.document_meta = function document_meta( block ) {
+    // we're only interested in the first block
+    if ( block.lineNumber > 1 )
+      return undefined;
+
+    // document_meta blocks consist of one or more lines of `Key: Value\n`
+    if ( ! block.match( /^(?:\w+:.*\n)*\w+:.*$/ ) )
+      return undefined;
+
+    // make an attribute node if it doesn't exist
+    if ( !extract_attr( this.tree ) )
+      this.tree.splice( 1, 0, {} );
+
+    var pairs = block.split( /\n/ );
+    for ( var p in pairs ) {
+      var m = pairs[ p ].match( /(\w+):\s*(.*)$/ ),
+          key = m[ 1 ].toLowerCase(),
+          value = m[ 2 ];
+
+      this.tree[ 1 ][ key ] = value;
+    }
+
+    // document_meta produces no content!
+    return [];
+  };
+
+  Maruku.block.block_meta = function block_meta( block ) {
+    // check if the last line of the block is an meta hash
+    var m = block.match( /(^|\n) {0,3}\{:\s*((?:\\\}|[^\}])*)\s*\}$/ );
+    if ( !m )
+      return undefined;
+
+    // process the meta hash
+    var attr = this.dialect.processMetaHash( m[ 2 ] ),
+        hash;
+
+    // if we matched ^ then we need to apply meta to the previous block
+    if ( m[ 1 ] === "" ) {
+      var node = this.tree[ this.tree.length - 1 ];
+      hash = extract_attr( node );
+
+      // if the node is a string (rather than JsonML), bail
+      if ( typeof node === "string" )
+        return undefined;
+
+      // create the attribute hash if it doesn't exist
+      if ( !hash ) {
+        hash = {};
+        node.splice( 1, 0, hash );
+      }
+
+      // add the attributes in
+      for ( var a in attr )
+        hash[ a ] = attr[ a ];
+
+      // return nothing so the meta hash is removed
+      return [];
+    }
+
+    // pull the meta hash off the block and process what's left
+    var b = block.replace( /\n.*$/, "" ),
+        result = this.processBlock( b, [] );
+
+    // get or make the attributes hash
+    hash = extract_attr( result[ 0 ] );
+    if ( !hash ) {
+      hash = {};
+      result[ 0 ].splice( 1, 0, hash );
+    }
+
+    // attach the attributes to the block
+    for ( var a in attr )
+      hash[ a ] = attr[ a ];
+
+    return result;
+  };
+
+  Maruku.block.definition_list = function definition_list( block, next ) {
+    // one or more terms followed by one or more definitions, in a single block
+    var tight = /^((?:[^\s:].*\n)+):\s+([\s\S]+)$/,
+        list = [ "dl" ],
+        i, m;
+
+    // see if we're dealing with a tight or loose block
+    if ( ( m = block.match( tight ) ) ) {
+      // pull subsequent tight DL blocks out of `next`
+      var blocks = [ block ];
+      while ( next.length && tight.exec( next[ 0 ] ) )
+        blocks.push( next.shift() );
+
+      for ( var b = 0; b < blocks.length; ++b ) {
+        var m = blocks[ b ].match( tight ),
+            terms = m[ 1 ].replace( /\n$/, "" ).split( /\n/ ),
+            defns = m[ 2 ].split( /\n:\s+/ );
+
+        // print( uneval( m ) );
+
+        for ( i = 0; i < terms.length; ++i )
+          list.push( [ "dt", terms[ i ] ] );
+
+        for ( i = 0; i < defns.length; ++i ) {
+          // run inline processing over the definition
+          list.push( [ "dd" ].concat( this.processInline( defns[ i ].replace( /(\n)\s+/, "$1" ) ) ) );
+        }
+      }
+    }
+    else {
+      return undefined;
+    }
+
+    return [ list ];
+  };
+
+  // splits on unescaped instances of @ch. If @ch is not a character the result
+  // can be unpredictable
+
+  Maruku.block.table = function table ( block ) {
+
+    var _split_on_unescaped = function( s, ch ) {
+      ch = ch || '\\s';
+      if ( ch.match(/^[\\|\[\]{}?*.+^$]$/) )
+        ch = '\\' + ch;
+      var res = [ ],
+          r = new RegExp('^((?:\\\\.|[^\\\\' + ch + '])*)' + ch + '(.*)'),
+          m;
+      while ( ( m = s.match( r ) ) ) {
+        res.push( m[1] );
+        s = m[2];
+      }
+      res.push(s);
+      return res;
+    };
+
+    var leading_pipe = /^ {0,3}\|(.+)\n {0,3}\|\s*([\-:]+[\-| :]*)\n((?:\s*\|.*(?:\n|$))*)(?=\n|$)/,
+        // find at least an unescaped pipe in each line
+        no_leading_pipe = /^ {0,3}(\S(?:\\.|[^\\|])*\|.*)\n {0,3}([\-:]+\s*\|[\-| :]*)\n((?:(?:\\.|[^\\|])*\|.*(?:\n|$))*)(?=\n|$)/,
+        i,
+        m;
+    if ( ( m = block.match( leading_pipe ) ) ) {
+      // remove leading pipes in contents
+      // (header and horizontal rule already have the leading pipe left out)
+      m[3] = m[3].replace(/^\s*\|/gm, '');
+    } else if ( ! ( m = block.match( no_leading_pipe ) ) ) {
+      return undefined;
+    }
+
+    var table = [ "table", [ "thead", [ "tr" ] ], [ "tbody" ] ];
+
+    // remove trailing pipes, then split on pipes
+    // (no escaped pipes are allowed in horizontal rule)
+    m[2] = m[2].replace(/\|\s*$/, '').split('|');
+
+    // process alignment
+    var html_attrs = [ ];
+    forEach (m[2], function (s) {
+      if (s.match(/^\s*-+:\s*$/))
+        html_attrs.push({align: "right"});
+      else if (s.match(/^\s*:-+\s*$/))
+        html_attrs.push({align: "left"});
+      else if (s.match(/^\s*:-+:\s*$/))
+        html_attrs.push({align: "center"});
+      else
+        html_attrs.push({});
+    });
+
+    // now for the header, avoid escaped pipes
+    m[1] = _split_on_unescaped(m[1].replace(/\|\s*$/, ''), '|');
+    for (i = 0; i < m[1].length; i++) {
+      table[1][1].push(['th', html_attrs[i] || {}].concat(
+        this.processInline(m[1][i].trim())));
+    }
+
+    // now for body contents
+    forEach (m[3].replace(/\|\s*$/mg, '').split('\n'), function (row) {
+      var html_row = ['tr'];
+      row = _split_on_unescaped(row, '|');
+      for (i = 0; i < row.length; i++)
+        html_row.push(['td', html_attrs[i] || {}].concat(this.processInline(row[i].trim())));
+      table[2].push(html_row);
+    }, this);
+
+    return [table];
+  };
+
+  Maruku.inline[ "{:" ] = function inline_meta( text, matches, out ) {
+    if ( !out.length )
+      return [ 2, "{:" ];
+
+    // get the preceeding element
+    var before = out[ out.length - 1 ];
+
+    if ( typeof before === "string" )
+      return [ 2, "{:" ];
+
+    // match a meta hash
+    var m = text.match( /^\{:\s*((?:\\\}|[^\}])*)\s*\}/ );
+
+    // no match, false alarm
+    if ( !m )
+      return [ 2, "{:" ];
+
+    // attach the attributes to the preceeding element
+    var meta = this.dialect.processMetaHash( m[ 1 ] ),
+        attr = extract_attr( before );
+
+    if ( !attr ) {
+      attr = {};
+      before.splice( 1, 0, attr );
+    }
+
+    for ( var k in meta )
+      attr[ k ] = meta[ k ];
+
+    // cut out the string and replace it with nothing
+    return [ m[ 0 ].length, "" ];
+  };
+
+  Markdown.dialects.Maruku = Maruku;
+  Markdown.dialects.Maruku.inline.__escape__ = /^\\[\\`\*_{}\[\]()#\+.!\-|:]/;
+  Markdown.buildBlockOrder ( Markdown.dialects.Maruku.block );
+  Markdown.buildInlinePatterns( Markdown.dialects.Maruku.inline );
+
+// Include all our dependencies and return the resulting library.
+
+  expose.Markdown = Markdown;
+  expose.parse = Markdown.parse;
+  expose.toHTML = Markdown.toHTML;
+  expose.toHTMLTree = Markdown.toHTMLTree;
+  expose.renderJsonML = Markdown.renderJsonML;
+  expose.DialectHelpers = DialectHelpers;
+
+})(function() {
+  window.markdown = {};
+  return window.markdown;
+}());

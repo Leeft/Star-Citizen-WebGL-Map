@@ -14,30 +14,6 @@ module.exports = function(grunt) {
     jqueryCheck: 'if (typeof jQuery === "undefined") { throw new Error("<%= pkg.name %> requires jQuery"); }\n',
     threejsCheck: 'if (typeof THREE === "undefined") { throw new Error("<%= pkg.name %> requires THREE.js"); }\n',
 
-    copy: {
-
-      tweenjs: {
-        files: [
-          { expand: false, src: 'js/tween.js/build/tween.min.js',                      dest: 'build/tween.min.js' },
-        ]
-      },
-
-      fsmjs: {
-        files: [
-          { expand: false, src: 'js/javascript-state-machine/state-machine.min.js',    dest: 'build/state-machine.min.js' },
-        ]
-      },
-
-      jqueryplugins: {
-        files: [
-          { expand: false, src: 'js/jScrollPane/script/jquery.jscrollpane.min.js',     dest: 'build/jquery.jscrollpane.min.js' },
-          { expand: false, src: 'js/jquery-mousewheel/build/jquery.mousewheel.min.js', dest: 'build/jquery.mousewheel.min.js' },
-          { expand: false, src: 'js/markdown-js/dist/markdown.min.js',                 dest: 'build/markdown.min.js' }
-        ]
-      }
-
-    },
-
     concat: {
 
       scmap: {
@@ -89,13 +65,13 @@ module.exports = function(grunt) {
           'js/three.js/examples/js/postprocessing/BloomPass.js',
           'js/three.js/examples/js/Detector.js',
           'js/three.js/examples/js/libs/stats.min.js',
-          'js/libs/imagesloaded.pkgd.min.js',
-          'js/handlebars-v1.3.0.js',
-          'build/jquery.jscrollpane.min.js',
-          'build/jquery.mousewheel.min.js',
-          'build/markdown.min.js',
-          'build/tween.min.js',
-          'build/state-machine.min.js',
+          'vendor/tweenjs/build/tween.min.js',
+          'vendor/imagesloaded.pkgd.js',
+          'vendor/handlebars/handlebars.js',
+          'vendor/javascript-state-machine/state-machine.js',
+          'vendor/jScrollPane/script/jquery.jscrollpane.js',
+          'vendor/jScrollPane/script/jquery.mousewheel.js',
+          'vendor/markdown-js/dist/markdown.js'
         ],
         dest: 'build/<%= pkg.name %>-libs.js'
       }
@@ -185,18 +161,16 @@ module.exports = function(grunt) {
    // These plugins provide necessary tasks
    grunt.loadNpmTasks( 'grunt-contrib-concat' );
    grunt.loadNpmTasks( 'grunt-contrib-uglify' );
-   grunt.loadNpmTasks( 'grunt-contrib-copy' );
    grunt.loadNpmTasks( 'grunt-contrib-watch' );
    grunt.loadNpmTasks( 'grunt-contrib-jshint' );
    grunt.loadNpmTasks( 'grunt-contrib-less' );
    grunt.loadNpmTasks( 'grunt-lesslint' );
 
-   grunt.registerTask( 'copy-extlibs', [ 'copy' ] );
    grunt.registerTask( 'dist-scdata', [ 'concat:scdata', 'uglify:scdata' ] );
    grunt.registerTask( 'dist-scmap', [ 'jshint:beforeconcat', 'concat:scmap', 'jshint:afterconcat','uglify:scmap' ] );
    grunt.registerTask( 'dist-extlibs', [ 'concat:extlibs', 'uglify:extlibs' ] );
    grunt.registerTask( 'less-css', [ 'less:css' ] );
 
    // Default task(s).
-   grunt.registerTask( 'default', [ 'copy-extlibs', 'dist-extlibs', 'dist-scdata', 'dist-scmap', 'less-css' ] );
+   grunt.registerTask( 'default', [ 'dist-extlibs', 'dist-scdata', 'dist-scmap', 'less-css' ] );
 };
