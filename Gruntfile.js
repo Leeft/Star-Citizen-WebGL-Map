@@ -16,6 +16,32 @@ module.exports = function(grunt) {
 
     concat: {
 
+      // ** This should be a manual task only **
+      // From the checked out three.js submodule, take these files
+      // and put them in a file we have included in the repository
+      // and which we can include in the regular build process.
+      // It's done this way since there is no current three.js
+      // node package which also includes this example code, and
+      // this optional manual step prevents having to check out or
+      // update the three.js submodule just to build the code.
+      threeExamples: {
+        options: {
+          stripBanners: false
+        },
+        src: [
+          'js/three.js/examples/js/shaders/ConvolutionShader.js',
+          'js/three.js/examples/js/shaders/FXAAShader.js',
+          'js/three.js/examples/js/shaders/CopyShader.js',
+          'js/three.js/examples/js/postprocessing/EffectComposer.js',
+          'js/three.js/examples/js/postprocessing/MaskPass.js',
+          'js/three.js/examples/js/postprocessing/RenderPass.js',
+          'js/three.js/examples/js/postprocessing/ShaderPass.js',
+          'js/three.js/examples/js/postprocessing/BloomPass.js',
+          'js/three.js/examples/js/Detector.js',
+        ],
+        dest: 'js/extlibs/three-js-examples.js'
+      },
+
       scmap: {
         options: {
           banner: '<%= banner %><%= jqueryCheck %><%= threejsCheck %>',
@@ -55,16 +81,8 @@ module.exports = function(grunt) {
 
       extlibs: {
         src: [
-          'js/three.js/examples/js/shaders/ConvolutionShader.js',
-          'js/three.js/examples/js/shaders/FXAAShader.js',
-          'js/three.js/examples/js/shaders/CopyShader.js',
-          'js/three.js/examples/js/postprocessing/EffectComposer.js',
-          'js/three.js/examples/js/postprocessing/MaskPass.js',
-          'js/three.js/examples/js/postprocessing/RenderPass.js',
-          'js/three.js/examples/js/postprocessing/ShaderPass.js',
-          'js/three.js/examples/js/postprocessing/BloomPass.js',
-          'js/three.js/examples/js/Detector.js',
-          'js/three.js/examples/js/libs/stats.min.js',
+          'js/extlibs/three-js-examples.js',
+          'vendor/stats.js/src/Stats.js',
           'vendor/tweenjs/build/tween.min.js',
           'vendor/imagesloaded.pkgd.js',
           'vendor/handlebars/handlebars.js',
@@ -166,6 +184,7 @@ module.exports = function(grunt) {
    grunt.loadNpmTasks( 'grunt-contrib-less' );
    grunt.loadNpmTasks( 'grunt-lesslint' );
 
+   grunt.registerTask( 'update-three-examples', [ 'concat:threeExamples' ] );
    grunt.registerTask( 'dist-scdata', [ 'concat:scdata', 'uglify:scdata' ] );
    grunt.registerTask( 'dist-scmap', [ 'jshint:beforeconcat', 'concat:scmap', 'jshint:afterconcat','uglify:scmap' ] );
    grunt.registerTask( 'dist-extlibs', [ 'concat:extlibs', 'uglify:extlibs' ] );
