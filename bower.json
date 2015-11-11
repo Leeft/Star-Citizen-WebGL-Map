@@ -25,7 +25,6 @@
   ],
   "dependencies": {
     "markdown-js": "~0.6.2",
-    "threejs": "*",
     "handlebars": "~1.3.0",
     "font-awesome": "~4.1.0",
     "jScrollPane": "~2.0.14",

@@ -82,9 +82,9 @@ module.exports = function(grunt) {
       extlibs: {
         src: [
           'js/extlibs/three-js-examples.js',
-          'vendor/stats.js/src/Stats.js',
-          'vendor/tweenjs/build/tween.min.js',
-          'vendor/imagesloaded.pkgd.js',
+          'vendor/stats.js/build/stats.min.js',
+          'vendor/tweenjs/src/Tween.js',
+          'vendor/imagesloaded/imagesloaded.pkgd.js',
           'vendor/handlebars/handlebars.js',
           'vendor/javascript-state-machine/state-machine.js',
           'vendor/jScrollPane/script/jquery.jscrollpane.js',
