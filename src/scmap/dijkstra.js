@@ -2,263 +2,266 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-SCMAP.Dijkstra = function ( systems, start, end ) {
-   if ( ! ( typeof systems === 'object' && Array.isArray( systems ) ) ) {
-      console.error( "No array specified to SCMAP.Dijkstra constructor!" );
+import SCMAP, { travelTimeAu } from '../scmap';
+import System from './system';
+import settings from './settings';
+
+class Dijkstra {
+  constructor( systems, start, end ) {
+    if ( ! ( typeof systems === 'object' && Array.isArray( systems ) ) ) {
+      console.error( `No array specified to Dijkstra constructor!` );
       return;
-   }
+    }
 
-   this.start = ( start instanceof SCMAP.System ) ? start : null;
-   this.end = ( this.start && end instanceof SCMAP.System ) ? end : null;
+    this.start = ( start instanceof System ) ? start : null;
+    this.end = ( this.start && end instanceof System ) ? end : null;
 
-   // First build a list of all nodes in the graph and
-   // map them by system.id so they can be found quickly
-   this._nodes = [];
-   this._mapping = {}; // system.id to _nodes map
-   i = systems.length;
-   while( i-- ) {
+    // First build a list of all nodes in the graph and
+    // map them by system.id so they can be found quickly
+    this._nodes = [];
+    this._mapping = {}; // system.id to _nodes map
+
+    let i = systems.length;
+    while( i-- ) {
       this._nodes[ i ] = {
-         system:   systems[i],
-         distance: Number.POSITIVE_INFINITY,
-         previous: null
+        system:   systems[ i ],
+        distance: Number.POSITIVE_INFINITY,
+        previous: null
       };
-      this._mapping[ systems[i].id ] = this._nodes[ i ];
-   }
+      this._mapping[ systems[ i ].id ] = this._nodes[ i ];
+    }
 
-   this._result = {};
-};
+    this._result = {};
+  }
 
-SCMAP.Dijkstra.prototype = {
-   constructor: SCMAP.Dijkstra,
+  buildGraph ( priority, forceUpdate ) {
+    let nodes, i, distance, system, currentNode, jumpPoint,
+        otherNode, endTime, startTime = new Date();
+    let distAU;
 
-   buildGraph: function buildGraph( priority, forceUpdate ) {
-      var nodes, i, distance, system, currentNode, jumpPoint,
-         otherNode, endTime, startTime = new Date();
-      var distAU;
+    if ( ! ( this.start instanceof System ) ) { throw new Error( `No source given` ); }
+    if ( ! ( this.end instanceof System )   ) { throw new Error( `No or invalid destination given` ); }
 
-      if ( !( this.start instanceof SCMAP.System ) ) { throw new Error( "No source given" ); }
-      if ( !( this.end instanceof SCMAP.System )   ) { throw new Error( "No or invalid destination given" ); }
+    this._result.destination = this.end;
+    // TODO: expiry, map may have changed
+    if ( ! forceUpdate && this._result.source instanceof System && this._result.source === this.start && this._result.priority === priority ) {
+      //console.log( 'Reusing generated graph starting at', this._result.source.name );
+      /////this._result.destination = this.end;
+      return;
+    }
 
-      this._result.destination = this.end;
-      // TODO: expiry, map may have changed
-      if ( !forceUpdate && this._result.source instanceof SCMAP.System && this._result.source === this.start && this._result.priority === priority ) {
-         //console.log( 'Reusing generated graph starting at', this._result.source.name );
-         /////this._result.destination = this.end;
-         return;
+    this.destroyGraph();
+    this._result.source = this.start;
+    this._result.destination = this.end;
+    this._result.priority = priority;
+
+    // Created using http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
+
+    for ( i = 0; i < this._nodes.length; i++ ) {
+      this._nodes[ i ].distance = Number.POSITIVE_INFINITY;
+      this._nodes[ i ].previous = null;
+    }
+
+    currentNode = this._mapping[ this.start.id ];
+    currentNode.distance = 0; // distance from source to source
+    currentNode.previous = null;
+
+    nodes = Dijkstra.quickSort( this._nodes );
+
+    while ( nodes.length )
+    {
+      currentNode = nodes[0];
+
+      // "If we are only interested in a shortest path between vertices source and
+      //  target, we can terminate the search at line 13 if u = target."
+      if ( currentNode.system === this.end ) {
+        break;
       }
 
-      this.destroyGraph();
-      this._result.source = this.start;
-      this._result.destination = this.end;
-      this._result.priority = priority;
+      // Remove currentNode (the first node) from set
+      nodes.splice( 0, 1 );
 
-      // Created using http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm#Pseudocode
-
-      for ( i = 0; i < this._nodes.length; i++ ) {
-         this._nodes[ i ].distance = Number.POSITIVE_INFINITY;
-         this._nodes[ i ].previous = null;
+      // Don't bother with th current node if it's not reachable
+      if ( Dijkstra.isInfinite( currentNode.distance ) ) {
+        break;
       }
 
-      currentNode = this._mapping[ this.start.id ];
-      currentNode.distance = 0; // distance from source to source
-      currentNode.previous = null;
+      //console.log( `Working on node ${ currentNode.system.name }, ${ currentNode.system.jumpPoints.length } jumppoints to test` );
 
-      nodes = SCMAP.Dijkstra.quickSort( this._nodes );
-
-      while ( nodes.length )
+      for ( i = 0; i < currentNode.system.jumpPoints.length; i++ )
       {
-         currentNode = nodes[0];
+        jumpPoint = currentNode.system.jumpPoints[i];
+        otherNode = this._mapping[ jumpPoint.destination.id ];
 
-         // "If we are only interested in a shortest path between vertices source and
-         //  target, we can terminate the search at line 13 if u = target."
-         if ( currentNode.system === this.end ) {
-            break;
-         }
+        // Don't take "unknown" and "undiscovered" jump points
+        if ( jumpPoint.isUnconfirmed() && settings.route.avoidUnknownJumppoints ) {
+          continue;
+        }
 
-         // Remove currentNode (the first node) from set
-         nodes.splice( 0, 1 );
+        // These checks are only done if they're not an explicit part of the route we're building
+        // (which is essentially the user overriding the route)
+        if ( !this.isStartOrEnd( otherNode.system ) )
+        {
+          // Don't go into "hostile" nodes, unless we already are in one
+          if ( settings.route.avoidHostile &&
+            ! currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) &&
+            otherNode.system.faction.isHostileTo( SCMAP.usersFaction() )
+          ) {
+            continue;
+          }
 
-         // Don't bother with th current node if it's not reachable
-         if ( isInfinite( currentNode.distance ) ) {
-            break;
-         }
+          // Don't go into "off limits" nodes
+          if ( settings.route.avoidOffLimits && otherNode.system.isOffLimits ) {
+            continue;
+          }
 
-         //console.log( "Working on node", currentNode.system.name, ', ', currentNode.system.jumpPoints.length, 'jumppoints to test' );
+          // Don't go into "avoid" nodes, unless we already are in one
+          if ( !currentNode.system.isToBeAvoided() && otherNode.system.isToBeAvoided() ) {
+            continue;
+          }
+        }
 
-         for ( i = 0; i < currentNode.system.jumpPoints.length; i++ )
-         {
-            jumpPoint = currentNode.system.jumpPoints[i];
-            otherNode = this._mapping[ jumpPoint.destination.id ];
+        // cost = half time to JP + JP time + half time from JP
+        // TODO: at start and end this can be from start and to dest rather than half
+        distance = currentNode.distance + jumpPoint.jumpTime();
 
-            // Don't take "unknown" and "undiscovered" jump points
-            if ( jumpPoint.isUnconfirmed() && SCMAP.settings.route.avoidUnknownJumppoints ) {
-               continue;
-            }
+        if ( currentNode.previous === null ) {
+          distance += travelTimeAU( 0.35 ); // FIXME
+          //distance += travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
+          //console.log( '    Flight time to JP entrance is', travelTimeAU( distAU ), 's' );
+        }
+        else
+        {
+          distance += travelTimeAU( 0.7 );
+          //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
+          //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
+          //console.log( `would add ${ travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) }` );
+        }
 
-            // These checks are only done if they're not an explicit part of the route we're building
-            // (which is essentially the user overriding the route)
-            if ( !this.isStartOrEnd( otherNode.system ) )
-            {
-               // Don't go into "hostile" nodes, unless we already are in one
-               if ( SCMAP.settings.route.avoidHostile &&
-                    !currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) &&
-                    otherNode.system.faction.isHostileTo( SCMAP.usersFaction() )
-               ) {
-                  continue;
-               }
+        // Get out of "never" nodes asap by increasing the cost massively
+        if ( settings.route.avoidHostile && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+          distance *= 15;
+        }
 
-               // Don't go into "off limits" nodes
-               if ( SCMAP.settings.route.avoidOffLimits && otherNode.system.isOffLimits ) {
-                  continue;
-               }
-
-               // Don't go into "avoid" nodes, unless we already are in one
-               if ( !currentNode.system.isToBeAvoided() && otherNode.system.isToBeAvoided() ) {
-                  continue;
-               }
-            }
-
-            // cost = half time to JP + JP time + half time from JP
-            // TODO: at start and end this can be from start and to dest rather than half
-            distance = currentNode.distance + jumpPoint.jumpTime();
-
-            if ( currentNode.previous === null ) {
-               distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
-               //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
-               //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
-            }
-            else
-            {
-               distance += SCMAP.travelTimeAU( 0.7 );
-               //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
-               //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
-               //console.log( "would add", SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) );
-            }
-
-            // Get out of "never" nodes asap by increasing the cost massively
-            if ( SCMAP.settings.route.avoidHostile && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
-               distance *= 15;
-            }
-
-            if ( distance < otherNode.distance ) {
-               otherNode.distance = distance;
-               otherNode.previous = currentNode;
-               nodes = SCMAP.Dijkstra.quickSort( nodes );
-            }
-         }
+        if ( distance < otherNode.distance ) {
+          otherNode.distance = distance;
+          otherNode.previous = currentNode;
+          nodes = Dijkstra.quickSort( nodes );
+        }
       }
+    }
 
-      this._result.nodes = nodes;
-      this._result.priority = priority;
-      endTime = new Date();
-      //console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
-   },
+    this._result.nodes = nodes;
+    this._result.priority = priority;
+    endTime = new Date();
+    //console.log( 'Graph building took ' + (endTime.getTime() - startTime.getTime()) + ' msec' );
+  }
 
-   isStartOrEnd: function isStartOrEnd( system ) {
-      if ( !( system instanceof SCMAP.System ) ) {
-         return false;
+  isStartOrEnd ( system ) {
+    if ( ! ( system instanceof System ) ) {
+      return false;
+    }
+
+    return( system === this.start || system === this.end );
+  }
+
+  firstNode () {
+    let routeArray = this.routeArray();
+    return routeArray[ 0 ];
+  }
+
+  lastNode () {
+    let routeArray = this.routeArray();
+    return routeArray[ routeArray.length - 1 ];
+  }
+
+  source () {
+    if ( this.start instanceof System ) {
+      return this.start;
+    }
+  }
+
+  destination () {
+    if ( this.end instanceof System ) {
+      return this.end;
+    }
+  }
+
+  rebuildGraph () {
+    //console.log( 'rebuildGraph from', source, 'to', destination );
+    this.destroyGraph();
+
+    if ( this.start instanceof System ) {
+      this.buildGraph( 'time', true );
+      return true;
+    }
+  }
+
+  destroyGraph () {
+    this._result = {};
+  }
+
+  routeArray ( destination ) {
+    if ( ! ( destination instanceof System ) ) {
+      if ( ! ( this._result.destination instanceof System ) ) {
+        console.error( 'No or invalid destination specified.' );
+        return;
       }
-      return( system === this.start || system === this.end );
-   },
+      destination = this._result.destination;
+    }
 
-   firstNode: function firstNode() {
-      var routeArray = this.routeArray();
-      return routeArray[ 0 ];
-   },
-
-   lastNode: function firstNode() {
-      var routeArray = this.routeArray();
-      return routeArray[ routeArray.length - 1 ];
-   },
-
-   source: function source() {
-      if ( this.start instanceof SCMAP.System ) {
-         return this.start;
+    if ( this._result.nodes.length > 0 ) {
+      // Get path and print it out, we're traversing backwards
+      // through the optimal path for the destination
+      let visited = [];
+      let x = this._mapping[ destination.id ];
+      let seen = {};
+      while ( x !== null ) {
+        seen[ x.system.name ] = true;
+        visited.push( x );
+        x = x.previous;
       }
-   },
+      visited.reverse();
+      return visited;
+    }
+  }
 
-   destination: function destination() {
-      if ( this.end instanceof SCMAP.System ) {
-         return this.end;
-      }
-   },
+  static quickSort ( nodes ) {
+    // makes a copy, prevents overwriting
+    let array = [];
+    let i = nodes.length;
+    while( i-- ) {
+      array[ i ] = nodes[ i ];
+    }
 
-   rebuildGraph: function rebuildGraph() {
-      //console.log( "rebuildGraph from", source, 'to', destination );
-      this.destroyGraph();
-
-      if ( this.start instanceof SCMAP.System ) {
-         this.buildGraph( 'time', true );
-         return true;
-      }
-   },
-
-   destroyGraph: function destroyGraph() {
-      this._result = {};
-   },
-
-   routeArray: function routeArray( destination ) {
-      if ( ! ( destination instanceof SCMAP.System ) ) {
-         if ( ! ( this._result.destination instanceof SCMAP.System ) ) {
-            console.error( 'No or invalid destination specified.' );
-            return;
-         }
-         destination = this._result.destination;
-      }
-
-      if ( this._result.nodes.length > 0 ) {
-         // Get path and print it out, we're traversing backwards
-         // through the optimal path for the destination
-         var visited = [];
-         var x = this._mapping[ destination.id ];
-         var seen = {};
-         while ( x !== null ) {
-            seen[ x.system.name ] = true;
-            visited.push( x );
-            x = x.previous;
-         }
-         visited.reverse();
-         return visited;
-      }
-   }
-};
-
-SCMAP.Dijkstra.quickSort = function quickSort( nodes ) {
-   // makes a copy, prevents overwriting
-   var array = [];
-   var i = nodes.length;
-   while( i-- ) {
-      array[i] = nodes[i];
-   }
-
-   if ( array.length <= 1 ) {
+    if ( array.length <= 1 ) {
       return array;
-   }
+    }
 
-   var lhs = [];
-   var rhs = [];
-   var pivot = Math.ceil( array.length / 2 ) - 1;
+    let lhs = [];
+    let rhs = [];
+    let pivot = Math.ceil( array.length / 2 ) - 1;
 
-   pivot = array.splice( pivot, 1 )[0];
+    pivot = array.splice( pivot, 1 )[ 0 ];
 
-   for ( i = 0; i < array.length; i++ ) {
-      if ( array[i].distance <= pivot.distance ) {
-         lhs.push( array[i] );
+    for ( i = 0; i < array.length; i++ ) {
+      if ( array[ i ].distance <= pivot.distance ) {
+        lhs.push( array[ i ] );
       } else {
-         rhs.push( array[i] );
+        rhs.push( array[ i ] );
       }
-   }
+    }
 
-   var t1 = SCMAP.Dijkstra.quickSort( lhs );
-   var t2 = SCMAP.Dijkstra.quickSort( rhs );
+    let t1 = Dijkstra.quickSort( lhs );
+    let t2 = Dijkstra.quickSort( rhs );
 
-   t1.push( pivot );
-   return t1.concat( t2 );
-};
+    t1.push( pivot );
+    return t1.concat( t2 );
+  }
 
-function isInfinite ( num ) {
-   return !isFinite( num );
+  static isInfinite ( num ) {
+    return !isFinite( num );
+  }
 }
 
-// End of file
-
+export default Dijkstra;

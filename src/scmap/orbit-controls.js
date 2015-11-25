@@ -1,3 +1,4 @@
+// jscs:disable
 /**
  * @author qiao / https://github.com/qiao
  * @author mrdoob / http://mrdoob.com
@@ -7,6 +8,10 @@
  * @author Leeft / https://github.com/Leeft
  */
 /*global THREE, console */
+
+import SCMAP from '../scmap';
+import System from './system';
+import settings from './settings';
 
 // This set of controls performs orbiting, dollying (zooming), and panning. It maintains
 // the "up" direction as +Y, unlike the TrackballControls. Touch on tablet and phones is
@@ -172,7 +177,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
             if ( scope.enabled === false ) { return; }
             event.preventDefault();
             if ( scope.debug ) {
-               console.log( stateEvent, ": entered state", to, "from", from );
+               console.log( stateEvent, ': entered state', to, 'from', from );
             }
 
             var intersect;
@@ -186,7 +191,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                if ( intersect && intersect.object.parent.userData.system ) {
                   startObject = intersect.object.parent.userData.system;
                   if ( scope.debug ) {
-                     console.log( 'Click at "' + intersect.object.parent.userData.system.name + '"' );
+                     console.log( `Click at "${ intersect.object.parent.userData.system.name }"` );
                   }
                   window.map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
@@ -222,13 +227,13 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
          onenterdrag: function( stateEvent, from, to, event ) {
             if ( scope.enabled === false ) { return; }
             if ( scope.debug ) {
-               console.log( stateEvent, ": entered state", to, "from", from );
+               console.log( stateEvent, `: entered state`, to, `from`, from );
             }
          },
 
          onenteridle: function( stateEvent, from, to, event ) {
             if ( scope.debug ) {
-               console.log( stateEvent, ": idling after", from );
+               console.log( stateEvent, `: idling after`, from );
             }
 
             if ( from === 'drag' ) {
@@ -351,7 +356,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
       var destinationVector;
 
       // makes sure the destination is at the same xz plane
-      if ( destination instanceof SCMAP.System ) {
+      if ( destination instanceof System ) {
          destinationVector = destination.position.clone().setY( this.target.y );
       } else if ( destination instanceof THREE.Vector3 ) {
          destinationVector = destination.clone().setY( this.target.y );
@@ -359,7 +364,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
          return;
       }
 
-      if ( destination instanceof SCMAP.System ) {
+      if ( destination instanceof System ) {
          window.map.setSelectionTo( destination );
       }
 
@@ -384,9 +389,9 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
    };
 
    this.rememberPosition = function rememberPosition() {
-      SCMAP.settings.camera.camera = this.object.position;
-      SCMAP.settings.camera.target = this.target;
-      SCMAP.settings.save( 'camera' );
+      settings.camera.camera = this.object.position;
+      settings.camera.target = this.target;
+      settings.save( 'camera' );
    };
 
    // assumes mapMode for now
@@ -938,7 +943,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
             scope.rotateTo( 0, undefined, undefined );
             break;
          case scope.keys.C: // Center on default
-            scope.moveTo( SCMAP.settings.cameraDefaults.target );
+            scope.moveTo( settings.cameraDefaults.target );
             break;
          case scope.keys.T: // Top view
             scope.rotateTo( 0, 0, 200 );
@@ -952,9 +957,9 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
          case scope.keys['3']: // 3D mode
             scope.map.displayState.to3d();
             scope.rotateTo(
-               SCMAP.settings.cameraDefaults.orientation.theta,
-               SCMAP.settings.cameraDefaults.orientation.phi,
-               SCMAP.settings.cameraDefaults.orientation.radius
+               settings.cameraDefaults.orientation.theta,
+               settings.cameraDefaults.orientation.phi,
+               settings.cameraDefaults.orientation.radius
             );
             break;
          case scope.keys.L: // Lock/unlock rotation
