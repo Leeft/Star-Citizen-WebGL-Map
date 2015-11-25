@@ -3,7 +3,6 @@
 */
 
 import System from './system';
-import JumpPoint from './jump-point';
 
 const MATERIALS = {
   NORMAL: new THREE.LineBasicMaterial({
