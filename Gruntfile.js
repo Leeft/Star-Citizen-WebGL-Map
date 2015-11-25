@@ -62,8 +62,6 @@ module.exports = function(grunt) {
           'src/scmap/renderer.js',
           'src/scmap/orbit-controls.js',
           'src/scmap/system-label.js',
-          'js/SCMAP/Knapsack.js',
-          'js/SCMAP/TextureManager.js',
           'src/starcitizen-webgl-map.js'
         ],
         dest: 'build/<%= pkg.name %>.js'
@@ -81,6 +79,7 @@ module.exports = function(grunt) {
 
       extlibs: {
         src: [
+          'node_modules/three-sprite-texture-atlas-manager/dist/three-sprite-texture-atlas-manager.umd.js',
           'js/extlibs/three-js-examples.js',
           'vendor/stats.js/build/stats.min.js',
           'vendor/tweenjs/src/Tween.js',
@@ -151,7 +150,7 @@ module.exports = function(grunt) {
       },
 
       jshint: {
-         beforeconcat: ['js/main.js','js/SCMAP.js','js/SCMAP/**/*.js'],
+         beforeconcat: ['src/starcitizen-webgl-map.js','src/scmap.js','src/scmap/**/*.js'],
          afterconcat: ['<%= concat.scmap.dest %>'],
       },
 

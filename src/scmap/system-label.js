@@ -134,7 +134,7 @@ SCMAP.SystemLabel.prototype = {
 
       this._width = null;
       this._height = null;
-      this.node = window.renderer.textureManager.allocateTextureNode( this.width(), this.height() );
+      this.node = window.renderer.textureManager.allocate( this.width(), this.height() );
       if ( ! this.node ) {
          return null;
       }
@@ -149,7 +149,6 @@ SCMAP.SystemLabel.prototype = {
          this.sceneObject.material = new THREE.SpriteMaterial({ map: this.node.texture });
       }
 
-      this.node.setUV();
       this.sceneObject.material.texture = this.node.texture;
       this.sceneObject.material.map.needsUpdate = true;
       this.scaleSprite();
@@ -160,7 +159,7 @@ SCMAP.SystemLabel.prototype = {
    scaleSprite: function scaleSprite() {
       var scale = SCMAP.settings.labelScale * SCMAP.System.LABEL_SCALE;
       this.sceneObject.scale.set(
-         scale * ( this.node.rectangle.width() / this.node.rectangle.height() ), scale, 1
+         scale * ( this.node.width / this.node.height ), scale, 1
       );
       if ( this.system.isUnknown() ) {
          this.sceneObject.scale.x *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;

@@ -9,8 +9,8 @@ SCMAP.Renderer = function ( map ) {
    this.FXAA = null;
    this.camera = null;
 
-   this.textureManager = new SCMAP.TextureManager();
-   
+   this.textureManager = new window.threeSpriteAtlasTextureManager(1024);
+
    this.width = window.innerWidth;
    this.height = window.innerHeight;
 
@@ -157,11 +157,11 @@ function smokeTest () {
       size: 25,
       color: 0x111111
    });
-   
+
    var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
    smoke.sortParticles = true;
    smoke.position.x = 10;
-   
+
    scene.add(smoke);
 }
 

@@ -156,7 +156,7 @@ SCMAP.System.prototype = {
       }
 
       label = new SCMAP.SystemLabel( this );
-      node = window.renderer.textureManager.allocateTextureNode( label.width(), label.height() );
+      node = window.renderer.textureManager.allocate( label.width(), label.height() );
       if ( ! node ) {
          return null;
       }
@@ -166,8 +166,6 @@ SCMAP.System.prototype = {
       if ( drawSymbols ) {
          label.drawSymbols();
       }
-
-      node.setUV();
 
       label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
 
@@ -641,7 +639,7 @@ SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configurati
 // create custom material from the shader code in the html
 //$(function() {
 //   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
-//      uniforms: { 
+//      uniforms: {
 //         "c":   { type: "f", value: 0.05 },
 //         "p":   { type: "f", value: 3.3 },
 //         glowColor: { type: "c", value: SCMAP.Color.BLACK },

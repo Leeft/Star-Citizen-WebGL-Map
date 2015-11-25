@@ -1,3 +1,838 @@
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() : typeof define === 'function' && define.amd ? define(factory) : global.threeSpriteAtlasTextureManager = factory();
+})(this, function () {
+  'use strict';
+
+  /**
+  Describes a rectangular area witin the knapsack. Abstracts the basic math away from the {@link module:texture-manager/knapsack/node|`KnapsackNode`} module.
+   @module texture-manager/knapsack/rectangle
+  */
+
+  /**
+   * @constructor
+   * @param {integer} left - Left most pixel index of this rectangle (0 to `right` - 1 )
+   * @param {integer} top - Top most pixel index of this rectangle (0 to `bottom` - 1 )
+   * @param {integer} right - Right most pixel index of this rectangle
+   * @param {integer} bottom - Bottom most pixel index of this rectangle
+  */
+
+  var KnapsackRectangle = (function () {
+    function KnapsackRectangle(left, top, right, bottom) {
+      _classCallCheck(this, KnapsackRectangle);
+
+      this.left = Math.floor(typeof left === 'number' && isFinite(left) ? left : 0);
+      this.top = Math.floor(typeof top === 'number' && isFinite(top) ? top : 0);
+      this.right = Math.floor(typeof right === 'number' && isFinite(right) ? right : 0);
+      this.bottom = Math.floor(typeof bottom === 'number' && isFinite(bottom) ? bottom : 0);
+    }
+
+    /**
+     * Do not use this directly, it is managed for you.
+     * @constructor
+     * @param {Knapsack} - The {@link module:texture-manager/knapsack|`Knapsack`} this node is to become a part of.
+     */
+
+    /**
+     * The center X coordinate of this rectangle.
+     * @type {integer}
+     * @readonly
+     */
+
+    _createClass(KnapsackRectangle, [{
+      key: 'Xcentre',
+      get: function get() {
+        return Math.floor((this.right - this.left) / 2 + this.left) - 0.5;
+      }
+
+      /**
+       * The center Y coordinate of this rectangle.
+       * @type {integer}
+       * @readonly
+       */
+    }, {
+      key: 'Ycentre',
+      get: function get() {
+        return Math.floor((this.bottom - this.top) / 2 + this.top) - 0.5;
+      }
+
+      /**
+       * The width of this rectangle in pixels.
+       * @type {integer}
+       * @readonly
+       */
+    }, {
+      key: 'width',
+      get: function get() {
+        return this.right - this.left;
+      }
+
+      /**
+       * The height of this rectangle in pixels.
+       * @type {integer}
+       * @readonly
+       */
+    }, {
+      key: 'height',
+      get: function get() {
+        return this.bottom - this.top;
+      }
+    }]);
+
+    return KnapsackRectangle;
+  })();
+
+  var KnapsackNode = (function () {
+    function KnapsackNode(knapsack) {
+      _classCallCheck(this, KnapsackNode);
+
+      /**
+       * Reference to the {@link module:texture-manager/knapsack|`Knapsack`} this node is a part of
+       * @type {Knapsack}
+       * @private
+       * @readonly
+       * @category provider
+       */
+      this.knapsack = knapsack;
+
+      /**
+       * Optional reference to the "left" side {@link module:texture-manager/knapsack/node|`KnapsackNode`} branch of the tree of nodes.
+       * @type {KnapsackNode}
+       * @private
+       * @readonly
+       * @category provider
+       */
+      this.leftChild = null;
+
+      /**
+       * Optional reference to the "right" side {@link module:texture-manager/knapsack/node|`KnapsackNode`} branch of the tree of nodes.
+       * @type {KnapsackNode}
+       * @private
+       * @readonly
+       * @category provider
+       */
+      this.rightChild = null;
+
+      /**
+       * Describes the coordinates which are the boundaries of this node.
+       * @type {KnapsackRectangle}
+       * @private
+       * @readonly
+       * @category information
+       */
+      this.rectangle = null;
+      // Overwritten when children are created, but done as a default here to keep
+      // the code cleaner. Instantiating this object is pretty cheap anyway.
+      this.rectangle = new KnapsackRectangle(0, 0, knapsack.textureSize, knapsack.textureSize);
+
+      /**
+       * Internal unique ID for the image this node represents.
+       * @type {string}
+       * @private
+       * @readonly
+       * @category information
+       */
+      this.imageID = null;
+
+      this._texture = null;
+    }
+
+    /**
+      * @constructor
+      * @param {TextureManager} textureManager - The {@link module:texture-manager|`TextureManager`} which created this `Knapsack`
+      * @param {integer} size - The size of the texture
+      */
+
+    /**
+     * The HTML `<canvas>` element as supplied by the {@link module:texture-manager/knapsack|`Knapsack`} which this node is part of.
+     * @type {external:canvas}
+     * @readonly
+     * @category provider
+     */
+
+    _createClass(KnapsackNode, [{
+      key: 'hasChildren',
+
+      /**
+       * Returns true if this node has any children, which means it's not available to be drawn in. Its children may be suitable for this though.
+       * @returns {boolean}
+       * @category information
+       * @private
+       */
+      value: function hasChildren() {
+        return this.leftChild !== null || this.rightChild !== null;
+      }
+
+      /**
+       * Returns true if this node is available to be used by a texture (i.e. it's not yet been claimed by {@link module:texture-manager/knapsack/node#claim|`claim()`}.
+       * @returns {boolean} Indicates whether this node has been claimed or not.
+       * @category information
+       * @private
+       */
+    }, {
+      key: 'isOccupied',
+      value: function isOccupied() {
+        return this.imageID !== null;
+      }
+
+      /**
+       * The UV coordinates which describe where in the texture this node is located. This is probably not of any practical use to you as a user of this library; it is used internally to map the texture correctly to a sprite.
+       * @returns {Array} Array with [ left, top, right, bottom ] coordinates.
+       * @category information
+       * @example
+       * var uvs = node.uvCoordinates();
+       * var left   = uvs[ 0 ];
+       * var top    = uvs[ 1 ];
+       * var right  = uvs[ 2 ];
+       * var bottom = uvs[ 3 ];
+       */
+    }, {
+      key: 'uvCoordinates',
+      value: function uvCoordinates() {
+        var size = this.knapsack.textureSize;
+        return [this.rectangle.left / size, 1 - this.rectangle.bottom / size, this.rectangle.right / size, 1 - this.rectangle.top / size];
+      }
+
+      /**
+       * Release this node back to the {@link module:texture-manager/knapsack|`Knapsack`} where it is contained. This makes it available to be used by new sprites. Only nodes without children can be released, but a user of this library will only get these leaf nodes returned. Branch nodes are used internally only.
+       * @category allocation
+       * @example
+       * node.release();
+       * // or, if you like typing:
+       * textureManager.release( node );
+       */
+    }, {
+      key: 'release',
+      value: function release() {
+        if (this.hasChildren()) {
+          throw new Error('Can not release tree node, still has children');
+        }
+
+        if (this._texture !== null) {
+          this._texture.dispose();
+          this._texture = null;
+        }
+
+        this.clear();
+        this.imageID = null;
+
+        return;
+      }
+
+      /**
+       * Clear the area of this node: it erases the context so that it is empty and transparent, and ready to be drawn to.
+       * @category drawing
+       * @example
+       * // Erase the contents of the sprite
+       * node.clear();
+       */
+    }, {
+      key: 'clear',
+      value: function clear() {
+        this.context.clearRect(this.rectangle.left, this.rectangle.top, this.width - 1, this.height - 1);
+      }
+
+      /**
+       * Set the drawing context tailored towards the area of the sprite, clipping anything outside of it. When done drawing, use {@link module:texture-manager/knapsack/node#restoreContext|`restoreContext()`} to restore the original drawing context.
+       * @returns {CanvasRenderingContext2D} Render context configured exclusively for the sprite we're working on.
+       * @category drawing
+       * @example
+       * var context = node.clipContext();
+       * // Draw a 5px border along the edge of the sprite, some
+       * // of it will fall outside the area, but it is clipped.
+       * context.lineWidth = 5.0;
+       * context.strokeStyle = 'rgba(255,0,0,1)';
+       * context.strokeRect( 0, 0, node.width, node.height );
+       * // other drawing commands
+       * node.restoreContext();
+       */
+    }, {
+      key: 'clipContext',
+      value: function clipContext() {
+        var ctx = this.context;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(this.rectangle.left + 1, this.rectangle.top + 1, this.width - 2, this.height - 2);
+        ctx.clip();
+        ctx.translate(this.rectangle.Xcentre, this.rectangle.Ycentre);
+        return ctx;
+      }
+
+      /**
+       * Restore the draw context of the {@link module:texture-manager/knapsack/node#canvas|`canvas`}. Call this when done drawing the sprite.
+       * @category drawing
+       * @example
+       * var context = node.clipContext();
+       * // Draw a 5px border along the edge of the sprite, some
+       * // of it will fall outside the area, but it is clipped.
+       * context.lineWidth = 5.0;
+       * context.strokeStyle = 'rgba(255,0,0,1)';
+       * context.strokeRect( 0, 0, node.width, node.height );
+       * // other drawing commands
+       * node.restoreContext();
+       */
+    }, {
+      key: 'restoreContext',
+      value: function restoreContext() {
+        this.context.restore();
+      }
+
+      /**
+       * Allocate a node in this {@link module:texture-manager/knapsack|`Knapsack`} for the given width and height. This is the main workhorse of this library.
+       * @param {integer} width
+       * @param {integer} height
+       * @returns {KnapsackNode} A new node which describes a rectangular area in the knapsack.
+       * @ignore
+       * @category allocation
+       */
+    }, {
+      key: 'allocate',
+      value: function allocate(width, height) {
+        // If we're not a leaf node
+        if (this.hasChildren()) {
+          // then try inserting into our first child
+          var newNode = this.leftChild.allocate(width, height);
+          if (newNode instanceof KnapsackNode) {
+            newNode.claim();
+            return newNode;
+          }
+
+          // There was no room: try to insert into second child
+          return this.rightChild.allocate(width, height);
+        } else {
+          // if there's already an image here, return
+          if (this.isOccupied()) {
+            return null;
+          }
+
+          // if this node is too small, give up here
+          if (width > this.width || height > this.height) {
+            return null;
+          }
+
+          // if we're just the right size, accept
+          if (width === this.width && height === this.height) {
+            this.claim();
+            return this;
+          }
+
+          // otherwise, got to split this node and create some kids
+          this.leftChild = new KnapsackNode(this.knapsack);
+          this.rightChild = new KnapsackNode(this.knapsack);
+
+          // now decide which way to split
+          var remainingWidth = this.width - width;
+          var remainingHeight = this.height - height;
+
+          if (remainingWidth > remainingHeight) {
+            // horizontal split
+            this.leftChild.rectangle = new KnapsackRectangle(this.rectangle.left, this.rectangle.top, this.rectangle.left + width, this.rectangle.bottom);
+
+            this.rightChild.rectangle = new KnapsackRectangle(this.rectangle.left + width, this.rectangle.top, this.rectangle.right, this.rectangle.bottom);
+          } else {
+            // vertical split
+            this.leftChild.rectangle = new KnapsackRectangle(this.rectangle.left, this.rectangle.top, this.rectangle.right, this.rectangle.top + height);
+
+            this.rightChild.rectangle = new KnapsackRectangle(this.rectangle.left, this.rectangle.top + height, this.rectangle.right, this.rectangle.bottom);
+          }
+
+          // Some crude painting to help troubleshooting
+          if (this.knapsack.textureManager.debug) {
+            var context = this.context;
+            context.lineWidth = 4.0;
+            context.strokeStyle = 'rgba(255,0,0,1)';
+            context.strokeRect(this.leftChild.rectangle.left, this.leftChild.rectangle.top, this.leftChild.width, this.leftChild.height);
+
+            context.lineWidth = 4.0;
+            context.strokeStyle = 'rgba(0,255,0,1)';
+            context.strokeRect(this.rightChild.rectangle.left, this.rightChild.rectangle.top, this.rightChild.width, this.rightChild.height);
+          }
+
+          // Recurse into the first child to continue the allocation
+          return this.leftChild.allocate(width, height);
+        }
+      }
+
+      /**
+       * Claim the node to be in use by giving it a (unique) ID for an image, this prevents it from being used for another image. After calling this method it is ready to be drawn.
+       * @ignore
+       * @category allocation
+       */
+    }, {
+      key: 'claim',
+      value: function claim() {
+        this.imageID = THREE.Math.generateUUID();
+
+        // Some crude painting to help troubleshooting
+        if (this.knapsack.textureManager.debug) {
+          var context = this.context;
+          context.lineWidth = 2.0;
+          context.strokeStyle = 'rgba( 0, 0, 255, 1 )';
+          context.strokeRect(this.rectangle.left + 0.5, this.rectangle.top + 0.5, this.width - 1, this.height - 1);
+        }
+      }
+    }, {
+      key: 'canvas',
+      get: function get() {
+        return this.knapsack.canvas;
+      }
+
+      /**
+       * Convenience accessor for the {@link external:CanvasRenderingContext2D} which is associated with the {@link module:texture-manager/knapsack/node#canvas}. You can use this context to draw on the entire canvas, but you'll probably want to use {@link module:texture-manager/knapsack/node#clipContext|`clipContext()`} instead.
+       * @type {external:CanvasRenderingContext2D}
+       * @readonly
+       * @category provider
+       */
+    }, {
+      key: 'context',
+      get: function get() {
+        return this.knapsack.canvas.getContext('2d');
+      }
+
+      /**
+       * The width in pixels of this sprite's texture node.
+       * @type {integer}
+       * @readonly
+       * @category information
+       * @example
+       * textureManager.allocateNode( 30, 10 ).then( function( node ) {
+       *   console.log( node.width ); // => 30
+       * });
+       */
+    }, {
+      key: 'width',
+      get: function get() {
+        return this.rectangle.width;
+      }
+
+      /**
+       * The height in pixels of this sprite's texture node.
+       * @type {integer}
+       * @readonly
+       * @category information
+       * @example
+       * textureManager.allocateNode( 30, 10 ).then( function( node ) {
+       *   console.log( node.height ); // => 10
+       * });
+       */
+    }, {
+      key: 'height',
+      get: function get() {
+        return this.rectangle.height;
+      }
+
+      /**
+       * Lazily built {@link external:Texture|`THREE.Texture`}, with it's UV coordinates already set for you. You can pass this texture straight to your material, and the GPU memory it requires should be shared with all other texture nodes on the same texture.
+       * @type {external:Texture}
+       * @readonly
+       * @category provider
+       * @example
+       * var material = new THREE.SpriteMaterial({
+       *   map: node.texture,
+       *   transparent: true,
+       *   blending: THREE.AdditiveBlending
+       * });
+       * var sprite = new THREE.Sprite( material );
+       * scene.add( sprite );
+       */
+    }, {
+      key: 'texture',
+      get: function get() {
+        if (!this._texture) {
+          this._texture = this.knapsack.rootTexture.clone();
+          this._texture.uuid = this.knapsack.rootTexture.uuid;
+          var uvs = this.uvCoordinates();
+          this.texture.offset.x = uvs[0];
+          this.texture.offset.y = uvs[1];
+          this.texture.repeat.x = uvs[2] - uvs[0];
+          this.texture.repeat.y = uvs[3] - uvs[1];
+        }
+        return this._texture;
+      }
+    }]);
+
+    return KnapsackNode;
+  })();
+
+  var Knapsack = (function () {
+    function Knapsack(textureManager, size) {
+      _classCallCheck(this, Knapsack);
+
+      this.textureManager = textureManager;
+      this.textureSize = size;
+      this.textureLoaded = false;
+      this.rootNode = new KnapsackNode(this);
+      // Lazy initialising these:
+      this._rootTexture = null;
+      this._canvas = null;
+    }
+
+    /**
+      * @constructor
+      * @param {integer} [size=1024] Optional size for the textures. Must be a power of two.
+      * @example
+      * // We want 512x512 pixel textures
+      * var textureManager = new TextureManager( 512 );
+      * ...
+      * textureManager.allocateNode( ... );
+      */
+
+    /**
+     * Lazily built HTML `<canvas>` element for this `Knapsack`.
+     * @type {external:canvas}
+     * @readonly
+     */
+
+    _createClass(Knapsack, [{
+      key: 'allocateNode',
+
+      /**
+       * Proxy method, allocate a texture atlas node for a sprite image of `width` by `height` pixels.
+       * @param {integer} width
+       * @param {integer} height
+       * @returns {external:Promise}
+       */
+      value: function allocateNode(width, height) {
+        return this.rootNode.allocate(width, height);
+      }
+    }, {
+      key: 'canvas',
+      get: function get() {
+        if (!this._canvas) {
+          this._canvas = document.createElement('canvas');
+          this._canvas.width = this.textureSize;
+          this._canvas.height = this.textureSize;
+        }
+        return this._canvas;
+      }
+
+      /**
+       * Lazily built {@link external:Texture|`THREE.Texture`}, this is created as a "master" texture. Each node will get its own `.clone()`, which should be shared in memory.
+       * @type {external:Texture}
+       * @readonly
+       */
+    }, {
+      key: 'rootTexture',
+      get: function get() {
+        if (!this._rootTexture) {
+          this._rootTexture = new THREE.Texture(this.canvas, THREE.UVMapping);
+        }
+        return this._rootTexture;
+      }
+    }]);
+
+    return Knapsack;
+  })();
+
+  var TextureManager = (function () {
+    function TextureManager(size) {
+      _classCallCheck(this, TextureManager);
+
+      /**
+       * The size of the textures as was validated when constructing the object.
+       * @namespace module:texture-manager~TextureManager#size
+       * @type {integer}
+       * @ignore
+       * @category readonly
+       */
+      this.size = typeof size === 'number' && /^(128|256|512|1024|2048|4096|8192|16384)$/.test(size) ? size : 1024;
+
+      /**
+       * As the texture manager allocates nodes, it creates a new {@link module:texture-manager/knapsack|`Knapsack`} when it needs to provide space for nodes. This is an array with all the knapsacks which have been created.
+       * @namespace module:texture-manager~TextureManager#knapsacks
+       * @type {Knapsack[]}
+       * @readonly
+       * @category readonly
+       * @example
+       * // Show the canvases in the DOM element with id="canvases"
+       * // (you'd normally do this from the browser console)
+       * textureManager.knapsacks.forEach( function( knapsack ) {
+       *   document.getElementById('canvases').appendChild( knapsack.canvas );
+       * });
+       */
+      this.knapsacks = [];
+
+      /**
+       * The debug property can be set to `true` after instantiating the object, which will make the {@link module:texture-manager/knapsack/node|`KnapsackNode`} class draw outlines as it allocates nodes. This can make it much more obvious what is going on, such as whether your text is properly sized and centered.
+       * @namespace module:texture-manager~TextureManager#debug
+       * @type {boolean}
+       * @example
+       * textureManager.debug = true;
+       */
+      this.debug = false;
+    }
+
+    /**
+     * Add a new knapsack to the texture manager.
+     * @param {integer} size
+     * @returns {Knapsack}
+     * @ignore
+     */
+
+    _createClass(TextureManager, [{
+      key: '_addKnapsack',
+      value: function _addKnapsack(size) {
+        var knapsack = new Knapsack(this, size);
+        this.knapsacks.push(knapsack);
+        if (this.debug) {
+          console.log('TextureManager: allocated ' + this.textureSize + 'px texture map #' + this.knapsacks.length);
+        }
+        return knapsack;
+      }
+
+      /**
+       * The actual used size of the texture.
+       * @type {integer}
+       * @readonly
+       * @category readonly
+       */
+    }, {
+      key: 'allocate',
+
+      /**
+       * Allocate a texture atlas node for a sprite image of `width` by `height` pixels. Unlike allocateNode, it does not return a {external:Promise} and it works synchronously.
+       * @param {integer} width
+       * @param {integer} height
+       * @returns {KnapsackNode}
+       * @category allocation
+       * @throws {Error} The given with and height must fit in the texture.
+       * @example
+       * let node = textureManager.allocate( 100, 20 );
+       */
+      value: function allocate(width, height) {
+        var node = null;
+
+        // Prevent allocating knapsacks when there's no chance to fit the node
+        // FIXME TODO: try a bigger texture size if it doesn't fit?
+        this._validateSize(width, height);
+        return this._allocate(width, height);
+      }
+
+      /**
+       * {external:Promise} based version of {@link allocate}.
+       *
+       * This method will require you to use a {external:Promise} polyfill if you want to support IE11 or older, as that browser doesn't support promises natively.
+       * @param {integer} width
+       * @param {integer} height
+       * @returns {external:Promise}
+       * @category allocation
+       * @example
+       * textureManager.allocateNode( 100, 20 ).then(
+       *   function( node ) {
+       *     // Do something with the node in this Promise, such as
+       *     // creating a sprite and adding it to the scene.
+       *   },
+       *   function( error ) {
+       *     // Promise was rejected
+       *     console.error( "Could not allocate node:", error );
+       *   }
+       * );
+       */
+    }, {
+      key: 'allocateNode',
+      value: function allocateNode(width, height) {
+        var _this = this;
+
+        return new Promise(function (resolve, reject) {
+          try {
+            // Prevent allocating knapsacks when there's no chance to fit the node
+            // FIXME TODO: try a bigger texture size if it doesn't fit?
+            _this._validateSize(width, height);
+            resolve(_this._allocate(width, height));
+          } catch (error) {
+            reject(error);
+          };
+        });
+      }
+
+      /**
+       * Asynchronously allocate a texture atlas node for a sprite image of `width` by `height` pixels. Returns a result through resolving the promise. The asynchronous approach will potentially allow for better optimisation of packing nodes in the texture space.
+       *
+       * When done adding nodes, you should call {@link solveASync}. Your queued promises will then be settled. But note that the {external:Promise} will still be rejected straight away if the given width or height don't fit.
+       * @param {integer} width
+       * @param {integer} height
+       * @returns {external:Promise}
+       * @category allocation
+       * @example
+       * // First prepare all your node allocations:
+       * [ 1, 2, 3 ].forEach( function() {
+       *   textureManager.allocateASync( 100, 20 ).then(
+       *     function( node ) {
+       *       // Do something with the node in this Promise, such as
+       *       // creating a sprite and adding it to the scene.
+       *       // Note: this promise won't succesfully settle until
+       *       // after you also called solveASync!
+       *     },
+       *     function( error ) {
+       *       // Promise was rejected
+       *       console.error( "Could not allocate node:", error );
+       *     }
+       *   );
+       * });
+       * // Then resolve all the outstanding allocations:
+       * textureManager.solveASync().then( function( result ) {
+       *   console.log( `${ result.length } allocations have resolved` );
+       * });
+       */
+    }, {
+      key: 'allocateASync',
+      value: function allocateASync(width, height) {
+        var _this2 = this;
+
+        if (!Array.isArray(this._queue)) {
+          this._queue = [];
+        }
+
+        var queueEntry = undefined;
+
+        var promise = new Promise(function (resolve, reject) {
+          try {
+            // Prevent allocating knapsacks when there's no chance to fit the node
+            // FIXME TODO: try a bigger texture size if it doesn't fit?
+            _this2._validateSize(width, height);
+            // Queue our resolution, which will be settled with .solveASync()
+            queueEntry = {
+              resolve: resolve,
+              reject: reject,
+              width: width,
+              height: height
+            };
+          } catch (error) {
+            reject(error);
+          };
+        });
+
+        if (queueEntry) {
+          queueEntry.promise = promise;
+          this._queue.push(queueEntry);
+        }
+
+        return promise;
+      }
+
+      /**
+       * Trigger resolution of any outstanding node allocation promises, i.e. those that have been created with {@link allocateASync}. Call this when you've added nodes, or their promises will not settle.
+       *
+       * This is by design, as postponing of the node allocation makes it possible for the texture manager to optimise packing of the texture space in the most efficient manner possible.
+       * @returns {external:Promise}
+       * @category allocation
+       * @throws {Error} You're trying to resolve a queue which hasn't been set up. Call {@link allocateASync} at least once before calling this.
+       * @example
+       * textureManager.solveASync().then( function( count ) {
+       *   console.log( `${ count } node allocations have been resolved` );
+       * });
+       */
+    }, {
+      key: 'solveASync',
+      value: function solveASync() {
+        var _this3 = this;
+
+        if (!Array.isArray(this._queue)) {
+          throw new Error('You\'re trying to resolve a queue which hasn\'t been set up. Call allocateASync before using this.');
+        }
+
+        var promises = [];
+
+        this._queue.forEach(function (entry) {
+          var promise = entry.promise;
+          var resolve = entry.resolve;
+          var reject = entry.reject;
+          var width = entry.width;
+          var height = entry.height;
+
+          var node = _this3._allocate(width, height);
+          resolve(node);
+          promises.push(promise);
+        });
+
+        this._queue = [];
+
+        return Promise.all(promises);
+      }
+
+      /**
+       * Low level helper to assert whether the given width and height will fit.
+       * @param {integer} width
+       * @param {integer} height
+       * @category allocation
+       * @throws {Error} Width of <number> is too large for these textures.
+       * @throws {Error} Height of <number> is too large for these textures.
+       * @private
+       * @ignore
+       */
+    }, {
+      key: '_validateSize',
+      value: function _validateSize(width, height) {
+        if (width > this.textureSize) {
+          throw new Error('Width of ' + width + ' is too large for these textures');
+        }
+
+        if (height > this.textureSize) {
+          throw new Error('Height of ' + height + ' is too large for these textures');
+        }
+      }
+
+      /**
+       * Low level helper to allocate a texture atlas node for a sprite image of `width` by `height` pixels.
+       * @param {integer} width
+       * @param {integer} height
+       * @returns {KnapsackNode}
+       * @category allocation
+       * @private
+       * @ignore
+       */
+    }, {
+      key: '_allocate',
+      value: function _allocate(width, height) {
+        var node = null;
+
+        // First try to get a node from the existing knapsacks
+        this.knapsacks.forEach(function (knapsack) {
+          if (node === null || node === undefined) {
+            node = knapsack.allocateNode(width, height);
+          }
+        });
+
+        // Didn't get a node yet but it *should* fit, so make a new texture atlas with the same size
+        if (node === null) {
+          var knapsack = this._addKnapsack(this.textureSize);
+          node = knapsack.allocateNode(width, height);
+        }
+
+        return node;
+      }
+
+      /**
+       * Release the given node.
+       * @param {KnapsackNode} node
+       * @category allocation
+       * @example
+       * textureManager.release( node );
+       */
+    }, {
+      key: 'release',
+      value: function release(node) {
+        if (node) {
+          node.release();
+        }
+      }
+    }, {
+      key: 'textureSize',
+      get: function get() {
+        return this.size;
+      }
+    }]);
+
+    return TextureManager;
+  })();
+
+  return TextureManager;
+});
+//# sourceMappingURL=three-sprite-texture-atlas-manager.umd.js.map
+
 /**
  * @author alteredq / http://alteredqualia.com/
  *
@@ -750,143 +1585,735 @@ var Detector = {
 	}
 
 };
+// stats.js - http://github.com/mrdoob/stats.js
+var Stats=function(){function f(a,e,b){a=document.createElement(a);a.id=e;a.style.cssText=b;return a}function l(a,e,b){var c=f("div",a,"padding:0 0 3px 3px;text-align:left;background:"+b),d=f("div",a+"Text","font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;color:"+e);d.innerHTML=a.toUpperCase();c.appendChild(d);a=f("div",a+"Graph","width:74px;height:30px;background:"+e);c.appendChild(a);for(e=0;74>e;e++)a.appendChild(f("span","","width:1px;height:30px;float:left;opacity:0.9;background:"+
+b));return c}function m(a){for(var b=c.children,d=0;d<b.length;d++)b[d].style.display=d===a?"block":"none";n=a}function p(a,b){a.appendChild(a.firstChild).style.height=Math.min(30,30-30*b)+"px"}var q=self.performance&&self.performance.now?self.performance.now.bind(performance):Date.now,k=q(),r=k,t=0,n=0,c=f("div","stats","width:80px;opacity:0.9;cursor:pointer");c.addEventListener("mousedown",function(a){a.preventDefault();m(++n%c.children.length)},!1);var d=0,u=Infinity,v=0,b=l("fps","#0ff","#002"),
+A=b.children[0],B=b.children[1];c.appendChild(b);var g=0,w=Infinity,x=0,b=l("ms","#0f0","#020"),C=b.children[0],D=b.children[1];c.appendChild(b);if(self.performance&&self.performance.memory){var h=0,y=Infinity,z=0,b=l("mb","#f08","#201"),E=b.children[0],F=b.children[1];c.appendChild(b)}m(n);return{REVISION:14,domElement:c,setMode:m,begin:function(){k=q()},end:function(){var a=q();g=a-k;w=Math.min(w,g);x=Math.max(x,g);C.textContent=(g|0)+" MS ("+(w|0)+"-"+(x|0)+")";p(D,g/200);t++;if(a>r+1E3&&(d=Math.round(1E3*
+t/(a-r)),u=Math.min(u,d),v=Math.max(v,d),A.textContent=d+" FPS ("+u+"-"+v+")",p(B,d/100),r=a,t=0,void 0!==h)){var b=performance.memory.usedJSHeapSize,c=performance.memory.jsHeapSizeLimit;h=Math.round(9.54E-7*b);y=Math.min(y,h);z=Math.max(z,h);E.textContent=h+" MB ("+y+"-"+z+")";p(F,b/c)}return a},update:function(){k=this.end()}}};"object"===typeof module&&(module.exports=Stats);
+
 /**
- * @author mrdoob / http://mrdoob.com/
+ * Tween.js - Licensed under the MIT license
+ * https://github.com/tweenjs/tween.js
+ * ----------------------------------------------
+ *
+ * See https://github.com/tweenjs/tween.js/graphs/contributors for the full list of contributors.
+ * Thank you all, you're awesome!
  */
 
-var Stats = function () {
+// Include a performance.now polyfill
+(function () {
 
-	var startTime = Date.now(), prevTime = startTime;
-	var ms = 0, msMin = Infinity, msMax = 0;
-	var fps = 0, fpsMin = Infinity, fpsMax = 0;
-	var frames = 0, mode = 0;
-
-	var container = document.createElement( 'div' );
-	container.id = 'stats';
-	container.addEventListener( 'mousedown', function ( event ) { event.preventDefault(); setMode( ++ mode % 2 ) }, false );
-	container.style.cssText = 'width:80px;opacity:0.9;cursor:pointer';
-
-	var fpsDiv = document.createElement( 'div' );
-	fpsDiv.id = 'fps';
-	fpsDiv.style.cssText = 'padding:0 0 3px 3px;text-align:left;background-color:#002';
-	container.appendChild( fpsDiv );
-
-	var fpsText = document.createElement( 'div' );
-	fpsText.id = 'fpsText';
-	fpsText.style.cssText = 'color:#0ff;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px';
-	fpsText.innerHTML = 'FPS';
-	fpsDiv.appendChild( fpsText );
-
-	var fpsGraph = document.createElement( 'div' );
-	fpsGraph.id = 'fpsGraph';
-	fpsGraph.style.cssText = 'position:relative;width:74px;height:30px;background-color:#0ff';
-	fpsDiv.appendChild( fpsGraph );
-
-	while ( fpsGraph.children.length < 74 ) {
-
-		var bar = document.createElement( 'span' );
-		bar.style.cssText = 'width:1px;height:30px;float:left;background-color:#113';
-		fpsGraph.appendChild( bar );
-
+	if ('performance' in window === false) {
+		window.performance = {};
 	}
 
-	var msDiv = document.createElement( 'div' );
-	msDiv.id = 'ms';
-	msDiv.style.cssText = 'padding:0 0 3px 3px;text-align:left;background-color:#020;display:none';
-	container.appendChild( msDiv );
+	// IE 8
+	Date.now = (Date.now || function () {
+		return new Date().getTime();
+	});
 
-	var msText = document.createElement( 'div' );
-	msText.id = 'msText';
-	msText.style.cssText = 'color:#0f0;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px';
-	msText.innerHTML = 'MS';
-	msDiv.appendChild( msText );
+	if ('now' in window.performance === false) {
+		var offset = window.performance.timing && window.performance.timing.navigationStart ? window.performance.timing.navigationStart
+		                                                                                    : Date.now();
 
-	var msGraph = document.createElement( 'div' );
-	msGraph.id = 'msGraph';
-	msGraph.style.cssText = 'position:relative;width:74px;height:30px;background-color:#0f0';
-	msDiv.appendChild( msGraph );
-
-	while ( msGraph.children.length < 74 ) {
-
-		var bar = document.createElement( 'span' );
-		bar.style.cssText = 'width:1px;height:30px;float:left;background-color:#131';
-		msGraph.appendChild( bar );
-
+		window.performance.now = function () {
+			return Date.now() - offset;
+		};
 	}
 
-	var setMode = function ( value ) {
+})();
 
-		mode = value;
+var TWEEN = TWEEN || (function () {
 
-		switch ( mode ) {
+	var _tweens = [];
 
-			case 0:
-				fpsDiv.style.display = 'block';
-				msDiv.style.display = 'none';
-				break;
-			case 1:
-				fpsDiv.style.display = 'none';
-				msDiv.style.display = 'block';
-				break;
+	return {
+
+		getAll: function () {
+
+			return _tweens;
+
+		},
+
+		removeAll: function () {
+
+			_tweens = [];
+
+		},
+
+		add: function (tween) {
+
+			_tweens.push(tween);
+
+		},
+
+		remove: function (tween) {
+
+			var i = _tweens.indexOf(tween);
+
+			if (i !== -1) {
+				_tweens.splice(i, 1);
+			}
+
+		},
+
+		update: function (time) {
+
+			if (_tweens.length === 0) {
+				return false;
+			}
+
+			var i = 0;
+
+			time = time !== undefined ? time : window.performance.now();
+
+			while (i < _tweens.length) {
+
+				if (_tweens[i].update(time)) {
+					i++;
+				} else {
+					_tweens.splice(i, 1);
+				}
+
+			}
+
+			return true;
+
+		}
+	};
+
+})();
+
+TWEEN.Tween = function (object) {
+
+	var _object = object;
+	var _valuesStart = {};
+	var _valuesEnd = {};
+	var _valuesStartRepeat = {};
+	var _duration = 1000;
+	var _repeat = 0;
+	var _yoyo = false;
+	var _isPlaying = false;
+	var _reversed = false;
+	var _delayTime = 0;
+	var _startTime = null;
+	var _easingFunction = TWEEN.Easing.Linear.None;
+	var _interpolationFunction = TWEEN.Interpolation.Linear;
+	var _chainedTweens = [];
+	var _onStartCallback = null;
+	var _onStartCallbackFired = false;
+	var _onUpdateCallback = null;
+	var _onCompleteCallback = null;
+	var _onStopCallback = null;
+
+	// Set all starting values present on the target object
+	for (var field in object) {
+		_valuesStart[field] = parseFloat(object[field], 10);
+	}
+
+	this.to = function (properties, duration) {
+
+		if (duration !== undefined) {
+			_duration = duration;
+		}
+
+		_valuesEnd = properties;
+
+		return this;
+
+	};
+
+	this.start = function (time) {
+
+		TWEEN.add(this);
+
+		_isPlaying = true;
+
+		_onStartCallbackFired = false;
+
+		_startTime = time !== undefined ? time : window.performance.now();
+		_startTime += _delayTime;
+
+		for (var property in _valuesEnd) {
+
+			// Check if an Array was provided as property value
+			if (_valuesEnd[property] instanceof Array) {
+
+				if (_valuesEnd[property].length === 0) {
+					continue;
+				}
+
+				// Create a local copy of the Array with the start value at the front
+				_valuesEnd[property] = [_object[property]].concat(_valuesEnd[property]);
+
+			}
+
+			_valuesStart[property] = _object[property];
+
+			if ((_valuesStart[property] instanceof Array) === false) {
+				_valuesStart[property] *= 1.0; // Ensures we're using numbers, not strings
+			}
+
+			_valuesStartRepeat[property] = _valuesStart[property] || 0;
+
+		}
+
+		return this;
+
+	};
+
+	this.stop = function () {
+
+		if (!_isPlaying) {
+			return this;
+		}
+
+		TWEEN.remove(this);
+		_isPlaying = false;
+
+		if (_onStopCallback !== null) {
+			_onStopCallback.call(_object);
+		}
+
+		this.stopChainedTweens();
+		return this;
+
+	};
+
+	this.stopChainedTweens = function () {
+
+		for (var i = 0, numChainedTweens = _chainedTweens.length; i < numChainedTweens; i++) {
+			_chainedTweens[i].stop();
 		}
 
 	};
 
-	var updateGraph = function ( dom, value ) {
+	this.delay = function (amount) {
 
-		var child = dom.appendChild( dom.firstChild );
-		child.style.height = value + 'px';
+		_delayTime = amount;
+		return this;
 
 	};
 
-	return {
+	this.repeat = function (times) {
 
-		REVISION: 12,
+		_repeat = times;
+		return this;
 
-		domElement: container,
+	};
 
-		setMode: setMode,
+	this.yoyo = function (yoyo) {
 
-		begin: function () {
+		_yoyo = yoyo;
+		return this;
 
-			startTime = Date.now();
+	};
 
-		},
 
-		end: function () {
+	this.easing = function (easing) {
 
-			var time = Date.now();
+		_easingFunction = easing;
+		return this;
 
-			ms = time - startTime;
-			msMin = Math.min( msMin, ms );
-			msMax = Math.max( msMax, ms );
+	};
 
-			msText.textContent = ms + ' MS (' + msMin + '-' + msMax + ')';
-			updateGraph( msGraph, Math.min( 30, 30 - ( ms / 200 ) * 30 ) );
+	this.interpolation = function (interpolation) {
 
-			frames ++;
+		_interpolationFunction = interpolation;
+		return this;
 
-			if ( time > prevTime + 1000 ) {
+	};
 
-				fps = Math.round( ( frames * 1000 ) / ( time - prevTime ) );
-				fpsMin = Math.min( fpsMin, fps );
-				fpsMax = Math.max( fpsMax, fps );
+	this.chain = function () {
 
-				fpsText.textContent = fps + ' FPS (' + fpsMin + '-' + fpsMax + ')';
-				updateGraph( fpsGraph, Math.min( 30, 30 - ( fps / 100 ) * 30 ) );
+		_chainedTweens = arguments;
+		return this;
 
-				prevTime = time;
-				frames = 0;
+	};
+
+	this.onStart = function (callback) {
+
+		_onStartCallback = callback;
+		return this;
+
+	};
+
+	this.onUpdate = function (callback) {
+
+		_onUpdateCallback = callback;
+		return this;
+
+	};
+
+	this.onComplete = function (callback) {
+
+		_onCompleteCallback = callback;
+		return this;
+
+	};
+
+	this.onStop = function (callback) {
+
+		_onStopCallback = callback;
+		return this;
+
+	};
+
+	this.update = function (time) {
+
+		var property;
+		var elapsed;
+		var value;
+
+		if (time < _startTime) {
+			return true;
+		}
+
+		if (_onStartCallbackFired === false) {
+
+			if (_onStartCallback !== null) {
+				_onStartCallback.call(_object);
+			}
+
+			_onStartCallbackFired = true;
+
+		}
+
+		elapsed = (time - _startTime) / _duration;
+		elapsed = elapsed > 1 ? 1 : elapsed;
+
+		value = _easingFunction(elapsed);
+
+		for (property in _valuesEnd) {
+
+			var start = _valuesStart[property] || 0;
+			var end = _valuesEnd[property];
+
+			if (end instanceof Array) {
+
+				_object[property] = _interpolationFunction(end, value);
+
+			} else {
+
+				// Parses relative end values with start as base (e.g.: +10, -3)
+				if (typeof (end) === 'string') {
+					end = start + parseFloat(end, 10);
+				}
+
+				// Protect against non numeric properties.
+				if (typeof (end) === 'number') {
+					_object[property] = start + (end - start) * value;
+				}
 
 			}
 
-			return time;
+		}
+
+		if (_onUpdateCallback !== null) {
+			_onUpdateCallback.call(_object, value);
+		}
+
+		if (elapsed === 1) {
+
+			if (_repeat > 0) {
+
+				if (isFinite(_repeat)) {
+					_repeat--;
+				}
+
+				// Reassign starting values, restart by making startTime = now
+				for (property in _valuesStartRepeat) {
+
+					if (typeof (_valuesEnd[property]) === 'string') {
+						_valuesStartRepeat[property] = _valuesStartRepeat[property] + parseFloat(_valuesEnd[property], 10);
+					}
+
+					if (_yoyo) {
+						var tmp = _valuesStartRepeat[property];
+
+						_valuesStartRepeat[property] = _valuesEnd[property];
+						_valuesEnd[property] = tmp;
+					}
+
+					_valuesStart[property] = _valuesStartRepeat[property];
+
+				}
+
+				if (_yoyo) {
+					_reversed = !_reversed;
+				}
+
+				_startTime = time + _delayTime;
+
+				return true;
+
+			} else {
+
+				if (_onCompleteCallback !== null) {
+					_onCompleteCallback.call(_object);
+				}
+
+				for (var i = 0, numChainedTweens = _chainedTweens.length; i < numChainedTweens; i++) {
+					// Make the chained tweens start exactly at the time they should,
+					// even if the `update()` method was called way past the duration of the tween
+					_chainedTweens[i].start(_startTime + _duration);
+				}
+
+				return false;
+
+			}
+
+		}
+
+		return true;
+
+	};
+
+};
+
+
+TWEEN.Easing = {
+
+	Linear: {
+
+		None: function (k) {
+
+			return k;
+
+		}
+
+	},
+
+	Quadratic: {
+
+		In: function (k) {
+
+			return k * k;
 
 		},
 
-		update: function () {
+		Out: function (k) {
 
-			startTime = this.end();
+			return k * (2 - k);
+
+		},
+
+		InOut: function (k) {
+
+			if ((k *= 2) < 1) {
+				return 0.5 * k * k;
+			}
+
+			return - 0.5 * (--k * (k - 2) - 1);
+
+		}
+
+	},
+
+	Cubic: {
+
+		In: function (k) {
+
+			return k * k * k;
+
+		},
+
+		Out: function (k) {
+
+			return --k * k * k + 1;
+
+		},
+
+		InOut: function (k) {
+
+			if ((k *= 2) < 1) {
+				return 0.5 * k * k * k;
+			}
+
+			return 0.5 * ((k -= 2) * k * k + 2);
+
+		}
+
+	},
+
+	Quartic: {
+
+		In: function (k) {
+
+			return k * k * k * k;
+
+		},
+
+		Out: function (k) {
+
+			return 1 - (--k * k * k * k);
+
+		},
+
+		InOut: function (k) {
+
+			if ((k *= 2) < 1) {
+				return 0.5 * k * k * k * k;
+			}
+
+			return - 0.5 * ((k -= 2) * k * k * k - 2);
+
+		}
+
+	},
+
+	Quintic: {
+
+		In: function (k) {
+
+			return k * k * k * k * k;
+
+		},
+
+		Out: function (k) {
+
+			return --k * k * k * k * k + 1;
+
+		},
+
+		InOut: function (k) {
+
+			if ((k *= 2) < 1) {
+				return 0.5 * k * k * k * k * k;
+			}
+
+			return 0.5 * ((k -= 2) * k * k * k * k + 2);
+
+		}
+
+	},
+
+	Sinusoidal: {
+
+		In: function (k) {
+
+			return 1 - Math.cos(k * Math.PI / 2);
+
+		},
+
+		Out: function (k) {
+
+			return Math.sin(k * Math.PI / 2);
+
+		},
+
+		InOut: function (k) {
+
+			return 0.5 * (1 - Math.cos(Math.PI * k));
+
+		}
+
+	},
+
+	Exponential: {
+
+		In: function (k) {
+
+			return k === 0 ? 0 : Math.pow(1024, k - 1);
+
+		},
+
+		Out: function (k) {
+
+			return k === 1 ? 1 : 1 - Math.pow(2, - 10 * k);
+
+		},
+
+		InOut: function (k) {
+
+			if (k === 0) {
+				return 0;
+			}
+
+			if (k === 1) {
+				return 1;
+			}
+
+			if ((k *= 2) < 1) {
+				return 0.5 * Math.pow(1024, k - 1);
+			}
+
+			return 0.5 * (- Math.pow(2, - 10 * (k - 1)) + 2);
+
+		}
+
+	},
+
+	Circular: {
+
+		In: function (k) {
+
+			return 1 - Math.sqrt(1 - k * k);
+
+		},
+
+		Out: function (k) {
+
+			return Math.sqrt(1 - (--k * k));
+
+		},
+
+		InOut: function (k) {
+
+			if ((k *= 2) < 1) {
+				return - 0.5 * (Math.sqrt(1 - k * k) - 1);
+			}
+
+			return 0.5 * (Math.sqrt(1 - (k -= 2) * k) + 1);
+
+		}
+
+	},
+
+	Elastic: {
+
+		In: function (k) {
+
+			var s;
+			var a = 0.1;
+			var p = 0.4;
+
+			if (k === 0) {
+				return 0;
+			}
+
+			if (k === 1) {
+				return 1;
+			}
+
+			if (!a || a < 1) {
+				a = 1;
+				s = p / 4;
+			} else {
+				s = p * Math.asin(1 / a) / (2 * Math.PI);
+			}
+
+			return - (a * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p));
+
+		},
+
+		Out: function (k) {
+
+			var s;
+			var a = 0.1;
+			var p = 0.4;
+
+			if (k === 0) {
+				return 0;
+			}
+
+			if (k === 1) {
+				return 1;
+			}
+
+			if (!a || a < 1) {
+				a = 1;
+				s = p / 4;
+			} else {
+				s = p * Math.asin(1 / a) / (2 * Math.PI);
+			}
+
+			return (a * Math.pow(2, - 10 * k) * Math.sin((k - s) * (2 * Math.PI) / p) + 1);
+
+		},
+
+		InOut: function (k) {
+
+			var s;
+			var a = 0.1;
+			var p = 0.4;
+
+			if (k === 0) {
+				return 0;
+			}
+
+			if (k === 1) {
+				return 1;
+			}
+
+			if (!a || a < 1) {
+				a = 1;
+				s = p / 4;
+			} else {
+				s = p * Math.asin(1 / a) / (2 * Math.PI);
+			}
+
+			if ((k *= 2) < 1) {
+				return - 0.5 * (a * Math.pow(2, 10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p));
+			}
+
+			return a * Math.pow(2, -10 * (k -= 1)) * Math.sin((k - s) * (2 * Math.PI) / p) * 0.5 + 1;
+
+		}
+
+	},
+
+	Back: {
+
+		In: function (k) {
+
+			var s = 1.70158;
+
+			return k * k * ((s + 1) * k - s);
+
+		},
+
+		Out: function (k) {
+
+			var s = 1.70158;
+
+			return --k * k * ((s + 1) * k + s) + 1;
+
+		},
+
+		InOut: function (k) {
+
+			var s = 1.70158 * 1.525;
+
+			if ((k *= 2) < 1) {
+				return 0.5 * (k * k * ((s + 1) * k - s));
+			}
+
+			return 0.5 * ((k -= 2) * k * ((s + 1) * k + s) + 2);
+
+		}
+
+	},
+
+	Bounce: {
+
+		In: function (k) {
+
+			return 1 - TWEEN.Easing.Bounce.Out(1 - k);
+
+		},
+
+		Out: function (k) {
+
+			if (k < (1 / 2.75)) {
+				return 7.5625 * k * k;
+			} else if (k < (2 / 2.75)) {
+				return 7.5625 * (k -= (1.5 / 2.75)) * k + 0.75;
+			} else if (k < (2.5 / 2.75)) {
+				return 7.5625 * (k -= (2.25 / 2.75)) * k + 0.9375;
+			} else {
+				return 7.5625 * (k -= (2.625 / 2.75)) * k + 0.984375;
+			}
+
+		},
+
+		InOut: function (k) {
+
+			if (k < 0.5) {
+				return TWEEN.Easing.Bounce.In(k * 2) * 0.5;
+			}
+
+			return TWEEN.Easing.Bounce.Out(k * 2 - 1) * 0.5 + 0.5;
 
 		}
 
@@ -894,13 +2321,1045 @@ var Stats = function () {
 
 };
 
-if ( typeof module === 'object' ) {
+TWEEN.Interpolation = {
 
-	module.exports = Stats;
+	Linear: function (v, k) {
 
+		var m = v.length - 1;
+		var f = m * k;
+		var i = Math.floor(f);
+		var fn = TWEEN.Interpolation.Utils.Linear;
+
+		if (k < 0) {
+			return fn(v[0], v[1], f);
+		}
+
+		if (k > 1) {
+			return fn(v[m], v[m - 1], m - f);
+		}
+
+		return fn(v[i], v[i + 1 > m ? m : i + 1], f - i);
+
+	},
+
+	Bezier: function (v, k) {
+
+		var b = 0;
+		var n = v.length - 1;
+		var pw = Math.pow;
+		var bn = TWEEN.Interpolation.Utils.Bernstein;
+
+		for (var i = 0; i <= n; i++) {
+			b += pw(1 - k, n - i) * pw(k, i) * v[i] * bn(n, i);
+		}
+
+		return b;
+
+	},
+
+	CatmullRom: function (v, k) {
+
+		var m = v.length - 1;
+		var f = m * k;
+		var i = Math.floor(f);
+		var fn = TWEEN.Interpolation.Utils.CatmullRom;
+
+		if (v[0] === v[m]) {
+
+			if (k < 0) {
+				i = Math.floor(f = m * (1 + k));
+			}
+
+			return fn(v[(i - 1 + m) % m], v[i], v[(i + 1) % m], v[(i + 2) % m], f - i);
+
+		} else {
+
+			if (k < 0) {
+				return v[0] - (fn(v[0], v[0], v[1], v[1], -f) - v[0]);
+			}
+
+			if (k > 1) {
+				return v[m] - (fn(v[m], v[m], v[m - 1], v[m - 1], f - m) - v[m]);
+			}
+
+			return fn(v[i ? i - 1 : 0], v[i], v[m < i + 1 ? m : i + 1], v[m < i + 2 ? m : i + 2], f - i);
+
+		}
+
+	},
+
+	Utils: {
+
+		Linear: function (p0, p1, t) {
+
+			return (p1 - p0) * t + p0;
+
+		},
+
+		Bernstein: function (n, i) {
+
+			var fc = TWEEN.Interpolation.Utils.Factorial;
+
+			return fc(n) / fc(i) / fc(n - i);
+
+		},
+
+		Factorial: (function () {
+
+			var a = [1];
+
+			return function (n) {
+
+				var s = 1;
+
+				if (a[n]) {
+					return a[n];
+				}
+
+				for (var i = n; i > 1; i--) {
+					s *= i;
+				}
+
+				a[n] = s;
+				return s;
+
+			};
+
+		})(),
+
+		CatmullRom: function (p0, p1, p2, p3, t) {
+
+			var v0 = (p2 - p0) * 0.5;
+			var v1 = (p3 - p1) * 0.5;
+			var t2 = t * t;
+			var t3 = t * t2;
+
+			return (2 * p1 - 2 * p2 + v0 + v1) * t3 + (- 3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 + v0 * t + p1;
+
+		}
+
+	}
+
+};
+
+// UMD (Universal Module Definition)
+(function (root) {
+
+	if (typeof define === 'function' && define.amd) {
+
+		// AMD
+		define([], function () {
+			return TWEEN;
+		});
+
+	} else if (typeof exports === 'object') {
+
+		// Node.js
+		module.exports = TWEEN;
+
+	} else {
+
+		// Global variable
+		root.TWEEN = TWEEN;
+
+	}
+
+})(this);
+
+/*!
+ * imagesLoaded PACKAGED v3.1.8
+ * JavaScript is all like "You images are done yet or what?"
+ * MIT License
+ */
+
+
+/*!
+ * EventEmitter v4.2.6 - git.io/ee
+ * Oliver Caldwell
+ * MIT license
+ * @preserve
+ */
+
+(function () {
+	
+
+	/**
+	 * Class for managing events.
+	 * Can be extended to provide event functionality in other classes.
+	 *
+	 * @class EventEmitter Manages event registering and emitting.
+	 */
+	function EventEmitter() {}
+
+	// Shortcuts to improve speed and size
+	var proto = EventEmitter.prototype;
+	var exports = this;
+	var originalGlobalValue = exports.EventEmitter;
+
+	/**
+	 * Finds the index of the listener for the event in it's storage array.
+	 *
+	 * @param {Function[]} listeners Array of listeners to search through.
+	 * @param {Function} listener Method to look for.
+	 * @return {Number} Index of the specified listener, -1 if not found
+	 * @api private
+	 */
+	function indexOfListener(listeners, listener) {
+		var i = listeners.length;
+		while (i--) {
+			if (listeners[i].listener === listener) {
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Alias a method while keeping the context correct, to allow for overwriting of target method.
+	 *
+	 * @param {String} name The name of the target method.
+	 * @return {Function} The aliased method
+	 * @api private
+	 */
+	function alias(name) {
+		return function aliasClosure() {
+			return this[name].apply(this, arguments);
+		};
+	}
+
+	/**
+	 * Returns the listener array for the specified event.
+	 * Will initialise the event object and listener arrays if required.
+	 * Will return an object if you use a regex search. The object contains keys for each matched event. So /ba[rz]/ might return an object containing bar and baz. But only if you have either defined them with defineEvent or added some listeners to them.
+	 * Each property in the object response is an array of listener functions.
+	 *
+	 * @param {String|RegExp} evt Name of the event to return the listeners from.
+	 * @return {Function[]|Object} All listener functions for the event.
+	 */
+	proto.getListeners = function getListeners(evt) {
+		var events = this._getEvents();
+		var response;
+		var key;
+
+		// Return a concatenated array of all matching events if
+		// the selector is a regular expression.
+		if (typeof evt === 'object') {
+			response = {};
+			for (key in events) {
+				if (events.hasOwnProperty(key) && evt.test(key)) {
+					response[key] = events[key];
+				}
+			}
+		}
+		else {
+			response = events[evt] || (events[evt] = []);
+		}
+
+		return response;
+	};
+
+	/**
+	 * Takes a list of listener objects and flattens it into a list of listener functions.
+	 *
+	 * @param {Object[]} listeners Raw listener objects.
+	 * @return {Function[]} Just the listener functions.
+	 */
+	proto.flattenListeners = function flattenListeners(listeners) {
+		var flatListeners = [];
+		var i;
+
+		for (i = 0; i < listeners.length; i += 1) {
+			flatListeners.push(listeners[i].listener);
+		}
+
+		return flatListeners;
+	};
+
+	/**
+	 * Fetches the requested listeners via getListeners but will always return the results inside an object. This is mainly for internal use but others may find it useful.
+	 *
+	 * @param {String|RegExp} evt Name of the event to return the listeners from.
+	 * @return {Object} All listener functions for an event in an object.
+	 */
+	proto.getListenersAsObject = function getListenersAsObject(evt) {
+		var listeners = this.getListeners(evt);
+		var response;
+
+		if (listeners instanceof Array) {
+			response = {};
+			response[evt] = listeners;
+		}
+
+		return response || listeners;
+	};
+
+	/**
+	 * Adds a listener function to the specified event.
+	 * The listener will not be added if it is a duplicate.
+	 * If the listener returns true then it will be removed after it is called.
+	 * If you pass a regular expression as the event name then the listener will be added to all events that match it.
+	 *
+	 * @param {String|RegExp} evt Name of the event to attach the listener to.
+	 * @param {Function} listener Method to be called when the event is emitted. If the function returns true then it will be removed after calling.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.addListener = function addListener(evt, listener) {
+		var listeners = this.getListenersAsObject(evt);
+		var listenerIsWrapped = typeof listener === 'object';
+		var key;
+
+		for (key in listeners) {
+			if (listeners.hasOwnProperty(key) && indexOfListener(listeners[key], listener) === -1) {
+				listeners[key].push(listenerIsWrapped ? listener : {
+					listener: listener,
+					once: false
+				});
+			}
+		}
+
+		return this;
+	};
+
+	/**
+	 * Alias of addListener
+	 */
+	proto.on = alias('addListener');
+
+	/**
+	 * Semi-alias of addListener. It will add a listener that will be
+	 * automatically removed after it's first execution.
+	 *
+	 * @param {String|RegExp} evt Name of the event to attach the listener to.
+	 * @param {Function} listener Method to be called when the event is emitted. If the function returns true then it will be removed after calling.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.addOnceListener = function addOnceListener(evt, listener) {
+		return this.addListener(evt, {
+			listener: listener,
+			once: true
+		});
+	};
+
+	/**
+	 * Alias of addOnceListener.
+	 */
+	proto.once = alias('addOnceListener');
+
+	/**
+	 * Defines an event name. This is required if you want to use a regex to add a listener to multiple events at once. If you don't do this then how do you expect it to know what event to add to? Should it just add to every possible match for a regex? No. That is scary and bad.
+	 * You need to tell it what event names should be matched by a regex.
+	 *
+	 * @param {String} evt Name of the event to create.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.defineEvent = function defineEvent(evt) {
+		this.getListeners(evt);
+		return this;
+	};
+
+	/**
+	 * Uses defineEvent to define multiple events.
+	 *
+	 * @param {String[]} evts An array of event names to define.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.defineEvents = function defineEvents(evts) {
+		for (var i = 0; i < evts.length; i += 1) {
+			this.defineEvent(evts[i]);
+		}
+		return this;
+	};
+
+	/**
+	 * Removes a listener function from the specified event.
+	 * When passed a regular expression as the event name, it will remove the listener from all events that match it.
+	 *
+	 * @param {String|RegExp} evt Name of the event to remove the listener from.
+	 * @param {Function} listener Method to remove from the event.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.removeListener = function removeListener(evt, listener) {
+		var listeners = this.getListenersAsObject(evt);
+		var index;
+		var key;
+
+		for (key in listeners) {
+			if (listeners.hasOwnProperty(key)) {
+				index = indexOfListener(listeners[key], listener);
+
+				if (index !== -1) {
+					listeners[key].splice(index, 1);
+				}
+			}
+		}
+
+		return this;
+	};
+
+	/**
+	 * Alias of removeListener
+	 */
+	proto.off = alias('removeListener');
+
+	/**
+	 * Adds listeners in bulk using the manipulateListeners method.
+	 * If you pass an object as the second argument you can add to multiple events at once. The object should contain key value pairs of events and listeners or listener arrays. You can also pass it an event name and an array of listeners to be added.
+	 * You can also pass it a regular expression to add the array of listeners to all events that match it.
+	 * Yeah, this function does quite a bit. That's probably a bad thing.
+	 *
+	 * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to add to multiple events at once.
+	 * @param {Function[]} [listeners] An optional array of listener functions to add.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.addListeners = function addListeners(evt, listeners) {
+		// Pass through to manipulateListeners
+		return this.manipulateListeners(false, evt, listeners);
+	};
+
+	/**
+	 * Removes listeners in bulk using the manipulateListeners method.
+	 * If you pass an object as the second argument you can remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.
+	 * You can also pass it an event name and an array of listeners to be removed.
+	 * You can also pass it a regular expression to remove the listeners from all events that match it.
+	 *
+	 * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to remove from multiple events at once.
+	 * @param {Function[]} [listeners] An optional array of listener functions to remove.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.removeListeners = function removeListeners(evt, listeners) {
+		// Pass through to manipulateListeners
+		return this.manipulateListeners(true, evt, listeners);
+	};
+
+	/**
+	 * Edits listeners in bulk. The addListeners and removeListeners methods both use this to do their job. You should really use those instead, this is a little lower level.
+	 * The first argument will determine if the listeners are removed (true) or added (false).
+	 * If you pass an object as the second argument you can add/remove from multiple events at once. The object should contain key value pairs of events and listeners or listener arrays.
+	 * You can also pass it an event name and an array of listeners to be added/removed.
+	 * You can also pass it a regular expression to manipulate the listeners of all events that match it.
+	 *
+	 * @param {Boolean} remove True if you want to remove listeners, false if you want to add.
+	 * @param {String|Object|RegExp} evt An event name if you will pass an array of listeners next. An object if you wish to add/remove from multiple events at once.
+	 * @param {Function[]} [listeners] An optional array of listener functions to add/remove.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.manipulateListeners = function manipulateListeners(remove, evt, listeners) {
+		var i;
+		var value;
+		var single = remove ? this.removeListener : this.addListener;
+		var multiple = remove ? this.removeListeners : this.addListeners;
+
+		// If evt is an object then pass each of it's properties to this method
+		if (typeof evt === 'object' && !(evt instanceof RegExp)) {
+			for (i in evt) {
+				if (evt.hasOwnProperty(i) && (value = evt[i])) {
+					// Pass the single listener straight through to the singular method
+					if (typeof value === 'function') {
+						single.call(this, i, value);
+					}
+					else {
+						// Otherwise pass back to the multiple function
+						multiple.call(this, i, value);
+					}
+				}
+			}
+		}
+		else {
+			// So evt must be a string
+			// And listeners must be an array of listeners
+			// Loop over it and pass each one to the multiple method
+			i = listeners.length;
+			while (i--) {
+				single.call(this, evt, listeners[i]);
+			}
+		}
+
+		return this;
+	};
+
+	/**
+	 * Removes all listeners from a specified event.
+	 * If you do not specify an event then all listeners will be removed.
+	 * That means every event will be emptied.
+	 * You can also pass a regex to remove all events that match it.
+	 *
+	 * @param {String|RegExp} [evt] Optional name of the event to remove all listeners for. Will remove from every event if not passed.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.removeEvent = function removeEvent(evt) {
+		var type = typeof evt;
+		var events = this._getEvents();
+		var key;
+
+		// Remove different things depending on the state of evt
+		if (type === 'string') {
+			// Remove all listeners for the specified event
+			delete events[evt];
+		}
+		else if (type === 'object') {
+			// Remove all events matching the regex.
+			for (key in events) {
+				if (events.hasOwnProperty(key) && evt.test(key)) {
+					delete events[key];
+				}
+			}
+		}
+		else {
+			// Remove all listeners in all events
+			delete this._events;
+		}
+
+		return this;
+	};
+
+	/**
+	 * Alias of removeEvent.
+	 *
+	 * Added to mirror the node API.
+	 */
+	proto.removeAllListeners = alias('removeEvent');
+
+	/**
+	 * Emits an event of your choice.
+	 * When emitted, every listener attached to that event will be executed.
+	 * If you pass the optional argument array then those arguments will be passed to every listener upon execution.
+	 * Because it uses `apply`, your array of arguments will be passed as if you wrote them out separately.
+	 * So they will not arrive within the array on the other side, they will be separate.
+	 * You can also pass a regular expression to emit to all events that match it.
+	 *
+	 * @param {String|RegExp} evt Name of the event to emit and execute listeners for.
+	 * @param {Array} [args] Optional array of arguments to be passed to each listener.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.emitEvent = function emitEvent(evt, args) {
+		var listeners = this.getListenersAsObject(evt);
+		var listener;
+		var i;
+		var key;
+		var response;
+
+		for (key in listeners) {
+			if (listeners.hasOwnProperty(key)) {
+				i = listeners[key].length;
+
+				while (i--) {
+					// If the listener returns true then it shall be removed from the event
+					// The function is executed either with a basic call or an apply if there is an args array
+					listener = listeners[key][i];
+
+					if (listener.once === true) {
+						this.removeListener(evt, listener.listener);
+					}
+
+					response = listener.listener.apply(this, args || []);
+
+					if (response === this._getOnceReturnValue()) {
+						this.removeListener(evt, listener.listener);
+					}
+				}
+			}
+		}
+
+		return this;
+	};
+
+	/**
+	 * Alias of emitEvent
+	 */
+	proto.trigger = alias('emitEvent');
+
+	/**
+	 * Subtly different from emitEvent in that it will pass its arguments on to the listeners, as opposed to taking a single array of arguments to pass on.
+	 * As with emitEvent, you can pass a regex in place of the event name to emit to all events that match it.
+	 *
+	 * @param {String|RegExp} evt Name of the event to emit and execute listeners for.
+	 * @param {...*} Optional additional arguments to be passed to each listener.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.emit = function emit(evt) {
+		var args = Array.prototype.slice.call(arguments, 1);
+		return this.emitEvent(evt, args);
+	};
+
+	/**
+	 * Sets the current value to check against when executing listeners. If a
+	 * listeners return value matches the one set here then it will be removed
+	 * after execution. This value defaults to true.
+	 *
+	 * @param {*} value The new value to check for when executing listeners.
+	 * @return {Object} Current instance of EventEmitter for chaining.
+	 */
+	proto.setOnceReturnValue = function setOnceReturnValue(value) {
+		this._onceReturnValue = value;
+		return this;
+	};
+
+	/**
+	 * Fetches the current value to check against when executing listeners. If
+	 * the listeners return value matches this one then it should be removed
+	 * automatically. It will return true by default.
+	 *
+	 * @return {*|Boolean} The current value to check for or the default, true.
+	 * @api private
+	 */
+	proto._getOnceReturnValue = function _getOnceReturnValue() {
+		if (this.hasOwnProperty('_onceReturnValue')) {
+			return this._onceReturnValue;
+		}
+		else {
+			return true;
+		}
+	};
+
+	/**
+	 * Fetches the events object and creates one if required.
+	 *
+	 * @return {Object} The events storage object.
+	 * @api private
+	 */
+	proto._getEvents = function _getEvents() {
+		return this._events || (this._events = {});
+	};
+
+	/**
+	 * Reverts the global {@link EventEmitter} to its previous value and returns a reference to this version.
+	 *
+	 * @return {Function} Non conflicting EventEmitter class.
+	 */
+	EventEmitter.noConflict = function noConflict() {
+		exports.EventEmitter = originalGlobalValue;
+		return EventEmitter;
+	};
+
+	// Expose the class either via AMD, CommonJS or the global object
+	if (typeof define === 'function' && define.amd) {
+		define('eventEmitter/EventEmitter',[],function () {
+			return EventEmitter;
+		});
+	}
+	else if (typeof module === 'object' && module.exports){
+		module.exports = EventEmitter;
+	}
+	else {
+		this.EventEmitter = EventEmitter;
+	}
+}.call(this));
+
+/*!
+ * eventie v1.0.4
+ * event binding helper
+ *   eventie.bind( elem, 'click', myFn )
+ *   eventie.unbind( elem, 'click', myFn )
+ */
+
+/*jshint browser: true, undef: true, unused: true */
+/*global define: false */
+
+( function( window ) {
+
+
+
+var docElem = document.documentElement;
+
+var bind = function() {};
+
+function getIEEvent( obj ) {
+  var event = window.event;
+  // add event.target
+  event.target = event.target || event.srcElement || obj;
+  return event;
 }
-// tween.js v.0.15.0 https://github.com/sole/tween.js
-void 0===Date.now&&(Date.now=function(){return(new Date).valueOf()});var TWEEN=TWEEN||function(){var n=[];return{REVISION:"14",getAll:function(){return n},removeAll:function(){n=[]},add:function(t){n.push(t)},remove:function(t){var r=n.indexOf(t);-1!==r&&n.splice(r,1)},update:function(t){if(0===n.length)return!1;var r=0;for(t=void 0!==t?t:"undefined"!=typeof window&&void 0!==window.performance&&void 0!==window.performance.now?window.performance.now():Date.now();r<n.length;)n[r].update(t)?r++:n.splice(r,1);return!0}}}();TWEEN.Tween=function(n){var t=n,r={},i={},u={},o=1e3,e=0,a=!1,f=!1,c=!1,s=0,h=null,l=TWEEN.Easing.Linear.None,p=TWEEN.Interpolation.Linear,E=[],d=null,v=!1,I=null,w=null,M=null;for(var O in n)r[O]=parseFloat(n[O],10);this.to=function(n,t){return void 0!==t&&(o=t),i=n,this},this.start=function(n){TWEEN.add(this),f=!0,v=!1,h=void 0!==n?n:"undefined"!=typeof window&&void 0!==window.performance&&void 0!==window.performance.now?window.performance.now():Date.now(),h+=s;for(var o in i){if(i[o]instanceof Array){if(0===i[o].length)continue;i[o]=[t[o]].concat(i[o])}r[o]=t[o],r[o]instanceof Array==!1&&(r[o]*=1),u[o]=r[o]||0}return this},this.stop=function(){return f?(TWEEN.remove(this),f=!1,null!==M&&M.call(t),this.stopChainedTweens(),this):this},this.stopChainedTweens=function(){for(var n=0,t=E.length;t>n;n++)E[n].stop()},this.delay=function(n){return s=n,this},this.repeat=function(n){return e=n,this},this.yoyo=function(n){return a=n,this},this.easing=function(n){return l=n,this},this.interpolation=function(n){return p=n,this},this.chain=function(){return E=arguments,this},this.onStart=function(n){return d=n,this},this.onUpdate=function(n){return I=n,this},this.onComplete=function(n){return w=n,this},this.onStop=function(n){return M=n,this},this.update=function(n){var f;if(h>n)return!0;v===!1&&(null!==d&&d.call(t),v=!0);var M=(n-h)/o;M=M>1?1:M;var O=l(M);for(f in i){var m=r[f]||0,N=i[f];N instanceof Array?t[f]=p(N,O):("string"==typeof N&&(N=m+parseFloat(N,10)),"number"==typeof N&&(t[f]=m+(N-m)*O))}if(null!==I&&I.call(t,O),1==M){if(e>0){isFinite(e)&&e--;for(f in u){if("string"==typeof i[f]&&(u[f]=u[f]+parseFloat(i[f],10)),a){var T=u[f];u[f]=i[f],i[f]=T}r[f]=u[f]}return a&&(c=!c),h=n+s,!0}null!==w&&w.call(t);for(var g=0,W=E.length;W>g;g++)E[g].start(n);return!1}return!0}},TWEEN.Easing={Linear:{None:function(n){return n}},Quadratic:{In:function(n){return n*n},Out:function(n){return n*(2-n)},InOut:function(n){return(n*=2)<1?.5*n*n:-.5*(--n*(n-2)-1)}},Cubic:{In:function(n){return n*n*n},Out:function(n){return--n*n*n+1},InOut:function(n){return(n*=2)<1?.5*n*n*n:.5*((n-=2)*n*n+2)}},Quartic:{In:function(n){return n*n*n*n},Out:function(n){return 1- --n*n*n*n},InOut:function(n){return(n*=2)<1?.5*n*n*n*n:-.5*((n-=2)*n*n*n-2)}},Quintic:{In:function(n){return n*n*n*n*n},Out:function(n){return--n*n*n*n*n+1},InOut:function(n){return(n*=2)<1?.5*n*n*n*n*n:.5*((n-=2)*n*n*n*n+2)}},Sinusoidal:{In:function(n){return 1-Math.cos(n*Math.PI/2)},Out:function(n){return Math.sin(n*Math.PI/2)},InOut:function(n){return.5*(1-Math.cos(Math.PI*n))}},Exponential:{In:function(n){return 0===n?0:Math.pow(1024,n-1)},Out:function(n){return 1===n?1:1-Math.pow(2,-10*n)},InOut:function(n){return 0===n?0:1===n?1:(n*=2)<1?.5*Math.pow(1024,n-1):.5*(-Math.pow(2,-10*(n-1))+2)}},Circular:{In:function(n){return 1-Math.sqrt(1-n*n)},Out:function(n){return Math.sqrt(1- --n*n)},InOut:function(n){return(n*=2)<1?-.5*(Math.sqrt(1-n*n)-1):.5*(Math.sqrt(1-(n-=2)*n)+1)}},Elastic:{In:function(n){var t,r=.1,i=.4;return 0===n?0:1===n?1:(!r||1>r?(r=1,t=i/4):t=i*Math.asin(1/r)/(2*Math.PI),-(r*Math.pow(2,10*(n-=1))*Math.sin(2*(n-t)*Math.PI/i)))},Out:function(n){var t,r=.1,i=.4;return 0===n?0:1===n?1:(!r||1>r?(r=1,t=i/4):t=i*Math.asin(1/r)/(2*Math.PI),r*Math.pow(2,-10*n)*Math.sin(2*(n-t)*Math.PI/i)+1)},InOut:function(n){var t,r=.1,i=.4;return 0===n?0:1===n?1:(!r||1>r?(r=1,t=i/4):t=i*Math.asin(1/r)/(2*Math.PI),(n*=2)<1?-.5*r*Math.pow(2,10*(n-=1))*Math.sin(2*(n-t)*Math.PI/i):r*Math.pow(2,-10*(n-=1))*Math.sin(2*(n-t)*Math.PI/i)*.5+1)}},Back:{In:function(n){var t=1.70158;return n*n*((t+1)*n-t)},Out:function(n){var t=1.70158;return--n*n*((t+1)*n+t)+1},InOut:function(n){var t=2.5949095;return(n*=2)<1?.5*n*n*((t+1)*n-t):.5*((n-=2)*n*((t+1)*n+t)+2)}},Bounce:{In:function(n){return 1-TWEEN.Easing.Bounce.Out(1-n)},Out:function(n){return 1/2.75>n?7.5625*n*n:2/2.75>n?7.5625*(n-=1.5/2.75)*n+.75:2.5/2.75>n?7.5625*(n-=2.25/2.75)*n+.9375:7.5625*(n-=2.625/2.75)*n+.984375},InOut:function(n){return.5>n?.5*TWEEN.Easing.Bounce.In(2*n):.5*TWEEN.Easing.Bounce.Out(2*n-1)+.5}}},TWEEN.Interpolation={Linear:function(n,t){var r=n.length-1,i=r*t,u=Math.floor(i),o=TWEEN.Interpolation.Utils.Linear;return 0>t?o(n[0],n[1],i):t>1?o(n[r],n[r-1],r-i):o(n[u],n[u+1>r?r:u+1],i-u)},Bezier:function(n,t){var r,i=0,u=n.length-1,o=Math.pow,e=TWEEN.Interpolation.Utils.Bernstein;for(r=0;u>=r;r++)i+=o(1-t,u-r)*o(t,r)*n[r]*e(u,r);return i},CatmullRom:function(n,t){var r=n.length-1,i=r*t,u=Math.floor(i),o=TWEEN.Interpolation.Utils.CatmullRom;return n[0]===n[r]?(0>t&&(u=Math.floor(i=r*(1+t))),o(n[(u-1+r)%r],n[u],n[(u+1)%r],n[(u+2)%r],i-u)):0>t?n[0]-(o(n[0],n[0],n[1],n[1],-i)-n[0]):t>1?n[r]-(o(n[r],n[r],n[r-1],n[r-1],i-r)-n[r]):o(n[u?u-1:0],n[u],n[u+1>r?r:u+1],n[u+2>r?r:u+2],i-u)},Utils:{Linear:function(n,t,r){return(t-n)*r+n},Bernstein:function(n,t){var r=TWEEN.Interpolation.Utils.Factorial;return r(n)/r(t)/r(n-t)},Factorial:function(){var n=[1];return function(t){var r,i=1;if(n[t])return n[t];for(r=t;r>1;r--)i*=r;return n[t]=i}}(),CatmullRom:function(n,t,r,i,u){var o=.5*(r-n),e=.5*(i-t),a=u*u,f=u*a;return(2*t-2*r+o+e)*f+(-3*t+3*r-2*o-e)*a+o*u+t}}},"undefined"!=typeof module&&module.exports&&(module.exports=TWEEN);
+
+if ( docElem.addEventListener ) {
+  bind = function( obj, type, fn ) {
+    obj.addEventListener( type, fn, false );
+  };
+} else if ( docElem.attachEvent ) {
+  bind = function( obj, type, fn ) {
+    obj[ type + fn ] = fn.handleEvent ?
+      function() {
+        var event = getIEEvent( obj );
+        fn.handleEvent.call( fn, event );
+      } :
+      function() {
+        var event = getIEEvent( obj );
+        fn.call( obj, event );
+      };
+    obj.attachEvent( "on" + type, obj[ type + fn ] );
+  };
+}
+
+var unbind = function() {};
+
+if ( docElem.removeEventListener ) {
+  unbind = function( obj, type, fn ) {
+    obj.removeEventListener( type, fn, false );
+  };
+} else if ( docElem.detachEvent ) {
+  unbind = function( obj, type, fn ) {
+    obj.detachEvent( "on" + type, obj[ type + fn ] );
+    try {
+      delete obj[ type + fn ];
+    } catch ( err ) {
+      // can't delete window object properties
+      obj[ type + fn ] = undefined;
+    }
+  };
+}
+
+var eventie = {
+  bind: bind,
+  unbind: unbind
+};
+
+// transport
+if ( typeof define === 'function' && define.amd ) {
+  // AMD
+  define( 'eventie/eventie',eventie );
+} else {
+  // browser global
+  window.eventie = eventie;
+}
+
+})( this );
+
+/*!
+ * imagesLoaded v3.1.8
+ * JavaScript is all like "You images are done yet or what?"
+ * MIT License
+ */
+
+( function( window, factory ) { 
+  // universal module definition
+
+  /*global define: false, module: false, require: false */
+
+  if ( typeof define === 'function' && define.amd ) {
+    // AMD
+    define( [
+      'eventEmitter/EventEmitter',
+      'eventie/eventie'
+    ], function( EventEmitter, eventie ) {
+      return factory( window, EventEmitter, eventie );
+    });
+  } else if ( typeof exports === 'object' ) {
+    // CommonJS
+    module.exports = factory(
+      window,
+      require('wolfy87-eventemitter'),
+      require('eventie')
+    );
+  } else {
+    // browser global
+    window.imagesLoaded = factory(
+      window,
+      window.EventEmitter,
+      window.eventie
+    );
+  }
+
+})( window,
+
+// --------------------------  factory -------------------------- //
+
+function factory( window, EventEmitter, eventie ) {
+
+
+
+var $ = window.jQuery;
+var console = window.console;
+var hasConsole = typeof console !== 'undefined';
+
+// -------------------------- helpers -------------------------- //
+
+// extend objects
+function extend( a, b ) {
+  for ( var prop in b ) {
+    a[ prop ] = b[ prop ];
+  }
+  return a;
+}
+
+var objToString = Object.prototype.toString;
+function isArray( obj ) {
+  return objToString.call( obj ) === '[object Array]';
+}
+
+// turn element or nodeList into an array
+function makeArray( obj ) {
+  var ary = [];
+  if ( isArray( obj ) ) {
+    // use object if already an array
+    ary = obj;
+  } else if ( typeof obj.length === 'number' ) {
+    // convert nodeList to array
+    for ( var i=0, len = obj.length; i < len; i++ ) {
+      ary.push( obj[i] );
+    }
+  } else {
+    // array of single index
+    ary.push( obj );
+  }
+  return ary;
+}
+
+  // -------------------------- imagesLoaded -------------------------- //
+
+  /**
+   * @param {Array, Element, NodeList, String} elem
+   * @param {Object or Function} options - if function, use as callback
+   * @param {Function} onAlways - callback function
+   */
+  function ImagesLoaded( elem, options, onAlways ) {
+    // coerce ImagesLoaded() without new, to be new ImagesLoaded()
+    if ( !( this instanceof ImagesLoaded ) ) {
+      return new ImagesLoaded( elem, options );
+    }
+    // use elem as selector string
+    if ( typeof elem === 'string' ) {
+      elem = document.querySelectorAll( elem );
+    }
+
+    this.elements = makeArray( elem );
+    this.options = extend( {}, this.options );
+
+    if ( typeof options === 'function' ) {
+      onAlways = options;
+    } else {
+      extend( this.options, options );
+    }
+
+    if ( onAlways ) {
+      this.on( 'always', onAlways );
+    }
+
+    this.getImages();
+
+    if ( $ ) {
+      // add jQuery Deferred object
+      this.jqDeferred = new $.Deferred();
+    }
+
+    // HACK check async to allow time to bind listeners
+    var _this = this;
+    setTimeout( function() {
+      _this.check();
+    });
+  }
+
+  ImagesLoaded.prototype = new EventEmitter();
+
+  ImagesLoaded.prototype.options = {};
+
+  ImagesLoaded.prototype.getImages = function() {
+    this.images = [];
+
+    // filter & find items if we have an item selector
+    for ( var i=0, len = this.elements.length; i < len; i++ ) {
+      var elem = this.elements[i];
+      // filter siblings
+      if ( elem.nodeName === 'IMG' ) {
+        this.addImage( elem );
+      }
+      // find children
+      // no non-element nodes, #143
+      var nodeType = elem.nodeType;
+      if ( !nodeType || !( nodeType === 1 || nodeType === 9 || nodeType === 11 ) ) {
+        continue;
+      }
+      var childElems = elem.querySelectorAll('img');
+      // concat childElems to filterFound array
+      for ( var j=0, jLen = childElems.length; j < jLen; j++ ) {
+        var img = childElems[j];
+        this.addImage( img );
+      }
+    }
+  };
+
+  /**
+   * @param {Image} img
+   */
+  ImagesLoaded.prototype.addImage = function( img ) {
+    var loadingImage = new LoadingImage( img );
+    this.images.push( loadingImage );
+  };
+
+  ImagesLoaded.prototype.check = function() {
+    var _this = this;
+    var checkedCount = 0;
+    var length = this.images.length;
+    this.hasAnyBroken = false;
+    // complete if no images
+    if ( !length ) {
+      this.complete();
+      return;
+    }
+
+    function onConfirm( image, message ) {
+      if ( _this.options.debug && hasConsole ) {
+        console.log( 'confirm', image, message );
+      }
+
+      _this.progress( image );
+      checkedCount++;
+      if ( checkedCount === length ) {
+        _this.complete();
+      }
+      return true; // bind once
+    }
+
+    for ( var i=0; i < length; i++ ) {
+      var loadingImage = this.images[i];
+      loadingImage.on( 'confirm', onConfirm );
+      loadingImage.check();
+    }
+  };
+
+  ImagesLoaded.prototype.progress = function( image ) {
+    this.hasAnyBroken = this.hasAnyBroken || !image.isLoaded;
+    // HACK - Chrome triggers event before object properties have changed. #83
+    var _this = this;
+    setTimeout( function() {
+      _this.emit( 'progress', _this, image );
+      if ( _this.jqDeferred && _this.jqDeferred.notify ) {
+        _this.jqDeferred.notify( _this, image );
+      }
+    });
+  };
+
+  ImagesLoaded.prototype.complete = function() {
+    var eventName = this.hasAnyBroken ? 'fail' : 'done';
+    this.isComplete = true;
+    var _this = this;
+    // HACK - another setTimeout so that confirm happens after progress
+    setTimeout( function() {
+      _this.emit( eventName, _this );
+      _this.emit( 'always', _this );
+      if ( _this.jqDeferred ) {
+        var jqMethod = _this.hasAnyBroken ? 'reject' : 'resolve';
+        _this.jqDeferred[ jqMethod ]( _this );
+      }
+    });
+  };
+
+  // -------------------------- jquery -------------------------- //
+
+  if ( $ ) {
+    $.fn.imagesLoaded = function( options, callback ) {
+      var instance = new ImagesLoaded( this, options, callback );
+      return instance.jqDeferred.promise( $(this) );
+    };
+  }
+
+
+  // --------------------------  -------------------------- //
+
+  function LoadingImage( img ) {
+    this.img = img;
+  }
+
+  LoadingImage.prototype = new EventEmitter();
+
+  LoadingImage.prototype.check = function() {
+    // first check cached any previous images that have same src
+    var resource = cache[ this.img.src ] || new Resource( this.img.src );
+    if ( resource.isConfirmed ) {
+      this.confirm( resource.isLoaded, 'cached was confirmed' );
+      return;
+    }
+
+    // If complete is true and browser supports natural sizes,
+    // try to check for image status manually.
+    if ( this.img.complete && this.img.naturalWidth !== undefined ) {
+      // report based on naturalWidth
+      this.confirm( this.img.naturalWidth !== 0, 'naturalWidth' );
+      return;
+    }
+
+    // If none of the checks above matched, simulate loading on detached element.
+    var _this = this;
+    resource.on( 'confirm', function( resrc, message ) {
+      _this.confirm( resrc.isLoaded, message );
+      return true;
+    });
+
+    resource.check();
+  };
+
+  LoadingImage.prototype.confirm = function( isLoaded, message ) {
+    this.isLoaded = isLoaded;
+    this.emit( 'confirm', this, message );
+  };
+
+  // -------------------------- Resource -------------------------- //
+
+  // Resource checks each src, only once
+  // separate class from LoadingImage to prevent memory leaks. See #115
+
+  var cache = {};
+
+  function Resource( src ) {
+    this.src = src;
+    // add to cache
+    cache[ src ] = this;
+  }
+
+  Resource.prototype = new EventEmitter();
+
+  Resource.prototype.check = function() {
+    // only trigger checking once
+    if ( this.isChecked ) {
+      return;
+    }
+    // simulate loading on detached element
+    var proxyImage = new Image();
+    eventie.bind( proxyImage, 'load', this );
+    eventie.bind( proxyImage, 'error', this );
+    proxyImage.src = this.src;
+    // set flag
+    this.isChecked = true;
+  };
+
+  // ----- events ----- //
+
+  // trigger specified handler for event type
+  Resource.prototype.handleEvent = function( event ) {
+    var method = 'on' + event.type;
+    if ( this[ method ] ) {
+      this[ method ]( event );
+    }
+  };
+
+  Resource.prototype.onload = function( event ) {
+    this.confirm( true, 'onload' );
+    this.unbindProxyEvents( event );
+  };
+
+  Resource.prototype.onerror = function( event ) {
+    this.confirm( false, 'onerror' );
+    this.unbindProxyEvents( event );
+  };
+
+  // ----- confirm ----- //
+
+  Resource.prototype.confirm = function( isLoaded, message ) {
+    this.isConfirmed = true;
+    this.isLoaded = isLoaded;
+    this.emit( 'confirm', this, message );
+  };
+
+  Resource.prototype.unbindProxyEvents = function( event ) {
+    eventie.unbind( event.target, 'load', this );
+    eventie.unbind( event.target, 'error', this );
+  };
+
+  // -----  ----- //
+
+  return ImagesLoaded;
+
+});
+
 /*!
 
  handlebars v1.3.0
@@ -3652,7 +6111,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
   Javascript State Machine Library - https://github.com/jakesgordon/javascript-state-machine
 
-  Copyright (c) 2012, 2013, 2014, Jake Gordon and contributors
+  Copyright (c) 2012, 2013, 2014, 2015, Jake Gordon and contributors
   Released under the MIT license - https://github.com/jakesgordon/javascript-state-machine/blob/master/LICENSE
 
 */
@@ -3663,7 +6122,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
     //---------------------------------------------------------------------------
 
-    VERSION: "2.3.0",
+    VERSION: "2.3.5",
 
     //---------------------------------------------------------------------------
 
@@ -3687,18 +6146,23 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
     create: function(cfg, target) {
 
-      var initial   = (typeof cfg.initial == 'string') ? { state: cfg.initial } : cfg.initial; // allow for a simple string, or an object with { state: 'foo', event: 'setup', defer: true|false }
-      var terminal  = cfg.terminal || cfg['final'];
-      var fsm       = target || cfg.target  || {};
-      var events    = cfg.events || [];
-      var callbacks = cfg.callbacks || {};
-      var map       = {};
+      var initial      = (typeof cfg.initial == 'string') ? { state: cfg.initial } : cfg.initial; // allow for a simple string, or an object with { state: 'foo', event: 'setup', defer: true|false }
+      var terminal     = cfg.terminal || cfg['final'];
+      var fsm          = target || cfg.target  || {};
+      var events       = cfg.events || [];
+      var callbacks    = cfg.callbacks || {};
+      var map          = {}; // track state transitions allowed for an event { event: { from: [ to ] } }
+      var transitions  = {}; // track events allowed from a state            { state: [ event ] }
 
       var add = function(e) {
         var from = (e.from instanceof Array) ? e.from : (e.from ? [e.from] : [StateMachine.WILDCARD]); // allow 'wildcard' transition if 'from' is not specified
         map[e.name] = map[e.name] || {};
-        for (var n = 0 ; n < from.length ; n++)
+        for (var n = 0 ; n < from.length ; n++) {
+          transitions[from[n]] = transitions[from[n]] || [];
+          transitions[from[n]].push(e.name);
+
           map[e.name][from[n]] = e.to || from[n]; // allow no-op transition if 'to' is not specified
+        }
       };
 
       if (initial) {
@@ -3719,13 +6183,13 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
           fsm[name] = callbacks[name]
       }
 
-      fsm.current = 'none';
-      fsm.is      = function(state) { return (state instanceof Array) ? (state.indexOf(this.current) >= 0) : (this.current === state); };
-      fsm.can     = function(event) { return !this.transition && (map[event].hasOwnProperty(this.current) || map[event].hasOwnProperty(StateMachine.WILDCARD)); }
-      fsm.cannot  = function(event) { return !this.can(event); };
-      fsm.error   = cfg.error || function(name, from, to, args, error, msg, e) { throw e || msg; }; // default behavior when something unexpected happens is to throw an exception, but caller can override this behavior if desired (see github issue #3 and #17)
-
-      fsm.isFinished = function() { return this.is(terminal); };
+      fsm.current     = 'none';
+      fsm.is          = function(state) { return (state instanceof Array) ? (state.indexOf(this.current) >= 0) : (this.current === state); };
+      fsm.can         = function(event) { return !this.transition && (map[event].hasOwnProperty(this.current) || map[event].hasOwnProperty(StateMachine.WILDCARD)); }
+      fsm.cannot      = function(event) { return !this.can(event); };
+      fsm.transitions = function()      { return transitions[this.current]; };
+      fsm.isFinished  = function()      { return this.is(terminal); };
+      fsm.error       = cfg.error || function(name, from, to, args, error, msg, e) { throw e || msg; }; // default behavior when something unexpected happens is to throw an exception, but caller can override this behavior if desired (see github issue #3 and #17)
 
       if (initial && !initial.defer)
         fsm[initial.event]();
@@ -3859,24 +6323,29 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
   //========
   // BROWSER
   //========
-  else if (window) {
+  else if (typeof window !== 'undefined') {
     window.StateMachine = StateMachine;
+  }
+  //===========
+  // WEB WORKER
+  //===========
+  else if (typeof self !== 'undefined') {
+    self.StateMachine = StateMachine;
   }
 
 }());
 
-
 /*!
- * jScrollPane - v2.0.14 - 2013-05-01
+ * jScrollPane - v2.0.22 - 2015-04-25
  * http://jscrollpane.kelvinluck.com/
  *
- * Copyright (c) 2010 Kelvin Luck
+ * Copyright (c) 2014 Kelvin Luck
  * Dual licensed under the MIT or GPL licenses.
  */
 
 // Script: jScrollPane - cross browser customisable scrollbars
 //
-// *Version: 2.0.14, Last updated: 2013-05-01*
+// *Version: 2.0.22, Last updated: 2015-04-25*
 //
 // Project Home - http://jscrollpane.kelvinluck.com/
 // GitHub       - http://github.com/vitch/jScrollPane
@@ -3885,7 +6354,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 //
 // About: License
 //
-// Copyright (c) 2013 Kelvin Luck
+// Copyright (c) 2014 Kelvin Luck
 // Dual licensed under the MIT or GPL Version 2 licenses.
 // http://jscrollpane.kelvinluck.com/MIT-LICENSE.txt
 // http://jscrollpane.kelvinluck.com/GPL-LICENSE.txt
@@ -3900,13 +6369,21 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 // This plugin is tested on the browsers below and has been found to work reliably on them. If you run
 // into a problem on one of the supported browsers then please visit the support section on the jScrollPane
 // website (http://jscrollpane.kelvinluck.com/) for more information on getting support. You are also
-// welcome to fork the project on GitHub if you can contribute a fix for a given issue. 
+// welcome to fork the project on GitHub if you can contribute a fix for a given issue.
 //
 // jQuery Versions - tested in 1.4.2+ - reported to work in 1.3.x
 // Browsers Tested - Firefox 3.6.8, Safari 5, Opera 10.6, Chrome 5.0, IE 6, 7, 8
 //
 // About: Release History
 //
+// 2.0.22 - (2015-04-25) Resolve a memory leak due to an event handler that isn't cleaned up in destroy (thanks @timjnh)
+// 2.0.21 - (2015-02-24) Simplify UMD pattern: fixes browserify when loading jQuery outside of bundle
+// 2.0.20 - (2014-10-23) Adds AMD support (thanks @carlosrberto) and support for overflow-x/overflow-y (thanks @darimpulso)
+// 2.0.19 - (2013-11-16) Changes for more reliable scroll amount with latest mousewheel plugin (thanks @brandonaaron)
+// 2.0.18 - (2013-10-23) Fix for issue with gutters and scrollToElement (thanks @Dubiy)
+// 2.0.17 - (2013-08-17) Working correctly when box-sizing is set to border-box (thanks @pieht)
+// 2.0.16 - (2013-07-30) Resetting left position when scroll is removed. Fixes #189
+// 2.0.15 - (2013-07-29) Fixed issue with scrollToElement where the destX and destY are undefined.
 // 2.0.14 - (2013-05-01) Updated to most recent mouse wheel plugin (see #106) and related changes for sensible scroll speed
 // 2.0.13 - (2013-05-01) Switched to semver compatible version name
 // 2.0.0beta12 - (2012-09-27) fix for jQuery 1.8+
@@ -3924,7 +6401,18 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 //							 elements and dynamically sized elements.
 // 1.x - (2006-12-31 - 2010-07-31) Initial version, hosted at googlecode, deprecated
 
-(function($,window,undefined){
+(function (factory) {
+  if ( typeof define === 'function' && define.amd ) {
+      // AMD. Register as an anonymous module.
+      define(['jquery'], factory);
+  } else if (typeof exports === 'object') {
+      // Node/CommonJS style for Browserify
+      module.exports = factory(require('jquery'));
+  } else {
+      // Browser globals
+      factory(jQuery);
+  }
+}(function($){
 
 	$.fn.jScrollPane = function(settings)
 	{
@@ -3941,12 +6429,17 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 				originalElement = elem.clone(false, false).empty(),
 				mwEvent = $.fn.mwheelIntent ? 'mwheelIntent.jsp' : 'mousewheel.jsp';
 
-			originalPadding = elem.css('paddingTop') + ' ' +
-								elem.css('paddingRight') + ' ' +
-								elem.css('paddingBottom') + ' ' +
-								elem.css('paddingLeft');
-			originalPaddingTotalWidth = (parseInt(elem.css('paddingLeft'), 10) || 0) +
-										(parseInt(elem.css('paddingRight'), 10) || 0);
+			if (elem.css('box-sizing') === 'border-box') {
+				originalPadding = 0;
+				originalPaddingTotalWidth = 0;
+			} else {
+				originalPadding = elem.css('paddingTop') + ' ' +
+									elem.css('paddingRight') + ' ' +
+									elem.css('paddingBottom') + ' ' +
+									elem.css('paddingLeft');
+				originalPaddingTotalWidth = (parseInt(elem.css('paddingLeft'), 10) || 0) +
+											(parseInt(elem.css('paddingRight'), 10) || 0);
+			}
 
 			function initialise(s)
 			{
@@ -3973,7 +6466,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					paneHeight = elem.innerHeight();
 
 					elem.width(paneWidth);
-					
+
 					pane = $('<div class="jspPane" />').css('padding', originalPadding).append(elem.children());
 					container = $('<div class="jspContainer" />')
 						.css({
@@ -3984,7 +6477,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
 					/*
 					// Move any margins from the first and last children up to the container so they can still
-					// collapse with neighbouring elements as they would before jScrollPane 
+					// collapse with neighbouring elements as they would before jScrollPane
 					firstChild = pane.find(':first-child');
 					lastChild = pane.find(':last-child');
 					elem.css(
@@ -4019,7 +6512,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 						return;
 					}
 					previousContentWidth = contentWidth;
-					
+
 					pane.css('width', '');
 					elem.width(paneWidth);
 
@@ -4046,7 +6539,8 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 				if (!(isScrollableH || isScrollableV)) {
 					elem.removeClass('jspScrollable');
 					pane.css({
-						top: 0,
+            top: 0,
+            left: 0,
 						width: container.width() - originalPaddingTotalWidth
 					});
 					removeMousewheel();
@@ -4074,14 +6568,14 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					initFocusHandler();
 					initMousewheel();
 					initTouch();
-					
+
 					if (settings.enableKeyboardNavigation) {
 						initKeyboardNav();
 					}
 					if (settings.clickOnTrack) {
 						initClickOnTrack();
 					}
-					
+
 					observeHash();
 					if (settings.hijackInternalLinks) {
 						hijackInternalLinks();
@@ -4342,7 +6836,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 			function appendArrows(ele, p, a1, a2)
 			{
 				var p1 = "before", p2 = "after", aTemp;
-				
+
 				// Sniff for mac... Is there a better way to determine whether the arrows would naturally appear
 				// at the top or the bottom of the bar?
 				if (p == "os") {
@@ -4457,7 +6951,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 						}
 					);
 				}
-				
+
 				if (isScrollableH) {
 					horizontalTrack.bind(
 						'mousedown.jsp',
@@ -4562,7 +7056,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 				}
 
 				container.scrollTop(0);
-				verticalDragPosition = destY;
+				verticalDragPosition = destY || 0;
 
 				var isAtTop = verticalDragPosition === 0,
 					isAtBottom = verticalDragPosition == dragMaxY,
@@ -4574,7 +7068,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					wasAtBottom = isAtBottom;
 					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
 				}
-				
+
 				updateVerticalArrows(isAtTop, isAtBottom);
 				pane.css('top', destTop);
 				elem.trigger('jsp-scroll-y', [-destTop, isAtTop, isAtBottom]).trigger('scroll');
@@ -4609,7 +7103,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 				}
 
 				container.scrollTop(0);
-				horizontalDragPosition = destX;
+				horizontalDragPosition = destX ||0;
 
 				var isAtLeft = horizontalDragPosition === 0,
 					isAtRight = horizontalDragPosition == dragMaxX,
@@ -4621,7 +7115,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					wasAtRight = isAtRight;
 					elem.trigger('jsp-arrow-change', [wasAtTop, wasAtBottom, wasAtLeft, wasAtRight]);
 				}
-				
+
 				updateHorizontalArrows(isAtLeft, isAtRight);
 				pane.css('left', destLeft);
 				elem.trigger('jsp-scroll-x', [-destLeft, isAtLeft, isAtRight]).trigger('scroll');
@@ -4671,7 +7165,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
 				container.scrollTop(0);
 				container.scrollLeft(0);
-				
+
 				// loop through parents adding the offset top of any elements that are relatively positioned between
 				// the focused element and the jspPane so we can get the true distance from the top
 				// of the focused element to the top of the scrollpane...
@@ -4688,14 +7182,14 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 				viewportTop = contentPositionY();
 				maxVisibleEleTop = viewportTop + paneHeight;
 				if (eleTop < viewportTop || stickToTop) { // element is above viewport
-					destY = eleTop - settings.verticalGutter;
+					destY = eleTop - settings.horizontalGutter;
 				} else if (eleTop + eleHeight > maxVisibleEleTop) { // element is below viewport
-					destY = eleTop - paneHeight + eleHeight + settings.verticalGutter;
+					destY = eleTop - paneHeight + eleHeight + settings.horizontalGutter;
 				}
-				if (destY) {
+				if (!isNaN(destY)) {
 					scrollToY(destY, animate);
 				}
-				
+
 				viewportLeft = contentPositionX();
 	            maxVisibleEleLeft = viewportLeft + paneWidth;
 	            if (eleLeft < viewportLeft || stickToTop) { // element is to the left of viewport
@@ -4703,7 +7197,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 	            } else if (eleLeft + eleWidth > maxVisibleEleLeft) { // element is to the right viewport
 	                destX = eleLeft - paneWidth + eleWidth + settings.horizontalGutter;
 	            }
-	            if (destX) {
+	            if (!isNaN(destX)) {
 	                scrollToX(destX, animate);
 	            }
 
@@ -4736,8 +7230,12 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 				container.unbind(mwEvent).bind(
 					mwEvent,
 					function (event, delta, deltaX, deltaY) {
-						var dX = horizontalDragPosition, dY = verticalDragPosition;
-						jsp.scrollBy(deltaX * settings.mouseWheelSpeed, -deltaY * settings.mouseWheelSpeed, false);
+
+                        if (!horizontalDragPosition) horizontalDragPosition = 0;
+                        if (!verticalDragPosition) verticalDragPosition = 0;
+
+						var dX = horizontalDragPosition, dY = verticalDragPosition, factor = event.deltaFactor || settings.mouseWheelSpeed;
+						jsp.scrollBy(deltaX * factor, -deltaY * factor, false);
 						// return true if there was no movement so rest of screen can scroll
 						return dX == horizontalDragPosition && dY == verticalDragPosition;
 					}
@@ -4769,21 +7267,22 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 			{
 				pane.find(':input,a').unbind('focus.jsp');
 			}
-			
+
 			function initKeyboardNav()
 			{
 				var keyDown, elementHasScrolled, validParents = [];
 				isScrollableH && validParents.push(horizontalBar[0]);
 				isScrollableV && validParents.push(verticalBar[0]);
-				
+
 				// IE also focuses elements that don't have tabindex set.
-				pane.focus(
+				pane.bind(
+					'focus.jsp',
 					function()
 					{
 						elem.focus();
 					}
 				);
-				
+
 				elem.attr('tabindex', 0)
 					.unbind('keydown.jsp keypress.jsp')
 					.bind(
@@ -4828,7 +7327,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 							return !elementHasScrolled;
 						}
 					);
-				
+
 				if (settings.hideFocus) {
 					elem.css('outline', 'none');
 					if ('hideFocus' in container[0]){
@@ -4840,7 +7339,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 						elem.attr('hideFocus', false);
 					}
 				}
-				
+
 				function keyDownHandler()
 				{
 					var dX = horizontalDragPosition, dY = verticalDragPosition;
@@ -4870,12 +7369,14 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					return elementHasScrolled;
 				}
 			}
-			
+
 			function removeKeyboardNav()
 			{
 				elem.attr('tabindex', '-1')
 					.removeAttr('tabindex')
 					.unbind('keydown.jsp keypress.jsp');
+
+				pane.unbind('.jsp');
 			}
 
 			function observeHash()
@@ -4982,7 +7483,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					event.preventDefault();
 				});
 			}
-			
+
 			// Init touch on iPad, iPhone, iPod, Android
 			function initTouch()
 			{
@@ -4992,7 +7493,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					touchStartY,
 					moved,
 					moving = false;
-  
+
 				container.unbind('touchstart.jsp touchmove.jsp touchend.jsp click.jsp-touchclick').bind(
 					'touchstart.jsp',
 					function(e)
@@ -5012,14 +7513,14 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 						if(!moving) {
 							return;
 						}
-						
+
 						var touchPos = ev.originalEvent.touches[0],
 							dX = horizontalDragPosition, dY = verticalDragPosition;
-						
+
 						jsp.scrollTo(startX + touchStartX - touchPos.pageX, startY + touchStartY - touchPos.pageY);
-						
+
 						moved = moved || Math.abs(touchStartX - touchPos.pageX) > 5 || Math.abs(touchStartY - touchPos.pageY) > 5;
-						
+
 						// return true if there was no movement so rest of screen can scroll
 						return dX == horizontalDragPosition && dY == verticalDragPosition;
 					}
@@ -5043,11 +7544,12 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					}
 				);
 			}
-			
+
 			function destroy(){
 				var currentY = contentPositionY(),
 					currentX = contentPositionX();
 				elem.removeClass('jspScrollable').unbind('.jsp');
+				pane.unbind('.jsp');
 				elem.replaceWith(originalElement.append(pane.children()));
 				originalElement.scrollTop(currentY);
 				originalElement.scrollLeft(currentX);
@@ -5240,13 +7742,13 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 					}
 				}
 			);
-			
+
 			initialise(s);
 		}
 
 		// Pluginifying code...
 		settings = $.extend({}, $.fn.jScrollPane.defaults, settings);
-		
+
 		// Apply default speed
 		$.each(['arrowButtonSpeed', 'trackClickSpeed', 'keyboardSpeed'], function() {
 			settings[this] = settings[this] || settings.speed;
@@ -5302,19 +7804,14 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 		scrollPagePercent			: .8		// Percent of visible area scrolled when pageUp/Down or track area pressed
 	};
 
-})(jQuery,this);
+}));
 
-
-/*! Copyright (c) 2013 Brandon Aaron (http://brandonaaron.net)
- * Licensed under the MIT License (LICENSE.txt).
+/*!
+ * jQuery Mousewheel 3.1.12
  *
- * Thanks to: http://adomas.org/javascript-mouse-wheel/ for some pointers.
- * Thanks to: Mathias Bank(http://www.mathias-bank.de) for a scope bug fix.
- * Thanks to: Seamus Leahy for adding deltaX and deltaY
- *
- * Version: 3.1.3
- *
- * Requires: 1.2.2+
+ * Copyright 2014 jQuery Foundation and other contributors
+ * Released under the MIT license.
+ * http://jquery.org/license
  */
 
 (function (factory) {
@@ -5330,9 +7827,11 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
     }
 }(function ($) {
 
-    var toFix = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'];
-    var toBind = 'onwheel' in document || document.documentMode >= 9 ? ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'];
-    var lowestDelta, lowestDeltaXY;
+    var toFix  = ['wheel', 'mousewheel', 'DOMMouseScroll', 'MozMousePixelScroll'],
+        toBind = ( 'onwheel' in document || document.documentMode >= 9 ) ?
+                    ['wheel'] : ['mousewheel', 'DomMouseScroll', 'MozMousePixelScroll'],
+        slice  = Array.prototype.slice,
+        nullLowestDeltaTimeout, lowestDelta;
 
     if ( $.event.fixHooks ) {
         for ( var i = toFix.length; i; ) {
@@ -5340,7 +7839,9 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
         }
     }
 
-    $.event.special.mousewheel = {
+    var special = $.event.special.mousewheel = {
+        version: '3.1.12',
+
         setup: function() {
             if ( this.addEventListener ) {
                 for ( var i = toBind.length; i; ) {
@@ -5349,6 +7850,9 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
             } else {
                 this.onmousewheel = handler;
             }
+            // Store the line height and page height for this particular element
+            $.data(this, 'mousewheel-line-height', special.getLineHeight(this));
+            $.data(this, 'mousewheel-page-height', special.getPageHeight(this));
         },
 
         teardown: function() {
@@ -5359,66 +7863,167 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
             } else {
                 this.onmousewheel = null;
             }
+            // Clean up the data we added to the element
+            $.removeData(this, 'mousewheel-line-height');
+            $.removeData(this, 'mousewheel-page-height');
+        },
+
+        getLineHeight: function(elem) {
+            var $elem = $(elem),
+                $parent = $elem['offsetParent' in $.fn ? 'offsetParent' : 'parent']();
+            if (!$parent.length) {
+                $parent = $('body');
+            }
+            return parseInt($parent.css('fontSize'), 10) || parseInt($elem.css('fontSize'), 10) || 16;
+        },
+
+        getPageHeight: function(elem) {
+            return $(elem).height();
+        },
+
+        settings: {
+            adjustOldDeltas: true, // see shouldAdjustOldDeltas() below
+            normalizeOffset: true  // calls getBoundingClientRect for each event
         }
     };
 
     $.fn.extend({
         mousewheel: function(fn) {
-            return fn ? this.bind("mousewheel", fn) : this.trigger("mousewheel");
+            return fn ? this.bind('mousewheel', fn) : this.trigger('mousewheel');
         },
 
         unmousewheel: function(fn) {
-            return this.unbind("mousewheel", fn);
+            return this.unbind('mousewheel', fn);
         }
     });
 
 
     function handler(event) {
-        var orgEvent = event || window.event,
-            args = [].slice.call(arguments, 1),
-            delta = 0,
-            deltaX = 0,
-            deltaY = 0,
-            absDelta = 0,
-            absDeltaXY = 0,
-            fn;
+        var orgEvent   = event || window.event,
+            args       = slice.call(arguments, 1),
+            delta      = 0,
+            deltaX     = 0,
+            deltaY     = 0,
+            absDelta   = 0,
+            offsetX    = 0,
+            offsetY    = 0;
         event = $.event.fix(orgEvent);
-        event.type = "mousewheel";
+        event.type = 'mousewheel';
 
         // Old school scrollwheel delta
-        if ( orgEvent.wheelDelta ) { delta = orgEvent.wheelDelta; }
-        if ( orgEvent.detail )     { delta = orgEvent.detail * -1; }
+        if ( 'detail'      in orgEvent ) { deltaY = orgEvent.detail * -1;      }
+        if ( 'wheelDelta'  in orgEvent ) { deltaY = orgEvent.wheelDelta;       }
+        if ( 'wheelDeltaY' in orgEvent ) { deltaY = orgEvent.wheelDeltaY;      }
+        if ( 'wheelDeltaX' in orgEvent ) { deltaX = orgEvent.wheelDeltaX * -1; }
+
+        // Firefox < 17 horizontal scrolling related to DOMMouseScroll event
+        if ( 'axis' in orgEvent && orgEvent.axis === orgEvent.HORIZONTAL_AXIS ) {
+            deltaX = deltaY * -1;
+            deltaY = 0;
+        }
+
+        // Set delta to be deltaY or deltaX if deltaY is 0 for backwards compatabilitiy
+        delta = deltaY === 0 ? deltaX : deltaY;
 
         // New school wheel delta (wheel event)
-        if ( orgEvent.deltaY ) {
+        if ( 'deltaY' in orgEvent ) {
             deltaY = orgEvent.deltaY * -1;
             delta  = deltaY;
         }
-        if ( orgEvent.deltaX ) {
+        if ( 'deltaX' in orgEvent ) {
             deltaX = orgEvent.deltaX;
-            delta  = deltaX * -1;
+            if ( deltaY === 0 ) { delta  = deltaX * -1; }
         }
 
-        // Webkit
-        if ( orgEvent.wheelDeltaY !== undefined ) { deltaY = orgEvent.wheelDeltaY; }
-        if ( orgEvent.wheelDeltaX !== undefined ) { deltaX = orgEvent.wheelDeltaX * -1; }
+        // No change actually happened, no reason to go any further
+        if ( deltaY === 0 && deltaX === 0 ) { return; }
 
-        // Look for lowest delta to normalize the delta values
-        absDelta = Math.abs(delta);
-        if ( !lowestDelta || absDelta < lowestDelta ) { lowestDelta = absDelta; }
-        absDeltaXY = Math.max(Math.abs(deltaY), Math.abs(deltaX));
-        if ( !lowestDeltaXY || absDeltaXY < lowestDeltaXY ) { lowestDeltaXY = absDeltaXY; }
+        // Need to convert lines and pages to pixels if we aren't already in pixels
+        // There are three delta modes:
+        //   * deltaMode 0 is by pixels, nothing to do
+        //   * deltaMode 1 is by lines
+        //   * deltaMode 2 is by pages
+        if ( orgEvent.deltaMode === 1 ) {
+            var lineHeight = $.data(this, 'mousewheel-line-height');
+            delta  *= lineHeight;
+            deltaY *= lineHeight;
+            deltaX *= lineHeight;
+        } else if ( orgEvent.deltaMode === 2 ) {
+            var pageHeight = $.data(this, 'mousewheel-page-height');
+            delta  *= pageHeight;
+            deltaY *= pageHeight;
+            deltaX *= pageHeight;
+        }
 
-        // Get a whole value for the deltas
-        fn = delta > 0 ? 'floor' : 'ceil';
-        delta  = Math[fn](delta / lowestDelta);
-        deltaX = Math[fn](deltaX / lowestDeltaXY);
-        deltaY = Math[fn](deltaY / lowestDeltaXY);
+        // Store lowest absolute delta to normalize the delta values
+        absDelta = Math.max( Math.abs(deltaY), Math.abs(deltaX) );
+
+        if ( !lowestDelta || absDelta < lowestDelta ) {
+            lowestDelta = absDelta;
+
+            // Adjust older deltas if necessary
+            if ( shouldAdjustOldDeltas(orgEvent, absDelta) ) {
+                lowestDelta /= 40;
+            }
+        }
+
+        // Adjust older deltas if necessary
+        if ( shouldAdjustOldDeltas(orgEvent, absDelta) ) {
+            // Divide all the things by 40!
+            delta  /= 40;
+            deltaX /= 40;
+            deltaY /= 40;
+        }
+
+        // Get a whole, normalized value for the deltas
+        delta  = Math[ delta  >= 1 ? 'floor' : 'ceil' ](delta  / lowestDelta);
+        deltaX = Math[ deltaX >= 1 ? 'floor' : 'ceil' ](deltaX / lowestDelta);
+        deltaY = Math[ deltaY >= 1 ? 'floor' : 'ceil' ](deltaY / lowestDelta);
+
+        // Normalise offsetX and offsetY properties
+        if ( special.settings.normalizeOffset && this.getBoundingClientRect ) {
+            var boundingRect = this.getBoundingClientRect();
+            offsetX = event.clientX - boundingRect.left;
+            offsetY = event.clientY - boundingRect.top;
+        }
+
+        // Add information to the event object
+        event.deltaX = deltaX;
+        event.deltaY = deltaY;
+        event.deltaFactor = lowestDelta;
+        event.offsetX = offsetX;
+        event.offsetY = offsetY;
+        // Go ahead and set deltaMode to 0 since we converted to pixels
+        // Although this is a little odd since we overwrite the deltaX/Y
+        // properties with normalized deltas.
+        event.deltaMode = 0;
 
         // Add event and delta to the front of the arguments
         args.unshift(event, delta, deltaX, deltaY);
 
+        // Clearout lowestDelta after sometime to better
+        // handle multiple device types that give different
+        // a different lowestDelta
+        // Ex: trackpad = 3 and mouse wheel = 120
+        if (nullLowestDeltaTimeout) { clearTimeout(nullLowestDeltaTimeout); }
+        nullLowestDeltaTimeout = setTimeout(nullLowestDelta, 200);
+
         return ($.event.dispatch || $.event.handle).apply(this, args);
+    }
+
+    function nullLowestDelta() {
+        lowestDelta = null;
+    }
+
+    function shouldAdjustOldDeltas(orgEvent, absDelta) {
+        // If this is an older event and the delta is divisable by 120,
+        // then we are assuming that the browser is treating this as an
+        // older mouse wheel event and that we should divide the deltas
+        // by 40 to try and get a more usable deltaFactor.
+        // Side note, this actually impacts the reported scroll distance
+        // in older browsers and can cause scrolling to be slower than native.
+        // Turn this off by setting $.event.special.mousewheel.settings.adjustOldDeltas to false.
+        return special.settings.adjustOldDeltas && orgEvent.type === 'mousewheel' && absDelta % 120 === 0;
     }
 
 }));

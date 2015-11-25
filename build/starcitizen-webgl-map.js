@@ -1,6 +1,6 @@
 /*!
  * starcitizen-webgl-map v0.9.0 by Lianna Eeftinck
- * Copyright 2014 Lianna Eeftinck
+ * Copyright 2015 Lianna Eeftinck
  * https://github.com/Leeft/Star-Citizen-WebGL-Map
  * Licensed under http://opensource.org/licenses/MIT
  */
@@ -893,7 +893,7 @@ SCMAP.System.prototype = {
       }
 
       label = new SCMAP.SystemLabel( this );
-      node = window.renderer.textureManager.allocateTextureNode( label.width(), label.height() );
+      node = window.renderer.textureManager.allocate( label.width(), label.height() );
       if ( ! node ) {
          return null;
       }
@@ -903,8 +903,6 @@ SCMAP.System.prototype = {
       if ( drawSymbols ) {
          label.drawSymbols();
       }
-
-      node.setUV();
 
       label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
 
@@ -1378,7 +1376,7 @@ SCMAP.System.GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configurati
 // create custom material from the shader code in the html
 //$(function() {
 //   SCMAP.System.GLOW_SHADER_MATERIAL = new THREE.ShaderMaterial({
-//      uniforms: { 
+//      uniforms: {
 //         "c":   { type: "f", value: 0.05 },
 //         "p":   { type: "f", value: 3.3 },
 //         glowColor: { type: "c", value: SCMAP.Color.BLACK },
@@ -3887,8 +3885,8 @@ SCMAP.Renderer = function ( map ) {
    this.FXAA = null;
    this.camera = null;
 
-   this.textureManager = new SCMAP.TextureManager();
-   
+   this.textureManager = new window.threeSpriteAtlasTextureManager(1024);
+
    this.width = window.innerWidth;
    this.height = window.innerHeight;
 
@@ -4035,11 +4033,11 @@ function smokeTest () {
       size: 25,
       color: 0x111111
    });
-   
+
    var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
    smoke.sortParticles = true;
    smoke.position.x = 10;
-   
+
    scene.add(smoke);
 }
 
@@ -5341,7 +5339,7 @@ SCMAP.SystemLabel.prototype = {
 
       this._width = null;
       this._height = null;
-      this.node = window.renderer.textureManager.allocateTextureNode( this.width(), this.height() );
+      this.node = window.renderer.textureManager.allocate( this.width(), this.height() );
       if ( ! this.node ) {
          return null;
       }
@@ -5356,7 +5354,6 @@ SCMAP.SystemLabel.prototype = {
          this.sceneObject.material = new THREE.SpriteMaterial({ map: this.node.texture });
       }
 
-      this.node.setUV();
       this.sceneObject.material.texture = this.node.texture;
       this.sceneObject.material.map.needsUpdate = true;
       this.scaleSprite();
@@ -5367,7 +5364,7 @@ SCMAP.SystemLabel.prototype = {
    scaleSprite: function scaleSprite() {
       var scale = SCMAP.settings.labelScale * SCMAP.System.LABEL_SCALE;
       this.sceneObject.scale.set(
-         scale * ( this.node.rectangle.width() / this.node.rectangle.height() ), scale, 1
+         scale * ( this.node.width / this.node.height ), scale, 1
       );
       if ( this.system.isUnknown() ) {
          this.sceneObject.scale.x *= SCMAP.System.UNKNOWN_SYSTEM_SCALE;
@@ -5420,294 +5417,6 @@ SCMAP.SystemLabel.prototype = {
       }
       this._height = Math.floor( ( this.textsize + this.paddingY ) * this.scale );
       return this._height;
-   }
-};
-
-// EOF
-
-/**
-* @author Lianna Eeftinck / https://github.com/Leeft
-*/
-/*
- * Helper classes to generate a texture map for the text labels
- *
- * Based on: http://www.blackpawn.com/texts/lightmaps/default.html
- */
-
-SCMAP.Knapsack = function ( canvas ) {
-   this.canvas = canvas;
-   this.rootNode = new SCMAP.Knapsack.Node( this );
-   this.rootNode.rectangle = new SCMAP.Knapsack.Rectangle( 0, 0, canvas.width - 1, canvas.height - 1 );
-};
-
-SCMAP.Knapsack.prototype = {
-   constructor: SCMAP.Knapsack,
-
-   insert: function insert( image ) {
-      var node = this.rootNode.insert( image );
-
-      if ( node !== null ) {
-         node.claim();
-         //var context = this.canvas.getContext('2d');
-         //context.lineWidth = 2.0;
-         //context.strokeStyle = 'rgba(0,0,255,1)';
-         //context.strokeRect( node.rectangle.left + 0.5, node.rectangle.top + 0.5,
-         //   node.rectangle.width() - 1, node.rectangle.height() - 1 );
-      }
-
-      return node;
-   }
-};
-
-
-SCMAP.Knapsack.Rectangle = function ( left, top, right, bottom ) {
-   this.left = ( typeof left === 'number' ) ? Math.floor( left ) : 0;
-   this.top = ( typeof top === 'number' ) ? Math.floor( top ) : 0;
-   this.right = ( typeof right === 'number' ) ? Math.floor( right ) : 0;
-   this.bottom = ( typeof bottom === 'number' ) ? Math.floor( bottom ) : 0;
-};
-
-SCMAP.Knapsack.Rectangle.prototype = {
-   constructor: SCMAP.Knapsack.Node,
-
-   Xcentre: function Xcentre() {
-      return Math.floor( ( ( this.right - this.left ) / 2 ) + this.left ) - 0.5;
-   },
-
-   Ycentre: function Ycentre() {
-      return Math.floor( ( ( this.bottom - this.top ) / 2 ) + this.top ) - 0.5;
-   },
-
-   width: function width() {
-      return( this.right - this.left );
-   },
-
-   height: function height() {
-      return( this.bottom - this.top );
-   }
-};
-
-
-SCMAP.Knapsack.Node = function ( knapsack ) {
-   this.knapsack = knapsack;
-   this.canvas = knapsack.canvas;
-   this.leftChild = null;
-   this.rightChild = null;
-   this.rectangle = null;
-   this.imageID = null;
-   this.texture = null;
-
-   this.generateUUID = function generateUUID() {
-      return THREE.Math.generateUUID();
-   };
-};
-
-SCMAP.Knapsack.Node.prototype = {
-
-   constructor: SCMAP.Knapsack.Node,
-
-   claim: function claim( image ) {
-      this.imageID = this.generateUUID();
-   },
-
-   release: function release() {
-      if ( this.leftChild || this.rightChild ) {
-         throw new Error( "Can't release tree nodes" );
-      }
-
-      this.imageID = null;
-      this.clear();
-      return;
-   },
-
-   clear: function clear() {
-      var ctx = this.canvas.getContext('2d');
-      ctx.clearRect( this.rectangle.left, this.rectangle.top, this.rectangle.width() - 1, this.rectangle.height() - 1 );
-   },
-
-   clipContext: function clipContext() {
-      var ctx = this.canvas.getContext('2d');
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect( this.rectangle.left + 1, this.rectangle.top + 1, this.rectangle.width() - 2, this.rectangle.height() - 2 );
-      ctx.clip();
-      ctx.translate( this.rectangle.Xcentre(), this.rectangle.Ycentre() );
-      return ctx;
-   },
-   restoreContext: function restoreContext() {
-      var ctx = this.canvas.getContext('2d');
-      ctx.restore();
-   },
-
-   setUV: function setUV() {
-      var uvExtremes = this.uvCoordinates();
-      this.texture.offset.x = uvExtremes[ 0 ];
-      this.texture.offset.y = uvExtremes[ 1 ];
-      this.texture.repeat.x = ( uvExtremes[ 2 ] - uvExtremes[ 0 ] );
-      this.texture.repeat.y = ( uvExtremes[ 3 ] - uvExtremes[ 1 ] );
-   },
-
-   uvCoordinates: function uvCoordinates() {
-      return [
-         this.rectangle.left / this.canvas.width,
-         1 - ( this.rectangle.bottom / this.canvas.height ),
-         this.rectangle.right / this.canvas.width,
-         1 - ( this.rectangle.top / this.canvas.height ),
-      ];
-   },
-
-   insert: function insert( image ) {
-      // if we're not a leaf then
-      if ( this.leftChild || this.rightChild )
-      {
-         // (try inserting into first child)
-         var newNode = this.leftChild.insert( image );
-         if ( newNode instanceof SCMAP.Knapsack.Node ) {
-            return newNode;
-         }
-         // (no room, insert into second)
-         return this.rightChild.insert( image );
-      }
-      else
-      {
-         // (if there's already an image here, return)
-         if ( this.imageID ) {
-            return null;
-         }
-
-         // (if we're too small, return)
-         if ( ( image.width > this.rectangle.width() ) || ( image.height > this.rectangle.height() ) ) {
-            return null;
-         }
-
-         // (if we're just right, accept)
-         if ( image.width === this.rectangle.width() && image.height === this.rectangle.height() ) {
-            return this;
-         }
-        
-         // (otherwise, gotta split this node and create some kids)
-         this.leftChild = new SCMAP.Knapsack.Node( this );
-         this.rightChild = new SCMAP.Knapsack.Node( this );
-
-         // (decide which way to split)
-         var dw = this.rectangle.width() - image.width;
-         var dh = this.rectangle.height() - image.height;
-
-         if ( dw > dh )
-         {
-            this.leftChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left, this.rectangle.top, this.rectangle.left + image.width, this.rectangle.bottom
-            );
-
-            this.rightChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left + image.width, this.rectangle.top, this.rectangle.right, this.rectangle.bottom
-            );
-         }
-         else
-         {
-            this.leftChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left, this.rectangle.top, this.rectangle.right, this.rectangle.top + image.height
-            );
-
-            this.rightChild.rectangle = new SCMAP.Knapsack.Rectangle(
-               this.rectangle.left, this.rectangle.top + image.height, this.rectangle.right, this.rectangle.bottom
-            );
-         }
-
-         //var context = this.canvas.getContext('2d');
-         //context.lineWidth = 1.0;
-         //context.strokeStyle = 'rgba(255,0,0,1)';
-         //context.strokeRect( this.leftChild.rectangle.left, this.leftChild.rectangle.top, this.leftChild.rectangle.width(), this.leftChild.rectangle.height() );
-
-         //context.lineWidth = 1.0;
-         //context.strokeStyle = 'rgba(0,255,0,1)';
-         //context.strokeRect( this.rightChild.rectangle.left, this.rightChild.rectangle.top, this.rightChild.rectangle.width(), this.rightChild.rectangle.height() );
-
-         // Recurse into first child we created
-         return this.leftChild.insert( image );
-      }
-   }
-};
-
-// EOF
-
-/**
-* @author Lianna Eeftinck / https://github.com/Leeft
-*/
-/*
- * Manages the texture canvas(es) for the system labels using the SCMAP.Knapsack class
- */
-
-SCMAP.TextureManager = function () {
-   var canvas = document.createElement('canvas');
-   canvas.width = 256 * 2;
-   canvas.height = canvas.width; // * 0.4;
-   //if ( window.jQuery ) {
-   //   $('#debug-canvases').append( canvas );
-   //}
-   console.log( "SCMAP.TextureManager: Allocated "+canvas.width+"px texture map #1" );
-   this.knapsacks = [ new SCMAP.Knapsack( canvas ) ];
-   this.textures = [ new THREE.Texture( canvas, THREE.UVMapping ) ];
-};
-
-SCMAP.TextureManager.prototype = {
-   constructor: SCMAP.TextureManager,
-
-   allocateTextureNode: function allocateTextureNode( width, height ) {
-      var knapsack, node, texture, canvas, i;
-
-      for ( i = 0; i < this.knapsacks.length; i++ )
-      {
-         knapsack = this.knapsacks[ i ];
-         node = knapsack.insert({ width: width, height: height });
-         if ( node ) {
-            node.texture = this.textures[ i ].clone();
-            node.texture.needsUpdate = true;
-            node.setUV();
-            return node;
-         }
-      }
-
-      if ( width < knapsack.canvas.width ) {
-
-         // Didn't get a node but it *should* fit, so get a new canvas
-         canvas = document.createElement('canvas');
-         canvas.width = this.knapsacks[0].canvas.width;
-         canvas.height = this.knapsacks[0].canvas.height;
-         //if ( window.jQuery ) {
-         //   $('#debug-canvases').append( canvas );
-         //}
-         knapsack = new SCMAP.Knapsack( canvas );
-         texture = new THREE.Texture( canvas, THREE.UVMapping );
-         this.knapsacks.push( knapsack );
-         this.textures.push( texture );
-         console.log( "SCMAP.TextureManager: Allocated "+canvas.width+"px texture map #"+(this.knapsacks.length) );
-         node = knapsack.insert({ width: width, height: height });
-         if ( node ) {
-            node.texture = texture.clone();
-            node.texture.needsUpdate = true;
-            node.setUV();
-            return node;
-         }
-      } 
-
-      return null;
-   },
-
-   freeTextureNode: function freeTextureNode( node ) {
-      if ( !node || !node.imageID ) {
-         return;
-      }
-
-      node.release();
-   },
-
-   getCanvases: function getCanvases() {
-      var canvases = [];
-      for ( var i = 0; i < this.knapsacks.length; i += 1 ) {
-         canvases.push( this.knapsacks[ i ].canvas );
-      }
-      return canvases;
    }
 };
 
