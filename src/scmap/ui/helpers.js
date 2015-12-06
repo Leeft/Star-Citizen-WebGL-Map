@@ -207,7 +207,7 @@ Handlebars.registerHelper( 'durationHMM', function( duration ) {
   let minutes = Math.floor( ( sec_num - ( hours * 3600 ) ) / 60 );
 
   if ( minutes < 10 ) {
-    minutes = "0"+minutes;
+    minutes = '0' + minutes;
   }
 
   return new Handlebars.SafeString( `${ hours }:${ minutes }` );

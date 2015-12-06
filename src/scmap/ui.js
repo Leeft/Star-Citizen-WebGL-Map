@@ -7,6 +7,7 @@ import System, { GLOW_SCALE } from './system';
 import MapSymbol from './symbol';
 import MapSymbols from './symbols';
 import { allSystems } from './systems';
+import config from './config';
 import settings from './settings';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 import { renderer } from '../starcitizen-webgl-map';
@@ -242,8 +243,8 @@ class UI {
     };
     // UI width slider / settings handling
     $('#sc-map-interface .sc-map-slider-label-size').slider({
-      min: ( Number( $('#sc-map-configuration').data('minLabelScale') ) || 0.4 ) * 100,
-      max: ( Number( $('#sc-map-configuration').data('maxLabelScale') ) || 2.0 ) * 100,
+      min: Number( config.minLabelScale ) * 100,
+      max: Number( config.maxLabelScale ) * 100,
       value: settings.labelScale * 100,
       change: updateLabelSize,
       slide: updateLabelSize
@@ -262,8 +263,8 @@ class UI {
     };
     // UI width slider / settings handling
     $('#sc-map-interface .sc-map-slider-label-offset').slider({
-      min: ( Number( $('#sc-map-configuration').data('minLabelOffset') ) || -6.5 ) * 100,
-      max: ( Number( $('#sc-map-configuration').data('maxLabelOffset') ) ||  7.5 ) * 100,
+      min: Number( config.minLabelOffset ) * 100,
+      max: Number( config.maxLabelOffset ) * 100,
       value: settings.labelOffset * 100,
       change: updateLabelOffset,
       slide: updateLabelOffset
@@ -289,8 +290,8 @@ class UI {
     };
     // UI width slider / settings handling
     $('#sc-map-interface .sc-map-slider-system-size').slider({
-      min: ( Number( $('#sc-map-configuration').data('minSystemScale') ) || 0.5 ) * 100,
-      max: ( Number( $('#sc-map-configuration').data('maxSystemScale') ) || 2.0 ) * 100,
+      min: Number( config.minSystemScale ) * 100,
+      max: Number( config.maxSystemScale ) * 100,
       value: settings.systemScale * 100,
       change: updateSystemScale,
       slide: updateSystemScale

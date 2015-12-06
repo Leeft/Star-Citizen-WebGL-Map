@@ -2,6 +2,7 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 import $ from 'jquery';
+import config from './config';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 
 import THREE from 'three';
@@ -21,27 +22,27 @@ class Settings {
       Number( this.storage['settings.uiWidth'] ) : 320;
 
     this.labelScale = ( this.storage && Number( this.storage['settings.labelScale'] ) > 0 ) ?
-      Number( this.storage['settings.labelScale'] ) : $('#sc-map-configuration').data('defaultLabelScale') || 1.0;
+      Number( this.storage['settings.labelScale'] ) : Number( config.defaultLabelScale );
 
     this.labelScale = Math.max(
-      Number( $('#sc-map-configuration').data('minLabelScale') ) || 0.4,
-      Math.min( this.labelScale, $('#sc-map-configuration').data('maxLabelScale') || 2.0 )
+      Number( config.minLabelScale ),
+      Math.min( this.labelScale, config.maxLabelScale )
     );
 
     this.labelOffset = ( this.storage && Number( this.storage['settings.labelOffset'] ) > 0 ) ?
-      Number( this.storage['settings.labelOffset'] ) : $('#sc-map-configuration').data('defaultLabelOffset') || 5.0;
+      Number( this.storage['settings.labelOffset'] ) : Number( config.defaultLabelOffset );
 
     this.labelOffset = Math.max(
-      Number( $('#sc-map-configuration').data('minLabelOffset') ) || -3.5,
-      Math.min( this.labelOffset, $('#sc-map-configuration').data('maxLabelOffset') || 7.5 )
+      Number( config.minLabelOffset ),
+      Math.min( this.labelOffset, config.maxLabelOffset )
     );
 
     this.systemScale = ( this.storage && Number( this.storage['settings.systemScale'] ) > 0 ) ?
-      Number( this.storage['settings.systemScale'] ) : $('#sc-map-configuration').data('defaultSystemScale') || 1.0;
+      Number( this.storage['settings.systemScale'] ) : config.defaultSystemScale;
 
     this.systemScale = Math.max(
-      Number( $('#sc-map-configuration').data('minSystemScale') ) || 0.5,
-      Math.min( this.systemScale, $('#sc-map-configuration').data('maxSystemScale') || 2.0 )
+      Number( config.minSystemScale ),
+      Math.min( this.systemScale, config.maxSystemScale )
     );
 
     this.glow = ( this.storage && this.storage['settings.Glow'] === '0' ) ? false : true;

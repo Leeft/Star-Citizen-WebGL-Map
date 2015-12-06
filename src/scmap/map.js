@@ -11,6 +11,7 @@ import Faction from './faction';
 import Dijkstra from './dijkstra';
 import Route from './route';
 import UI from './ui';
+import config from './config';
 import settings from './settings';
 import SelectedSystemGeometry from './selected-system-geometry';
 import xhrPromise from '../helpers/xhr-promise';
@@ -50,11 +51,11 @@ class Map {
 
     let map = this;
 
-    const getSystems          = xhrPromise( $('#sc-map-configuration').data('systems-json') );
-    const getStrategicValues  = xhrPromise( 'data/uee-strategic-values.json' );
-    const getFactions         = xhrPromise( 'data/factions.json' );
-    const getCrimeLevels      = xhrPromise( 'data/crime-levels.json' );
-    const getGoods            = xhrPromise( 'data/goods.json' );
+    const getSystems          = xhrPromise( config.systemsJson );
+    const getStrategicValues  = xhrPromise( config.strategicValuesJson );
+    const getFactions         = xhrPromise( config.factionsJson );
+    const getCrimeLevels      = xhrPromise( config.crimeLevelsJson );
+    const getGoods            = xhrPromise( config.goodsJson );
 
     RSVP.all([
       getSystems,

@@ -2,6 +2,7 @@
   * @author Lianna Eeftinck / https://github.com/Leeft
   */
 
+import config from './config';
 import settings from './settings';
 import OrbitControls from './orbit-controls';
 import { ui } from '../starcitizen-webgl-map';
@@ -43,9 +44,9 @@ class Renderer {
 
     this.controls = new OrbitControls( this, container );
     this.controls.target.copy( settings.camera.target );
-    this.controls.rotateSpeed = $('#sc-map-configuration').data('rotateSpeed');
-    this.controls.zoomSpeed = $('#sc-map-configuration').data('zoomSpeed');
-    this.controls.panSpeed = $('#sc-map-configuration').data('panSpeed');
+    this.controls.rotateSpeed = config.rotateSpeed;
+    this.controls.zoomSpeed = config.zoomSpeed;
+    this.controls.panSpeed = config.panSpeed;
     this.controls.noRotate = settings.control.rotationLocked;
 
     this.threeRenderer = new THREE.WebGLRenderer( { antialias: true } );

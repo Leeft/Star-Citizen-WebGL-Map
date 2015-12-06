@@ -9,6 +9,7 @@ import SystemLabel from './system-label';
 import JumpPoint from './jump-point';
 import MapSymbol from './symbol';
 import MapSymbols from './symbols';
+import config from './config';
 import settings from './settings';
 import { storage } from './settings';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
@@ -40,11 +41,10 @@ INTERACTABLE_DEBUG_MATERIAL.map = null;
 INTERACTABLE_DEBUG_MATERIAL.blending = THREE.AdditiveBlending;
 
 // FIXME
-const GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configuration').data('glow-image') );
+const GLOW_MAP = new THREE.ImageUtils.loadTexture( config.glowImage );
 
 class System {
   constructor ( data ) {
-    // Defaults, to be filled in from the config
     this.id = undefined;
     this.uuid = undefined;
     this.name = THREE.Math.generateUUID();

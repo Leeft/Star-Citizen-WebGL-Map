@@ -10,6 +10,10 @@
   <body class="sc-webgl-map noselect">
     <div id="sc-map-webgl-container"></div>
     <div id="sc-map-interface" class="medium widthN"></div>
-    <script src="build/starcitizen-webgl-map.js"></script>
+    <script src="jspm_packages/system.js"></script>
+    <script src="config.js"></script>
+    <script>
+      System.import('src/starcitizen-webgl-map.js');
+    </script>
   </body>
 </html>
