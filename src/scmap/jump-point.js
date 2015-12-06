@@ -3,6 +3,7 @@
 */
 
 import System from './system';
+import THREE from 'three';
 
 const MATERIALS = {
   NORMAL: new THREE.LineBasicMaterial({
@@ -34,7 +35,7 @@ class JumpPoint {
     this.name = ( typeof data.name === 'string' && data.name.length > 1 ) ? data.name : undefined;
     this.source = ( data.source instanceof System ) ? data.source : undefined;
     this.destination = ( data.destination instanceof System ) ? data.destination : undefined;
-    this.drawn = false;T
+    this.drawn = false;
     this.type = ( typeof data.type === 'string' ) ? data.type : 'UNDISC';
     this.entryAU = new THREE.Vector3();
     if ( ( typeof data.entryAU === 'object' ) && Array.isArray( data.entryAU ) ) {

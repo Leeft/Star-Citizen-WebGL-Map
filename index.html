@@ -371,37 +371,11 @@
          </p>
       </script>
 
-      <script id="scMapVertexShader" type="x-shader/x-vertex">
-         uniform vec3 viewVector;
-         uniform float c;
-         uniform float p;
-         varying float intensity;
-         void main()
-         {
-            vec3 vNormal = normalize( normalMatrix * normal );
-            vec3 vNormel = normalize( normalMatrix * viewVector );
-            intensity = pow( c - dot(vNormal, vNormel), p );
-
-            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-         }
+      <script src="jspm_packages/system.js"></script>
+      <script src="config.js"></script>
+      <script>
+        System.import('./src/starcitizen-webgl-map.js');
       </script>
-
-      <script id="scMapFragmentShader" type="x-shader/x-fragment">
-         uniform vec3 glowColor;
-         varying float intensity;
-         void main()
-         {
-            vec3 glow = glowColor * intensity;
-            gl_FragColor = vec4( glow, 1.0 );
-         }
-      </script>
-
-      <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-      <script src="//code.jquery.com/ui/1.11.0/jquery-ui.min.js"></script>
-      <script src="//cdnjs.cloudflare.com/ajax/libs/three.js/r68/three.min.js"></script>
-      <script src="build/starcitizen-webgl-map-libs.min.js"></script>
-      <script src="build/starcitizen-webgl-map.min.js"></script>
-      <script src="build/starcitizen-webgl-map-seed-data.min.js"></script>
 
    </body>
 </html>

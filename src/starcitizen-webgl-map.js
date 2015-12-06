@@ -1,20 +1,24 @@
+import Detector from './three/detector';
 import UI from './scmap/ui';
 import Map from './scmap/map';
 import Renderer from './scmap/renderer';
-import { hasLocalStorage, hasSessionStorage } from './scmap/functions';
 
-let scene, map, ui, storage, renderer;
+import THREE from 'three';
+import $ from 'jquery';
+
+window.THREE = THREE;
+
+let scene, map, ui, renderer;
+
+// FIXME: does not belong here
+$.fn.outerHtml = function() {
+  return $('<div />').append(this.eq(0).clone()).html();
+};
 
 $( function() {
 
   if ( ! Detector.webgl ) {
     Detector.addGetWebGLMessage();
-  }
-
-  if ( hasLocalStorage() ) {
-    storage = window.localStorage;
-  } else if ( hasSessionStorage() ) {
-    storage = window.sessionStorage;
   }
 
   map      = new Map();
@@ -34,36 +38,4 @@ $( function() {
 
 });
 
-Object.values = function (obj ) {
-  let vals = [];
-  for ( let key in obj ) {
-    if ( obj.hasOwnProperty(key) ) {
-      vals.push( obj[key] );
-    }
-  }
-  return vals;
-};
-
-jQuery.fn.outerHtml = function() {
-  return jQuery('<div />').append(this.eq(0).clone()).html();
-};
-
-String.prototype.toHMM = function () {
-  let sec_num = parseInt(this, 10);
-  let hours   = Math.floor(sec_num / 3600);
-  let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-  if (minutes < 10) { minutes = '0' + minutes; }
-  let time    = hours + ':' + minutes;
-  return time;
-};
-
-Number.prototype.toHMM = function () {
-  let sec_num = parseInt(this, 10);
-  let hours   = Math.floor(sec_num / 3600);
-  let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-  if (minutes < 10) { minutes = '0' + minutes; }
-  let time    = hours + ':' + minutes;
-  return time;
-};
-
-export { scene, map, ui, storage, renderer };
+export { scene, map, ui, renderer };

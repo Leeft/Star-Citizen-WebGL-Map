@@ -2,36 +2,97 @@
   "name": "starcitizen-webgl-map",
   "version": "0.9.0",
   "description": "WebGL Star Citizen Map",
-  "devDependencies": {
-    "clean-css": "^2.1.8",
-    "grunt": "~0.4.2",
-    "grunt-contrib-concat": "~0.3.0",
-    "grunt-contrib-copy": "~0.5.0",
-    "grunt-contrib-jshint": "~0.8.0",
-    "grunt-contrib-less": "^0.11.0",
-    "grunt-contrib-uglify": "~0.2.7",
-    "grunt-contrib-watch": "~0.5.3",
-    "grunt-lesslint": "^1.1.3",
-    "three-sprite-texture-atlas-manager": "github:leeft/three-sprite-texture-atlas-manager#v0.1.1"
-  },
   "private": true,
-  "main": "js/main.js",
+  "main": "build/starcitizen-webgl-map.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "gulp",
+    "test-browser": "gulp test-browser",
+    "build": "gulp build",
+    "coverage": "gulp coverage"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/Leeft/Star-Citizen-WebGL-Map.git"
+    "url": "https://github.com/Leeft/starcitizen-webgl-map.git"
   },
-  "author": "Lianna Eeftinck",
-  "license": "MIT",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://opensource.org/licenses/MIT"
-    }
+  "keywords": [
+    "Star Citizen",
+    "Squadron 42",
+    "map",
+    "webgl",
+    "3d"
   ],
+  "author": "Lianna Eeftinck <liannaee@gmail.com>",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Leeft/Star-Citizen-WebGL-Map/issues"
+    "url": "https://github.com/Leeft/starcitizen-webgl-map/issues"
+  },
+  "homepage": "https://github.com/Leeft/starcitizen-webgl-map",
+  "devDependencies": {
+    "babel-core": "^5.2.17",
+    "babel-eslint": "^4.0.5",
+    "babelify": "^6.0.0",
+    "browserify": "^12.0.1",
+    "chai": "^3.2.0",
+    "del": "^2.1.0",
+    "font-awesome": "^4.4.0",
+    "glob": "^5.0.15",
+    "gulp": "^3.8.10",
+    "gulp-babel": "^5.0.0",
+    "gulp-eslint": "^1.0.0",
+    "gulp-file": "^0.2.0",
+    "gulp-filter": "^3.0.0",
+    "gulp-istanbul": "^0.10.0",
+    "gulp-jscs": "^3.0.2",
+    "gulp-livereload": "^3.4.0",
+    "gulp-load-plugins": "^1.1.0",
+    "gulp-mocha": "^2.0.0",
+    "gulp-notify": "^2.1.0",
+    "gulp-plumber": "^1.0.1",
+    "gulp-rename": "^1.2.0",
+    "gulp-sourcemaps": "^1.3.0",
+    "gulp-uglify": "^1.2.0",
+    "isparta": "^3.0.3",
+    "jsdom": "^7.0.2",
+    "jspm": "^0.16.15",
+    "mocha": "^2.1.0",
+    "run-sequence": "^1.0.2",
+    "sinon": "^1.12.2",
+    "sinon-chai": "^2.7.0",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.0.0",
+    "watchify": "^3.3.1"
+  },
+  "babelBoilerplateOptions": {
+    "entryFileName": "src/starcitizen-webgl-map.js",
+    "mainVarName": "SCMAP",
+    "mochaGlobals": [
+      "stub",
+      "spy",
+      "expect"
+    ]
+  },
+  "jspm": {
+    "dependencies": {
+      "es6-promise": "npm:es6-promise@^3.0.2",
+      "font-awesome": "npm:font-awesome@^4.5.0",
+      "handlebars": "github:components/handlebars.js@^4.0.5",
+      "hbs": "github:davis/plugin-hbs@^1.2.1",
+      "imagesloaded": "npm:imagesloaded@^3.2.0",
+      "javascript-state-machine": "npm:javascript-state-machine@^2.3.5",
+      "jquery": "github:components/jquery@^2.1.4",
+      "jquery-ui": "github:components/jqueryui@^1.11.4",
+      "jscrollpane": "npm:jscrollpane@^2.0.22",
+      "leeft/three-sprite-texture-atlas-manager": "github:leeft/three-sprite-texture-atlas-manager@^0.1.1",
+      "markdown": "npm:markdown@^0.5.0",
+      "rsvp": "npm:rsvp@^3.1.0",
+      "stats.js": "github:mrdoob/stats.js@r14",
+      "three": "github:mrdoob/three.js@r73",
+      "tween.js": "npm:tween.js@^16.3.1"
+    },
+    "devDependencies": {
+      "babel": "npm:babel-core@^5.8.24",
+      "babel-runtime": "npm:babel-runtime@^5.8.24",
+      "core-js": "npm:core-js@^1.1.4"
+    }
   }
 }

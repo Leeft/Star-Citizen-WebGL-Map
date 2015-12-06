@@ -1,0 +1,51 @@
+{
+  "BANU" : {
+    "color" : "0xFFED9B",
+    "factionId" : "BANU",
+    "isRealFaction" : true,
+    "name" : "Banu",
+    "parentFactionId" : null
+  },
+  "KRTK" : {
+    "color" : "0xE67100",
+    "factionId" : "KRTK",
+    "isRealFaction" : true,
+    "name" : "Kr'thak",
+    "parentFactionId" : null
+  },
+  "SUEE" : {
+    "color" : "0xD1A4D0",
+    "factionId" : "SUEE",
+    "isRealFaction" : false,
+    "name" : "Sub-UEE",
+    "parentFactionId" : null
+  },
+  "UCLM" : {
+    "color" : "0x666666",
+    "factionId" : "UCLM",
+    "isRealFaction" : false,
+    "name" : "Unclaimed",
+    "parentFactionId" : null
+  },
+  "UEE" : {
+    "color" : "0x90ABD9",
+    "factionId" : "UEE",
+    "isRealFaction" : true,
+    "name" : "United Empire of Earth",
+    "parentFactionId" : null
+  },
+  "VAND" : {
+    "color" : "0xF9B29C",
+    "factionId" : "VAND",
+    "isRealFaction" : true,
+    "name" : "Vanduul",
+    "parentFactionId" : null
+  },
+  "XIAN" : {
+    "color" : "0xA4D49C",
+    "factionId" : "XIAN",
+    "isRealFaction" : true,
+    "name" : "Xi'An",
+    "parentFactionId" : null
+  }
+}

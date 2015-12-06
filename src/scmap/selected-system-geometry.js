@@ -1,3 +1,5 @@
+import THREE from 'three';
+
 function _build_selected_system_object () {
   const object = new THREE.JSONLoader().parse({
     'metadata' : {

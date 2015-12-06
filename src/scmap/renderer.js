@@ -3,17 +3,25 @@
   */
 
 import settings from './settings';
-import { hasLocalStorage, hasSessionStorage } from './functions';
+import OrbitControls from './orbit-controls';
+import { ui } from '../starcitizen-webgl-map';
+
+import TextureManager from 'leeft/three-sprite-texture-atlas-manager';
+
+import THREE from 'three';
+import TWEEN from 'tween.js';
+import Stats from 'stats.js';
+import $ from 'jquery';
 
 class Renderer {
-  constructor () {
+  constructor ( map ) {
     this.map = map;
 
     this.composer = null;
     this.FXAA = null;
     this.camera = null;
 
-    this.textureManager = new window.threeSpriteAtlasTextureManager(1024);
+    this.textureManager = new TextureManager( 1024 );
 
     this.width = window.innerWidth;
     this.height = window.innerHeight;
@@ -33,7 +41,7 @@ class Renderer {
     this.camera.position.copy( settings.camera.camera );
     this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
 
-    this.controls = new SCMAP.OrbitControls( this, container );
+    this.controls = new OrbitControls( this, container );
     this.controls.target.copy( settings.camera.target );
     this.controls.rotateSpeed = $('#sc-map-configuration').data('rotateSpeed');
     this.controls.zoomSpeed = $('#sc-map-configuration').data('zoomSpeed');
@@ -65,38 +73,33 @@ class Renderer {
       $('#stats').show();
     }
 
-    if ( hasLocalStorage() ) {
-      storage = window.localStorage;
-    } else if ( hasSessionStorage() ) {
-      storage = window.sessionStorage;
-    }
-
     // Event handlers
 
     window.addEventListener( 'resize', this.resize, false );
     document.addEventListener( 'change', this.render, false );
 
-    if ( ! settings.effect.Antialias )
-    {
-      let renderModel = new THREE.RenderPass( this.map.scene, this.camera );
+    // FIXME: Bring in these classes again, re-enable the feature?
+    //if ( ! settings.effect.Antialias )
+    //{
+    //  let renderModel = new THREE.RenderPass( map.scene, this.camera );
 
-      this.FXAA = new THREE.ShaderPass( THREE.FXAAShader );
-      this.FXAA.uniforms.resolution.value.set( 1 / (this.width * this.dpr), 1 / (this.height * this.dpr) );
-      this.FXAA.enabled = settings.effect.FXAA;
+    //  this.FXAA = new THREE.ShaderPass( THREE.FXAAShader );
+    //  this.FXAA.uniforms.resolution.value.set( 1 / (this.width * this.dpr), 1 / (this.height * this.dpr) );
+    //  this.FXAA.enabled = settings.effect.FXAA;
 
-      let effectBloom = new THREE.BloomPass( 0.6 );
-      effectBloom.enabled = settings.effect.Bloom;
+    //  let effectBloom = new THREE.BloomPass( 0.6 );
+    //  effectBloom.enabled = settings.effect.Bloom;
 
-      let effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-      effectCopy.renderToScreen = true;
+    //  let effectCopy = new THREE.ShaderPass( THREE.CopyShader );
+    //  effectCopy.renderToScreen = true;
 
-      this.composer = new THREE.EffectComposer( this.threeRenderer );
-      this.composer.setSize( this.width * this.dpr, this.height * this.dpr );
-      this.composer.addPass( renderModel );
-      this.composer.addPass( this.FXAA );
-      this.composer.addPass( effectBloom );
-      this.composer.addPass( effectCopy );
-    }
+    //  this.composer = new THREE.EffectComposer( this.threeRenderer );
+    //  this.composer.setSize( this.width * this.dpr, this.height * this.dpr );
+    //  this.composer.addPass( renderModel );
+    //  this.composer.addPass( this.FXAA );
+    //  this.composer.addPass( effectBloom );
+    //  this.composer.addPass( effectCopy );
+    //}
 
     this.animate();
   }
@@ -122,16 +125,13 @@ class Renderer {
       this.composer.reset();
     }
 
-    window.ui.updateHeight();
+    ui.updateHeight();
   }
 
   _animate () {
     requestAnimationFrame( this.animate );
     TWEEN.update();
     this.controls.update();
-    //if ( editor !== undefined ) {
-    //   editor.update();
-    //}
     this.map.animate();
     this.stats.update();
     this.render();

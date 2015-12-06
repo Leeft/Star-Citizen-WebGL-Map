@@ -11,7 +11,7 @@ class MapSymbol {
     return 2;
   }
 
-  static getTag ( icon ) {
+  getTag ( icon ) {
     var $icon = $( `<i title="${ icon.description }" class="fa fa-fw ${ icon.faClass }"></i>` );
     $icon.css( 'color', icon.color );
     return $icon;

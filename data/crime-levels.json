@@ -1,0 +1,42 @@
+{
+  "-1" : {
+    "crimeLevelId" : -1,
+    "name" : "Unknown"
+  },
+  "0" : {
+    "crimeLevelId" : 0,
+    "name" : "None (Lawless)"
+  },
+  "1" : {
+    "crimeLevelId" : 1,
+    "name" : "Very Low"
+  },
+  "2" : {
+    "crimeLevelId" : 2,
+    "name" : "Low"
+  },
+  "3" : {
+    "crimeLevelId" : 3,
+    "name" : "Low-Medium"
+  },
+  "4" : {
+    "crimeLevelId" : 4,
+    "name" : "Medium"
+  },
+  "5" : {
+    "crimeLevelId" : 5,
+    "name" : "Med-High"
+  },
+  "6" : {
+    "crimeLevelId" : 6,
+    "name" : "High"
+  },
+  "7" : {
+    "crimeLevelId" : 7,
+    "name" : "Very High"
+  },
+  "8" : {
+    "crimeLevelId" : 8,
+    "name" : "Full"
+  }
+}

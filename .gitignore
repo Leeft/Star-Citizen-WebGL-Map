@@ -24,6 +24,7 @@ build/Release
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git-
 node_modules
 bower_components
+jspm_packages
 coverage
 tmp
 # We'll remove this again later (when we got rid of bower, it's a good place to store other repos)

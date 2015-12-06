@@ -12,6 +12,12 @@
 import SCMAP from '../scmap';
 import System from './system';
 import settings from './settings';
+import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
+
+import $ from 'jquery';
+import THREE from 'three';
+import TWEEN from 'tween.js';
+import StateMachine from 'javascript-state-machine';
 
 // This set of controls performs orbiting, dollying (zooming), and panning. It maintains
 // the "up" direction as +Y, unlike the TrackballControls. Touch on tablet and phones is
@@ -31,7 +37,7 @@ import settings from './settings';
 // state machine for dealing with the user's input (I needed more than
 // just basic control).
 
-SCMAP.OrbitControls = function ( renderer, domElement ) {
+var OrbitControls = function ( renderer, domElement ) {
 
    this.object     = renderer.camera;
    this.domElement = ( domElement !== undefined ) ? domElement : document;
@@ -193,7 +199,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                   if ( scope.debug ) {
                      console.log( `Click at "${ intersect.object.parent.userData.system.name }"` );
                   }
-                  window.map.setSelectionTo( startObject );
+                  map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
                   this.touchtodrag( event );
                }
@@ -251,9 +257,9 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                   }
                   else
                   {
-                     if ( window.map.selected() === endObject ) {
+                     if ( map.selected() === endObject ) {
                      }
-                     var route = window.map.route();
+                     var route = map.route();
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
                         route.storeToSession();
@@ -293,8 +299,8 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
    };
 
    this.showState = function ( to ) {
-      if ( window.jQuery && window.jQuery('#debug-state') ) {
-         window.jQuery('#debug-state').text( 'State: ' + to );
+      if ( $('#debug-state') ) {
+         $('#debug-state').text( 'State: ' + to );
       }
    };
 
@@ -365,7 +371,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
       }
 
       if ( destination instanceof System ) {
-         window.map.setSelectionTo( destination );
+         map.setSelectionTo( destination );
       }
 
       if ( targetTween ) {
@@ -409,8 +415,8 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
          radius: offset.length()
       };
 
-      rotateLeft = rotate.left;
-      rotateUp   = rotate.up;
+      //rotateLeft = rotate.left;
+      //rotateUp   = rotate.up;
 
       if ( rotationTween ) {
          rotationTween.stop();
@@ -513,13 +519,12 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
 
    // TODO: Move to map
    this.getIntersect = function ( event ) {
-      if ( !window.map.interactables() ) { return; }
+      if ( !map.interactables() ) { return; }
       var vector, projector, raycaster, intersects;
       vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
-      projector = new THREE.Projector();
-      projector.unprojectVector( vector, scope.object );
+      vector.unproject( scope.object );
       raycaster = new THREE.Raycaster( scope.object.position, vector.sub( scope.object.position ).normalize() );
-      intersects = raycaster.intersectObjects( window.map.interactables() );
+      intersects = raycaster.intersectObjects( map.interactables() );
       return intersects[0];
    };
 
@@ -587,7 +592,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
       return {
          // initalize resize event listener
          init: function( type, callback ) {
-            window.renderer.controls.addEventListener( type, throttled );
+            renderer.controls.addEventListener( type, throttled );
             addCallback( type, callback );
          },
 
@@ -723,13 +728,13 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
             intersect = scope.getIntersect( event );
             if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
                mouseOver = intersect.object.parent.userData.system;
-               window.map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
-               window.map._mouseOverObject.visible = true;
+               map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+               map._mouseOverObject.visible = true;
             } else {
                if ( !intersect || !intersect.object.parent.userData.system ) {
                   if ( mouseOver !== undefined ) {
-                     window.map._mouseOverObject.position.set( 0, 0, 0 );
-                     window.map._mouseOverObject.visible = false;
+                     map._mouseOverObject.position.set( 0, 0, 0 );
+                     map._mouseOverObject.visible = false;
                   }
                   mouseOver = undefined;
                }
@@ -759,7 +764,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
                if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
 
                   endObject = intersect.object.parent.userData.system;
-                  route = window.map.route();
+                  route = map.route();
 
                   if ( !route.isSet() )
                   {
@@ -934,7 +939,7 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
             needUpdate = true;
             break;
          case scope.keys.ESCAPE: // Deselect selected
-            window.map.deselect();
+            map.deselect();
             break;
          case scope.keys.TAB: // Tab through route
             // TODO
@@ -1136,4 +1141,6 @@ SCMAP.OrbitControls = function ( renderer, domElement ) {
 
 };
 
-SCMAP.OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+OrbitControls.prototype = Object.create( THREE.EventDispatcher.prototype );
+
+export default OrbitControls;

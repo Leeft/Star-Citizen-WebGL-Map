@@ -7,6 +7,11 @@ import { allSystems } from './systems';
 import Dijkstra from './dijkstra';
 import UI from './ui';
 import settings from './settings';
+import { hasSessionStorage } from './functions';
+import { scene, map } from '../starcitizen-webgl-map';
+
+import THREE from 'three';
+import $ from 'jquery';
 
 class Route {
   constructor ( start, waypoints ) {
@@ -360,7 +365,7 @@ class Route {
   }
 
   buildTemplateData () {
-    let system, i, waypoint;
+    let system, waypoint;
     let templateData = {
       settings: {
         avoidHostile: settings.route.avoidHostile,
@@ -394,7 +399,7 @@ class Route {
       templateData.waypoints     = [];
       templateData.totalDuration = 0;
 
-      for ( i = 0, entireRouteLength = entireRoute.length; i < entireRouteLength; i += 1 )
+      for ( let i = 0, entireRouteLength = entireRoute.length; i < entireRouteLength; i += 1 )
       {
         system = entireRoute[i].system;
 
@@ -462,7 +467,7 @@ class Route {
         return;
       }
 
-      destination = this.waypoints[ this.waypoints.length - 1 ];
+      let destination = this.waypoints[ this.waypoints.length - 1 ];
 
       // Build all the parts of the route together in a single geometry group
       this._routeObject = new THREE.Object3D();
@@ -486,7 +491,7 @@ class Route {
 
       if ( typeof this.start.sceneObject === 'object' )
       {
-        let waypointObject = window.map.createSelectorObject( startColour );
+        let waypointObject = map.createSelectorObject( startColour );
         waypointObject.scale.set( 3.8, 3.8, 3.8 );
         waypointObject.position.copy( this.start.sceneObject.position );
         waypointObject.visible = true;
@@ -494,7 +499,7 @@ class Route {
 
         for ( i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 ) {
           if ( typeof this.waypoints[i].sceneObject === 'object' ) {
-            waypointObject = window.map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
+            waypointObject = map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
             waypointObject.scale.set( 3.8, 3.8, 3.8 );
             waypointObject.position.copy( this.waypoints[i].sceneObject.position );
             waypointObject.visible = true;

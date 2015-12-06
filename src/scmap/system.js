@@ -10,14 +10,16 @@ import JumpPoint from './jump-point';
 import MapSymbol from './symbol';
 import MapSymbols from './symbols';
 import settings from './settings';
-import $ from 'jquery';
+import { storage } from './settings';
+import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
+
+import markdown from 'markdown';
+import THREE from 'three';
 
 const BLACK = new THREE.Color( 'black' );
 const UNSET = new THREE.Color( 0x80A0CC );
 
-const LABEL_SCALE = 5;
 const GLOW_SCALE = 5.5;
-const UNKNOWN_SYSTEM_SCALE = 0.65;
 
 const STAR_LOD_MESHES = [
    [ new THREE.IcosahedronGeometry( 1, 3 ),  20 ],
@@ -37,6 +39,7 @@ INTERACTABLE_DEBUG_MATERIAL.depthWrite = false;
 INTERACTABLE_DEBUG_MATERIAL.map = null;
 INTERACTABLE_DEBUG_MATERIAL.blending = THREE.AdditiveBlending;
 
+// FIXME
 const GLOW_MAP = new THREE.ImageUtils.loadTexture( $('#sc-map-configuration').data('glow-image') );
 
 class System {
@@ -76,32 +79,31 @@ class System {
   }
 
   buildSceneObject () {
-    let interactable, interactableSize, starLOD, star, glow;
-
     // Grouping all our system related objects in here
-    let sceneObject = new THREE.Object3D();
+    const sceneObject = new THREE.Object3D();
 
     // To make systems easier to click, we add an invisible sprite to them
     // (probably also easier for the raycaster) and use that as the object
-    // to interact with
-    interactable = new THREE.Sprite( INTERACTABLE_DEBUG_MATERIAL );
-    interactableSize = Math.min( 5.75, Math.max( 5.5, 6 * this.scale ) );
+    // to interact with rather than the other objects
+    const interactable = new THREE.Sprite( INTERACTABLE_DEBUG_MATERIAL );
+    const interactableSize = Math.min( 5.75, Math.max( 5.5, 6 * this.scale ) );
     interactable.scale.set( interactableSize, interactableSize, interactableSize );
     sceneObject.userData.interactable = interactable;
     sceneObject.add( interactable );
 
-    let scale = this.scale * settings.systemScale;
+    const scale = this.scale * settings.systemScale;
 
     // LOD for the stars to make them properly rounded when viewed up close
     // yet low on geometry at a distance
-    starLOD = new THREE.LOD();
-    for ( i = 0; i < STAR_LOD_MESHES.length; i++ ) {
-      star = new THREE.Mesh( STAR_LOD_MESHES[ i ][ 0 ], this.starMaterial() );
+    const starLOD = new THREE.LOD();
+    for ( let i = 0; i < STAR_LOD_MESHES.length; i++ ) {
+      const star = new THREE.Mesh( STAR_LOD_MESHES[ i ][ 0 ], System.starMaterial() );
       star.scale.set( this.scale, this.scale, this.scale );
       star.updateMatrix();
       star.matrixAutoUpdate = false;
       starLOD.addLevel( star, STAR_LOD_MESHES[ i ][ 1 ] );
     }
+
     starLOD.scale.set( settings.systemScale, settings.systemScale, settings.systemScale );
     starLOD.updateMatrix();
     starLOD.matrixAutoUpdate = false;
@@ -111,7 +113,7 @@ class System {
     sceneObject.add( starLOD );
 
     // Glow sprite for the star
-    glow = new THREE.Sprite( this.glowMaterial() );
+    const glow = new THREE.Sprite( this.glowMaterial() );
     glow.scale.set( GLOW_SCALE * scale, GLOW_SCALE * scale, 1.0 );
     glow.position.set( 0, 0, -0.2 );
     glow.userData.isGlow = true;
@@ -160,7 +162,7 @@ class System {
     }
   }
 
-  starMaterial () {
+  static starMaterial () {
     return STAR_MATERIAL;
   }
 
@@ -172,7 +174,6 @@ class System {
     return new THREE.SpriteMaterial({
       map: GLOW_MAP,
       blending: THREE.AdditiveBlending,
-      useScreenCoordinates: false,
       color: color,
     });
   }
@@ -185,7 +186,7 @@ class System {
     }
 
     label = new SystemLabel( this );
-    node = window.renderer.textureManager.allocate( label.width(), label.height() );
+    node = renderer.textureManager.allocate( label.width(), label.height() );
     if ( ! node ) {
       return null;
     }
@@ -204,7 +205,7 @@ class System {
     });
     label.sceneObject.userData.systemLabel = label;
 
-    label.positionSprite( window.renderer.cameraRotationMatrix() );
+    label.positionSprite( renderer.cameraRotationMatrix() );
     label.scaleSprite();
 
     return label;
@@ -288,11 +289,11 @@ class System {
     let me = this;
     let previous = null;
     let next = null;
-    let currentStep = window.map.route().indexOfCurrentRoute( this );
+    let currentStep = map.route().indexOfCurrentRoute( this );
 
     if ( typeof currentStep === 'number' )
     {
-      let currentRoute = window.map.route().currentRoute();
+      let currentRoute = map.route().currentRoute();
 
       if ( currentStep > 0 ) {
         previous = currentRoute[ currentStep - 1 ].system;
@@ -575,8 +576,8 @@ class System {
       'size': json.size,
       'info': json.info,
       'status': json.status,
-      'crimeStatus': SCMAP.json.crimeLevels[ json.crimeLevel ],
-      'ueeStrategicValue': SCMAP.json.ueeStrategicValues[ '' + json.ueeStrategicValue ],
+      'crimeStatus': SCMAP.data.crime_levels[ json.crimeLevel ],
+      'ueeStrategicValue': SCMAP.data.uee_strategic_values[ '' + json.ueeStrategicValue ],
       'import': json.import,
       'export': json.export,
       'blackMarket': json.blackMarket,
@@ -596,4 +597,4 @@ class System {
 }
 
 export default System;
-export { GLOW_SCALE, LABEL_SCALE, UNKNOWN_SYSTEM_SCALE };
+export { GLOW_SCALE };

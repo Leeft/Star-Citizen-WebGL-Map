@@ -2,7 +2,9 @@
 * @author LiannaEeftinck / https://github.com/Leeft
 */
 
-// TODO: Make this data-driven?
+import THREE from 'three';
+
+// TODO: Make this data-driven? TODO
 
 const SYMBOLS = {
 

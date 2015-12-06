@@ -4,14 +4,17 @@
 import $ from 'jquery';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 
+import THREE from 'three';
+
 class Settings {
   constructor () {
-    this.storage = null;
 
     if ( hasLocalStorage() ) {
       this.storage = window.localStorage;
     } else if ( hasSessionStorage() ) {
       this.storage = window.sessionStorage;
+    } else {
+      this.storage = {};
     }
 
     this.uiWidth = ( this.storage && Number( this.storage['settings.uiWidth'] ) > 0 ) ?

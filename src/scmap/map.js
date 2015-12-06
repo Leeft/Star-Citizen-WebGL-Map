@@ -4,6 +4,7 @@
 
 import SCMAP from '../scmap';
 import System from './system';
+import SystemList from './systems';
 import { allSystems } from './systems';
 import Goods from './goods';
 import Faction from './faction';
@@ -12,6 +13,15 @@ import Route from './route';
 import UI from './ui';
 import settings from './settings';
 import SelectedSystemGeometry from './selected-system-geometry';
+import xhrPromise from '../helpers/xhr-promise';
+import { hasLocalStorage, hasSessionStorage } from './functions';
+import { ui, renderer, scene } from '../starcitizen-webgl-map';
+
+import THREE from 'three';
+import TWEEN from 'tween.js';
+import StateMachine from 'javascript-state-machine';
+import RSVP from 'rsvp';
+import $ from 'jquery';
 
 const BLACK = new THREE.Color( 0x000000 );
 
@@ -34,71 +44,87 @@ class Map {
     this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
     this.scene.add( this._mouseOverObject );
 
-    Faction.preprocessFactions( SCMAP.data.factions );
-    Goods.preprocessGoods( SCMAP.data.goods );
-
     this.__currentlySelected = null;
 
     this.animate = this._animate.bind( this );
 
     let map = this;
 
-    $.ajax({
-      url: $('#sc-map-configuration').data('systems-json'),
-      async: true,
-      cache: true,
-      dataType: 'json',
-      ifModified: true,
-      timeout: 5 * 1000
-    })
-    .done( function xhrDone( data, textStatus, jqXHR ) {
-      let storage = window.sessionStorage;
-      let selectedSystem;
-      //console.log( 'ajax done', data, textStatus, jqXHR );
-      map.populate( data );
-      map.scene.add( map.buildReferenceGrid() );
-      window.ui.updateSystemsList();
-      window.renderer.controls.idle();
+    const getSystems          = xhrPromise( $('#sc-map-configuration').data('systems-json') );
+    const getStrategicValues  = xhrPromise( 'data/uee-strategic-values.json' );
+    const getFactions         = xhrPromise( 'data/factions.json' );
+    const getCrimeLevels      = xhrPromise( 'data/crime-levels.json' );
+    const getGoods            = xhrPromise( 'data/goods.json' );
 
-      window.renderer.controls.throttledEventListener.init( 'change', function ()
-      {
-        let euler = new THREE.Euler( window.renderer.camera.userData.phi + Math.PI / 2, window.renderer.camera.userData.theta, 0, 'YXZ' );
-        let rotationMatrix = new THREE.Matrix4().makeRotationFromEuler( euler );
-        //map.scene.updateMatrixWorld();
+    RSVP.all([
+      getSystems,
+      getStrategicValues,
+      getFactions,
+      getCrimeLevels,
+      getGoods,
+    ]).then( function( promises ) {
 
-        if ( $('#debug-camera-is-moving') ) {
-          $('#debug-camera-is-moving').text( 'Camera is moving' );
+      getStrategicValues.then( strategic_values => { SCMAP.data.uee_strategic_values = JSON.parse( strategic_values ) } );
+      getCrimeLevels.then( crimeLevels => { SCMAP.data.crime_levels = JSON.parse( crimeLevels ) } );
+
+      getFactions.then( factions => { Faction.preprocessFactions( JSON.parse( factions ) ) } );
+      getGoods.then( goods => { Goods.preprocessGoods( JSON.parse( goods ) ) } );
+
+      getSystems.then( systems => {
+        try {
+          systems = JSON.parse( systems );
+          map.populate( systems );
+        } catch( e ) {
+          console.error( `Could not populate map:`, e );
+          throw e;
+        };
+
+        map.scene.add( map.buildReferenceGrid() );
+
+        ui.updateSystemsList();
+        renderer.controls.idle();
+
+        map.route().restoreFromSession();
+        map.route().update();
+
+        if ( 'selectedSystem' in settings.storage ) {
+          let selectedSystem = System.getById( settings.storage.selectedSystem );
+          if ( selectedSystem instanceof System ) {
+            map.setSelectionTo( selectedSystem );
+            selectedSystem.displayInfo( true );
+          }
         }
 
-        window.renderer.controls.rememberPosition();
+        renderer.controls.throttledEventListener.init( 'change', function () {
+          let euler = new THREE.Euler( renderer.camera.userData.phi + Math.PI / 2, renderer.camera.userData.theta, 0, 'YXZ' );
+          let rotationMatrix = new THREE.Matrix4().makeRotationFromEuler( euler );
+          //map.scene.updateMatrixWorld();
 
-        map.scene.traverse( function ( object ) {
-          if ( ( object instanceof THREE.Sprite ) && object.userData.isLabel )
-          {
-            object.position.copy( object.userData.position.clone().applyMatrix4( rotationMatrix ) );
+          if ( $('#debug-camera-is-moving') ) {
+            $('#debug-camera-is-moving').text( 'Camera is moving' );
           }
-          else if ( object instanceof THREE.LOD )
-          {
-            object.update( window.renderer.camera );
-          }
+
+          renderer.controls.rememberPosition();
+
+          map.scene.traverse( function ( object ) {
+            if ( ( object instanceof THREE.Sprite ) && object.userData.isLabel )
+            {
+              object.position.copy( object.userData.position.clone().applyMatrix4( rotationMatrix ) );
+            }
+            else if ( object instanceof THREE.LOD )
+            {
+              object.update( renderer.camera );
+            }
+          });
         });
+
+        ui.updateHeight();
+      }, failed => {
+        console.error( 'Failed to process systems', failed );
       });
 
-      map.route().restoreFromSession();
-      map.route().update();
-
-      if ( hasSessionStorage() && ( 'selectedSystem' in storage ) ) {
-        selectedSystem = System.getById( storage.selectedSystem );
-        if ( selectedSystem instanceof System ) {
-          map.setSelectionTo( selectedSystem );
-          selectedSystem.displayInfo( true );
-        }
-      }
-
-      window.ui.updateHeight();
-    })
-    .fail( function xhrFail( jqXHR, textStatus, errorThrown ) {
-      console.error( 'Ajax request failed:', errorThrown, textStatus );
+    }, ( failure ) => {
+      console.error( `Failed loading data:`, failure );
     });
 
     this.displayState = this.buildDisplayModeFSM( settings.mode );
@@ -122,13 +148,14 @@ class Map {
   }
 
   setSelected ( system ) {
-    let storage = window.sessionStorage;
     if ( system !== null && ! ( system instanceof System ) ) {
       throw new Error( system, 'is not an instance of System' );
     }
     this.__currentlySelected = system;
-    if ( hasSessionStorage() ) {
-      storage.selectedSystem = system.id;
+    if ( system ) {
+      settings.storage.selectedSystem = system.id;
+    } else {
+      delete settings.storage.selectedSystem;
     }
     return system;
   }
@@ -229,7 +256,7 @@ class Map {
     };
 
     /* jshint ignore:start */
-    for ( i = 0; i < route.length - 1; i++ ) {
+    for ( let i = 0; i < route.length - 1; i++ ) {
       poi = route[ i + 1 ].system;
 
       tween = new TWEEN.Tween( position )
@@ -272,46 +299,39 @@ class Map {
   }
 
   populate( data ) {
-    let jumpPointObject, endTime, startTime, systemCount = 0, i, map = this;
+    let systemCount = 0;
 
-    endTime = startTime = new Date();
+    const startTime = new Date();
 
     SystemList.preprocessSystems( data );
 
-    // TODO: clean up the existing scene and map data when populating with
-    // new data
-
-    // First we go through the data to build the basic systems so
-    // the routes can be built as well
-
-    $( allSystems ).each( function( index, system ) {
+    // First we go through the data to build the basic systems
+    allSystems.forEach( system => {
       let sceneObject = system.buildSceneObject();
-      map.scene.add( sceneObject );
-      map._interactables.push( sceneObject.userData.interactable );
+      this.scene.add( sceneObject );
+      this._interactables.push( sceneObject.userData.interactable );
       systemCount++;
       system.sceneObject = sceneObject;
     });
 
-    // Then we go through again and add the routes
-
-    $( allSystems ).each( function( index, system ) {
-      for ( i = 0; i < system.jumpPoints.length; i++ ) {
-        jumpPointObject = system.jumpPoints[i].buildSceneObject();
+    // Then we go through again and add the routes in a second pass
+    allSystems.forEach( system => {
+      for ( let i = 0; i < system.jumpPoints.length; i++ ) {
+        let jumpPointObject = system.jumpPoints[i].buildSceneObject();
         if ( jumpPointObject instanceof THREE.Object3D ) {
           system._routeObjects.push( jumpPointObject );
-          map.scene.add( jumpPointObject );
+          this.scene.add( jumpPointObject );
         }
       }
     });
 
-    endTime = new Date();
-    console.log( 'Populating the scene (without ref plane) took ' +
-        (endTime.getTime() - startTime.getTime()) + ' msec' );
+    const endTime = new Date();
+
+    console.log( `Populating the scene took ${ endTime.getTime() - startTime.getTime() } msec` );
 
     $('#debug-systems').html( systemCount + ' systems loaded' );
 
-    let _this = this;
-    UI.waitForFontAwesome( function() { _this.updateSystems(); } );
+    UI.waitForFontAwesome( () => { this.updateSystems(); } );
   }
 
   closestPOI ( vector ) {
@@ -494,7 +514,7 @@ class Map {
         left = Math.floor( Number( x ) - segmentSize );
         right = Math.floor( Number( x ) + segmentSize );
 
-        vertexColor = grid[ z ][ x ];
+        const vertexColor = grid[ z ][ x ];
 
         if ( (vertexColor !== grid[z][left]  && grid[z][left] ) ||
             (vertexColor !== grid[z][right] && grid[z][right])    )
@@ -520,7 +540,7 @@ class Map {
         above = Math.floor( Number( z ) - segmentSize );
         below = Math.floor( Number( z ) + segmentSize );
 
-        vertexColor = grid[ z ][ x ];
+        const vertexColor = grid[ z ][ x ];
 
         if ( ( grid[above] && grid[above][x] && vertexColor !== grid[above][x] ) ||
             ( grid[below] && grid[below][x] && vertexColor !== grid[below][x] )    )
@@ -556,7 +576,8 @@ class Map {
 
     // Finally create the object with the geometry just built
     let referenceLines = new THREE.Line( geo, new THREE.LineBasicMaterial({
-      linewidth: 1.5, wireframe: true, vertexColors: THREE.VertexColors
+      linewidth: 1.5,
+      vertexColors: THREE.VertexColors,
     }), THREE.LinePieces );
 
     referenceLines.matrixAutoUpdate = false;
@@ -625,12 +646,12 @@ class Map {
       callbacks: {
         onenter2d: function() {
           $('#sc-map-3d-mode').prop( 'checked', false );
-          if ( storage ) { storage.mode = '2d'; }
+          settings.storage.mode = '2d';
         },
 
         onenter3d: function() {
           $('#sc-map-3d-mode').prop( 'checked', true );
-          if ( storage ) { storage.mode = '3d'; }
+          settings.storage.mode = '3d';
         },
 
         onleave2d: function() {

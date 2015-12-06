@@ -126,16 +126,16 @@ class Dijkstra {
         distance = currentNode.distance + jumpPoint.jumpTime();
 
         if ( currentNode.previous === null ) {
-          distance += travelTimeAU( 0.35 ); // FIXME
-          //distance += travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
-          //console.log( '    Flight time to JP entrance is', travelTimeAU( distAU ), 's' );
+          distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
+          //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
+          //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
         }
         else
         {
-          distance += travelTimeAU( 0.7 );
+          distance += SCMAP.travelTimeAU( 0.7 );
           //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
           //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
-          //console.log( `would add ${ travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) }` );
+          //console.log( `would add ${ SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) }` );
         }
 
         // Get out of "never" nodes asap by increasing the cost massively

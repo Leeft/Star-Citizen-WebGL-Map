@@ -3,6 +3,9 @@
  */
 import settings from './settings';
 import { LABEL_SCALE, UNKNOWN_SYSTEM_SCALE } from './system';
+import { renderer } from '../starcitizen-webgl-map';
+
+import THREE from 'three';
 
 class SystemLabel {
   constructor ( system ) {
@@ -135,7 +138,7 @@ class SystemLabel {
 
     this._width = null;
     this._height = null;
-    this.node = window.renderer.textureManager.allocate( this.width(), this.height() );
+    this.node = renderer.textureManager.allocate( this.width(), this.height() );
     if ( ! this.node ) {
       return null;
     }

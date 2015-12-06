@@ -4,6 +4,7 @@
 
 import SCMAP from '../scmap';
 import System from './system';
+import THREE from 'three';
 
 class Faction {
   constructor ( data ) {
@@ -106,6 +107,9 @@ class Faction {
   static preprocessFactions ( data ) {
     let factionId, faction;
 
+    SCMAP.data.factions = [];
+    SCMAP.data.factionsByName = {};
+
     for ( factionId in data ) {
 
       if ( data.hasOwnProperty( factionId ) ) {
@@ -118,7 +122,7 @@ class Faction {
             name: faction.name,
             color: faction.color,
             isRealFaction: faction.isRealFaction,
-            parentFaction: null
+            parentFaction: null // FIXME
           });
         }
 

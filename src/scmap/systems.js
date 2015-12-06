@@ -9,8 +9,6 @@ import { humanSort } from './functions';
 let allSystems = [];
 
 class SystemList {
-  static List: allSystems
-
   static preprocessSystems ( data ) {
     var i, systemName, system, systems = [];
 
@@ -49,5 +47,5 @@ class SystemList {
   }
 }
 
-export default new SystemList();
+export default SystemList;
 export { allSystems };

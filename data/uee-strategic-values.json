@@ -1,0 +1,47 @@
+{
+  "1" : {
+    "color" : "Red",
+    "description" : "",
+    "ueeStrategicValueId" : 1
+  },
+  "2" : {
+    "color" : "Orange",
+    "description" : "",
+    "ueeStrategicValueId" : 2
+  },
+  "3" : {
+    "color" : "Yellow",
+    "description" : "",
+    "ueeStrategicValueId" : 3
+  },
+  "4" : {
+    "color" : "Green",
+    "description" : "",
+    "ueeStrategicValueId" : 4
+  },
+  "5" : {
+    "color" : "Blue",
+    "description" : "",
+    "ueeStrategicValueId" : 5
+  },
+  "6" : {
+    "color" : "Purple",
+    "description" : "",
+    "ueeStrategicValueId" : 6
+  },
+  "7" : {
+    "color" : "White",
+    "description" : "",
+    "ueeStrategicValueId" : 7
+  },
+  "8" : {
+    "color" : "Gray",
+    "description" : "",
+    "ueeStrategicValueId" : 8
+  },
+  "9" : {
+    "color" : "Black",
+    "description" : "",
+    "ueeStrategicValueId" : 9
+  }
+}

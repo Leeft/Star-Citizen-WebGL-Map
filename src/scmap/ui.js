@@ -3,18 +3,30 @@
   */
 
 import SCMAP from '../scmap';
-import System from './system';
-import Faction from './faction';
+import System, { GLOW_SCALE } from './system';
 import MapSymbol from './symbol';
 import MapSymbols from './symbols';
 import { allSystems } from './systems';
 import settings from './settings';
+import { hasLocalStorage, hasSessionStorage } from './functions';
+import helpers from './ui/helpers';
+import { renderer } from '../starcitizen-webgl-map';
+
+import Handlebars from 'handlebars';
+import markdown from 'markdown';
+import THREE from 'three';
+import $ from 'jquery';
+import tabs from 'jquery-ui/ui/tabs';
+
+import slider from 'jquery-ui/ui/slider';
+import jscrollpane from 'jscrollpane';
+import imagesLoaded from 'imagesloaded';
 
 class UI {
   constructor ( map ) {
     let selectedSystem = null;
-    if ( hasSessionStorage() && ( 'selectedSystem' in window.sessionStorage ) ) {
-      selectedSystem = System.getById( window.sessionStorage.selectedSystem );
+    if ( 'selectedSystem' in settings.storage ) {
+      selectedSystem = System.getById( settings.storage.selectedSystem );
       if ( selectedSystem instanceof System ) {
         map.setSelectionTo( selectedSystem );
       } else {
@@ -29,6 +41,8 @@ class UI {
       icon = MapSymbols[ icon ];
       icons.push( $('<span><i class="fa-li fa ' + icon.faClass + '"></i>' + icon.description + '</span>' ).css( 'color', icon.color ).outerHtml() );
     }
+
+    const ui = this;
 
     $('#sc-map-interface').empty().append(
       UI.Templates.mapUI({
@@ -84,9 +98,7 @@ class UI {
       .prop( 'checked', settings.control.rotationLocked )
       .on( 'change', function() {
         renderer.controls.noRotate = this.checked;
-        if ( storage ) {
-          storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
-        }
+        settings.storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
       });
 
     $('#sc-map-resetCamera').on( 'click', function() {
@@ -149,7 +161,7 @@ class UI {
         }
 
         if ( hasSessionStorage() ) {
-          window.sessionStorage.scMapTab = clicked_on;
+          settings.storage.scMapTab = clicked_on;
         }
 
         /* Browsers show an ugly URL bar if href is set to #, this
@@ -192,23 +204,21 @@ class UI {
     //
     if ( hasSessionStorage() )
     {
-      window.sessionStorage.uiWidth = UI.widthClasses[ UI.widthClassToIndex( window.sessionStorage.uiWidth ) ];
+      settings.storage.uiWidth = UI.widthClasses[ UI.widthClassToIndex( settings.storage.uiWidth ) ];
       $('#sc-map-interface')
         .removeClass( UI.widthClasses.join(' ') )
-        .addClass( window.sessionStorage.uiWidth );
+        .addClass( settings.storage.uiWidth );
     }
     //
     $('#sc-map-interface .sc-map-slider-uiwidth').slider({
       min: 0,
       max: UI.widthClasses.length - 1,
       range: 'min',
-      value: ( hasSessionStorage() ) ? UI.widthClassToIndex( window.sessionStorage.uiWidth ) : UI.defaultWidthIndex,
+      value: ( hasSessionStorage() ) ? UI.widthClassToIndex( settings.storage.uiWidth ) : UI.defaultWidthIndex,
       change: ( event, ui ) => {
         let value = ui.value;
         $('#sc-map-interface').removeClass( UI.widthClasses.join(' ') ).addClass( UI.widthClasses[ value ] );
-        if ( hasSessionStorage() ) {
-          window.sessionStorage.uiWidth = UI.widthClasses[ value ];
-        }
+        settings.storage.uiWidth = UI.widthClasses[ value ];
         this.updateHeight();
         renderer.resize();
       }
@@ -217,9 +227,7 @@ class UI {
     let updateLabelSize = function( event, ui ) {
       let value = ui.value;
       settings.labelScale = value / 100;
-      if ( settings.storage ) {
-        settings.storage['settings.labelScale'] = settings.labelScale;
-      }
+      settings.storage['settings.labelScale'] = settings.labelScale;
       map.scene.traverse( function ( object ) {
         if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
           object.userData.systemLabel.scaleSprite();
@@ -238,10 +246,8 @@ class UI {
     let updateLabelOffset = function( event, ui ) {
       let value = ui.value;
       settings.labelOffset = value / 100;
-      if ( settings.storage ) {
-        settings.storage['settings.labelOffset'] = settings.labelOffset;
-      }
-      let matrix = window.renderer.cameraRotationMatrix();
+      settings.storage['settings.labelOffset'] = settings.labelOffset;
+      let matrix = renderer.cameraRotationMatrix();
       map.scene.traverse( function ( object ) {
         if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
           object.userData.systemLabel.positionSprite( matrix );
@@ -260,10 +266,8 @@ class UI {
     let updateSystemScale = function( event, ui ) {
       let value = ui.value;
       settings.systemScale = value / 100;
-      if ( settings.storage ) {
-        settings.storage['settings.systemScale'] = settings.systemScale;
-      }
-      let matrix = window.renderer.cameraRotationMatrix();
+      settings.storage['settings.systemScale'] = settings.systemScale;
+      let matrix = renderer.cameraRotationMatrix();
       let scale;
       map.scene.traverse( function ( object ) {
         if ( object.userData.scale && object.userData.isSystem ) {
@@ -272,7 +276,7 @@ class UI {
           object.updateMatrix();
           //   object.userData.systemLabel.positionSprite( matrix );
         } else if ( object.userData.scale && object.userData.isGlow ) {
-          scale = object.userData.scale * System.GLOW_SCALE * settings.systemScale;
+          scale = object.userData.scale * GLOW_SCALE * settings.systemScale;
           object.scale.set( scale, scale, scale );
         }
       });
@@ -287,16 +291,14 @@ class UI {
     });
 
     $('#sc-map-toggle-stats')
-      .prop( 'checked', ( storage && storage['renderer.Stats'] === '1' ) ? true : false )
+      .prop( 'checked', ( settings.storage['renderer.Stats'] === '1' ) ? true : false )
       .on( 'change', function() {
         if ( this.checked ) {
           $('#stats').show();
         } else {
           $('#stats').hide();
         }
-        if ( storage ) {
-          storage['renderer.Stats'] = ( this.checked ) ? '1' : '0';
-        }
+        settings.storage['renderer.Stats'] = ( this.checked ) ? '1' : '0';
       });
 
     $('#sc-map-toggle-antialias')
@@ -333,18 +335,14 @@ class UI {
     $('#sc-map-toggle-glow').on( 'change', function() {
       settings.glow = this.checked;
       map.updateSystems();
-      if ( storage ) {
-        storage['settings.Glow'] = ( this.checked ) ? '1' : '0';
-      }
+      settings.storage['settings.Glow'] = ( this.checked ) ? '1' : '0';
     });
 
     $('#sc-map-toggle-labels').on( 'change', function() {
       settings.labels = this.checked;
       $('#sc-map-toggle-label-icons').prop( 'disabled', !settings.labels );
       map.updateSystems();
-      if ( storage ) {
-        storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
-      }
+      settings.storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
     });
 
     $('#sc-map-toggle-label-icons')
@@ -352,9 +350,7 @@ class UI {
       .on( 'change', function() {
         settings.labelIcons = this.checked;
         map.updateSystems();
-        if ( storage ) {
-          storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
-        }
+        settings.storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
       });
 
     $('.quick-button.with-checkbox').on( 'click', function ( event ) {
@@ -368,20 +364,13 @@ class UI {
       let $element = $this.parent().next();
       $element.toggle();
       let title = $this.data('title');
-      let storage = null;
-      if ( hasSessionStorage() ) {
-        storage = window.sessionStorage;
-      }
+
       if ( $element.is(':visible') ) {
         $this.parent().find('> a > i').first().removeClass('fa-caret-right').addClass('fa-caret-down');
-        if ( storage ) {
-          storage[ title ] = '1';
-        }
+        settings.storage[ title ] = '1';
       } else {
         $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
-        if ( storage ) {
-          delete storage[ title ];
-        }
+        delete settings.storage[ title ];
       }
 
       ui.updateHeight();
@@ -522,7 +511,16 @@ class UI {
       UI.Templates.listings({ systemGroups: UI.buildDynamicLists() })
     );
   }
-}
+
+  static htmlEscape( str ) {
+    return String( str )
+      .replace( /&/g, '&amp;' )
+      .replace( /"/g, '&quot;' )
+      .replace( /'/g, '&#39;' )
+      .replace( /</g, '&lt;' )
+      .replace( />/g, '&gt;' );
+  }
+};
 
 UI.menuBar = []; // Populated by template code
 
@@ -673,15 +671,6 @@ UI.buildDynamicLists = function buildDynamicLists() {
   return data;
 };
 
-UI.htmlEscape = function htmlEscape(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-};
-
 UI.Templates = {
   mapUI:      Handlebars.compile( $('#templateMapUI').html() ),
   systemInfo: Handlebars.compile( $('#templateSystemInfo').html() ),
@@ -689,315 +678,6 @@ UI.Templates = {
   routeList:  Handlebars.compile( $('#templateRouteList').html() )
 };
 
-$( function () {
-  let sectionLevel = 1;
-  let tabCounter = 0;
-
-  Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
-    let opened = ( shouldOpen ) ? true : false;
-    let icon = 'fa-caret-right';
-    let hidden = 'style="display: none;"';
-    let attrs = [], str;
-    let oldLevel = sectionLevel++;
-    let storage = null;
-    if ( hasSessionStorage() ) {
-      storage = window.sessionStorage;
-    }
-
-    if ( storage && ( title in storage ) ) {
-      opened = ( storage[ title ] == '1' ) ? true : false;
-    }
-
-    if ( opened ) {
-      icon = 'fa-caret-down';
-      hidden = '';
-    }
-
-    for ( let prop in options.hash ) {
-      attrs.push( prop + '="' + options.hash[prop] + '"' );
-    }
-
-    str = '<h' + oldLevel + '><a href="#" data-title="' + UI.htmlEscape( title ) +
-      '" data-toggle-next="next" ' + attrs.join(' ') + '><i class="fa fa-fw fa-lg ' + icon + '">' +
-      '</i>' + title + '</a></h' + oldLevel + `>\n` + '         <div class="ui-section" ' + hidden + '>';
-
-    if ( 'fn' in options ) {
-      str += options.fn( this );
-    }
-
-    str += '</div>';
-    sectionLevel -= 1;
-    return new Handlebars.SafeString( str );
-  });
-
-  Handlebars.registerHelper( 'tabHeader', function( title ) {
-    return new Handlebars.SafeString( '<h1 class="padleft">' + title + '</h1>' );
-  });
-
-  /* title: shown to user, name: internal name, icon: font awesome icon class */
-  Handlebars.registerHelper( 'jQueryUiTab', function( title, name, icon, options ) {
-    let hidden = 'style="display: none;"';
-    let attrs = [], str = '';
-    let $menuItem;
-    let id = 'sc-map-ui-tab-' + UI.makeSafeForCSS( name );
-
-    //for ( let prop in options.hash ) {
-    //   attrs.push( prop + '="' + options.hash[prop] + '"' );
-    //}
-
-    $menuItem = $(
-      '<li>' +
-      '<a title="' + UI.htmlEscape( title ) + '" data-tab="' + UI.htmlEscape( name ) + '" href="#' + UI.htmlEscape( id ) + '">' +
-      '<i class="fa fa-fw fa-2x ' + UI.htmlEscape( icon ) + '"></i>' +
-      '</a>' +
-      '</li>'
-    );
-    UI.menuBar.push( $menuItem );
-
-    str = '<div id="' + id + '" class="sc-map-ui-tab" ' + ((tabCounter !== 0) ? 'style="display: none"' : '') + '>';
-    if ( 'fn' in options ) {
-      str += options.fn( this );
-    }
-    str += '</div>';
-
-    UI.Tabs.push({ id: '#' + id, name: name, index: tabCounter++ });
-
-    return new Handlebars.SafeString( str );
-  });
-
-  Handlebars.registerHelper( 'bigButton', function( id, faClass, title ) {
-    return new Handlebars.SafeString( '<button class="big-button" id="' + id + '">' +
-      '<i class="fa ' + faClass + ' fa-fw fa-lg"></i> ' + title + '</button>' + '<br>' );
-  });
-
-  Handlebars.registerHelper( 'commoditiesList', function( commodities ) {
-    if ( !commodities.length ) {
-      return new Handlebars.SafeString( '&mdash;' );
-    }
-    return new Handlebars.SafeString(
-      $.map( commodities, function( elem, i ) {
-        return SCMAP.data.goods[ elem ].name;
-      }).join( ', ' )
-      );
-  });
-
-  Handlebars.registerHelper( 'markdown', function( markdownText ) {
-    return new Handlebars.SafeString( markdown.toHTML( markdownText ) );
-  });
-
-  Handlebars.registerHelper( 'colourGetStyle', function( colour ) {
-    return new Handlebars.SafeString( colour.getStyle() );
-  });
-
-  Handlebars.registerHelper( 'systemLink', function( system, options ) {
-    let noIcons = false, noTarget = false;
-    if ( 'noIcons' in options.hash ) {
-      noIcons = ( options.hash.noIcons ) ? true : false;
-    }
-    if ( 'noTarget' in options.hash ) {
-      noTarget = ( options.hash.noTarget ) ? true : false;
-    }
-    if ( ! ( system instanceof System ) ) {
-      return '';
-    }
-    return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
-  });
-
-  Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {
-    let str = '', $elem;
-
-    if ( !prev && !next ) {
-      return new Handlebars.SafeString( '' );
-    }
-
-    if ( prev instanceof System ) {
-      $elem = $( '<a></a>' );
-      if ( ( prev.faction instanceof Faction ) && ( prev.faction.color instanceof THREE.Color ) ) {
-        $elem.css( 'color', prev.faction.color.getStyle() );
-      }
-      $elem.addClass( 'system-link' );
-      $elem.attr( 'data-goto', 'system' );
-      $elem.attr( 'data-system', prev.id );
-      $elem.attr( 'href', '#system=' + encodeURIComponent( prev.name ) );
-      $elem.attr( 'title', 'Previous jump, coming from ' + prev.name + ' (' + prev.faction.name + ' territory)' );
-      $elem.empty().append( '<i class="left fa fa-fw fa-arrow-left"></i>' );
-      str += $elem.outerHtml();
-    } else {
-      str += '<i class="left fa fa-fw"></i>';
-    }
-
-    if ( next instanceof System ) {
-      $elem = $( '<a></a>' );
-      if ( ( next.faction instanceof Faction ) && ( next.faction.color instanceof THREE.Color ) ) {
-        $elem.css( 'color', next.faction.color.getStyle() );
-      }
-      $elem.addClass( 'system-link' );
-      $elem.attr( 'data-goto', 'system' );
-      $elem.attr( 'data-system', next.id );
-      $elem.attr( 'href', '#system=' + encodeURIComponent( next.name ) );
-      $elem.attr( 'title', 'Next jump, leading to ' + next.name + ' (' + next.faction.name + ' territory)' );
-      $elem.empty().append( '<i class="right fa fa-fw fa-arrow-right"></i>' );
-      str += $elem.outerHtml();
-    } else {
-      str += '<i class="right fa fa-fw"></i>';
-    }
-
-    return new Handlebars.SafeString( str );
-  });
-
-  Handlebars.registerHelper( 'checkboxButton', function( id, title, options ) {
-    let attrs = [];
-    for ( let prop in options.hash ) {
-      if ( prop === 'icon' ) {
-        title = title + ' <i class="fa fa-lg fa-fw ' + options.hash[ prop ] + '"></i>';
-      } else {
-        attrs.push( prop + '="' + UI.htmlEscape( options.hash[ prop ] ) + '"' );
-      }
-    }
-    return new Handlebars.SafeString(
-      '<span class="checkmark-button">' +
-      '<input type="checkbox" id="' + id + '" ' + attrs.join(' ') + '>' +
-      '<label for="' + id + '">' + title + '</label>' +
-      '</span>'
-    );
-  });
-
-  Handlebars.registerHelper( `debug`, function( optionalValue ) {
-    console.log( `Current Context`, this );
-    if (optionalValue) {
-      console.log( `Value`, optionalValue );
-    }
-  });
-
-  Handlebars.registerHelper( 'durationHMM', function( duration ) {
-    if ( !duration ) {
-      return '';
-    }
-    return new Handlebars.SafeString( duration.toHMM() );
-  });
-
-  Handlebars.registerHelper( 'plusOne', function( number ) {
-    return new Handlebars.SafeString( number + 1 );
-  });
-
-  Handlebars.registerHelper( 'minusOne', function( number ) {
-    return new Handlebars.SafeString( number - 1 );
-  });
-
-  Handlebars.registerHelper( 'checked', function( isChecked ) {
-    return new Handlebars.SafeString( isChecked ? 'checked' : '' );
-  });
-
-  Handlebars.registerHelper( 'checkboxOption', function( id, defaultChecked, title, description, options ) {
-    let attrs = [];
-    let checked = '';
-    if ( defaultChecked ) {
-      checked = 'checked';
-    }
-    for ( let prop in options.hash ) {
-      if ( prop === 'icon' ) {
-        title = title + ' <i class="fa fa-lg fa-fw ' + options.hash[ prop ] + '"></i>';
-      } else {
-        attrs.push( prop + '="' + UI.htmlEscape( options.hash[ prop ] ) + '"' );
-      }
-    }
-    return new Handlebars.SafeString(
-      '<span class="checkmark-option">' +
-      '<input class="' + id + '" type="checkbox" id="' + id + '" ' + checked + '>' +
-      '<label for="' + id + '">' + title +
-      '<span class="small label-info">' + description + '</span>' +
-      '</label>' +
-      '</span>'
-      );
-  });
-
-  $('script[type="text/x-handlebars-template"][data-partial="1"]').each( function( index, elem ) {
-    let $elem = $(elem);
-    Handlebars.registerPartial( $elem.attr('id'), $elem.html() );
-  });
-});
-
-// Courtesy of http://www.backalleycoder.com/2013/03/18/cross-browser-event-based-element-resize-detection/
-( function () {
-  /*jshint -W082 */
-  // jscs: disable
-
-  let attachEvent = document.attachEvent;
-
-  if (!attachEvent) {
-    let requestFrame = (function(){
-      let raf = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || function(fn){ return window.setTimeout(fn, 20); };
-      return function(fn){ return raf(fn); };
-    })();
-
-    let cancelFrame = (function(){
-      let cancel = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.clearTimeout;
-      return function(id){ return cancel(id); };
-    })();
-
-    function resetTriggers(element){
-      let triggers = element.__resizeTriggers__,
-      expand = triggers.firstElementChild,
-      contract = triggers.lastElementChild,
-      expandChild = expand.firstElementChild;
-      contract.scrollLeft = contract.scrollWidth;
-      contract.scrollTop = contract.scrollHeight;
-      expandChild.style.width = expand.offsetWidth + 1 + 'px';
-      expandChild.style.height = expand.offsetHeight + 1 + 'px';
-      expand.scrollLeft = expand.scrollWidth;
-      expand.scrollTop = expand.scrollHeight;
-    }
-
-    function checkTriggers(element){
-      return element.offsetWidth != element.__resizeLast__.width || element.offsetHeight != element.__resizeLast__.height;
-    }
-
-    function scrollListener(e){
-      let element = this;
-      resetTriggers(this);
-      if (this.__resizeRAF__) cancelFrame(this.__resizeRAF__);
-      this.__resizeRAF__ = requestFrame(function(){
-        if (checkTriggers(element)) {
-          element.__resizeLast__.width = element.offsetWidth;
-          element.__resizeLast__.height = element.offsetHeight;
-          element.__resizeListeners__.forEach(function(fn){
-            fn.call(element, e);
-          });
-        }
-      });
-    }
-  }
-
-  window.addResizeListener = function(element, fn){
-    if (attachEvent) {
-      element.attachEvent('onresize', fn);
-    } else {
-      if (!element.__resizeTriggers__) {
-        if (getComputedStyle(element).position == 'static') element.style.position = 'relative';
-        element.__resizeLast__ = {};
-        element.__resizeListeners__ = [];
-        (element.__resizeTriggers__ = document.createElement('div')).className = 'resize-triggers';
-        element.__resizeTriggers__.innerHTML = '<div class="expand-trigger"><div></div></div>' +
-          '<div class="contract-trigger"></div>';
-        element.appendChild(element.__resizeTriggers__);
-        resetTriggers(element);
-        element.addEventListener('scroll', scrollListener, true);
-      }
-      element.__resizeListeners__.push(fn);
-    }
-  };
-
-  window.removeResizeListener = function(element, fn){
-    if (attachEvent) {
-      element.detachEvent('onresize', fn);
-    } else {
-      element.__resizeListeners__.splice(element.__resizeListeners__.indexOf(fn), 1);
-      if (!element.__resizeListeners__.length) {
-        element.removeEventListener('scroll', scrollListener);
-        element.__resizeTriggers__ = !element.removeChild(element.__resizeTriggers__);
-      }
-    }
-  };
-})();
+helpers();
 
 export default UI;
