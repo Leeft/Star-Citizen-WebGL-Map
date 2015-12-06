@@ -9,15 +9,21 @@ import MapSymbols from './symbols';
 import { allSystems } from './systems';
 import settings from './settings';
 import { hasLocalStorage, hasSessionStorage } from './functions';
-import helpers from './ui/helpers';
 import { renderer } from '../starcitizen-webgl-map';
 
-import Handlebars from 'handlebars';
+// Import the templates
+import helpers from './ui/helpers';
+import partials from './ui/partials';
+import uiTemplate from '../template/ui-panel.hbs!';
+import systemInfoTemplate from '../template/partial/system-info.hbs!';
+import listingsTemplate from '../template/partial/systems-listing.hbs!';
+import routeListingTemplate from '../template/partial/route-list.hbs!';
+
 import markdown from 'markdown';
 import THREE from 'three';
 import $ from 'jquery';
-import tabs from 'jquery-ui/ui/tabs';
 
+import tabs from 'jquery-ui/ui/tabs';
 import slider from 'jquery-ui/ui/slider';
 import jscrollpane from 'jscrollpane';
 import imagesLoaded from 'imagesloaded';
@@ -672,12 +678,10 @@ UI.buildDynamicLists = function buildDynamicLists() {
 };
 
 UI.Templates = {
-  mapUI:      Handlebars.compile( $('#templateMapUI').html() ),
-  systemInfo: Handlebars.compile( $('#templateSystemInfo').html() ),
-  listings:   Handlebars.compile( $('#templateSystemsListing').html() ),
-  routeList:  Handlebars.compile( $('#templateRouteList').html() )
+  mapUI: uiTemplate,
+  systemInfo: systemInfoTemplate,
+  listings: listingsTemplate,
+  routeList: routeListingTemplate,
 };
-
-helpers();
 
 export default UI;

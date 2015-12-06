@@ -1,0 +1,46 @@
+{{tabHeader 'Settings'}}
+
+<p class="ui-section">
+  {{checkboxOption "sc-map-toggle-antialias" settings.effect.Antialias "Enable antialiasing"
+      "Disable postprocessing; forces reload.<br>Note: antialiasing does not work everywhere."}}
+  {{checkboxOption "sc-map-toggle-fxaa" settings.effect.FXAA "Postprocess: FXAA" ""}}
+  {{checkboxOption "sc-map-toggle-bloom" settings.effect.Bloom "Postprocess: Bloom" ""}}
+
+  <p class="ui-section-width">
+    <span class="slider-option">
+      <label for="sc-map-slider-system-size">System size:</label>
+      <div id="sc-map-slider-system-size" class="sc-map-slider-system-size"></div>
+    </span>
+  </p>
+
+  <p class="ui-section-width">
+    <span class="slider-option">
+      <label for="sc-map-slider-label-size">Label size:</label>
+      <div id="sc-map-slider-label-size" class="sc-map-slider-label-size"></div>
+    </span>
+  </p>
+
+  <p class="ui-section-width">
+    <span class="slider-option">
+      <label for="sc-map-slider-label-offset">Label offset:</label>
+      <div id="sc-map-slider-label-offset" class="sc-map-slider-label-offset"></div>
+    </span>
+  </p>
+</p>
+
+<p class="ui-section">
+  {{checkboxOption "sc-map-toggle-glow" settings.glow "Enable star glow" ""}}
+  <span class="checkmark-option">
+    <input type="checkbox" id="sc-map-toggle-labels" {{checked settings.labels}}>
+    <label for="sc-map-toggle-labels">Enable system labels</label>
+    <input type="checkbox" id="sc-map-toggle-label-icons"  {{checked settings.labelIcons}}>
+    <label for="sc-map-toggle-label-icons"><i class="fa fa-level-up fa-rotate-90 fa-fw"></i> Display icons in system labels</label>
+  </span>
+</p>
+
+<p class="ui-section">
+  <span class="slider-option">
+    <label for="sc-map-slider-uiwidth">UI width:</label>
+    <div id="sc-map-slider-uiwidth" class="sc-map-slider-uiwidth"></div>
+  </span>
+</p>
