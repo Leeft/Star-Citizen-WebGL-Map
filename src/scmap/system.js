@@ -123,11 +123,12 @@ class System {
     sceneObject.userData.glowSprite = glow;
     sceneObject.add( glow );
 
-    this.systemLabel = this.systemLabel( settings.labelIcons );
-    if ( this.systemLabel && this.systemLabel.sceneObject ) {
-      this.systemLabel.sceneObject.userData.isLabel = true;
-      this.systemLabel.sceneObject.visible = settings.labels;
-      sceneObject.add( this.systemLabel.sceneObject );
+    this.label = this.systemLabel( settings.labelIcons );
+    if ( this.label && this.label.sceneObject ) {
+      console.log( `systemLabel for ${ this.name }:`, this.label );
+      this.label.sceneObject.userData.isLabel = true;
+      this.label.sceneObject.visible = settings.labels;
+      sceneObject.add( this.label.sceneObject );
     }
 
     sceneObject.position.copy( this.position );
@@ -144,8 +145,8 @@ class System {
     for ( let i = 0; i < this.sceneObject.children.length; i++ ) {
       let object = this.sceneObject.children[i];
       if ( object.userData.isLabel ) {
-        if ( this.systemLabel instanceof SystemLabel ) {
-          this.systemLabel.update( settings.labelIcons );
+        if ( this.label instanceof SystemLabel ) {
+          this.label.update( settings.labelIcons );
         }
         object.visible = settings.labels;
       } else if ( object.userData.isGlow ) {
@@ -196,6 +197,8 @@ class System {
     if ( drawSymbols ) {
       label.drawSymbols();
     }
+
+    node.texture.needsUpdate = true;
 
     label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
 
