@@ -556,21 +556,9 @@ class Map {
       }
     }
 
-    // TODO FIXME: current r67 master branch doesn't allow parameters in the constructor, dev branch does ... this code should work for both but needs updating when it is in master
-    let indexBA = new THREE.BufferAttribute();
-    indexBA.array = new Uint16Array( indices_array );
-    indexBA.itemSize = 1;
-    geo.addAttribute( 'index', indexBA );
-
-    indexBA = new THREE.BufferAttribute();
-    indexBA.array = new Float32Array( positions );
-    indexBA.itemSize = 3;
-    geo.addAttribute( 'position', indexBA );
-
-    indexBA = new THREE.BufferAttribute();
-    indexBA.array = new Float32Array( colors );
-    indexBA.itemSize = 3;
-    geo.addAttribute( 'color', indexBA );
+    geo.setIndex( new THREE.BufferAttribute( new Uint16Array( indices_array ), 1 ) );
+    geo.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( positions ), 3 ) );
+    geo.addAttribute( 'color', new THREE.BufferAttribute( new Float32Array( colors ), 3 ) );
 
     geo.dynamic = false;
     geo.computeBoundingBox();
@@ -579,7 +567,7 @@ class Map {
     let referenceLines = new THREE.Line( geo, new THREE.LineBasicMaterial({
       linewidth: 1.5,
       vertexColors: THREE.VertexColors,
-    }), THREE.LinePieces );
+    }), THREE.LineSegments );
 
     referenceLines.matrixAutoUpdate = false;
 

@@ -21,6 +21,7 @@ const BLACK = new THREE.Color( 'black' );
 const UNSET = new THREE.Color( 0x80A0CC );
 
 const GLOW_SCALE = 5.5;
+const LABEL_SCALE = 5;
 
 const STAR_LOD_MESHES = [
    [ new THREE.IcosahedronGeometry( 1, 3 ),  20 ],
@@ -529,7 +530,11 @@ class System {
           } else {
             newValue = newValue.replace( '0x', '#' );
             this[ '_' + key ] = newValue;
-            this[ key ] = new THREE.Color( newValue );
+            if ( /unknown/.test( newValue ) ) {
+              this[ key ] = UNSET;
+            } else {
+              this[ key ] = new THREE.Color( newValue );
+            }
           }
 
         } else if ( currentValue instanceof Faction ) {

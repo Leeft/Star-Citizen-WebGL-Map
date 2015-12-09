@@ -98,7 +98,7 @@ class JumpPoint {
 
     // This is apparently needed for dashed lines
     geometry.computeLineDistances();
-    return new THREE.Line( geometry, this.getMaterial(), THREE.LinePieces );
+    return new THREE.Line( geometry, this.getMaterial(), THREE.LineSegments );
   }
 
   getOppositeJumppoint () {
