@@ -261,7 +261,7 @@ class UI {
         }
       });
     };
-    // UI width slider / settings handling
+    // Label offset slider
     $('#sc-map-interface .sc-map-slider-label-offset').slider({
       min: Number( config.minLabelOffset ) * 100,
       max: Number( config.maxLabelOffset ) * 100,

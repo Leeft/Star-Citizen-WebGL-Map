@@ -11,16 +11,21 @@ const DEFAULTS = {
   crimeLevelsJson:      'data/crime-levels.json',
   factionsJson:         'data/factions.json',
   strategicValuesJson:  'data/uee-strategic-values.json',
+
   glowImage:            'images/glow.png',
+
   rotateSpeed:          '0.4',
   zoomSpeed:            '1.0',
   panSpeed:             '0.6',
+
   minSystemScale:       '0.5',
   defaultSystemScale:   '1.0',
   maxSystemScale:       '1.50',
+
   minLabelScale:        '0.4',
   defaultLabelScale:    '1.0',
   maxLabelScale:        '2.0',
+
   minLabelOffset:       '-6.5',
   defaultLabelOffset:   '5.0',
   maxLabelOffset:       '7.5',

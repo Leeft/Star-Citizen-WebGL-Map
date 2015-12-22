@@ -217,15 +217,15 @@ class Map {
   }
 
   updateSystems () {
-    for ( let i = 0; i < allSystems.length; i++ ) {
-      allSystems[i].updateSceneObject( this.scene );
-    }
+    allSystems.forEach( system => {
+      system.updateSceneObject( this.scene );
+    });
   }
 
   setAllLabelSizes ( vector ) {
-    for ( let i = 0; i < allSystems.length; i++ ) {
-      allSystems[i].setLabelScale( vector );
-    }
+    allSystems.forEach( system => {
+      system.setLabelScale( vector );
+    });
   }
 
   moveSelectorTo ( destination ) {
@@ -305,7 +305,7 @@ class Map {
   populate( data ) {
     let systemCount = 0;
 
-    const startTime = new Date();
+    const startTime = new Date().getTime();
 
     SystemList.preprocessSystems( data );
 
@@ -320,20 +320,18 @@ class Map {
 
     // Then we go through again and add the routes in a second pass
     allSystems.forEach( system => {
-      for ( let i = 0; i < system.jumpPoints.length; i++ ) {
-        let jumpPointObject = system.jumpPoints[i].buildSceneObject();
+      system.jumpPoints.forEach( jumpPoint => {
+        let jumpPointObject = jumpPoint.buildSceneObject();
         if ( jumpPointObject instanceof THREE.Object3D ) {
           system._routeObjects.push( jumpPointObject );
           this.scene.add( jumpPointObject );
         }
-      }
+      });
     });
 
-    const endTime = new Date();
+    console.log( `Populating the scene took ${ new Date().getTime() - startTime } msec` );
 
-    console.log( `Populating the scene took ${ endTime.getTime() - startTime.getTime() } msec` );
-
-    $('#debug-systems').html( systemCount + ' systems loaded' );
+    $('#debug-systems').html( `${ systemCount } systems loaded` );
 
     UI.waitForFontAwesome( () => { this.updateSystems(); } );
   }
@@ -353,12 +351,11 @@ class Map {
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
         map.route().removeFromScene(); // TODO: find a way to animate
-        for ( let i = 0; i < map.scene.children.length; i++ ) {
-          let child = map.scene.children[i];
+        map.scene.children.forEach( child => {
           if ( typeof child.userData.scaleY === 'function' ) {
             child.userData.scaleY( child, this.y );
           }
-        }
+        });
       } );
 
     tweenTo3d = new TWEEN.Tween( position )
@@ -366,12 +363,11 @@ class Map {
       .easing( TWEEN.Easing.Cubic.InOut )
       .onUpdate( function () {
         map.route().removeFromScene(); // TODO: find a way to animate
-        for ( let i = 0; i < map.scene.children.length; i++ ) {
-          let child = map.scene.children[i];
+        map.scene.children.forEach( child => {
           if ( typeof child.userData.scaleY === 'function' ) {
             child.userData.scaleY( child, this.y );
           }
-        }
+        });
       } );
 
     fsm = StateMachine.create({

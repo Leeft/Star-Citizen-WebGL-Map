@@ -22,7 +22,7 @@ class Renderer {
     this.FXAA = null;
     this.camera = null;
 
-    this.textureManager = new TextureManager( 1024 );
+    this.textureManager = new TextureManager( 2048 );
 
     this.width = window.innerWidth;
     this.height = window.innerHeight;
