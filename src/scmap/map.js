@@ -102,9 +102,7 @@ class Map {
         }
 
         renderer.controls.throttledEventListener.init( 'change', function () {
-          let euler = new THREE.Euler( renderer.camera.userData.phi + Math.PI / 2, renderer.camera.userData.theta, 0, 'YXZ' );
-          let rotationMatrix = new THREE.Matrix4().makeRotationFromEuler( euler );
-          //map.scene.updateMatrixWorld();
+          let rotationMatrix = renderer.cameraRotationMatrix();
 
           if ( $('#debug-camera-is-moving') ) {
             $('#debug-camera-is-moving').text( 'Camera is moving' );

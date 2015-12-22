@@ -5,7 +5,6 @@
 import SCMAP from '../scmap';
 import Faction from './faction';
 import UI from './ui';
-import SystemLabel from './system-label';
 import JumpPoint from './jump-point';
 import MapSymbol from './symbol';
 import MapSymbols from './symbols';
@@ -14,8 +13,9 @@ import settings from './settings';
 import { storage } from './settings';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
 
-import markdown from 'markdown';
 import THREE from 'three';
+import Label from 'leeft/three-sprite-texture-atlas-manager/src/label';
+import markdown from 'markdown';
 
 const BLACK = new THREE.Color( 'black' );
 const UNSET = new THREE.Color( 0x80A0CC );
@@ -35,14 +35,29 @@ const STAR_MATERIAL = new THREE.MeshBasicMaterial({
   name: 'STAR_MATERIAL',
 });
 
-const INTERACTABLE_DEBUG_MATERIAL = new THREE.MeshBasicMaterial();
-INTERACTABLE_DEBUG_MATERIAL.color = 0xFFFF00;
-INTERACTABLE_DEBUG_MATERIAL.depthWrite = false;
-INTERACTABLE_DEBUG_MATERIAL.map = null;
-INTERACTABLE_DEBUG_MATERIAL.blending = THREE.AdditiveBlending;
+const INTERACTABLE_DEBUG_MATERIAL = new THREE.MeshBasicMaterial({
+  color: 0xFFFF00,
+  depthWrite: false,
+  map: null,
+  blending: THREE.AdditiveBlending,
+});
 
-// FIXME
-const GLOW_MAP = new THREE.ImageUtils.loadTexture( config.glowImage );
+const GLOW_MATERIAL_PROMISE = new Promise( function ( resolve, reject ) {
+  const loader = new THREE.TextureLoader();
+  loader.load(
+    config.glowImage,
+    function ( texture ) {
+      resolve( new THREE.SpriteMaterial({
+        map: texture,
+        blending: THREE.AdditiveBlending,
+      }));
+    },
+    function ( /* progress */ ) {},
+    function ( failure ) {
+      reject( new Error( `Could not load texture ${ config.glowImage }: ${ failure }` ) );
+    }
+  );
+});
 
 class System {
   constructor ( data ) {
@@ -75,8 +90,6 @@ class System {
 
     // Generated, internal
     this._routeObjects = [];
-    this._drawnText = '';
-    this._drawnSymbols = '';
   }
 
   buildSceneObject () {
@@ -114,23 +127,67 @@ class System {
     sceneObject.add( starLOD );
 
     // Glow sprite for the star
-    const glow = new THREE.Sprite( this.glowMaterial() );
-    glow.scale.set( GLOW_SCALE * scale, GLOW_SCALE * scale, 1.0 );
-    glow.position.set( 0, 0, -0.2 );
-    glow.userData.isGlow = true;
-    glow.userData.scale = this.scale;
-    glow.sortParticles = true;
-    glow.visible = settings.glow;
-    sceneObject.userData.glowSprite = glow;
-    sceneObject.add( glow );
+    GLOW_MATERIAL_PROMISE.then( material => {
+      const color = this.color;
+      if ( color.equals( BLACK ) ) {
+        color.copy( UNSET );
+      }
 
-    this.label = this.systemLabel( settings.labelIcons );
-    if ( this.label && this.label.sceneObject ) {
-      console.log( `systemLabel for ${ this.name }:`, this.label );
-      this.label.sceneObject.userData.isLabel = true;
-      this.label.sceneObject.visible = settings.labels;
-      sceneObject.add( this.label.sceneObject );
-    }
+      material = material.clone();
+      material.color = color;
+
+      const glow = new THREE.Sprite( material );
+      glow.scale.set( GLOW_SCALE * scale, GLOW_SCALE * scale, 1.0 );
+      glow.position.set( 0, 0, -0.2 );
+      glow.userData.isGlow = true;
+      glow.userData.scale = this.scale;
+      glow.sortParticles = true;
+      glow.visible = settings.glow;
+      sceneObject.userData.glowSprite = glow;
+      sceneObject.add( glow );
+    });
+
+    //if ( ! UI.fontAwesomeIsReady ) {
+    //  drawSymbols = false;
+    //}
+
+    this.label = new Label({
+      textureManager: renderer.textureManager,
+      text:           this.name,
+      addTo:          sceneObject,
+      fillStyle:      this.factionStyle(),
+      bold:           true,
+    });
+
+    this.label.createSprite();
+    const labelScale = settings.labelScale * LABEL_SCALE;
+    this.label.sprite.scale.set( labelScale * ( this.label.node.width / this.label.node.height ), labelScale, 1 );
+
+    this.label.sprite.userData.position = new THREE.Vector3( 0, - settings.labelOffset, - 0.1 );
+    let spriteOffset = this.label.sprite.userData.position.clone();
+    spriteOffset.applyMatrix4( renderer.cameraRotationMatrix() );
+    this.label.sprite.position.copy( spriteOffset );
+
+    this.label.sprite.userData.isLabel = true;
+
+    //systemLabel ( drawSymbols, sceneObject ) {
+
+    //  //if ( drawSymbols ) {
+    //  //  label.drawSymbols();
+    //  //}
+
+    //  //label.positionSprite( renderer.cameraRotationMatrix() );
+    //  //label.scaleSprite();
+
+    //  return label;
+    //}
+
+    //if ( this.label && this.label.sceneObject ) {
+    //  console.log( `systemLabel for ${ this.name }:`, this.label );
+    //  this.label.sceneObject.userData.isLabel = true;
+    //  this.label.sceneObject.visible = settings.labels;
+    //  sceneObject.add( this.label.sceneObject );
+    //}
 
     sceneObject.position.copy( this.position );
     if ( storage && storage.mode === '2d' ) {
@@ -146,9 +203,12 @@ class System {
     for ( let i = 0; i < this.sceneObject.children.length; i++ ) {
       let object = this.sceneObject.children[i];
       if ( object.userData.isLabel ) {
-        if ( this.label instanceof SystemLabel ) {
-          this.label.update( settings.labelIcons );
-        }
+        // FIXME
+        //if ( this.label instanceof Label ) {
+        //  this.label.update( settings.labelIcons );
+        //}
+        const labelScale = settings.labelScale * LABEL_SCALE;
+        object.scale.set( labelScale * ( this.label.node.width / this.label.node.height ), labelScale, 1 );
         object.visible = settings.labels;
       } else if ( object.userData.isGlow ) {
         object.visible = settings.glow;
@@ -156,63 +216,16 @@ class System {
     }
   }
 
-  setLabelScale ( vector ) {
-    for ( let i = 0; i < this.sceneObject.children.length; i++ ) {
-      if ( this.sceneObject.children[i].userData.isLabel ) {
-        this.sceneObject.children[i].scale.copy( vector );
-      }
-    }
-  }
+  //setLabelScale ( vector ) {
+  //  for ( let i = 0; i < this.sceneObject.children.length; i++ ) {
+  //    if ( this.sceneObject.children[i].userData.isLabel ) {
+  //      this.sceneObject.children[i].scale.copy( vector );
+  //    }
+  //  }
+  //}
 
   static starMaterial () {
     return STAR_MATERIAL;
-  }
-
-  glowMaterial () {
-    let color = this.color;
-    if ( color.equals( BLACK ) ) {
-      color.copy( UNSET );
-    }
-    return new THREE.SpriteMaterial({
-      map: GLOW_MAP,
-      blending: THREE.AdditiveBlending,
-      color: color,
-    });
-  }
-
-  systemLabel ( drawSymbols ) {
-    let texture, material, label, node, uvExtremes;
-
-    if ( ! UI.fontAwesomeIsReady ) {
-      drawSymbols = false;
-    }
-
-    label = new SystemLabel( this );
-    node = renderer.textureManager.allocate( label.width(), label.height() );
-    if ( ! node ) {
-      return null;
-    }
-
-    label.node = node;
-    label.drawText();
-    if ( drawSymbols ) {
-      label.drawSymbols();
-    }
-
-    node.texture.needsUpdate = true;
-
-    label.sceneObject = new THREE.Sprite( new THREE.SpriteMaterial({ map: node.texture }) );
-
-    label.sceneObject.addEventListener( 'removed', function() {
-      // Removes the label on disposal as it's a recursive structure
-      label.sceneObject.userData.systemLabel = null;
-    });
-    label.sceneObject.userData.systemLabel = label;
-
-    label.positionSprite( renderer.cameraRotationMatrix() );
-    label.scaleSprite();
-
-    return label;
   }
 
   createInfoLink ( noSymbols, noTarget ) {
