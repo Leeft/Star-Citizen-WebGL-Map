@@ -17,14 +17,13 @@ import SelectedSystemGeometry from './selected-system-geometry';
 import xhrPromise from '../helpers/xhr-promise';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
+import { buildReferenceGrid } from './basic-grid';
 
 import THREE from 'three';
 import TWEEN from 'tween.js';
 import StateMachine from 'javascript-state-machine';
 import RSVP from 'rsvp';
 import $ from 'jquery';
-
-const BLACK = new THREE.Color( 0x000000 );
 
 class Map {
   constructor () {
@@ -80,7 +79,13 @@ class Map {
           throw e;
         };
 
-        map.scene.add( map.buildReferenceGrid() );
+        try {
+          const grid = buildReferenceGrid();
+          grid.name = 'referenceGrid';
+          map.scene.add( grid );
+        } catch( e ) {
+          console.error( `Failed to create reference grid:`, e );
+        };
 
         ui.updateSystemsList();
         renderer.controls.idle();
@@ -335,261 +340,8 @@ class Map {
     UI.waitForFontAwesome( () => { this.updateSystems(); } );
   }
 
-  closestPOI ( vector ) {
-    let closest = Infinity, _closestPOI, system, length, systemname, xd, zd;
-
-    for ( systemname in SCMAP.data.systems ) {
-      system = System.getByName( systemname );
-      xd = vector.x - system.position.x;
-      zd = vector.z - system.position.z;
-      length = Math.sqrt( xd * xd + zd * zd );
-      if ( length < closest ) {
-        closest = length;
-        _closestPOI = system;
-      }
-    }
-
-    return [ closest, _closestPOI ];
-  }
-
-  closestFromArray ( vector, systems ) {
-    let closest = Infinity, closestPOI, system, length, systemname, xd, zd;
-
-    for ( let i = 0; i < systems.length; i++ ) {
-      system = systems[i];
-      xd = vector.x - system.position.x;
-      zd = vector.z - system.position.z;
-      length = Math.sqrt( xd * xd + zd * zd );
-      if ( length < closest ) {
-        closest = length;
-        closestPOI = system;
-      }
-    }
-
-    return [ closest, closestPOI ];
-  }
-
-  // Get a quick list of systems nearby (within a square)
-  withinApproxDistance ( vector, distance ) {
-    let systems = [];
-    for ( let i = 0; i < allSystems.length; i += 1 ) {
-      let system = allSystems[i];
-      if ( system.position.x < ( vector.x - distance ) ) { continue; }
-      if ( system.position.x > ( vector.x + distance ) ) { continue; }
-      if ( system.position.z < ( vector.z - distance ) ) { continue; }
-      if ( system.position.z > ( vector.z + distance ) ) { continue; }
-      systems.push( system );
-    }
-    return systems;
-  }
-
-  furthestPOI ( vector ) {
-    let furthest = 0, _furthestPOI, system, length, systemname, xd, zd;
-
-    for ( systemname in SCMAP.data.systems ) {
-      system = System.getByName[ systemname ];
-      xd = vector.x - system.position.x;
-      zd = vector.z - system.position.z;
-      length = Math.sqrt( xd * xd + zd * zd );
-      if ( length > furthest ) {
-        furthest = length;
-        _furthestPOI = system;
-      }
-    }
-    return [ furthest, _furthestPOI ];
-  }
-
   pointAtPlane ( theta, radius, y ) {
     return new THREE.Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
-  }
-
-  buildReferenceGrid () {
-    let segmentSize = 10, i, j, k, x, z, position;
-    let minX = 0, minZ = 0, maxX = 0, maxZ = 0;
-    let endTime, startTime;
-    let uniqueColours = {};
-    let left, right, above, below;
-    let vertices, vertexColours;
-    let geo = new THREE.BufferGeometry();
-    let color;
-    let grid = {};
-    let alongX = {};
-
-    endTime = startTime = new Date();
-
-    // First we compute rough outer bounds based on all the systems on the map
-    // (plus a bit extra because we want to fade to black as well)
-    for ( i = 0; i < allSystems.length; i += 1 ) {
-      position = allSystems[i].position;
-      if ( position.x < minX ) { minX = position.x - (  6 * 10 ); }
-      if ( position.x > maxX ) { maxX = position.x + (  8 * 10 ); }
-      if ( position.z < minZ ) { minZ = position.z - (  6 * 10 ); }
-      if ( position.z > maxZ ) { maxZ = position.z + ( 10 * 10 ); }
-    }
-
-    // Now round those numbers to a multiple of segmentSize
-    minX = Math.floor( minX / segmentSize ) * segmentSize;
-    minZ = Math.floor( minZ / segmentSize ) * segmentSize;
-    maxX = Math.floor( maxX / segmentSize ) * segmentSize;
-    maxZ = Math.floor( maxZ / segmentSize ) * segmentSize;
-
-    // With the boundaries established, go through each coordinate
-    // on the map, and set the colour for each gridpoint on the
-    // map with the nearest system's faction being used for that
-    // colour. We also take note of each X coordinate visited.
-    // There is a bit of room for optimisation left here; the
-    // systems could be sorted by a X or Z coordinate, sort of like
-    // in an octree, and could possibly be found quicker that way.
-    for ( let iz = minZ; iz <= maxZ; iz += segmentSize ) {
-
-      grid[ iz ] = {};
-
-      for ( let ix = minX; ix <= maxX; ix += segmentSize ) {
-
-        alongX[ ix ] = true;
-
-        let vector = new THREE.Vector3( ix, 0, iz );
-        let systems = this.withinApproxDistance( vector, 6.5 * segmentSize );
-
-        color = this.colorForVector( vector, systems, segmentSize );
-
-        if ( color !== BLACK )
-        {
-          grid[ iz ][ ix ] = color.getHexString();
-          if ( uniqueColours[ grid[iz][ix] ] === undefined ) {
-            uniqueColours[ grid[iz][ix] ] = color;
-          }
-        }
-        else
-        {
-          grid[ iz ][ ix ] = null;
-          uniqueColours[ null ] = BLACK;
-        }
-
-      }
-
-    }
-
-    // Now for both X and Z we build a sorted list of each of
-    // those coordinates seen, allowing for quick iteration.
-    let alongX2 = []; for ( j in alongX ) { alongX2.push( j ); }
-    alongX2.sort( function ( a, b ) { return a - b; } );
-    alongX = alongX2;
-
-    let alongZ = []; for ( j in grid ) { alongZ.push( j ); }
-    alongZ.sort( function ( a, b ) { return a - b; } );
-
-    let positions = [];
-    let next_positions_index = 0;
-    let colors = [];
-    let indices_array = [];
-
-    function addLine( v1, c1, v2, c2 ) {
-      if ( next_positions_index >= 0xfffe ) {
-        throw new Error('Too many points');
-      }
-
-      positions.push( v1[0], v1[1], v1[2] );
-      colors.push( c1.r, c1.g, c1.b );
-      next_positions_index++;
-
-      positions.push( v2[0], v2[1], v2[2] );
-      colors.push( c2.r, c2.g, c2.b );
-
-      indices_array.push( next_positions_index - 1, next_positions_index );
-
-      return next_positions_index++;
-    }
-
-    // Now we got most data worked out, and we can start drawing
-    // the horizontal lines. We draw a line from start vertex to
-    // end vertex for each section where the colour doesn't
-    // change. This gives us the fewest number of lines drawn.
-    for ( i = 1; i < alongZ.length; i += 1 ) {
-      z = alongZ[i];
-      vertices = [];
-      vertexColours = [];
-
-      for ( j = 1; j < alongX.length; j += 1 ) {
-        x = alongX[ j ];
-        left = Math.floor( Number( x ) - segmentSize );
-        right = Math.floor( Number( x ) + segmentSize );
-
-        const vertexColor = grid[ z ][ x ];
-
-        if ( (vertexColor !== grid[z][left]  && grid[z][left] ) ||
-            (vertexColor !== grid[z][right] && grid[z][right])    )
-        {
-          vertices.push( [ x, 0, z ] );
-          vertexColours.push( uniqueColours[ vertexColor ] );
-        }
-      }
-
-      for ( k = 0; k < vertices.length - 1; k++ ) {
-        addLine( vertices[k], vertexColours[k], vertices[k + 1], vertexColours[k + 1] );
-      }
-    }
-
-    // And do the same for the vertical lines in a separate pass
-    for ( i = 1; i < alongX.length; i += 1 ) {
-      x = alongX[i];
-      vertices = [];
-      vertexColours = [];
-
-      for ( j = 1; j < alongZ.length; j += 1 ) {
-        z = alongZ[j];
-        above = Math.floor( Number( z ) - segmentSize );
-        below = Math.floor( Number( z ) + segmentSize );
-
-        const vertexColor = grid[ z ][ x ];
-
-        if ( ( grid[above] && grid[above][x] && vertexColor !== grid[above][x] ) ||
-            ( grid[below] && grid[below][x] && vertexColor !== grid[below][x] )    )
-        {
-          vertices.push( [ x, 0, z ] );
-          vertexColours.push( uniqueColours[ vertexColor ] );
-        }
-      }
-
-      for ( k = 0; k < vertices.length - 1; k++ ) {
-        addLine( vertices[k], vertexColours[k], vertices[k + 1], vertexColours[k + 1] );
-      }
-    }
-
-    geo.setIndex( new THREE.BufferAttribute( new Uint16Array( indices_array ), 1 ) );
-    geo.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( positions ), 3 ) );
-    geo.addAttribute( 'color', new THREE.BufferAttribute( new Float32Array( colors ), 3 ) );
-
-    geo.dynamic = false;
-    geo.computeBoundingBox();
-
-    // Finally create the object with the geometry just built
-    let referenceLines = new THREE.Line( geo, new THREE.LineBasicMaterial({
-      linewidth: 1.5,
-      vertexColors: THREE.VertexColors,
-    }), THREE.LineSegments );
-
-    referenceLines.matrixAutoUpdate = false;
-
-    endTime = new Date();
-    console.log( 'Building the grid reference plane took ' +
-        (endTime.getTime() - startTime.getTime()) + ' msec' );
-
-    return referenceLines;
-  }
-
-  colorForVector ( vector, systems, segmentSize ) {
-    let color = BLACK;
-    let arr = this.closestFromArray( vector, systems );
-    if ( arr[0] <= 4.5 * segmentSize && arr[1] ) {
-      color = arr[1].faction.planeColor.clone();
-      if ( arr[0] >= 4.0 * segmentSize ) {
-        color.multiplyScalar( 0.5 );
-      } else if ( arr[0] >= 3.0 * segmentSize ) {
-        color.multiplyScalar( 0.8 );
-      }
-    }
-    return color;
   }
 
   buildDisplayModeFSM ( initialState ) {
