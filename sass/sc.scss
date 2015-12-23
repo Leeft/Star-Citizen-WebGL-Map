@@ -71,6 +71,10 @@ a {
    }
 }
 
+.hide {
+  display: none;
+}
+
 /*
 #sc-map-popup {
    overflow: auto;
@@ -529,40 +533,64 @@ a {
    input[type=checkbox][disabled] + label:before{ color: #666; } /* disabled checkbox */
    input[type=checkbox][disabled]:checked + label:before { content: "\f046"; } /* checked icon */
 
-   dl {
-      border: 0;
-      padding: 0;
-      margin-left: 2em;
+  .shortcuts {
+    margin-left: 0.6em;
+  }
 
-   }
-   .shortcuts {
-      margin-left: 0.6em;
-   }
-   dt {
+  dl {
+    border: 0;
+    padding: 0;
+    margin-left: 1.4em;
+
+    dt {
       float: left;
       clear: left;
       text-align: right;
       font-weight: bold;
       color: $rsi-blue;
-   }
-   .wide {
+
+      &:after {
+        content: ": ";
+      }
+    }
+
+    &.medium {
       margin: 0.5rem 0;
       padding-left: 0;
       padding-right: 0;
-   }
-   .wide.basic-system {
-      margin-left: -1.3rem;
+
+      dt {
+        width: 80px;
+      }
+
+      dd {
+        margin: 0 0 0 85px;
+        padding: 0 0 0.4em 0;
+      }
+    }
+
+    &.wide {
+      margin: 0.5rem 0;
       padding-left: 0;
       padding-right: 0;
-   }
-   .wide dt {
-      width: 140px;
-   }
 
-   .wide dd {
-      margin: 0 0 0 145px;
-      padding: 0 0 0.4em 0;
-   }
+      &.basic-system {
+        margin-left: -1.3rem;
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      dt {
+        width: 140px;
+      }
+
+      dd {
+        margin: 0 0 0 145px;
+        padding: 0 0 0.4em 0;
+      }
+    }
+  }
+
    /*
    #keyboard-shortcuts dd {
       width: 250px;
@@ -570,13 +598,10 @@ a {
    }
    */
 
-   dt:after {
-      content: ": ";
-   }
-
    .ui-resizable {
       position: relative;
    }
+
    .ui-resizable-handle {
       position: absolute;
       font-size: 0.1px;
@@ -584,10 +609,12 @@ a {
       -ms-touch-action: none;
       touch-action: none;
    }
+
    .ui-resizable-disabled .ui-resizable-handle,
    .ui-resizable-autohide .ui-resizable-handle {
       display: none;
    }
+
    .ui-resizable-e {
       cursor: e-resize;
       width: 10px;

@@ -30,6 +30,8 @@ const DEFAULTS = {
   minLabelOffset:       '-6.5',
   defaultLabelOffset:   '5.0',
   maxLabelOffset:       '7.5',
+
+  debug:                '0',
 };
 
 class Config {

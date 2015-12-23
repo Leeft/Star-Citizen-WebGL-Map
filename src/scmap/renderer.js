@@ -110,6 +110,18 @@ class Renderer {
     return new THREE.Matrix4().makeRotationFromEuler( euler );
   }
 
+  debugRenderer () {
+    const $elem = $('#debug-renderer');
+    $elem.removeClass('hide');
+    $elem.find('dd.calls').text( this.threeRenderer.info.render.calls );
+    $elem.find('dd.faces').text( this.threeRenderer.info.render.faces );
+    $elem.find('dd.points').text( this.threeRenderer.info.render.points );
+    $elem.find('dd.vertices').text( this.threeRenderer.info.render.vertices );
+
+    $elem.find('dd.geometries').text( this.threeRenderer.info.memory.geometries );
+    $elem.find('dd.textures').text( this.threeRenderer.info.memory.textures );
+  }
+
   _resize () {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
@@ -135,6 +147,9 @@ class Renderer {
     this.controls.update();
     this.map.animate();
     this.stats.update();
+    if ( config.debug === '1' ) {
+      this.debugRenderer();
+    }
     this.render();
   }
 
