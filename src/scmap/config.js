@@ -4,7 +4,8 @@
 
 import jQuery from 'jquery';
 
-// These are deliberately strings; code using these numbers must be able to cope with strings
+// These are deliberately strings: code using these numbers must be able
+// to cope with strings as they may come from HTML data attributes.
 const DEFAULTS = {
   systemsJson:          'data/systems.min.json',
   goodsJson:            'data/goods.json',
@@ -35,8 +36,7 @@ class Config {
   constructor () {
     const $element = jQuery('#sc-map-configuration');
     if ( $element ) {
-      const data = $element.data();
-      Object.assign( this, DEFAULTS, data );
+      Object.assign( this, DEFAULTS, $element.data() );
     } else {
       Object.assign( this, DEFAULTS );
     }

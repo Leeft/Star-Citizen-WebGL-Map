@@ -10,17 +10,16 @@ let allSystems = [];
 
 class SystemList {
   static preprocessSystems ( data ) {
-    var i, systemName, system, systems = [];
+    const systems = [];
 
     SCMAP.data.systems = {};
     SCMAP.data.systemsById = {};
-    allSystems = [];
 
     // First build basic objects to make them all known
     // (this will initialise any jumppoints it can as well)
-    for ( systemName in data ) {
+    for ( let systemName in data ) {
       if ( data.hasOwnProperty( systemName ) ) {
-        system = System.fromJSON( data[ systemName ] );
+        const system = System.fromJSON( data[ systemName ] );
         SCMAP.data.systems[ system.name ]     = system;
         SCMAP.data.systemsById[ system.id ]   = system;
         SCMAP.data.systemsById[ system.uuid ] = system;
@@ -29,7 +28,7 @@ class SystemList {
     }
 
     // Now go through the built objects again, fixing any leftover jumppoint data
-    $( systems ).each( function ( i, system ) {
+    systems.forEach( system => {
       system._fixJumpPoints( true );
     });
 
@@ -37,13 +36,13 @@ class SystemList {
   }
 
   static SortSystemList ( systems ) {
-    var array = [];
-    var i = systems.length;
+    const array = [];
+    let i = systems.length;
     while( i-- ) {
       array[i] = systems[i];
     }
-    var sorted = array.sort( humanSort );
-    return sorted;
+
+    return array.sort( humanSort );
   }
 }
 

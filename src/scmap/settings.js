@@ -18,37 +18,6 @@ class Settings {
       this.storage = {};
     }
 
-    this.uiWidth = ( this.storage && Number( this.storage['settings.uiWidth'] ) > 0 ) ?
-      Number( this.storage['settings.uiWidth'] ) : 320;
-
-    this.labelScale = ( this.storage && Number( this.storage['settings.labelScale'] ) > 0 ) ?
-      Number( this.storage['settings.labelScale'] ) : Number( config.defaultLabelScale );
-
-    this.labelScale = Math.max(
-      Number( config.minLabelScale ),
-      Math.min( this.labelScale, config.maxLabelScale )
-    );
-
-    this.labelOffset = ( this.storage && Number( this.storage['settings.labelOffset'] ) > 0 ) ?
-      Number( this.storage['settings.labelOffset'] ) : Number( config.defaultLabelOffset );
-
-    this.labelOffset = Math.max(
-      Number( config.minLabelOffset ),
-      Math.min( this.labelOffset, config.maxLabelOffset )
-    );
-
-    this.systemScale = ( this.storage && Number( this.storage['settings.systemScale'] ) > 0 ) ?
-      Number( this.storage['settings.systemScale'] ) : config.defaultSystemScale;
-
-    this.systemScale = Math.max(
-      Number( config.minSystemScale ),
-      Math.min( this.systemScale, config.maxSystemScale )
-    );
-
-    this.glow = ( this.storage && this.storage['settings.Glow'] === '0' ) ? false : true;
-    this.labels = ( this.storage && this.storage['settings.Labels'] === '0' ) ? false : true;
-    this.labelIcons = ( this.storage && this.storage['settings.LabelIcons'] === '0' ) ? false : true;
-
     this.camera = {
       camera: new THREE.Vector3( 0, 80, 100 ),
       target: new THREE.Vector3( 0, 10, 0 ),
@@ -66,11 +35,11 @@ class Settings {
     };
 
     this.control = {
-      rotationLocked: ( this.storage && this.storage['control.rotationLocked'] === '1' ) ? true : false,
+      rotationLocked: ( this.storage['control.rotationLocked'] === '1' ) ? true : false,
     };
 
     this.renderer = {
-      Stats: ( this.storage && this.storage['renderer.Stats'] === '1' ) ? true : false,
+      Stats: ( this.storage['renderer.Stats'] === '1' ) ? true : false,
     };
 
     this.route = {
@@ -79,9 +48,9 @@ class Settings {
       avoidUnknownJumppoints: false,
     };
 
-    // Clean up the mess we made
+    // Clean up the mess we made in older versions
 
-    this.convertAndRemoveOldSettings();
+    this.removeOldSettings();
 
     // Load configs
 
@@ -99,17 +68,100 @@ class Settings {
 
     this.load( 'systems' );
     if ( ! this.systems ) { this.systems = {}; }
+    this.save( 'systems' );
 
     this.load( 'effect' );
-
-    this.mode = ( this.storage && (this.storage.mode === '2d') ) ? '2d' : '3d';
-
-    this.mergeAndRemoveOldSettings();
-    this.save( 'systems' );
   }
 
+
+  get mode () {
+    return ( ( this.storage.mode === '2d' ) ? '2d' : '3d' );
+  }
+
+  set mode ( value ) {
+    if ( /^(2d|3d)$/.test( value ) ) {
+      this.storage.mode = value;
+    }
+  }
+
+
+  get uiWidth () {
+    return ( ( Number( this.storage['settings.uiWidth'] ) > 0 ) ? Number( this.storage['settings.uiWidth'] ) : 320 );
+  }
+
+  set uiWidth ( value ) {
+    this.storage[ 'settings.uiWidth' ] = value;
+  }
+
+
+  get labelScale () {
+    const userScale = ( ( Number( this.storage['settings.labelScale'] ) > 0 ) ? Number( this.storage['settings.labelScale'] ) : Number( config.defaultLabelScale ) );
+    return Math.max(
+      Number( config.minLabelScale ),
+      Math.min( userScale, config.maxLabelScale )
+    );
+  }
+
+  set labelScale ( value ) {
+    this.storage[ 'settings.labelScale' ] = value;
+  }
+
+
+  get labelOffset () {
+    const userOffset = ( ( Number( this.storage['settings.labelOffset'] ) > 0 ) ? Number( this.storage['settings.labelOffset'] ) : Number( config.defaultLabelOffset ) );
+    return Math.max(
+      Number( config.minLabelOffset ),
+      Math.min( userOffset, config.maxLabelOffset )
+    );
+  }
+
+  set labelOffset ( value ) {
+    this.storage[ 'settings.labelOffset' ] = value;
+  }
+
+
+  get systemScale () {
+    const userScale = ( ( Number( this.storage['settings.systemScale'] ) > 0 ) ? Number( this.storage['settings.systemScale'] ) : Number( config.defaultSystemScale ) );
+    return Math.max(
+      Number( config.minSystemScale ),
+      Math.min( userScale, config.maxSystemScale )
+    );
+  }
+
+  set systemScale ( value ) {
+    this.storage[ 'settings.systemScale' ] = value;
+  }
+
+
+  get glow () {
+    return ( this.storage['settings.Glow'] !== '0' );
+  }
+
+  set glow ( value ) {
+    this.storage['settings.Glow'] = ( value ) ? '1' : '0';
+  }
+
+
+  get labels () {
+    return ( this.storage['settings.Labels'] !== '0' );
+  }
+
+  set labels ( value ) {
+    this.storage['settings.Labels'] = ( value ) ? '1' : '0';
+  }
+
+
+  get labelIcons () {
+    return ( this.storage['settings.LabelIcons'] !== '0' );
+  }
+
+  set labelIcons ( value ) {
+    this.storage['settings.LabelIcons'] = ( value ) ? '1' : '0';
+  }
+
+
   load ( key ) {
-    if ( this.storage && ( key in this.storage ) ) {
+    if ( ( key in this.storage ) ) {
       try {
         this[ key ] = JSON.parse( this.storage[ key ] );
       } catch ( e ) {
@@ -119,73 +171,27 @@ class Settings {
   }
 
   save ( key ) {
-    if ( this.storage && ( key in this ) ) {
+    if ( ( key in this ) ) {
       this.storage[ key ] = JSON.stringify( this[ key ] );
     }
   }
 
-  convertAndRemoveOldSettings () {
-    if ( ! this.storage ) {
-      return;
-    }
-
+  removeOldSettings () {
     if ( 'effect.Bloom' in this.storage ) {
-      this.effect.Bloom = ( this.storage['effect.Bloom'] === '1' ) ? true : false;
       delete this.storage['effect.Bloom'];
     }
 
     if ( 'effect.FXAA' in this.storage ) {
-      this.effect.FXAA = ( this.storage['effect.FXAA'] === '1' ) ? true : false;
       delete this.storage['effect.FXAA'];
     }
 
-    delete this.storage['camera.x'];
-    delete this.storage['camera.y'];
-    delete this.storage['camera.z'];
-    delete this.storage['target.x'];
-    delete this.storage['target.y'];
-    delete this.storage['target.z'];
-  }
-
-  mergeAndRemoveOldSettings () {
-    let property, matches, systemId;
-
-    if ( ! this.storage ) {
-      return;
-    }
-
-    for ( property in this.storage ) {
-      if ( ! this.storage.hasOwnProperty( property ) ) {
-        continue;
-      }
-
-      matches = property.match( /^bookmarks[.](\d+)$/ );
-      if ( matches && (this.storage[ property ] === '1') ) {
-        systemId = matches[ 1 ];
-        if ( this.systems[ systemId ] !== 'object' ) {
-          this.systems[ systemId ] = {};
-        }
-        this.systems[ systemId ].bookmarked = true;
+    for ( let property in this.storage )
+    {
+      if ( /^(comments|hangarLocation|bookmarks)[.](\d+)$/.test( property ) ) {
         delete this.storage[ property ];
       }
 
-      matches = property.match( /^hangarLocation[.](\d+)$/ );
-      if ( matches && (this.storage[ property ] === '1') ) {
-        systemId = matches[ 1 ];
-        if ( this.systems[ systemId ] !== 'object' ) {
-          this.systems[ systemId ] = {};
-        }
-        this.systems[ systemId ].hangarLocation = true;
-        delete this.storage[ property ];
-      }
-
-      matches = property.match( /^comments[.](\d+)$/ );
-      if ( matches && (this.storage[ property ] !== '') ) {
-        systemId = matches[ 1 ];
-        if ( this.systems[ systemId ] !== 'object' ) {
-          this.systems[ systemId ] = {};
-        }
-        this.systems[ systemId ].comments = this.storage[ property ];
+      if ( /^(camera|target)[.](x|y|z)$/.test( property ) ) {
         delete this.storage[ property ];
       }
     }

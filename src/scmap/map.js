@@ -197,6 +197,7 @@ class Map {
       this._route = new Route();
       console.log( 'Created new route', this._route.toString() );
     }
+
     return this._route;
   }
 
@@ -229,34 +230,35 @@ class Map {
   }
 
   moveSelectorTo ( destination ) {
-    let tween, newPosition, position, _this = this, poi, graph, route;
+    const map = this;
+    let tween, newPosition, position, poi, graph, route;
     let tweens = [];
 
-    if ( ! ( _this._selectorObject.visible ) || ! ( _this.getSelected() instanceof System ) ) {
-      _this._selectorObject.userData.systemPosition.copy( destination.position );
-      _this._selectorObject.position.copy( destination.sceneObject.position );
-      _this._selectorObject.visible = true;
-      _this.getSelected( destination );
+    if ( ! ( this._selectorObject.visible ) || ! ( this.getSelected() instanceof System ) ) {
+      this._selectorObject.userData.systemPosition.copy( destination.position );
+      this._selectorObject.position.copy( destination.sceneObject.position );
+      this._selectorObject.visible = true;
+      this.getSelected( destination );
       return;
     }
 
     newPosition = destination.sceneObject.position.clone();
-    graph = new Dijkstra( allSystems, _this.getSelected(), destination );
+    graph = new Dijkstra( allSystems, this.getSelected(), destination );
     graph.buildGraph();
 
     route = graph.routeArray( destination );
     if ( route.length <= 1 ) {
-      _this._selectorObject.userData.systemPosition.copy( destination.position );
-      _this._selectorObject.position.copy( destination.sceneObject.position );
-      _this._selectorObject.visible = true;
-      _this.setSelected( destination );
+      this._selectorObject.userData.systemPosition.copy( destination.position );
+      this._selectorObject.position.copy( destination.sceneObject.position );
+      this._selectorObject.visible = true;
+      this.setSelected( destination );
       return;
     }
 
     position = {
-      x: _this._selectorObject.position.x,
-      y: _this._selectorObject.position.y,
-      z: _this._selectorObject.position.z
+      x: this._selectorObject.position.x,
+      y: this._selectorObject.position.y,
+      z: this._selectorObject.position.z
     };
 
     /* jshint ignore:start */
@@ -271,7 +273,7 @@ class Map {
         }, 800 / ( route.length - 1 ) )
       .easing( TWEEN.Easing.Linear.None )
         .onUpdate( function () {
-          _this._selectorObject.position.set( this.x, this.y, this.z );
+          map._selectorObject.position.set( this.x, this.y, this.z );
         } );
 
       if ( i == 0 ) {
@@ -289,9 +291,9 @@ class Map {
       if ( i == route.length - 2 ) {
         tween.easing( TWEEN.Easing.Cubic.Out );
         tween.onComplete( function() {
-          _this._selectorObject.userData.systemPosition.copy( poi.position );
-          _this._selectorObject.position.copy( poi.sceneObject.position );
-          _this.setSelected( destination );
+          map._selectorObject.userData.systemPosition.copy( poi.position );
+          map._selectorObject.position.copy( poi.sceneObject.position );
+          map.setSelected( destination );
         } );
       }
 

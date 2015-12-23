@@ -29,6 +29,8 @@ import slider from 'jquery-ui/ui/slider';
 import jscrollpane from 'jscrollpane';
 import imagesLoaded from 'imagesloaded';
 
+let fontAwesomeIsReady = false;
+
 class UI {
   constructor ( map ) {
     let selectedSystem = null;
@@ -430,7 +432,7 @@ class UI {
         system.setComments();
         $('#sc-map-interface .user-system-comments-md').empty();
       }
-      system.updateSceneObject( scene );
+      system.updateSceneObject( map.scene );
     };
 
     $('#sc-map-interface').on( 'keyup', '.user-system-comments', updateComments );
@@ -443,27 +445,27 @@ class UI {
       system.setComments();
       $('.comment-editing .user-system-comments').empty().val('');
       $('.comment-editing .user-system-comments-md').empty();
-      system.updateSceneObject( scene );
+      system.updateSceneObject( map.scene );
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-bookmarked', function() {
       System.getById( $(this).data('system') )
         .setBookmarkedState( this.checked )
-        .updateSceneObject( scene );
+        .updateSceneObject( map.scene );
       settings.save( 'systems' );
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-ishangar', function() {
       System.getById( $(this).data('system') )
         .setHangarState( this.checked )
-        .updateSceneObject( scene );
+        .updateSceneObject( map.scene );
       settings.save( 'systems' );
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-avoid', function() {
       System.getById( $(this).data('system') )
         .setToBeAvoidedState( this.checked )
-        .updateSceneObject( scene );
+        .updateSceneObject( map.scene );
       settings.save( 'systems' );
       map.route().rebuildCurrentRoute();
     });
@@ -488,19 +490,19 @@ class UI {
   }
 
   updateHeight () {
-    let _this = this;
-    let activeTab = UI.ActiveTab();
+    const activeTab = UI.ActiveTab();
+
     if ( activeTab ) {
-      let $images = $( activeTab.id + ' img' );
+      const $images = $( activeTab.id + ' img' );
       if ( $images.length ) {
-        $( activeTab.id ).imagesLoaded( function() {
-          if ( _this.jScrollPane() ) {
-            _this.jScrollPane().reinitialise();
+        $( activeTab.id ).imagesLoaded( () => {
+          if ( this.jScrollPane() ) {
+            this.jScrollPane().reinitialise();
           }
         });
       } else {
-        if ( _this.jScrollPane() ) {
-          _this.jScrollPane().reinitialise();
+        if ( this.jScrollPane() ) {
+          this.jScrollPane().reinitialise();
         }
       }
     }
@@ -513,19 +515,131 @@ class UI {
   }
 
   updateSystemsList () {
-    let tab = UI.Tab( 'systems' );
+    const tab = UI.Tab( 'systems' );
     $( tab.id ).empty().append(
       UI.Templates.listings({ systemGroups: UI.buildDynamicLists() })
     );
   }
 
-  static htmlEscape( str ) {
+  static htmlEscape ( str ) {
     return String( str )
       .replace( /&/g, '&amp;' )
       .replace( /"/g, '&quot;' )
       .replace( /'/g, '&#39;' )
       .replace( /</g, '&lt;' )
       .replace( />/g, '&gt;' );
+  }
+
+  static makeSafeForCSS ( name ) {
+    if ( typeof name !== 'string' ) {
+      return;
+    }
+
+    return name.replace( /[^a-zA-Z0-9]/g, function(s) {
+      let c = s.charCodeAt(0);
+      if (c == 32) return '-';
+      if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
+      return (c.toString(16)).slice(-4);
+    });
+  }
+
+  static buildDynamicLists () {
+    let hangars = [];
+    let bookmarked = [];
+    let withComments = [];
+    let byFaction = [];
+    let everything = [];
+    let factionsById = {};
+    let data = [];
+
+    for ( let factionId in SCMAP.data.factions ) {
+      let faction = SCMAP.data.factions[factionId];
+      factionsById[ faction.id ] = {
+        faction: faction.name,
+        items: []
+      };
+    }
+
+    let factions = [];
+
+    $( allSystems ).each( function ( i, system ) {
+      let link = system.createInfoLink().outerHtml(); // TODO replace with template
+
+      if ( system.hasHangar() ) { hangars.push( link ); }
+      if ( system.isBookmarked() ) { bookmarked.push( link ); }
+      if ( system.hasComments() ) { withComments.push( link ); }
+
+      factionsById[ system.faction.id ].items.push( link );
+      everything.push( link );
+    });
+
+    if ( hangars.length ) {
+      data.push({
+        title: 'Hangar locations&nbsp;' + MapSymbol.getTag( MapSymbols.HANGAR ).addClass('fa-lg').outerHtml(),
+        items: hangars
+      });
+    }
+
+    if ( bookmarked.length ) {
+      data.push({
+        title: 'Bookmarked&nbsp;' + MapSymbol.getTag( MapSymbols.BOOKMARK ).addClass('fa-lg').outerHtml(),
+        items: bookmarked
+      });
+    }
+
+    if ( withComments.length ) {
+      data.push({
+        title: 'With your comments&nbsp;' + MapSymbol.getTag( MapSymbols.COMMENTS ).addClass('fa-lg').outerHtml(),
+        items: withComments
+      });
+    }
+
+    data.push(
+      {
+        title: 'By faction',
+        factions: factionsById
+      },
+      {
+        title: 'Everything',
+        items: everything
+      }
+    );
+
+    return data;
+  }
+
+  static waitForFontAwesome ( callback ) {
+    let retries = 5;
+
+    let checkReady = function() {
+      let canvas, context;
+      retries -= 1;
+      canvas = document.createElement('canvas');
+      canvas.width = 20;
+      canvas.height = 20;
+      context = canvas.getContext('2d');
+      context.fillStyle = 'rgba(0,0,0,1.0)';
+      context.fillRect( 0, 0, 20, 20 );
+      context.font = '16pt FontAwesome';
+      context.textAlign = 'center';
+      context.fillStyle = 'rgba(255,255,255,1.0)';
+      context.fillText( '\uf0c8', 10, 18 );
+      let data = context.getImageData( 2, 10, 1, 1 ).data;
+      if ( data[0] !== 255 && data[1] !== 255 && data[2] !== 255 ) {
+        console.log( 'FontAwesome is not yet available, retrying ...' );
+        if ( retries > 0 ) {
+          setTimeout( checkReady, 200 );
+        }
+      } else {
+        console.log( 'FontAwesome is loaded' );
+        fontAwesomeIsReady = true;
+        if ( typeof callback === 'function' ) {
+          callback();
+        }
+      }
+    };
+
+    checkReady();
   }
 };
 
@@ -564,118 +678,6 @@ UI.ActiveTab = function ActiveTab() {
     }
   }
   return;
-};
-
-UI.makeSafeForCSS = function makeSafeForCSS( name ) {
-  if ( typeof name !== 'string' ) {
-    return;
-  }
-  return name.replace( /[^a-zA-Z0-9]/g, function(s) {
-    let c = s.charCodeAt(0);
-    if (c == 32) return '-';
-    if (c >= 65 && c <= 90) return '_' + s.toLowerCase();
-    return (c.toString(16)).slice(-4);
-  });
-};
-
-UI.fontAwesomeIsReady = false;
-UI.waitForFontAwesome = function waitForFontAwesome( callback ) {
-  let retries = 5;
-
-  let checkReady = function() {
-    let canvas, context;
-    retries -= 1;
-    canvas = document.createElement('canvas');
-    canvas.width = 20;
-    canvas.height = 20;
-    context = canvas.getContext('2d');
-    context.fillStyle = 'rgba(0,0,0,1.0)';
-    context.fillRect( 0, 0, 20, 20 );
-    context.font = '16pt FontAwesome';
-    context.textAlign = 'center';
-    context.fillStyle = 'rgba(255,255,255,1.0)';
-    context.fillText( '\uf0c8', 10, 18 );
-    let data = context.getImageData( 2, 10, 1, 1 ).data;
-    if ( data[0] !== 255 && data[1] !== 255 && data[2] !== 255 ) {
-      console.log( 'FontAwesome is not yet available, retrying ...' );
-      if ( retries > 0 ) {
-        setTimeout( checkReady, 200 );
-      }
-    } else {
-      console.log( 'FontAwesome is loaded' );
-      UI.fontAwesomeIsReady = true;
-      if ( typeof callback === 'function' ) {
-        callback();
-      }
-    }
-  };
-
-  checkReady();
-};
-
-UI.buildDynamicLists = function buildDynamicLists() {
-  let hangars = [];
-  let bookmarked = [];
-  let withComments = [];
-  let byFaction = [];
-  let everything = [];
-  let factionsById = {};
-  let data = [];
-
-  for ( let factionId in SCMAP.data.factions ) {
-    let faction = SCMAP.data.factions[factionId];
-    factionsById[ faction.id ] = {
-      faction: faction.name,
-      items: []
-    };
-  }
-
-  let factions = [];
-
-  $( allSystems ).each( function ( i, system ) {
-    let link = system.createInfoLink().outerHtml(); // TODO replace with template
-
-    if ( system.hasHangar() ) { hangars.push( link ); }
-    if ( system.isBookmarked() ) { bookmarked.push( link ); }
-    if ( system.hasComments() ) { withComments.push( link ); }
-
-    factionsById[ system.faction.id ].items.push( link );
-    everything.push( link );
-  });
-
-  if ( hangars.length ) {
-    data.push({
-      title: 'Hangar locations&nbsp;' + MapSymbol.getTag( MapSymbols.HANGAR ).addClass('fa-lg').outerHtml(),
-      items: hangars
-    });
-  }
-
-  if ( bookmarked.length ) {
-    data.push({
-      title: 'Bookmarked&nbsp;' + MapSymbol.getTag( MapSymbols.BOOKMARK ).addClass('fa-lg').outerHtml(),
-      items: bookmarked
-    });
-  }
-
-  if ( withComments.length ) {
-    data.push({
-      title: 'With your comments&nbsp;' + MapSymbol.getTag( MapSymbols.COMMENTS ).addClass('fa-lg').outerHtml(),
-      items: withComments
-    });
-  }
-
-  data.push(
-    {
-      title: 'By faction',
-      factions: factionsById
-    },
-    {
-      title: 'Everything',
-      items: everything
-    }
-  );
-
-  return data;
 };
 
 UI.Templates = {

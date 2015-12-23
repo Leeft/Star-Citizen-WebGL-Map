@@ -105,16 +105,14 @@ class Faction {
   }
 
   static preprocessFactions ( data ) {
-    let factionId, faction;
-
     SCMAP.data.factions = [];
     SCMAP.data.factionsByName = {};
 
-    for ( factionId in data ) {
+    for ( let factionId in data ) {
 
       if ( data.hasOwnProperty( factionId ) ) {
 
-        faction = data[ factionId ];
+        let faction = data[ factionId ];
 
         if ( ! ( faction instanceof Faction ) ) {
           faction = new Faction({

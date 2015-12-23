@@ -357,7 +357,7 @@ var OrbitControls = function ( renderer, domElement ) {
    // assumes mapMode for now
    this.moveTo = function ( destination ) {
 
-      var _this = this;
+      var controls = this;
       var traverse = this.target.clone();
       var destinationVector;
 
@@ -383,7 +383,7 @@ var OrbitControls = function ( renderer, domElement ) {
          .easing( TWEEN.Easing.Cubic.InOut )
          .onUpdate( function () {
             var vec = new THREE.Vector3( this.x, this.y, this.z );
-            _this.goTo( vec );
+            controls.goTo( vec );
             isMoving = true;
          } );
 
@@ -403,7 +403,6 @@ var OrbitControls = function ( renderer, domElement ) {
    // assumes mapMode for now
    this.rotateTo = function ( left, up, radius ) {
 
-      var _this = this;
       var offset = this.objectVectorToTarget();
       // angle from z-axis around y-axis
       var theta = Math.atan2( offset.x, offset.z );

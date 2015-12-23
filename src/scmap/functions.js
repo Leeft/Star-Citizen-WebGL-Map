@@ -15,16 +15,15 @@ function hasSessionStorage() {
 }
 
 function humanSort( a, b ) {
-  var x, cmp1, cmp2;
-  var aa = a.name.split(/(\d+)/);
-  var bb = b.name.split(/(\d+)/);
+  let aa = a.name.split(/(\d+)/);
+  let bb = b.name.split(/(\d+)/);
 
-  for ( x = 0; x < Math.max( aa.length, bb.length ); x++ )
+  for ( let x = 0; x < Math.max( aa.length, bb.length ); x++ )
   {
     if ( aa[x] != bb[x] )
     {
-      cmp1 = ( isNaN( parseInt( aa[x], 10 ) ) ) ? aa[x] : parseInt( aa[x], 10 );
-      cmp2 = ( isNaN( parseInt( bb[x], 10 ) ) ) ? bb[x] : parseInt( bb[x], 10 );
+      let cmp1 = ( isNaN( parseInt( aa[x], 10 ) ) ) ? aa[x] : parseInt( aa[x], 10 );
+      let cmp2 = ( isNaN( parseInt( bb[x], 10 ) ) ) ? bb[x] : parseInt( bb[x], 10 );
 
       if ( cmp1 === undefined || cmp2 === undefined ) {
         return aa.length - bb.length;

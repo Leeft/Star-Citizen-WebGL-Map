@@ -51,16 +51,15 @@ class Goods {
   }
 
   static preprocessGoods ( data ) {
-    let goodsId, goods;
-
     SCMAP.data.goods = [];
     SCMAP.data.goodsByName = {};
 
-    for ( goodsId in goods ) {
+    for ( let goodsId in data ) {
 
       if ( goods.hasOwnProperty( goodsId ) ) {
 
-        goods = data[ goodsId ];
+        let goods = data[ goodsId ];
+
         if ( goods instanceof Goods ) {
           SCMAP.data.goodsByName[ goods.name ] = goods;
           continue;

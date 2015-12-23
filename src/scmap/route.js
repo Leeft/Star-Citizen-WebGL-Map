@@ -17,20 +17,20 @@ class Route {
   constructor ( start, waypoints ) {
     this.start = ( start instanceof System ) ? start : null;
     this.waypoints = [];
-
     this._graphs = [];
     this._routeObject = undefined;
-
     this._error = undefined;
 
     if ( waypoints instanceof System ) {
-      this.waypoints = [ waypoints ];
-    } else if ( Array.isArray( waypoints ) ) {
-      for ( let i = 0, waypointsLength = waypoints.length; i < waypointsLength; i += 1 ) {
-        if ( waypoints[i] instanceof System ) {
-          this.waypoints.push( waypoints[ i ] );
+      waypoints = [ waypoints ];
+    }
+
+    if ( Array.isArray( waypoints ) ) {
+      waypoints.forEach( waypoint => {
+        if ( waypoint instanceof System ) {
+          this.waypoints.push( waypoint );
         }
-      }
+      });
     }
 
     this.__syncGraphs();
@@ -39,62 +39,70 @@ class Route {
   // Find the first matching graph or pair of graphs for the given
   // waypoint. Returns two graphs if the waypoint lies on the end
   // of one and the start of another
-  __findGraphs ( waypoint ) {
+  __findGraphs ( system ) {
     let graphs = [];
     let seen = {};
 
     for ( let i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
     {
-      let route = [];
+      const graph = this._graphs[ i ];
+
+      let routeArray = [];
       try {
-        route = this._graphs[i].routeArray();
+        routeArray = graph.routeArray();
       } catch ( e ) {
         console.error( `Error getting route array: ${ e.message }` );
       }
 
       if ( graphs.length ) {
-        if ( route[0].system.id === waypoint.id ) {
-          graphs.push( this._graphs[i] );
+        if ( routeArray[0].system.id === system.id ) {
+          graphs.push( graph );
           return graphs;
         }
       }
 
-      for ( let j = 0, routeLength = route.length; j < routeLength; j += 1 ) {
-        if ( route[j].system === waypoint && !(seen[ route[j].system.id ]) ) {
-          seen[ route[j].system.id ] = true;
-          graphs.push( this._graphs[i] );
+      routeArray.forEach( waypoint => {
+        if ( waypoint.system === system && ! ( seen[ waypoint.system.id ] ) ) {
+          seen[ waypoint.system.id ] = true;
+          graphs.push( graph );
         }
-      }
+      });
     }
 
     return graphs;
   }
 
   splitAt( waypoint ) {
-    let graphs = this.__findGraphs( waypoint );
+    const graphs = this.__findGraphs( waypoint );
+
     if ( graphs.length > 1 ) {
       console.error( `Can't split at '${ waypoint.name }', graphs are already split` );
       return false;
     }
+
     if ( graphs.length !== 1 ) {
       console.error( `Couldn't find graph for waypoint '${ waypoint.name }'` );
       return false;
     }
-    let graph = graphs[0];
-    let routeArray = graph.routeArray();
-    let oldEnd = graph.lastNode().system;
+
+    const graph = graphs[0];
+    const oldEnd = graph.lastNode().system;
+
     graph.end = waypoint; // set end of graph to wp
+
     for ( let i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
     {
       if ( this._graphs[i] === graph ) {
         // insert new graph at wp, starting at wp, ending at oldEnd
         this._graphs.splice( i + 1, 0, new Dijkstra( allSystems, waypoint, oldEnd ) );
+
         for ( let j = 0; j < this.waypoints.length; j += 1 ) {
           if ( this.waypoints[j] === oldEnd ) {
             this.waypoints.splice( j, 0, waypoint );
             break;
           }
         }
+
         this.__syncGraphs();
         this.storeToSession();
         return true;
@@ -105,55 +113,56 @@ class Route {
   }
 
   toString () {
-    let result = [];
+    const result = [];
+
     if ( this.start instanceof System ) {
       result.push( this.start.toString() );
     }
-    $.each( this.waypoints, function( index, value ) {
-      if ( value instanceof System ) {
-        result.push( value );
+
+    this.waypoints.forEach( system => {
+      if ( system instanceof System ) {
+        result.push( system );
       }
     });
+
     return result.join( ' > ' );
   }
 
-  removeWaypoint ( waypoint ) {
-    let graphs = this.__findGraphs( waypoint );
+  removeWaypoint ( toRemove ) {
+    const graphs = this.__findGraphs( toRemove );
+
     if ( graphs.length !== 2 ) {
-      console.error( `Can't remove waypoint '${ waypoint.name }', it is not a waypoint` );
+      console.error( `Can't remove waypoint '${ toRemove.name }', it is not a waypoint` );
       return false;
     }
-    let graphOne = graphs[0];
-    let graphTwo = graphs[1];
+
+    const [ graphOne, graphTwo ] = graphs;
+
     graphOne.end = graphTwo.start;
+
     // And now delete graphTwo
-    for ( let i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 )
-    {
-      if ( this._graphs[i] === graphTwo ) {
-        console.log( `Matched ${ graphTwo } starting at index ${ i }` );
-        console.log( this._graphs );
+    this._graphs.forEach( ( graph, graphIndex ) => {
+      if ( graph === graphTwo ) {
+        console.log( `Removing`, graphTwo, `at index ${ graphIndex }` );
         // remove the graph
-        this._graphs.splice( i, 1 );
-        console.log( this._graphs );
-        for ( let j = 0; j < this.waypoints.length; j += 1 ) {
-          if ( this.waypoints[j] === waypoint ) {
-            console.log( `Matched ${ waypoint } at index ${ j }` );
-            console.log( this.waypoints );
-            this.waypoints.splice( j, 1 );
-            console.log( this.waypoints );
-            break;
+        this._graphs.splice( graphIndex, 1 );
+
+        this.waypoints.forEach( ( waypoint, waypointIndex ) => {
+          if ( toRemove === waypoint ) {
+            console.log( `Removing`, waypoint, `at index ${ waypointIndex }` );
+            // remove the waypoint
+            this.waypoints.splice( waypointIndex, 1 );
           }
-        }
+        });
+
         this.__syncGraphs();
         this.storeToSession();
         return true;
       }
-    }
+    });
   }
 
   moveWaypoint( waypoint, destination ) {
-    let index;
-
     if ( waypoint === destination ) {
       return false;
     }
@@ -175,7 +184,7 @@ class Route {
     }
 
     // Slightly more difficult, moving any waypoint: update waypoint and sync
-    index = this.waypoints.indexOf( waypoint );
+    let index = this.waypoints.indexOf( waypoint );
     if ( index > -1 ) {
       this.waypoints[ index ] = destination;
       this.__syncGraphs();
@@ -199,29 +208,32 @@ class Route {
   }
 
   setRoute () {
-    let args = Array.prototype.slice.call( arguments );
-    let i;
+    const args = Array.prototype.slice.call( arguments );
+
     this.start = args.shift();
     this.start = ( this.start instanceof System ) ? this.start : null;
     this.waypoints = [];
-    if ( this.start ) {
-      for ( i = 0; i < args.length; i += 1 ) {
-        if ( args[i] instanceof System ) {
-          this.waypoints.push( args[i] );
-        }
-      }
 
-      for ( i = 0; i < this.waypoints.length; i += 1 ) {
-        this.waypoints[i] = ( this.waypoints[i] instanceof System ) ? this.waypoints[i] : null;
-      }
+    if ( this.start ) {
+      args.forEach( system => {
+        if ( system instanceof System ) {
+          this.waypoints.push( system );
+        }
+      });
+
+      this.waypoints = this.waypoints.filter( system => {
+        return ( system instanceof System );
+      });
     }
+
     this.storeToSession();
   }
 
   // Updates the graphs to match the current waypoints, and recalculates
   // the graphs where needed
   __syncGraphs () {
-    let newGraphs = [];
+    const newGraphs = [];
+
     this._graphs = newGraphs;
     this._error = undefined;
 
@@ -229,9 +241,10 @@ class Route {
 
       for ( let i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 )
       {
-        let start = ( i === 0 ) ? this.start : this.waypoints[i - 1];
-        let end   = this.waypoints[i];
+        const start = ( i === 0 ) ? this.start : this.waypoints[i - 1];
+        const end   = this.waypoints[i];
         let graph;
+
         if ( this._graphs[i] instanceof Dijkstra ) {
           graph = this._graphs[i];
           this._graphs[i].start = start;
@@ -243,9 +256,7 @@ class Route {
         graph.buildGraph( 'time', true );
         newGraphs.push( graph );
 
-        let routeSegment = graph.routeArray();
-
-        if ( routeSegment.length <= 1 ) {
+        if ( graph.routeArray().length <= 1 ) {
           console.warn( `No route from ${ start.name } to ${ end.name } possible` );
           throw new RouteSegmentFailed( `No route from ${ start.name } to ${ end.name } available` );
           // TODO: could retry with fewer restrictions to indicate the user can change things
@@ -273,13 +284,14 @@ class Route {
   }
 
   isSet () {
-    let route = this.currentRoute();
-    return route.length > 1;
+    return this.currentRoute().length > 1;
   }
 
   currentRoute () {
-    let route = [];
+    const route = [];
+
     for ( let i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 ) {
+      // TODO: Check whether this is correct or not, looks kaput
       if ( this.waypoints[i] instanceof System ) {
         this._graphs[i].rebuildGraph();
         let routePart = this._graphs[i].routeArray( this.waypoints[i] );
@@ -288,6 +300,7 @@ class Route {
         }
       }
     }
+
     return route;
   }
 
@@ -295,25 +308,10 @@ class Route {
   // the route; we can use this to establish the approximate
   // colour of the given point
   alphaOfSystem ( system ) {
-    // TODO: Combine with indexOfCurrentRoute code
-    if ( ! system instanceof System ) {
-      return 0;
-    }
-
-    let currentStep = 0;
-    let currentRoute = this.currentRoute();
-
-    if ( currentRoute.length ) {
-      for ( let i = 0, routeLength = currentRoute.length; i < routeLength; i++ ) {
-        if ( currentRoute[i].system === system ) {
-          currentStep = i;
-          break;
-        }
-      }
-    }
+    const currentStep = this.indexOfCurrentRoute( system );
 
     if ( currentStep ) {
-      return( currentStep / currentRoute.length );
+      return ( currentStep / this.currentRoute().length );
     }
 
     return 0;
@@ -324,32 +322,28 @@ class Route {
       return;
     }
 
-    let currentStep;
-    let currentRoute = this.currentRoute();
+    let currentStep = 0;
 
-    if ( currentRoute.length ) {
-      for ( let i = 0, routeLength = currentRoute.length; i < routeLength; i++ ) {
-        if ( currentRoute[i].system === system ) {
-          currentStep = i;
-          break;
-        }
+    this.currentRoute().forEach( ( waypoint, index ) => {
+      if ( waypoint.system === system ) {
+        currentStep = index;
       }
-    }
+    });
 
     return currentStep;
   }
 
   rebuildCurrentRoute () {
     this.removeFromScene();
-    for ( let i = 0, graphsLength = this._graphs.length; i < graphsLength; i++ ) {
-      if ( this._graphs[i].rebuildGraph() ) {
-        let destination = this._graphs[i].destination();
+    this._graphs.forEach( graph => {
+      if ( graph.rebuildGraph() ) {
+        let destination = graph.destination();
         if ( destination ) {
           console.log( `Have existing destination, updating route` );
           this.update( destination );
         }
       }
-    }
+    });
   }
 
   destroy () {
@@ -365,15 +359,17 @@ class Route {
   }
 
   buildTemplateData () {
-    let system, waypoint;
-    let templateData = {
+    let waypoint;
+
+    const templateData = {
       settings: {
         avoidHostile: settings.route.avoidHostile,
         avoidUnknownJumppoints: settings.route.avoidUnknownJumppoints,
         avoidOffLimits: settings.route.avoidOffLimits
       },
     };
-    let entireRoute = this.currentRoute();
+
+    const entireRoute = this.currentRoute();
 
     if ( !entireRoute.length )
     {
@@ -401,7 +397,7 @@ class Route {
 
       for ( let i = 0, entireRouteLength = entireRoute.length; i < entireRouteLength; i += 1 )
       {
-        system = entireRoute[i].system;
+        const system = entireRoute[i].system;
 
         if ( ( i > 0 ) && ( system.id === entireRoute[ i - 1 ].system.id ) )
         {
@@ -449,16 +445,12 @@ class Route {
   }
 
   update () {
-    let _this = this, i, route, material, system, $entry;
-    let before = this.toString();
-    let entireRouteLength;
-    let waypointsLength;
+    const before = this.toString();
 
     this.__syncGraphs();
-
     this.removeFromScene();
 
-    let entireRoute = this.currentRoute();
+    const entireRoute = this.currentRoute();
 
     if ( entireRoute.length )
     {
@@ -473,16 +465,16 @@ class Route {
       this._routeObject = new THREE.Object3D();
       this._routeObject.matrixAutoUpdate = false;
 
-      let startColour = new THREE.Color( 0xEEEE66 );
-      let endColour   = new THREE.Color( 0xFF3322 );
+      const startColour = new THREE.Color( 0xEEEE66 );
+      const endColour   = new THREE.Color( 0xFF3322 );
 
-      for ( i = 0, entireRouteLength = entireRoute.length - 1; i < entireRouteLength; i += 1 ) {
-        let from = entireRoute[ i ].system;
-        let to = entireRoute[ i + 1 ].system;
-        let geometry = this.createRouteGeometry( from, to );
+      for ( let i = 0, entireRouteLength = entireRoute.length - 1; i < entireRouteLength; i += 1 ) {
+        const from = entireRoute[ i ].system;
+        const to = entireRoute[ i + 1 ].system;
+        const geometry = this.createRouteGeometry( from, to );
         if ( geometry ) {
-          material = new THREE.MeshBasicMaterial({ color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) });
-          let mesh = new THREE.Mesh( geometry, material );
+          const material = new THREE.MeshBasicMaterial({ color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) });
+          const mesh = new THREE.Mesh( geometry, material );
           mesh.position.copy( from.sceneObject.position );
           mesh.lookAt( to.sceneObject.position );
           this._routeObject.add( mesh );
@@ -497,11 +489,12 @@ class Route {
         waypointObject.visible = true;
         this._routeObject.add( waypointObject );
 
-        for ( i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 ) {
-          if ( typeof this.waypoints[i].sceneObject === 'object' ) {
-            waypointObject = map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( this.waypoints[i] ) ) );
+        for ( let i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 ) {
+          const waypoint = this.waypoints[i];
+          if ( typeof waypoint.sceneObject === 'object' ) {
+            waypointObject = map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( waypoint ) ) );
             waypointObject.scale.set( 3.8, 3.8, 3.8 );
-            waypointObject.position.copy( this.waypoints[i].sceneObject.position );
+            waypointObject.position.copy( waypoint.sceneObject.position );
             waypointObject.visible = true;
             this._routeObject.add( waypointObject );
           }
@@ -527,7 +520,7 @@ class Route {
       if ( this.start && ( this.waypoints.length ) ) {
         window.sessionStorage.currentRoute = JSON.stringify({
           start: this.start.id,
-          waypoints: $.map( this.waypoints, function ( waypoint, i ) {
+          waypoints: this.waypoints.map( waypoint => {
             return waypoint.id;
           })
         });
@@ -539,20 +532,19 @@ class Route {
 
   restoreFromSession () {
     if ( hasSessionStorage && ( 'currentRoute' in window.sessionStorage ) ) {
-      let data = JSON.parse( window.sessionStorage.currentRoute );
+      const data = JSON.parse( window.sessionStorage.currentRoute );
       this.start = System.getById( data.start );
-      this.waypoints = $.map( data.waypoints, function ( waypoint, i ) {
+      this.waypoints = data.waypoints.map( waypoint => {
         return System.getById( waypoint );
       });
-      //this.update();
     }
   }
 
   createRouteGeometry ( source, destination ) {
     if ( !source.sceneObject ) { return; }
     if ( !destination.sceneObject ) { return; }
-    let distance = source.sceneObject.position.distanceTo( destination.sceneObject.position );
-    let geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
+    const distance = source.sceneObject.position.distanceTo( destination.sceneObject.position );
+    const geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
     geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, distance / 2, 0 ) );
     geometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
     return geometry;
