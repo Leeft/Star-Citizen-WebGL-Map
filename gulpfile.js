@@ -2,6 +2,7 @@
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
 const shell = require('gulp-shell');
+const sass = require('gulp-sass');
 
 // Load other npm modules
 const del = require('del');
@@ -62,7 +63,7 @@ createLintTask('lint-src', ['src/**/*.js']);
 createLintTask('lint-test', ['test/**/*.js']);
 
 // Build N versions
-gulp.task( 'build', [ 'lint-src', 'clean' ], function() {
+gulp.task( 'build', [ 'lint-src', 'sass', 'clean' ], function() {
   return gulp.src('src/starcitizen-webgl-map.js', { read: false })
     .pipe(shell([
       'jspm install'
@@ -79,6 +80,18 @@ gulp.task( 'build', [ 'lint-src', 'clean' ], function() {
     //.pipe(shell([
     //  'jspm bundle-sfx js/myapp _site/js/steve.js --minify --no-mangle'
     //]));
+});
+
+gulp.task( 'sass', function () {
+  gulp.src( './sass/**/*.scss' )
+    .pipe( sass({
+      outputStyle: 'compressed',
+    }).on( 'error', sass.logError ) )
+    .pipe( gulp.dest( './css' ) );
+});
+
+gulp.task( 'sass:watch', function () {
+  gulp.watch( './sass/**/*.scss', [ 'sass' ] );
 });
 
 //function bundle(bundler) {

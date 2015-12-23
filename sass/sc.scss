@@ -1,30 +1,41 @@
-@rsi-blue: #6ABBCF;
-@brand-alternate: rgba(117, 168, 116, 1);
-@colour-danger: #C00;
-@text-font-family: 'Segoe UI', 'Lucida Grande', 'Tahoma', 'Calibri', sans-serif;
-@fixed-font-family: 'Consolas', 'Courier New', 'Courier', monospace;
-@button-background: rgba( 60, 60, 60, 0.7 );
-@button-hover-background: lighten( rgba( 60, 60, 60, 0.7 ), 20% );
-@panel-background: rgba( 0, 0, 0, 0.7 );
+$rsi-blue: #6ABBCF;
+$brand-alternate: rgba(117, 168, 116, 1);
+$colour-danger: #C00;
+$text-font-family: 'Segoe UI', 'Lucida Grande', 'Tahoma', 'Calibri', sans-serif;
+$fixed-font-family: 'Consolas', 'Courier New', 'Courier', monospace;
+$button-background: rgba( 60, 60, 60, 0.7 );
+$button-hover-background: lighten( rgba( 60, 60, 60, 0.7 ), 20% );
+$panel-background: rgba( 0, 0, 0, 0.7 );
 
-// @import url(http://fonts.googleapis.com/css?family=Roboto:400,700);
-
-.border-radius( @radius ) {
-           border-radius: @radius;
+@mixin border-radius( $radius ) {
+  border-radius: $radius;
 }
-//     -moz-border-radius: @radius;
-//   -webkit-border-radius: @radius;
+
+@mixin headings() {
+    color: $rsi-blue;
+    width: 100%;
+    float: none;
+    clear: both;
+    display: inline-block;
+    margin: 0;
+
+    a {
+        width: auto;
+        display: inherit;
+    }
+  }
+
 
 body.the-verse {
-   overflow: hidden;
+  overflow: hidden;
 }
 
 .sc-webgl-map {
-   background-color: #000;
-   margin: 0;
-   overflow: hidden;
-   color: #FFF;
-   font-family: @text-font-family;
+  background-color: #000;
+  margin: 0;
+  overflow: hidden;
+  color: #FFF;
+  font-family: $text-font-family;
 }
 
 .noselect {
@@ -46,7 +57,7 @@ html {
 }
 
 a {
-   color: @rsi-blue;
+   color: $rsi-blue;
    text-decoration: none;
    outline-color: transparent;
 
@@ -68,7 +79,7 @@ a {
    left: 500px;
    width: 260px;
    height: auto;
-   .border-radius( 12px );
+   @include border-radius( 12px );
    border: 1px solid #333;
    text-align: left;
    z-index: 110;
@@ -101,7 +112,7 @@ a {
    z-index: 100;
    margin: 0;
    padding: 0;
-   background: @panel-background;
+   background: $panel-background;
 
    &.widthXS { width: 260px !important; }
    &.widthS  { width: 290px !important; }
@@ -133,7 +144,7 @@ a {
    }
 
    .fixed {
-      font-family: @fixed-font-family;
+      font-family: $fixed-font-family;
    }
 
    .ui-tabs-panel {
@@ -184,22 +195,8 @@ a {
       float: right;
    }
 
-   .headings() {
-      color: @rsi-blue;
-      width: 100%;
-      float: none;
-      clear: both;
-      display: inline-block;
-      margin: 0;
-
-      a {
-         width: auto;
-         display: inherit;
-      }
-   }
-
    h1 {
-      .headings();
+      @include headings();
       font-size: 1.35rem;
 
       .systemname {
@@ -213,22 +210,22 @@ a {
    }
 
    h2 {
-      .headings();
+      @include headings();
       font-size: 1.22rem;
    }
 
    h3 {
-      .headings();
+      @include headings();
       font-size: 1.16rem;
    }
 
    h4 {
-      .headings();
+      @include headings();
       font-size: 1.14rem;
    }
 
    h5, h6 {
-      .headings();
+      @include headings();
       font-size: 1.10rem;
    }
 
@@ -239,7 +236,7 @@ a {
 
    .padleft {
       margin-left: 0.5em;
-      color: @brand-alternate;
+      color: $brand-alternate;
    }
 
    .quote {
@@ -259,17 +256,17 @@ a {
    button {
 
       font-family: inherit;
-      .border-radius( 5px );
+      @include border-radius( 5px );
       line-height: 1.6rem;
       text-align: left;
       padding: 0.45em;
       color: white;
       border: 0;
-      background: @button-background;
+      background: $button-background;
       /* margin: 0.5em; */
 
       &:hover {
-         background: @button-hover-background;
+         background: $button-hover-background;
          cursor: pointer;
       }
 
@@ -285,9 +282,9 @@ a {
          display: inline-block;
       }
       width: 16rem;
-      background: @button-background;
+      background: $button-background;
       &:hover {
-         background: @button-hover-background;
+         background: $button-hover-background;
       }
    }
 
@@ -297,16 +294,16 @@ a {
       display: block;
 
       label {
-         .border-radius( 5px );
+         @include border-radius( 5px );
          cursor: pointer;
          display: block;
          width: 15.4rem;
          padding-left: 0.5rem;
          line-height: 2.3rem;
 
-         background: @button-background;
+         background: $button-background;
          &:hover {
-            background: @button-hover-background;
+            background: $button-hover-background;
          }
       }
 
@@ -330,7 +327,7 @@ a {
       max-width: 21em;
 
       label {
-         .border-radius( 5px );
+         @include border-radius( 5px );
          cursor: pointer;
          display: block;
          width: 100%;
@@ -338,9 +335,9 @@ a {
          padding-right: 0.5rem;
          line-height: 2.3rem;
 
-         background: @button-background;
+         background: $button-background;
          &:hover {
-            background: @button-hover-background;
+            background: $button-hover-background;
          }
       }
 
@@ -395,11 +392,11 @@ a {
    }
 
    .text-danger {
-      color: @colour-danger;
+      color: $colour-danger;
    }
 
    a.text-danger:hover {
-      color: lighten( @colour-danger, 20% );
+      color: lighten( $colour-danger, 20% );
    }
 
    .impossible {
@@ -546,7 +543,7 @@ a {
       clear: left;
       text-align: right;
       font-weight: bold;
-      color: @rsi-blue;
+      color: $rsi-blue;
    }
    .wide {
       margin: 0.5rem 0;
@@ -605,10 +602,10 @@ a {
       position: relative;
       text-align: left;
       border: 1px solid darken( #888, 30% );
-      background: black; // @button-background;
+      background: black; // $button-background;
       width: 75%;
       margin-left: 2.5rem;
-      .border-radius( 3px );
+      @include border-radius( 3px );
 
       &:hover {
          cursor: pointer;
@@ -624,8 +621,8 @@ a {
          -ms-touch-action: none;
          touch-action: none;
          background: lighten( rgba( 60, 60, 60, 1.0 ), 20% );
-         border: 1px solid @brand-alternate;
-         .border-radius( 4px );
+         border: 1px solid $brand-alternate;
+         @include border-radius( 4px );
 
          &:hover {
             cursor: pointer;
@@ -770,7 +767,7 @@ a {
       top: 0;
       left: -2px;
       cursor: pointer;
-      .border-radius( 5px );
+      @include border-radius( 5px );
    }
 
    .jspArrow {
@@ -809,7 +806,7 @@ a {
 
 ::-webkit-scrollbar-thumb {
    background-color: darken( #a8a8a8, 20% );
-   .border-radius( 10px );
+   @include border-radius( 10px );
    margin: 2px;
 } /* this will style the thumb, ignoring the track */
 
@@ -818,7 +815,7 @@ a {
 } /* optionally, you can style the top and the bottom buttons (left and right for horizontal bars) */
 
 ::-webkit-resizer {
-   background-color: @brand-alternate;
+   background-color: $brand-alternate;
    outline: 1px solid slategrey;
    color: white;
    border: none;
@@ -855,11 +852,11 @@ a {
 
 /* Stats */
 #fpsText {
-   font-family: @text-font-family !important;
-   color: @rsi-blue !important;
+   font-family: $text-font-family !important;
+   color: $rsi-blue !important;
 }
 #fpsGraph {
-   background-color: @rsi-blue !important;
+   background-color: $rsi-blue !important;
 }
 /* /Stats */
 
