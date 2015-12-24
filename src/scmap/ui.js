@@ -169,8 +169,12 @@ class UI {
             break;
         }
 
+        if ( config.debug ) {
+          $('.sc-map-debug .hide').removeClass('hide');
+        }
+
         if ( hasSessionStorage() ) {
-          settings.storage.scMapTab = clicked_on;
+          window.sessionStorage.scMapTab = clicked_on;
         }
 
         /* Browsers show an ugly URL bar if href is set to #, this
@@ -211,19 +215,17 @@ class UI {
 
     // UI width slider / settings handling
     //
-    if ( hasSessionStorage() )
-    {
-      settings.storage.uiWidth = UI.widthClasses[ UI.widthClassToIndex( settings.storage.uiWidth ) ];
-      $('#sc-map-interface')
-        .removeClass( UI.widthClasses.join(' ') )
-        .addClass( settings.storage.uiWidth );
-    }
+    settings.storage.uiWidth = UI.widthClasses[ UI.widthClassToIndex( settings.storage.uiWidth ) ];
+    $('#sc-map-interface')
+      .removeClass( UI.widthClasses.join(' ') )
+      .addClass( settings.storage.uiWidth );
+
     //
     $('#sc-map-interface .sc-map-slider-uiwidth').slider({
       min: 0,
       max: UI.widthClasses.length - 1,
       range: 'min',
-      value: ( hasSessionStorage() ) ? UI.widthClassToIndex( settings.storage.uiWidth ) : UI.defaultWidthIndex,
+      value: ( settings.storage.uiWidth ) ? UI.widthClassToIndex( settings.storage.uiWidth ) : UI.defaultWidthIndex,
       change: ( event, ui ) => {
         let value = ui.value;
         $('#sc-map-interface').removeClass( UI.widthClasses.join(' ') ).addClass( UI.widthClasses[ value ] );

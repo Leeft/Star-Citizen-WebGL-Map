@@ -26,6 +26,14 @@ $( function() {
   ui       = new UI( map );
   scene    = map.scene;
 
+  const renderFunc = renderer.render.bind( renderer );
+  const animate = function () {
+    requestAnimationFrame( animate );
+    renderFunc();
+  }
+
+  animate();
+
   // Workaround for a Chrome (WebKit) issue where the
   // scrollable area can vanish when scrolling it
   if ( /webkit/i.test( navigator.userAgent ) ) {

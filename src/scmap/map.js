@@ -46,8 +46,6 @@ class Map {
 
     this.__currentlySelected = null;
 
-    this.animate = this._animate.bind( this );
-
     let map = this;
 
     const getSystems          = xhrPromise( config.systemsJson );
@@ -142,7 +140,7 @@ class Map {
     return this.getSelected();
   }
 
-  _animate () {
+  animate () {
     let rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
     this.scene.traverse( function ( object ) {
       if ( object.userData.isSelector ) {

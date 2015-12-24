@@ -14,6 +14,19 @@ import TWEEN from 'tween.js';
 import Stats from 'stats.js';
 import $ from 'jquery';
 
+let oldRenderStats = {
+  render: {
+    calls: 0,
+    faces: 0,
+    points: 0,
+    vertices: 0,
+  },
+  memory: {
+    geometries: 0,
+    textures: 0,
+  }
+};
+
 class Renderer {
   constructor ( map ) {
     this.map = map;
@@ -22,14 +35,19 @@ class Renderer {
     this.FXAA = null;
     this.camera = null;
 
-    this.textureManager = new TextureManager( 2048 );
+    if ( config.debug ) {
+      console.info( 'Additional debugging enabled' );
+    }
+
+    if ( config.quality === 'low' ) {
+      console.info( 'Low quality mode enabled' );
+    }
+
+    this.textureManager = new TextureManager( ( config.quality === 'low' ) ? 1024 : 2048 );
+    //this.textureManager.debug = ( config.debug ) ? true : false;
 
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-
-    this.resize  = this._resize.bind( this );
-    this.animate = this._animate.bind( this );
-    this.render  = this._render.bind( this );
 
     this.dpr = 1;
     if ( window.devicePixelRatio !== undefined ) {
@@ -49,7 +67,13 @@ class Renderer {
     this.controls.panSpeed = config.panSpeed;
     this.controls.noRotate = settings.control.rotationLocked;
 
-    this.threeRenderer = new THREE.WebGLRenderer( { antialias: true } );
+    this.threeRenderer = new THREE.WebGLRenderer( { antialias: ( config.quality !== 'low' ) } );
+    this.threeRenderer.shadowMap.enabled = false;
+
+    if ( config.debug ) {
+      console.info( `The renderer is`, this.threeRenderer );
+    }
+
     if ( ! settings.effect.Antialias ) {
       this.threeRenderer.autoClear = false;
     }
@@ -101,8 +125,6 @@ class Renderer {
     //  this.composer.addPass( effectBloom );
     //  this.composer.addPass( effectCopy );
     //}
-
-    this.animate();
   }
 
   cameraRotationMatrix () {
@@ -112,17 +134,24 @@ class Renderer {
 
   debugRenderer () {
     const $elem = $('#debug-renderer');
-    $elem.removeClass('hide');
-    $elem.find('dd.calls').text( this.threeRenderer.info.render.calls );
-    $elem.find('dd.faces').text( this.threeRenderer.info.render.faces );
-    $elem.find('dd.points').text( this.threeRenderer.info.render.points );
-    $elem.find('dd.vertices').text( this.threeRenderer.info.render.vertices );
+    const renderStats = this.threeRenderer.info;
 
-    $elem.find('dd.geometries').text( this.threeRenderer.info.memory.geometries );
-    $elem.find('dd.textures').text( this.threeRenderer.info.memory.textures );
+    [ 'calls', 'faces', 'points', 'vertices' ].forEach( property => {
+      if ( renderStats.render[ property ] !== oldRenderStats.render[ property ] ) {
+        $elem.find(`dd.${ property }`).text( renderStats.render[ property ] );
+        oldRenderStats.render[ property ] = renderStats.render[ property ];
+      }
+    });
+
+    [ 'geometries', 'textures' ].forEach( property => {
+      if ( renderStats.memory[ property ] !== oldRenderStats.memory[ property ] ) {
+        $elem.find(`dd.${ property }`).text( renderStats.memory[ property ] );
+        oldRenderStats.memory[ property ] = renderStats.memory[ property ];
+      }
+    });
   }
 
-  _resize () {
+  resize () {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.camera.aspect = this.width / this.height;
@@ -141,19 +170,22 @@ class Renderer {
     ui.updateHeight();
   }
 
-  _animate () {
-    requestAnimationFrame( this.animate );
-    TWEEN.update();
+  render () {
+    if ( ! this.controls ) {
+      return;
+    }
+
     this.controls.update();
     this.map.animate();
-    this.stats.update();
-    if ( config.debug === '1' ) {
+
+    TWEEN.update();
+
+    if ( config.debug ) {
       this.debugRenderer();
     }
-    this.render();
-  }
 
-  _render () {
+    this.stats.update();
+
     if ( this.composer ) {
       this.threeRenderer.clear();
       this.composer.render();

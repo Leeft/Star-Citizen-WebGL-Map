@@ -12,6 +12,7 @@
 import SCMAP from '../scmap';
 import System from './system';
 import settings from './settings';
+import config from './config';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
 
 import $ from 'jquery';
@@ -645,11 +646,13 @@ var OrbitControls = function ( renderer, domElement ) {
          radius = rotationRadius;
       }
 
-      $('#debug-angle').html(
+      if ( config.debug ) {
+        $('#debug-angle').html(
          'Camera heading: '+THREE.Math.radToDeg( theta ).toFixed(1)+'&deg; ('+theta.toFixed(2)+')<br>'+
          'Camera tilt: '+THREE.Math.radToDeg( phi ).toFixed(1)+'&deg; ('+phi.toFixed(2)+')<br>'+
          'Camera distance: '+radius.toFixed(1)
-      );
+        );
+      }
 
       // restrict radius to be between desired limits
       radius = Math.max( this.minDistance, Math.min( this.maxDistance, radius ) );

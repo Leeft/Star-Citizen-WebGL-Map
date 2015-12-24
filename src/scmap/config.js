@@ -31,13 +31,14 @@ const DEFAULTS = {
   defaultLabelOffset:   '5.0',
   maxLabelOffset:       '7.5',
 
-  debug:                '0',
+  debug:                false,
+  quality:              'high',
 };
 
 class Config {
   constructor () {
     const $element = jQuery('#sc-map-configuration');
-    if ( $element ) {
+    if ( $element && $element.data() ) {
       Object.assign( this, DEFAULTS, $element.data() );
     } else {
       Object.assign( this, DEFAULTS );
