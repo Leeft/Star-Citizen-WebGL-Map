@@ -46,7 +46,7 @@ class Map {
 
     this.__currentlySelected = null;
 
-    let map = this;
+    const map = this;
 
     const getSystems          = xhrPromise( config.systemsJson );
     const getStrategicValues  = xhrPromise( config.strategicValuesJson );
@@ -81,6 +81,8 @@ class Map {
           const grid = buildReferenceGrid();
           grid.name = 'referenceGrid';
           map.scene.add( grid );
+          grid.position.y = -0.5;
+          grid.updateMatrix();
         } catch( e ) {
           console.error( `Failed to create reference grid:`, e );
         };

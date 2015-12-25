@@ -33,6 +33,8 @@ let fontAwesomeIsReady = false;
 
 class UI {
   constructor ( map ) {
+    this.map = map;
+
     let selectedSystem = null;
     if ( 'selectedSystem' in settings.storage ) {
       selectedSystem = System.getById( settings.storage.selectedSystem );
@@ -42,8 +44,6 @@ class UI {
         selectedSystem = null;
       }
     }
-
-    this.map = map;
 
     let icons = [];
     for ( let icon in MapSymbols ) {
@@ -351,7 +351,8 @@ class UI {
 
     $('#sc-map-toggle-labels').on( 'change', function() {
       settings.labels = this.checked;
-      $('#sc-map-toggle-label-icons').prop( 'disabled', !settings.labels );
+      // FIXME: Not currently functional
+      //$('#sc-map-toggle-label-icons').prop( 'disabled', !settings.labels );
       map.updateSystems();
       settings.storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
     });
@@ -363,6 +364,15 @@ class UI {
         map.updateSystems();
         settings.storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
       });
+
+    // FIXME: This currently doesn't have any effect
+    $('#sc-map-toggle-antialias')
+      .prop( 'disabled', true );
+
+    // FIXME: This currently doesn't have any effect
+    $('#sc-map-toggle-label-icons')
+      .prop( 'disabled', true );
+
 
     $('.quick-button.with-checkbox').on( 'click', function ( event ) {
       let $this = $(this);
@@ -633,7 +643,7 @@ class UI {
           setTimeout( checkReady, 200 );
         }
       } else {
-        console.log( 'FontAwesome is loaded' );
+        console.info( 'FontAwesome is loaded' );
         fontAwesomeIsReady = true;
         if ( typeof callback === 'function' ) {
           callback();

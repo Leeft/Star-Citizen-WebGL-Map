@@ -81,6 +81,8 @@ class Settings {
   set mode ( value ) {
     if ( /^(2d|3d)$/.test( value ) ) {
       this.storage.mode = value;
+    } else {
+      this.storage.mode = '3d';
     }
   }
 

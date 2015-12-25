@@ -168,7 +168,7 @@ function buildReferenceGrid () {
   let nextPositionIndex = 0;
 
   function addLine( v1, c1, v2, c2 ) {
-    if ( nextPositionIndex >= 0xfffe ) {
+    if ( nextPositionIndex >= THREE.BufferGeometry.MaxIndex ) {
       throw new Error('Too many points');
     }
 
