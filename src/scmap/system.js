@@ -159,8 +159,17 @@ class System {
       bold:           true,
     });
 
+    if ( config.quality === 'low' ) {
+      this.label.scale = 0.75;
+      this.label.opacity = 1.0;
+    }
+
+    if ( this.isUnknown() ) {
+      this.label.scale *= 0.5;
+    }
+
     this.label.createSprite();
-    const labelScale = settings.labelScale * LABEL_SCALE;
+    const labelScale = settings.labelScale * LABEL_SCALE * ( ( this.isUnknown() ) ? 0.5 : 1 );
     this.label.sprite.scale.set( labelScale * ( this.label.node.width / this.label.node.height ), labelScale, 1 );
 
     this.label.sprite.userData.position = new THREE.Vector3( 0, - settings.labelOffset, - 0.1 );
@@ -207,7 +216,7 @@ class System {
         //if ( this.label instanceof Label ) {
         //  this.label.update( settings.labelIcons );
         //}
-        const labelScale = settings.labelScale * LABEL_SCALE;
+        const labelScale = settings.labelScale * LABEL_SCALE * ( ( this.isUnknown() ) ? 0.5 : 1 );
         object.scale.set( labelScale * ( this.label.node.width / this.label.node.height ), labelScale, 1 );
         object.visible = settings.labels;
       } else if ( object.userData.isGlow ) {
