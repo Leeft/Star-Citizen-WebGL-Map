@@ -18,10 +18,11 @@ import xhrPromise from '../helpers/xhr-promise';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
 import { buildReferenceGrid } from './basic-grid';
+import JumpPoints from './geometry/jump-points';
+import DisplayState from './map/display-state';
 
 import THREE from 'three';
 import TWEEN from 'tween.js';
-import StateMachine from 'javascript-state-machine';
 import RSVP from 'rsvp';
 import $ from 'jquery';
 
@@ -131,7 +132,39 @@ class Map {
       console.error( `Failed loading data:`, failure );
     });
 
-    this.displayState = this.buildDisplayModeFSM( settings.mode );
+    const displayState = new DisplayState({
+      mode: settings.mode,
+      map: this,
+      time: config.time,
+    });
+
+    displayState.onUpdate = function ( value ) {
+      map.route().removeFromScene(); // TODO: find a way to animate
+      map.scene.children.forEach( mesh => {
+        if ( typeof mesh.userData.scaleY === 'function' ) {
+          mesh.userData.scaleY( mesh, value );
+        }
+      });
+    };
+
+    displayState.onComplete = () => {
+      this.route().update();
+    };
+
+    displayState.onEnter2D = function () {
+      $('#sc-map-3d-mode').prop( 'checked', false );
+      settings.mode = '2d';
+    };
+
+    displayState.onEnter3D = function () {
+      $('#sc-map-3d-mode').prop( 'checked', true );
+      settings.mode = '3d';
+    };
+
+    this.displayState = displayState;
+    if ( config.debug ) {
+      console.info( 'DisplayState is', displayState );
+    }
   }
 
   getSelected () {
@@ -172,7 +205,7 @@ class Map {
     mesh.userData.isSelector = true;
     // 2d/3d tween callback
     mesh.userData.scaleY = function ( object, scalar ) {
-      let wantedY = object.userData.systemPosition.y * ( scalar / 100 );
+      let wantedY = object.userData.systemPosition.y * scalar;
       object.translateY( wantedY - object.position.y );
     };
     return mesh;
@@ -195,7 +228,9 @@ class Map {
   route () {
     if ( !( this._route instanceof Route ) ) {
       this._route = new Route();
-      console.log( 'Created new route', this._route.toString() );
+      if ( config.debug ) {
+        console.log( 'Created new route', this._route.toString() );
+      }
     }
 
     return this._route;
@@ -320,18 +355,19 @@ class Map {
       system.sceneObject = sceneObject;
     });
 
-    // Then we go through again and add the routes in a second pass
-    allSystems.forEach( system => {
-      system.jumpPoints.forEach( jumpPoint => {
-        let jumpPointObject = jumpPoint.buildSceneObject();
-        if ( jumpPointObject instanceof THREE.Object3D ) {
-          system._routeObjects.push( jumpPointObject );
-          this.scene.add( jumpPointObject );
-        }
-      });
-    });
+    // Now we're ready to generate a mesh for the jump points
+    const jumpPoints = new JumpPoints( allSystems );
+    const mesh = jumpPoints.mesh;
+    // Set the 2d/3d tween callback
+    mesh.userData.scaleY = function ( mesh, scaleY ) {
+      mesh.scale.y = scaleY;
+      mesh.updateMatrix();
+    };
+    mesh.scale.y = this.displayState.currentScale;
+    mesh.updateMatrix();
+    this.scene.add( mesh );
 
-    console.log( `Populating the scene took ${ new Date().getTime() - startTime } msec` );
+    console.info( `Populating the scene took ${ new Date().getTime() - startTime } msec` );
 
     $('#debug-systems').html( `${ systemCount } systems loaded` );
 
@@ -340,82 +376,6 @@ class Map {
 
   pointAtPlane ( theta, radius, y ) {
     return new THREE.Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
-  }
-
-  buildDisplayModeFSM ( initialState ) {
-    let tweenTo2d, tweenTo3d, position, fsm;
-    let map = this;
-
-    position = { y: ( initialState === '3d' ) ? 100 : 0.5 };
-
-    tweenTo2d = new TWEEN.Tween( position )
-      .to( { y: 0.5 }, 1000 )
-      .easing( TWEEN.Easing.Cubic.InOut )
-      .onUpdate( function () {
-        map.route().removeFromScene(); // TODO: find a way to animate
-        map.scene.children.forEach( child => {
-          if ( typeof child.userData.scaleY === 'function' ) {
-            child.userData.scaleY( child, this.y );
-          }
-        });
-      } );
-
-    tweenTo3d = new TWEEN.Tween( position )
-      .to( { y: 100.0 }, 1000 )
-      .easing( TWEEN.Easing.Cubic.InOut )
-      .onUpdate( function () {
-        map.route().removeFromScene(); // TODO: find a way to animate
-        map.scene.children.forEach( child => {
-          if ( typeof child.userData.scaleY === 'function' ) {
-            child.userData.scaleY( child, this.y );
-          }
-        });
-      } );
-
-    fsm = StateMachine.create({
-      initial: initialState || '3d',
-
-      events: [
-        { name: 'to2d',  from: '3d', to: '2d' },
-        { name: 'to3d', from: '2d', to: '3d' }
-      ],
-
-      callbacks: {
-        onenter2d: function() {
-          $('#sc-map-3d-mode').prop( 'checked', false );
-          settings.storage.mode = '2d';
-        },
-
-        onenter3d: function() {
-          $('#sc-map-3d-mode').prop( 'checked', true );
-          settings.storage.mode = '3d';
-        },
-
-        onleave2d: function() {
-          tweenTo3d.onComplete( function() {
-            fsm.transition();
-            map.route().update();
-          });
-          tweenTo3d.start();
-          return StateMachine.ASYNC;
-        },
-
-        onleave3d: function() {
-          tweenTo2d.onComplete( function() {
-            fsm.transition();
-            map.route().update();
-          });
-          tweenTo2d.start();
-          return StateMachine.ASYNC;
-        },
-      },
-
-      error: function( eventName, from, to, args, errorCode, errorMessage ) {
-        console.log( 'event ' + eventName + ' was naughty : ' + errorMessage );
-      }
-    });
-
-    return fsm;
   }
 }
 

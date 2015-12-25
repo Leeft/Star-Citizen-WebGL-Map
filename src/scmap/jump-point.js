@@ -5,30 +5,6 @@
 import System from './system';
 import THREE from 'three';
 
-const MATERIALS = {
-  NORMAL: new THREE.LineBasicMaterial({
-    color: 0xFFFFFF,
-    linewidth: 2,
-    vertexColors: true,
-  }),
-  UNDISC: new THREE.LineDashedMaterial({
-    color: 0xFFFFFF,
-    dashSize: 0.75,
-    gapSize: 0.75,
-    linewidth: 2,
-    vertexColors: true,
-  }),
-  UNCONF: new THREE.LineDashedMaterial({
-    color: 0xFFFFFF,
-    dashSize: 2,
-    gapSize: 2,
-    linewidth: 2,
-    vertexColors: true,
-  }),
-};
-
-const DEFAULT_MATERIAL = MATERIALS.UNCONF;
-
 class JumpPoint {
   constructor( data ) {
     this.id = data.jumpPointId;
@@ -38,12 +14,13 @@ class JumpPoint {
     this.drawn = false;
     this.type = ( typeof data.type === 'string' ) ? data.type : 'UNDISC';
     this.entryAU = new THREE.Vector3();
+
     if ( ( typeof data.entryAU === 'object' ) && Array.isArray( data.entryAU ) ) {
       this.entryAU = this.entryAU.fromArray( data.entryAU );
     }
 
     if ( !this.isValid() ) {
-      console.error( `Invalid route created` );
+      console.warn( `Invalid route created` );
     } else {
       if ( this.name === undefined || this.name === '' ) {
         this.name = `[${ this.source.name } to ${ this.destination.name }]`;
@@ -71,50 +48,12 @@ class JumpPoint {
     return 0;
   }
 
-  buildSceneObject () {
-    let oppositeJumppoint, geometry;
-
-    if ( this.drawn ) {
-      return;
-    }
-
-    // Check if the opposite jumppoint has already been drawn
-    oppositeJumppoint = this.getOppositeJumppoint();
-    if ( oppositeJumppoint instanceof JumpPoint && oppositeJumppoint.drawn ) {
-      return;
-    }
-
-    geometry = new THREE.Geometry();
-    geometry.colors.push( this.source.faction.lineColor );
-    geometry.vertices.push( this.source.sceneObject.position );
-    geometry.colors.push( this.destination.faction.lineColor );
-    geometry.vertices.push( this.destination.sceneObject.position );
-
-    // Set both the jumppoints as drawn
-    this.setDrawn();
-    if ( oppositeJumppoint instanceof JumpPoint ) {
-      oppositeJumppoint.setDrawn();
-    }
-
-    // This is apparently needed for dashed lines
-    geometry.computeLineDistances();
-    return new THREE.Line( geometry, this.getMaterial(), THREE.LineSegments );
-  }
-
   getOppositeJumppoint () {
     for ( let i = 0; i < this.destination.jumpPoints.length; i++ ) {
-      let jumppoint = this.destination.jumpPoints[i];
+      const jumppoint = this.destination.jumpPoints[i];
       if ( jumppoint.destination == this.source ) {
         return jumppoint;
       }
-    }
-  }
-
-  getMaterial () {
-    if ( this.type in MATERIALS ) {
-      return MATERIALS[ this.type ];
-    } else {
-      return DEFAULT_MATERIAL;
     }
   }
 

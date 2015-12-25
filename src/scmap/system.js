@@ -366,7 +366,7 @@ class System {
 
   // 2d/3d tween callback
   scaleY ( object, scalar ) {
-    let wantedY = object.userData.system.position.y * ( scalar / 100 );
+    let wantedY = object.userData.system.position.y * scalar;
     object.userData.system.sceneObject.translateY( wantedY - object.userData.system.sceneObject.position.y );
     object.userData.system.routeNeedsUpdate();
     return this;

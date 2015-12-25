@@ -4,6 +4,7 @@
 
 import System from './system';
 import { allSystems } from './systems';
+import LineSegments from './geometry/line-segments';
 
 import THREE from 'three';
 
@@ -161,28 +162,7 @@ function buildReferenceGrid () {
   let alongZ = []; for ( let j in grid ) { alongZ.push( j ); }
   alongZ.sort( function ( a, b ) { return a - b; } );
 
-  const positions = [];
-  const colors = [];
-  const indicesArray = [];
-
-  let nextPositionIndex = 0;
-
-  function addLine( v1, c1, v2, c2 ) {
-    if ( nextPositionIndex >= THREE.BufferGeometry.MaxIndex ) {
-      throw new Error('Too many points');
-    }
-
-    positions.push( v1[0], v1[1], v1[2] );
-    colors.push( c1.r, c1.g, c1.b );
-    nextPositionIndex++;
-
-    positions.push( v2[0], v2[1], v2[2] );
-    colors.push( c2.r, c2.g, c2.b );
-
-    indicesArray.push( nextPositionIndex - 1, nextPositionIndex );
-
-    return nextPositionIndex++;
-  }
+  const lines = new LineSegments();
 
   // Now we got most data worked out, and we can start drawing
   // the horizontal lines. We draw a line from start vertex to
@@ -197,18 +177,19 @@ function buildReferenceGrid () {
       const x = alongX[ j ];
       const left = Math.floor( Number( x ) - SEGMENT_SIZE );
       const right = Math.floor( Number( x ) + SEGMENT_SIZE );
+
       const vertexColor = grid[ z ][ x ];
 
       if ( (vertexColor !== grid[z][left]  && grid[z][left] ) ||
           (vertexColor !== grid[z][right] && grid[z][right])    )
       {
-        vertices.push( [ x, 0, z ] );
+        vertices.push( new THREE.Vector3( x, 0, z ) );
         vertexColours.push( uniqueColours[ vertexColor ] );
       }
     }
 
-    for ( let k = 0; k < vertices.length - 1; k++ ) {
-      addLine( vertices[k], vertexColours[k], vertices[k + 1], vertexColours[k + 1] );
+    for ( let k = 0; k < vertices.length - 1; k += 1 ) {
+      lines.addColoredLine( vertices[ k ], vertexColours[ k ], vertices[ k + 1 ], vertexColours[ k + 1 ] );
     }
   }
 
@@ -228,33 +209,21 @@ function buildReferenceGrid () {
       if ( ( grid[above] && grid[above][x] && vertexColor !== grid[above][x] ) ||
           ( grid[below] && grid[below][x] && vertexColor !== grid[below][x] )    )
       {
-        vertices.push( [ x, 0, z ] );
+        vertices.push( new THREE.Vector3( x, 0, z ) );
         vertexColours.push( uniqueColours[ vertexColor ] );
       }
     }
 
-    for ( let k = 0; k < vertices.length - 1; k++ ) {
-      addLine( vertices[k], vertexColours[k], vertices[k + 1], vertexColours[k + 1] );
+    for ( let k = 0; k < vertices.length - 1; k += 1 ) {
+      lines.addColoredLine( vertices[ k ], vertexColours[ k ], vertices[ k + 1 ], vertexColours[ k + 1 ] );
     }
   }
 
-  geo.setIndex( new THREE.BufferAttribute( new Uint16Array( indicesArray ), 1 ) );
-  geo.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array( positions ), 3 ) );
-  geo.addAttribute( 'color', new THREE.BufferAttribute( new Float32Array( colors ), 3 ) );
-  geo.dynamic = false;
-  geo.computeBoundingBox();
-
-  // Finally create the object with the geometry just built
-  let referenceLines = new THREE.Line( geo, new THREE.LineBasicMaterial({
-    linewidth: 1.5,
-    vertexColors: THREE.VertexColors,
-  }), THREE.LineSegments );
-
-  referenceLines.matrixAutoUpdate = false;
+  const mesh = lines.mesh();
 
   console.log( `Building the grid reference plane took ${ (new Date).getTime() - startTime } msec` );
 
-  return referenceLines;
+  return mesh;
 }
 
 export { buildReferenceGrid };

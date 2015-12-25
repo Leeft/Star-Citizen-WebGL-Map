@@ -95,11 +95,11 @@ class UI {
 
     $('#sc-map-3d-mode')
       .prop( 'checked', settings.mode === '3d' )
-      .on( 'change', () => {
+      .on( 'change', function () {
         if ( this.checked ) {
-          this.map.displayState.to3d();
+          map.displayState.to3d();
         } else {
-          this.map.displayState.to2d();
+          map.displayState.to2d();
         }
       });
 
@@ -131,10 +131,10 @@ class UI {
       renderer.controls.rotateTo( 0, 0, 180 );
     });
 
-    $('#sc-map-top2D').on( 'click', () => {
+    $('#sc-map-top2D').on( 'click', function () {
       renderer.controls.noRotate = true;
       $('#sc-map-lock-rotation').prop( 'checked', true );
-      this.map.displayState.to2d();
+      map.displayState.to2d();
       renderer.controls.rotateTo( 0, 0, 180 );
     });
 
