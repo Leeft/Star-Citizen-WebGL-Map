@@ -47,17 +47,28 @@ class JumpPoints {
 
       system.jumpPoints.forEach( jumpPoint => {
 
-        if ( ! jumpPoint.drawn ) {
+        if ( ! jumpPoint.drawn )
+        {
+          // TODO: Maybe this can be done more efficiently?
+          const sourceVec = jumpPoint.source.position.clone().sub( jumpPoint.destination.position );
+          sourceVec.setLength( sourceVec.length() - 3 );
+          sourceVec.add( jumpPoint.destination.position );
+
+          // TODO: Maybe this can be done more efficiently?
+          const destVec = jumpPoint.destination.position.clone().sub( jumpPoint.source.position );
+          destVec.setLength( destVec.length() - 3 );
+          destVec.add( jumpPoint.source.position );
+
           jumpLines.addColoredLine(
-            jumpPoint.source.position, jumpPoint.source.faction.lineColor,
-            jumpPoint.destination.position, jumpPoint.destination.faction.lineColor,
+            sourceVec, jumpPoint.source.faction.lineColor,
+            destVec, jumpPoint.destination.faction.lineColor,
           );
           jumpPoint.setDrawn();
-        }
 
-        const oppositeJumppoint = jumpPoint.getOppositeJumppoint();
-        if ( oppositeJumppoint instanceof JumpPoint ) {
-          oppositeJumppoint.setDrawn();
+          const oppositeJumppoint = jumpPoint.getOppositeJumppoint();
+          if ( oppositeJumppoint instanceof JumpPoint ) {
+            oppositeJumppoint.setDrawn();
+          }
         }
 
       });
