@@ -56,7 +56,7 @@ class Goods {
 
     for ( let goodsId in data ) {
 
-      if ( goods.hasOwnProperty( goodsId ) ) {
+      if ( data.hasOwnProperty( goodsId ) ) {
 
         let goods = data[ goodsId ];
 
