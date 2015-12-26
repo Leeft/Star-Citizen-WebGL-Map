@@ -12,6 +12,17 @@ class LineSegments {
     this.index = 0;
   }
 
+  addLine ( v1, v2 ) {
+    if ( this.index >= THREE.BufferGeometry.MaxIndex ) {
+      throw new Error('Too many points');
+    }
+
+    this._positions.push( v1.x, v1.y, v1.z );
+    this._positions.push( v2.x, v2.y, v2.z );
+    this._indices.push( this.index, this.index + 1 );
+    return ( this.index += 2 );
+  }
+
   addColoredLine ( v1, c1, v2, c2 ) {
     if ( this.index >= THREE.BufferGeometry.MaxIndex ) {
       throw new Error('Too many points');
@@ -51,8 +62,17 @@ class LineSegments {
     return this._geometry;
   }
 
-  mesh () {
-    const material = new THREE.LineBasicMaterial({ vertexColors: THREE.VertexColors });
+  mesh ( color ) {
+    if ( ! color ) {
+      color = 0xFFFFFF;
+    }
+
+    let vertexColors = THREE.NoColors;
+    if ( this._colors.length ) {
+      vertexColors = THREE.VertexColors;
+    }
+
+    const material = new THREE.LineBasicMaterial({ vertexColors: vertexColors, color: color });
     const mesh     = new THREE.LineSegments( this.geometry(), material );
     mesh.matrixAutoUpdate = false;
     return mesh;
