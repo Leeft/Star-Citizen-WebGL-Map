@@ -3,7 +3,7 @@
   */
 
 import SCMAP from '../../scmap';
-import System, { GLOW_SCALE } from '../system';
+import StarSystem, { GLOW_SCALE } from '../star-system';
 import Faction from '../faction';
 import UI from '../ui';
 import { hasSessionStorage } from '../functions';
@@ -123,7 +123,7 @@ Handlebars.registerHelper( 'systemLink', function( system, options ) {
   if ( 'noTarget' in options.hash ) {
     noTarget = ( options.hash.noTarget ) ? true : false;
   }
-  if ( ! ( system instanceof System ) ) {
+  if ( ! ( system instanceof StarSystem ) ) {
     return '';
   }
   return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
@@ -136,7 +136,7 @@ Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {
     return new Handlebars.SafeString( '' );
   }
 
-  if ( prev instanceof System ) {
+  if ( prev instanceof StarSystem ) {
     $elem = $( '<a></a>' );
     if ( ( prev.faction instanceof Faction ) && ( prev.faction.color instanceof THREE.Color ) ) {
       $elem.css( 'color', prev.faction.color.getStyle() );
@@ -152,7 +152,7 @@ Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {
     str += '<i class="left fa fa-fw"></i>';
   }
 
-  if ( next instanceof System ) {
+  if ( next instanceof StarSystem ) {
     $elem = $( '<a></a>' );
     if ( ( next.faction instanceof Faction ) && ( next.faction.color instanceof THREE.Color ) ) {
       $elem.css( 'color', next.faction.color.getStyle() );

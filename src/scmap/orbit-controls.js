@@ -10,7 +10,7 @@
 /*global THREE, console */
 
 import SCMAP from '../scmap';
-import System from './system';
+import StarSystem from './star-system';
 import settings from './settings';
 import config from './config';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
@@ -363,7 +363,7 @@ var OrbitControls = function ( renderer, domElement ) {
       var destinationVector;
 
       // makes sure the destination is at the same xz plane
-      if ( destination instanceof System ) {
+      if ( destination instanceof StarSystem ) {
          destinationVector = destination.position.clone().setY( this.target.y );
       } else if ( destination instanceof THREE.Vector3 ) {
          destinationVector = destination.clone().setY( this.target.y );
@@ -371,7 +371,7 @@ var OrbitControls = function ( renderer, domElement ) {
          return;
       }
 
-      if ( destination instanceof System ) {
+      if ( destination instanceof StarSystem ) {
          map.setSelectionTo( destination );
       }
 

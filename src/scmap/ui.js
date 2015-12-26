@@ -3,7 +3,7 @@
   */
 
 import SCMAP from '../scmap';
-import System, { GLOW_SCALE } from './system';
+import StarSystem, { GLOW_SCALE } from './star-system';
 import MapSymbol from './symbol';
 import MapSymbols from './symbols';
 import { allSystems } from './systems';
@@ -37,8 +37,8 @@ class UI {
 
     let selectedSystem = null;
     if ( 'selectedSystem' in settings.storage ) {
-      selectedSystem = System.getById( settings.storage.selectedSystem );
-      if ( selectedSystem instanceof System ) {
+      selectedSystem = StarSystem.getById( settings.storage.selectedSystem );
+      if ( selectedSystem instanceof StarSystem ) {
         map.setSelectionTo( selectedSystem );
       } else {
         selectedSystem = null;
@@ -163,7 +163,7 @@ class UI {
             $('#sc-map-webgl-container').removeClass('edit');
             //window.editor.enabled = false;
             //window.controls.requireAlt = false;
-            //if ( clicked_on === '#info' && map.selected() instanceof System ) {
+            //if ( clicked_on === '#info' && map.selected() instanceof StarSystem ) {
             //   map.selected().displayInfo();
             //}
             break;
@@ -414,7 +414,7 @@ class UI {
     $('#sc-map-interface').on( 'click', `a[data-goto="system"]`, function( event ) {
       event.preventDefault();
       let $this = $(this);
-      let system = System.getById( $this.data('system') );
+      let system = StarSystem.getById( $this.data('system') );
       system.displayInfo();
       renderer.controls.moveTo( system );
     });
@@ -422,7 +422,7 @@ class UI {
     $('#sc-map-interface').on( 'click', 'table.routelist .remove-waypoint', function( event ) {
       event.preventDefault();
       let $this = $(this);
-      let system = System.getById( $this.data('system') );
+      let system = StarSystem.getById( $this.data('system') );
       map.route().removeWaypoint( system );
       map.route().update();
       map.route().storeToSession();
@@ -435,7 +435,7 @@ class UI {
 
     let updateComments = function( event ) {
       event.preventDefault();
-      let system = System.getById( $(this).data('system') );
+      let system = StarSystem.getById( $(this).data('system') );
       let text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
         system.setComments( text );
@@ -453,7 +453,7 @@ class UI {
 
     $('#sc-map-interface').on( 'click', '.remove-system-comments', function( event ) {
       event.preventDefault();
-      let system = System.getById( $(this).data('system') );
+      let system = StarSystem.getById( $(this).data('system') );
       system.setComments();
       $('.comment-editing .user-system-comments').empty().val('');
       $('.comment-editing .user-system-comments-md').empty();
@@ -461,21 +461,21 @@ class UI {
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-bookmarked', function() {
-      System.getById( $(this).data('system') )
+      StarSystem.getById( $(this).data('system') )
         .setBookmarkedState( this.checked )
         .updateSceneObject( map.scene );
       settings.save( 'systems' );
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-ishangar', function() {
-      System.getById( $(this).data('system') )
+      StarSystem.getById( $(this).data('system') )
         .setHangarState( this.checked )
         .updateSceneObject( map.scene );
       settings.save( 'systems' );
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-avoid', function() {
-      System.getById( $(this).data('system') )
+      StarSystem.getById( $(this).data('system') )
         .setToBeAvoidedState( this.checked )
         .updateSceneObject( map.scene );
       settings.save( 'systems' );

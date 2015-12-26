@@ -2,15 +2,15 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import System from './system';
+import StarSystem from './star-system';
 import THREE from 'three';
 
 class JumpPoint {
   constructor( data ) {
     this.id = data.jumpPointId;
     this.name = ( typeof data.name === 'string' && data.name.length > 1 ) ? data.name : undefined;
-    this.source = ( data.source instanceof System ) ? data.source : undefined;
-    this.destination = ( data.destination instanceof System ) ? data.destination : undefined;
+    this.source = ( data.source instanceof StarSystem ) ? data.source : undefined;
+    this.destination = ( data.destination instanceof StarSystem ) ? data.destination : undefined;
     this.drawn = false;
     this.type = ( typeof data.type === 'string' ) ? data.type : 'UNDISC';
     this.entryAU = new THREE.Vector3();
@@ -58,7 +58,7 @@ class JumpPoint {
   }
 
   isValid () {
-    return( this.source instanceof System && this.destination instanceof System && this.source !== this.destination );
+    return( this.source instanceof StarSystem && this.destination instanceof StarSystem && this.source !== this.destination );
   }
 
   isUnconfirmed () {

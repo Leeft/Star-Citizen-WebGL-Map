@@ -3,7 +3,7 @@
 */
 
 import SCMAP from '../scmap';
-import System from './system';
+import StarSystem from './star-system';
 import THREE from 'three';
 
 class Faction {
@@ -27,7 +27,7 @@ class Faction {
   }
 
   claim ( system ) {
-    if ( ! system instanceof System ) {
+    if ( ! system instanceof StarSystem ) {
       throw new Error( `A faction can only claim ownership over a system` );
     }
     this._claimed.systems[ system.uuid ] = true;
@@ -35,7 +35,7 @@ class Faction {
   }
 
   claimed ( system ) {
-    if ( ! system instanceof System ) {
+    if ( ! system instanceof StarSystem ) {
       throw new Error( `A faction can only test ownership over a system` );
     }
     return this._claimed.systems[ system.uuid ];

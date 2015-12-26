@@ -2,7 +2,7 @@
   * @author Lianna Eeftinck / https://github.com/Leeft
   */
 
-import System from './system';
+import StarSystem from './star-system';
 import { allSystems } from './systems';
 import Dijkstra from './dijkstra';
 import UI from './ui';
@@ -15,19 +15,19 @@ import $ from 'jquery';
 
 class Route {
   constructor ( start, waypoints ) {
-    this.start = ( start instanceof System ) ? start : null;
+    this.start = ( start instanceof StarSystem ) ? start : null;
     this.waypoints = [];
     this._graphs = [];
     this._routeObject = undefined;
     this._error = undefined;
 
-    if ( waypoints instanceof System ) {
+    if ( waypoints instanceof StarSystem ) {
       waypoints = [ waypoints ];
     }
 
     if ( Array.isArray( waypoints ) ) {
       waypoints.forEach( waypoint => {
-        if ( waypoint instanceof System ) {
+        if ( waypoint instanceof StarSystem ) {
           this.waypoints.push( waypoint );
         }
       });
@@ -115,12 +115,12 @@ class Route {
   toString () {
     const result = [];
 
-    if ( this.start instanceof System ) {
+    if ( this.start instanceof StarSystem ) {
       result.push( this.start.toString() );
     }
 
     this.waypoints.forEach( system => {
-      if ( system instanceof System ) {
+      if ( system instanceof StarSystem ) {
         result.push( system );
       }
     });
@@ -211,18 +211,18 @@ class Route {
     const args = Array.prototype.slice.call( arguments );
 
     this.start = args.shift();
-    this.start = ( this.start instanceof System ) ? this.start : null;
+    this.start = ( this.start instanceof StarSystem ) ? this.start : null;
     this.waypoints = [];
 
     if ( this.start ) {
       args.forEach( system => {
-        if ( system instanceof System ) {
+        if ( system instanceof StarSystem ) {
           this.waypoints.push( system );
         }
       });
 
       this.waypoints = this.waypoints.filter( system => {
-        return ( system instanceof System );
+        return ( system instanceof StarSystem );
       });
     }
 
@@ -292,7 +292,7 @@ class Route {
 
     for ( let i = 0, graphsLength = this._graphs.length; i < graphsLength; i += 1 ) {
       // TODO: Check whether this is correct or not, looks kaput
-      if ( this.waypoints[i] instanceof System ) {
+      if ( this.waypoints[i] instanceof StarSystem ) {
         this._graphs[i].rebuildGraph();
         let routePart = this._graphs[i].routeArray( this.waypoints[i] );
         for ( let j = 0; j < routePart.length; j += 1 ) {
@@ -318,7 +318,7 @@ class Route {
   }
 
   indexOfCurrentRoute ( system ) {
-    if ( ! system instanceof System ) {
+    if ( ! system instanceof StarSystem ) {
       return;
     }
 
@@ -533,9 +533,9 @@ class Route {
   restoreFromSession () {
     if ( hasSessionStorage && ( 'currentRoute' in window.sessionStorage ) ) {
       const data = JSON.parse( window.sessionStorage.currentRoute );
-      this.start = System.getById( data.start );
+      this.start = StarSystem.getById( data.start );
       this.waypoints = data.waypoints.map( waypoint => {
-        return System.getById( waypoint );
+        return StarSystem.getById( waypoint );
       });
     }
   }

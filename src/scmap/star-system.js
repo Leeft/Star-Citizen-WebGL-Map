@@ -59,7 +59,7 @@ const GLOW_MATERIAL_PROMISE = new Promise( function ( resolve, reject ) {
   );
 });
 
-class System {
+class StarSystem {
   constructor ( data ) {
     this.id = undefined;
     this.uuid = undefined;
@@ -491,9 +491,9 @@ class System {
         continue;
       }
 
-      destination = System.getById( jumpPoint.destinationSystemId );
+      destination = StarSystem.getById( jumpPoint.destinationSystemId );
 
-      if ( destination instanceof System ) {
+      if ( destination instanceof StarSystem ) {
         jumpPoint = new JumpPoint({
           source: this,
           destination: destination,
@@ -526,7 +526,7 @@ class System {
     for ( key in values ) {
       newValue = values[ key ];
       if ( newValue === undefined ) {
-        console.log( `System: "${ key }" parameter is undefined for "${ this.name }"` );
+        console.log( `StarSystem: "${ key }" parameter is undefined for "${ this.name }"` );
         continue;
       }
 
@@ -587,11 +587,11 @@ class System {
   static fromJSON ( json ) {
     let system;
 
-    if ( json instanceof System ) {
+    if ( json instanceof StarSystem ) {
       return json;
     }
 
-    return new System({
+    return new StarSystem({
       'id': json.systemId,
       'uuid': json.uuid,
       'name': json.name,
@@ -626,5 +626,5 @@ class System {
   }
 }
 
-export default System;
+export default StarSystem;
 export { GLOW_SCALE };

@@ -2,7 +2,6 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import System from './system';
 import { allSystems } from './systems';
 import LineSegments from './geometry/line-segments';
 

@@ -3,7 +3,7 @@
 */
 
 import SCMAP, { travelTimeAu } from '../scmap';
-import System from './system';
+import StarSystem from './star-system';
 import settings from './settings';
 
 class Dijkstra {
@@ -13,8 +13,8 @@ class Dijkstra {
       return;
     }
 
-    this.start = ( start instanceof System ) ? start : null;
-    this.end = ( this.start && end instanceof System ) ? end : null;
+    this.start = ( start instanceof StarSystem ) ? start : null;
+    this.end = ( this.start && end instanceof StarSystem ) ? end : null;
 
     // First build a list of all nodes in the graph and
     // map them by system.id so they can be found quickly
@@ -39,12 +39,12 @@ class Dijkstra {
         otherNode, endTime, startTime = new Date();
     let distAU;
 
-    if ( ! ( this.start instanceof System ) ) { throw new Error( `No source given` ); }
-    if ( ! ( this.end instanceof System )   ) { throw new Error( `No or invalid destination given` ); }
+    if ( ! ( this.start instanceof StarSystem ) ) { throw new Error( `No source given` ); }
+    if ( ! ( this.end instanceof StarSystem )   ) { throw new Error( `No or invalid destination given` ); }
 
     this._result.destination = this.end;
     // TODO: expiry, map may have changed
-    if ( ! forceUpdate && this._result.source instanceof System && this._result.source === this.start && this._result.priority === priority ) {
+    if ( ! forceUpdate && this._result.source instanceof StarSystem && this._result.source === this.start && this._result.priority === priority ) {
       //console.log( 'Reusing generated graph starting at', this._result.source.name );
       /////this._result.destination = this.end;
       return;
@@ -158,7 +158,7 @@ class Dijkstra {
   }
 
   isStartOrEnd ( system ) {
-    if ( ! ( system instanceof System ) ) {
+    if ( ! ( system instanceof StarSystem ) ) {
       return false;
     }
 
@@ -176,13 +176,13 @@ class Dijkstra {
   }
 
   source () {
-    if ( this.start instanceof System ) {
+    if ( this.start instanceof StarSystem ) {
       return this.start;
     }
   }
 
   destination () {
-    if ( this.end instanceof System ) {
+    if ( this.end instanceof StarSystem ) {
       return this.end;
     }
   }
@@ -191,7 +191,7 @@ class Dijkstra {
     //console.log( 'rebuildGraph from', source, 'to', destination );
     this.destroyGraph();
 
-    if ( this.start instanceof System ) {
+    if ( this.start instanceof StarSystem ) {
       this.buildGraph( 'time', true );
       return true;
     }
@@ -202,8 +202,8 @@ class Dijkstra {
   }
 
   routeArray ( destination ) {
-    if ( ! ( destination instanceof System ) ) {
-      if ( ! ( this._result.destination instanceof System ) ) {
+    if ( ! ( destination instanceof StarSystem ) ) {
+      if ( ! ( this._result.destination instanceof StarSystem ) ) {
         console.error( 'No or invalid destination specified.' );
         return;
       }

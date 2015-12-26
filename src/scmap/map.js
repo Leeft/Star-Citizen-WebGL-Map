@@ -3,7 +3,7 @@
 */
 
 import SCMAP from '../scmap';
-import System from './system';
+import StarSystem from './star-system';
 import SystemList from './systems';
 import { allSystems } from './systems';
 import Goods from './goods';
@@ -18,6 +18,7 @@ import xhrPromise from '../helpers/xhr-promise';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
 import { buildReferenceGrid } from './basic-grid';
+import Systems from './geometry/systems';
 import JumpPoints from './geometry/jump-points';
 import DisplayState from './map/display-state';
 
@@ -95,8 +96,8 @@ class Map {
         map.route().update();
 
         if ( 'selectedSystem' in settings.storage ) {
-          let selectedSystem = System.getById( settings.storage.selectedSystem );
-          if ( selectedSystem instanceof System ) {
+          let selectedSystem = StarSystem.getById( settings.storage.selectedSystem );
+          if ( selectedSystem instanceof StarSystem ) {
             map.setSelectionTo( selectedSystem );
             selectedSystem.displayInfo( true );
           }
@@ -185,8 +186,8 @@ class Map {
   }
 
   setSelected ( system ) {
-    if ( system !== null && ! ( system instanceof System ) ) {
-      throw new Error( system, 'is not an instance of System' );
+    if ( system !== null && ! ( system instanceof StarSystem ) ) {
+      throw new Error( system, 'is not an instance of StarSystem' );
     }
     this.__currentlySelected = system;
     if ( system ) {
@@ -212,7 +213,7 @@ class Map {
   }
 
   __updateSelectorObject ( system ) {
-    if ( system instanceof System ) {
+    if ( system instanceof StarSystem ) {
       this._selectorObject.visible = true;
       this._selectorObject.userData.systemPosition.copy( system.position );
       //this._selectorObject.position.copy( system.sceneObject.position );
@@ -269,7 +270,7 @@ class Map {
     let tween, newPosition, position, poi, graph, route;
     let tweens = [];
 
-    if ( ! ( this._selectorObject.visible ) || ! ( this.getSelected() instanceof System ) ) {
+    if ( ! ( this._selectorObject.visible ) || ! ( this.getSelected() instanceof StarSystem ) ) {
       this._selectorObject.userData.systemPosition.copy( destination.position );
       this._selectorObject.position.copy( destination.sceneObject.position );
       this._selectorObject.visible = true;
