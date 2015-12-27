@@ -13,12 +13,12 @@ import Route from './route';
 import UI from './ui';
 import config from './config';
 import settings from './settings';
-import SelectedSystemGeometry from './selected-system-geometry';
 import xhrPromise from '../helpers/xhr-promise';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
 import DisplayState from './map/display-state';
 
+import SelectedSystemGeometry from './map/geometry/selector';
 import { buildReferenceGrid } from './map/geometry/basic-grid';
 import SystemsGeometry from './map/geometry/systems';
 import JumpPoints from './map/geometry/jump-points';
