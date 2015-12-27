@@ -3,7 +3,7 @@
 */
 import $ from 'jquery';
 import config from './config';
-import { hasLocalStorage, hasSessionStorage } from './functions';
+import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 
 import THREE from 'three';
 

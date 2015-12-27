@@ -3,10 +3,10 @@
   */
 
 import SCMAP from '../../scmap';
-import StarSystem, { GLOW_SCALE } from '../star-system';
+import StarSystem from '../star-system';
 import Faction from '../faction';
 import UI from '../ui';
-import { hasSessionStorage } from '../functions';
+import { hasSessionStorage } from '../../helpers/functions';
 
 import Handlebars from 'handlebars/handlebars.runtime';
 import markdown from 'markdown';
@@ -16,18 +16,20 @@ import $ from 'jquery';
 let sectionLevel = 1;
 let tabCounter = 0;
 
+let storage = {};
+
 Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
   let opened = ( shouldOpen ) ? true : false;
   let icon = 'fa-caret-right';
   let hidden = 'style="display: none;"';
   let attrs = [], str;
   let oldLevel = sectionLevel++;
-  let storage = null;
+
   if ( hasSessionStorage() ) {
     storage = window.sessionStorage;
   }
 
-  if ( storage && ( title in storage ) ) {
+  if ( title in storage ) {
     opened = ( storage[ title ] == '1' ) ? true : false;
   }
 

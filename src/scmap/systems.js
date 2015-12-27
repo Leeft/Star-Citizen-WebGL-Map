@@ -4,7 +4,7 @@
 
 import SCMAP from '../scmap';
 import StarSystem from './star-system';
-import { humanSort } from './functions';
+import { humanSort } from '../helpers/functions';
 
 let allSystems = [];
 

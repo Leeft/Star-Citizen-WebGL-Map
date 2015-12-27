@@ -14,7 +14,7 @@ import UI from './ui';
 import config from './config';
 import settings from './settings';
 import xhrPromise from '../helpers/xhr-promise';
-import { hasLocalStorage, hasSessionStorage } from './functions';
+import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
 import DisplayState from './map/display-state';
 

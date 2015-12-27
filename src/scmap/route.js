@@ -7,7 +7,7 @@ import { allSystems } from './systems';
 import Dijkstra from './dijkstra';
 import UI from './ui';
 import settings from './settings';
-import { hasSessionStorage } from './functions';
+import { hasSessionStorage } from '../helpers/functions';
 import { scene, map } from '../starcitizen-webgl-map';
 
 import THREE from 'three';

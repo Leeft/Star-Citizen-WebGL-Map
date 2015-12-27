@@ -9,7 +9,7 @@ import MapSymbols from './symbols';
 import { allSystems } from './systems';
 import config from './config';
 import settings from './settings';
-import { hasLocalStorage, hasSessionStorage } from './functions';
+import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 import { renderer } from '../starcitizen-webgl-map';
 
 // Import the templates
