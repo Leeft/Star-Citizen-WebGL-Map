@@ -31,6 +31,8 @@ import imagesLoaded from 'imagesloaded';
 
 let fontAwesomeIsReady = false;
 
+const sessionStorage = ( hasSessionStorage() ) ? window.sessionStorage : {};
+
 class UI {
   constructor ( map ) {
     this.map = map;
@@ -108,6 +110,7 @@ class UI {
       .on( 'change', function() {
         renderer.controls.noRotate = this.checked;
         settings.storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
+        settings.save('control');
       });
 
     $('#sc-map-resetCamera').on( 'click', function() {
@@ -139,8 +142,8 @@ class UI {
     });
 
     let tabIndex = 0;
-    if ( hasSessionStorage() && ( 'scMapTab' in window.sessionStorage ) ) {
-      let defaultTab = UI.Tab( window.sessionStorage.scMapTab );
+    if ( 'scMapTab' in sessionStorage ) {
+      let defaultTab = UI.Tab( sessionStorage.scMapTab );
       if ( defaultTab ) {
         tabIndex = defaultTab.index;
       }
@@ -173,9 +176,7 @@ class UI {
           $('.sc-map-debug .hide').removeClass('hide');
         }
 
-        if ( hasSessionStorage() ) {
-          window.sessionStorage.scMapTab = clicked_on;
-        }
+        sessionStorage.scMapTab = clicked_on;
 
         /* Browsers show an ugly URL bar if href is set to #, this
          * makes the HTML invalid but removes the ugly URL bar */
@@ -282,6 +283,7 @@ class UI {
           $('#stats').hide();
         }
         settings.storage['renderer.Stats'] = ( this.checked ) ? '1' : '0';
+        settings.save('renderer');
       });
 
     $('#sc-map-toggle-antialias')
@@ -354,10 +356,10 @@ class UI {
 
       if ( $element.is(':visible') ) {
         $this.parent().find('> a > i').first().removeClass('fa-caret-right').addClass('fa-caret-down');
-        settings.storage[ title ] = '1';
+        sessionStorage[ title ] = '1';
       } else {
         $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
-        delete settings.storage[ title ];
+        delete sessionStorage[ title ];
       }
 
       ui.updateHeight();
