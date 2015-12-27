@@ -36,19 +36,19 @@ class Map {
     this.name = `Star Citizen Persistent Universe`;
     this.scene = new THREE.Scene();
 
-    this.canEdit = false;
-
     this._route = null; // The main route the user can set
 
-    this._selectorObject = this.createSelectorObject( 0x99FF99 );
-    this.scene.add( this._selectorObject );
+    this.geometry = {};
+    this.displayState = this.buildDisplayState();
 
-    this._mouseOverObject = this.createSelectorObject( 0x8844FF );
-    this._mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
-    this.scene.add( this._mouseOverObject );
+    this.geometry.selectedSystem = this._createSelectorObject( 0x99FF99 );
+    this.scene.add( this.geometry.selectedSystem );
+
+    this.geometry.mouseOverObject = this._createSelectorObject( 0x8844FF );
+    this.geometry.mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
+    this.scene.add( this.geometry.mouseOverObject );
 
     this.__currentlySelected = null;
-    this.geometry = {};
 
     const map = this;
 
@@ -124,15 +124,17 @@ class Map {
     }, ( failure ) => {
       console.error( `Failed loading data:`, failure );
     });
+  }
 
+  buildDisplayState () {
     const displayState = new DisplayState({
       mode: settings.mode,
       map: this,
       time: config.time,
     });
 
-    displayState.onUpdate = function ( value ) {
-      map.scene.children.forEach( mesh => {
+    displayState.onUpdate = ( value ) => {
+      this.scene.children.forEach( mesh => {
         if ( typeof mesh.userData.scaleY === 'function' ) {
           mesh.userData.scaleY( mesh, value );
         }
@@ -157,6 +159,8 @@ class Map {
     if ( config.debug ) {
       console.info( 'DisplayState is', displayState );
     }
+
+    return displayState;
   }
 
   getSelected () {
@@ -189,29 +193,27 @@ class Map {
     return system;
   }
 
-  createSelectorObject ( color ) {
+  _createSelectorObject ( color ) {
     let mesh = new THREE.Mesh( SelectedSystemGeometry, new THREE.MeshBasicMaterial({ color: color }) );
     mesh.scale.set( 4.2, 4.2, 4.2 );
     mesh.visible = false;
-    mesh.userData.systemPosition = new THREE.Vector3( 0, 0, 0 );
     mesh.userData.isSelector = true;
     // 2d/3d tween callback
+    mesh.userData.position = new THREE.Vector3( 0, 0, 0 );
     mesh.userData.scaleY = function ( object, scalar ) {
-      let wantedY = object.userData.systemPosition.y * scalar;
-      object.translateY( wantedY - object.position.y );
+      object.position.setY( object.userData.position.y * scalar );
     };
     return mesh;
   }
 
   __updateSelectorObject ( system ) {
     if ( system instanceof StarSystem ) {
-      this._selectorObject.visible = true;
-      this._selectorObject.userData.systemPosition.copy( system.position );
-      //this._selectorObject.position.copy( system.position );
+      this.geometry.selectedSystem.visible = true;
+      this.geometry.selectedSystem.userData.position.copy( system.position );
       this.moveSelectorTo( system );
       this.setSelected( system );
     } else {
-      this._selectorObject.visible = false;
+      this.geometry.selectedSystem.visible = false;
       this.setSelected( null );
     }
   }
@@ -251,10 +253,11 @@ class Map {
     let tween, newPosition, position, poi, graph, route;
     let tweens = [];
 
-    if ( ! ( this._selectorObject.visible ) || ! ( this.getSelected() instanceof StarSystem ) ) {
-      this._selectorObject.userData.systemPosition.copy( destination.position );
-      this._selectorObject.position.copy( destination.position );
-      this._selectorObject.visible = true;
+    if ( ! ( this.geometry.selectedSystem.visible ) || ! ( this.getSelected() instanceof StarSystem ) ) {
+      this.geometry.selectedSystem.userData.position.copy( destination.position );
+      this.geometry.selectedSystem.position.copy( destination.position );
+      this.geometry.selectedSystem.position.setY( destination.position.y * this.displayState.currentScale );
+      this.geometry.selectedSystem.visible = true;
       this.getSelected( destination );
       return;
     }
@@ -265,17 +268,18 @@ class Map {
 
     route = graph.routeArray( destination );
     if ( route.length <= 1 ) {
-      this._selectorObject.userData.systemPosition.copy( destination.position );
-      this._selectorObject.position.copy( destination.position );
-      this._selectorObject.visible = true;
+      this.geometry.selectedSystem.userData.position.copy( destination.position );
+      this.geometry.selectedSystem.position.copy( destination.position );
+      this.geometry.selectedSystem.position.setY( destination.position.y * this.displayState.currentScale );
+      this.geometry.selectedSystem.visible = true;
       this.setSelected( destination );
       return;
     }
 
     position = {
-      x: this._selectorObject.position.x,
-      y: this._selectorObject.position.y,
-      z: this._selectorObject.position.z
+      x: this.geometry.selectedSystem.position.x,
+      y: this.geometry.selectedSystem.position.y * this.displayState.currentScale,
+      z: this.geometry.selectedSystem.position.z
     };
 
     /* jshint ignore:start */
@@ -285,12 +289,12 @@ class Map {
       tween = new TWEEN.Tween( position )
         .to( {
           x: poi.position.x,
-          y: poi.position.y,
+          y: poi.position.y * this.displayState.currentScale,
           z: poi.position.z
         }, 800 / ( route.length - 1 ) )
       .easing( TWEEN.Easing.Linear.None )
         .onUpdate( function () {
-          map._selectorObject.position.set( this.x, this.y, this.z );
+          map.geometry.selectedSystem.position.set( this.x, this.y, this.z );
         } );
 
       if ( i == 0 ) {
@@ -308,8 +312,9 @@ class Map {
       if ( i == route.length - 2 ) {
         tween.easing( TWEEN.Easing.Cubic.Out );
         tween.onComplete( function() {
-          map._selectorObject.userData.systemPosition.copy( poi.position );
-          map._selectorObject.position.copy( poi.position );
+          map.geometry.selectedSystem.userData.position.copy( poi.position );
+          map.geometry.selectedSystem.position.copy( poi.position );
+          map.geometry.selectedSystem.position.setY( destination.position.y * map.displayState.currentScale );
           map.setSelected( destination );
         } );
       }

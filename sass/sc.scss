@@ -98,10 +98,10 @@ display: none;
   //right: 0;
   canvas {
     cursor: move;
-  }
 
-  .noedit {
-    cursor: move;
+    &.mouseover {
+      cursor: pointer;
+    }
   }
 }
 

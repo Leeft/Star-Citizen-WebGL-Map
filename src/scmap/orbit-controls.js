@@ -719,15 +719,18 @@ var OrbitControls = function ( renderer, domElement ) {
             intersect = scope.map.getIntersect( event );
             if ( intersect && intersect.object.userData.system && intersect.object.userData.system !== mouseOver ) {
                mouseOver = intersect.object.userData.system;
-               map._mouseOverObject.position.copy( mouseOver.position );
-               map._mouseOverObject.visible = true;
+               map.geometry.mouseOverObject.position.copy( mouseOver.position );
+               map.geometry.mouseOverObject.position.setY( mouseOver.position.y * map.displayState.currentScale );
+               map.geometry.mouseOverObject.visible = true;
+               $('#sc-map-webgl-container canvas').addClass('mouseover');
             } else {
                if ( !intersect || !intersect.object.userData.system ) {
                   if ( mouseOver !== undefined ) {
-                     map._mouseOverObject.position.set( 0, 0, 0 );
-                     map._mouseOverObject.visible = false;
+                     map.geometry.mouseOverObject.position.set( 0, 0, 0 );
+                     map.geometry.mouseOverObject.visible = false;
                   }
                   mouseOver = undefined;
+                  $('#sc-map-webgl-container canvas').removeClass('mouseover');
                }
             }
          }
