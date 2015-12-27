@@ -8,13 +8,12 @@ import OrbitControls from './orbit-controls';
 import { ui } from '../starcitizen-webgl-map';
 
 import TextureManager from 'leeft/three-sprite-texture-atlas-manager';
-
 import THREE from 'three';
 import TWEEN from 'tween.js';
 import Stats from 'stats.js';
 import $ from 'jquery';
 
-let oldRenderStats = {
+const oldRenderStats = {
   render: {
     calls: 0,
     faces: 0,
@@ -54,13 +53,13 @@ class Renderer {
       this.dpr = window.devicePixelRatio;
     }
 
-    let container = $('#sc-map-webgl-container')[0];
+    this.container = document.getElementById('sc-map-webgl-container');
 
     this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
     this.camera.position.copy( settings.camera.camera );
     this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
 
-    this.controls = new OrbitControls( this, container );
+    this.controls = new OrbitControls( this, this.container );
     this.controls.target.copy( settings.camera.target );
     this.controls.rotateSpeed = config.rotateSpeed;
     this.controls.zoomSpeed = config.zoomSpeed;
@@ -81,27 +80,16 @@ class Renderer {
     this.threeRenderer.setClearColor( 0x000000, 1 );
     this.threeRenderer.setSize( this.width, this.height );
 
-    container.appendChild( this.threeRenderer.domElement );
-
-    let renderer = this;
+    this.container.appendChild( this.threeRenderer.domElement );
 
     // Stats
 
     this.stats = new Stats();
-    this.stats.domElement.style.position = 'absolute';
-    this.stats.domElement.style.top = '0px';
-    this.stats.domElement.style.right = '0px';
-    this.stats.domElement.style.display = 'none';
-    this.stats.domElement.style.zIndex = '100';
-    container.appendChild( this.stats.domElement );
-    if ( settings.renderer.Stats ) {
-      $('#stats').show();
-    }
 
     // Event handlers
 
-    window.addEventListener( 'resize', this.resize, false );
-    document.addEventListener( 'change', this.render, false );
+    window.addEventListener( 'resize', this.resize.bind(this), false );
+    document.addEventListener( 'change', this.render.bind(this), false );
 
     // FIXME: Bring in these classes again, re-enable the feature?
     //if ( ! settings.effect.Antialias )
@@ -126,6 +114,21 @@ class Renderer {
     //  this.composer.addPass( effectCopy );
     //}
   }
+
+  get stats () {
+    return this._stats;
+  }
+
+  set stats ( stats ) {
+    this._stats = stats;
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.top = '0px';
+    stats.domElement.style.right = '0px';
+    stats.domElement.style.display = ( settings.renderer.Stats ) ? 'block' : 'none';
+    stats.domElement.style.zIndex = '100';
+    this.container.appendChild( stats.domElement );
+  }
+
 
   cameraRotationMatrix () {
     let euler = new THREE.Euler( this.camera.userData.phi + Math.PI / 2, this.camera.userData.theta, 0, 'YXZ' );
@@ -154,6 +157,7 @@ class Renderer {
   resize () {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
+
     this.camera.aspect = this.width / this.height;
     this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
     this.camera.updateProjectionMatrix();
@@ -163,6 +167,7 @@ class Renderer {
     }
 
     this.threeRenderer.setSize( this.width, this.height );
+
     if ( this.composer ) {
       this.composer.reset();
     }
@@ -171,10 +176,6 @@ class Renderer {
   }
 
   render () {
-    if ( ! this.controls ) {
-      return;
-    }
-
     this.controls.update();
     this.map.animate();
 
