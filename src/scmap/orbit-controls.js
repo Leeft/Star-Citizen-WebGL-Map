@@ -194,11 +194,11 @@ var OrbitControls = function ( renderer, domElement ) {
                // If the click starts on an object, we're dragging from
                // that object (possibly to another object) so we take
                // note of that object and switch to the drag state
-               intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.userData.system ) {
-                  startObject = intersect.object.parent.userData.system;
+               intersect = scope.map.getIntersect( event );
+               if ( intersect && intersect.object.userData.system ) {
+                  startObject = intersect.object.userData.system;
                   if ( scope.debug ) {
-                     console.log( `Click at "${ intersect.object.parent.userData.system.name }"` );
+                     console.log( `Click at "${ intersect.object.userData.system.name }"` );
                   }
                   map.setSelectionTo( startObject );
                   startObject.displayInfo( 'doNotSwitch' );
@@ -245,10 +245,10 @@ var OrbitControls = function ( renderer, domElement ) {
 
             if ( from === 'drag' ) {
 
-               var intersect = scope.getIntersect( event );
-               if ( intersect && intersect.object.parent.userData.system )
+               var intersect = scope.map.getIntersect( event );
+               if ( intersect && intersect.object.userData.system )
                {
-                  endObject = intersect.object.parent.userData.system;
+                  endObject = intersect.object.userData.system;
                   if ( scope.debug ) {
                      console.log( 'Ended dragging at "' + endObject.toString() + '"' );
                   }
@@ -517,17 +517,6 @@ var OrbitControls = function ( renderer, domElement ) {
 
    };
 
-   // TODO: Move to map
-   this.getIntersect = function ( event ) {
-      if ( !map.interactables() ) { return; }
-      var vector, projector, raycaster, intersects;
-      vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
-      vector.unproject( scope.object );
-      raycaster = new THREE.Raycaster( scope.object.position, vector.sub( scope.object.position ).normalize() );
-      intersects = raycaster.intersectObjects( map.interactables() );
-      return intersects[0];
-   };
-
    this.objectVectorToTarget = function () {
       return this.object.position.clone().sub( this.target );
    };
@@ -727,13 +716,13 @@ var OrbitControls = function ( renderer, domElement ) {
       if ( ! scope.cameraIsMoving() )
       {
          if ( event.clientX !== mousePrevious.x && event.clientY !== mousePrevious.y ) {
-            intersect = scope.getIntersect( event );
-            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== mouseOver ) {
-               mouseOver = intersect.object.parent.userData.system;
-               map._mouseOverObject.position.copy( mouseOver.sceneObject.position );
+            intersect = scope.map.getIntersect( event );
+            if ( intersect && intersect.object.userData.system && intersect.object.userData.system !== mouseOver ) {
+               mouseOver = intersect.object.userData.system;
+               map._mouseOverObject.position.copy( mouseOver.position );
                map._mouseOverObject.visible = true;
             } else {
-               if ( !intersect || !intersect.object.parent.userData.system ) {
+               if ( !intersect || !intersect.object.userData.system ) {
                   if ( mouseOver !== undefined ) {
                      map._mouseOverObject.position.set( 0, 0, 0 );
                      map._mouseOverObject.visible = false;
@@ -761,11 +750,11 @@ var OrbitControls = function ( renderer, domElement ) {
 
          if ( startObject ) {
 
-            if ( intersect && intersect.object.parent.userData.system && intersect.object.parent.userData.system !== startObject ) {
+            if ( intersect && intersect.object.userData.system && intersect.object.userData.system !== startObject ) {
 
-               if ( !endObject || endObject !== intersect.object.parent.userData.system ) {
+               if ( !endObject || endObject !== intersect.object.userData.system ) {
 
-                  endObject = intersect.object.parent.userData.system;
+                  endObject = intersect.object.userData.system;
                   route = map.route();
 
                   if ( !route.isSet() )

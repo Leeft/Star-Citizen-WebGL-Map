@@ -14,50 +14,9 @@ import { storage } from './settings';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
 
 import THREE from 'three';
-import Label from 'leeft/three-sprite-texture-atlas-manager/src/label';
 import markdown from 'markdown';
 
-const BLACK = new THREE.Color( 'black' );
 const UNSET = new THREE.Color( 0x80A0CC );
-
-const GLOW_SCALE = 5.5;
-const LABEL_SCALE = 5;
-
-const STAR_LOD_MESHES = [
-   [ new THREE.IcosahedronGeometry( 1, 3 ),  20 ],
-   [ new THREE.IcosahedronGeometry( 1, 2 ), 150 ],
-   [ new THREE.IcosahedronGeometry( 1, 1 ), 250 ],
-   [ new THREE.IcosahedronGeometry( 1, 0 ), 500 ]
-];
-
-const STAR_MATERIAL = new THREE.MeshBasicMaterial({
-  color: 0xFFFFFF,
-  name: 'STAR_MATERIAL',
-});
-
-const INTERACTABLE_DEBUG_MATERIAL = new THREE.MeshBasicMaterial({
-  color: 0xFFFF00,
-  depthWrite: false,
-  map: null,
-  blending: THREE.AdditiveBlending,
-});
-
-const GLOW_MATERIAL_PROMISE = new Promise( function ( resolve, reject ) {
-  const loader = new THREE.TextureLoader();
-  loader.load(
-    config.glowImage,
-    function ( texture ) {
-      resolve( new THREE.SpriteMaterial({
-        map: texture,
-        blending: THREE.AdditiveBlending,
-      }));
-    },
-    function ( /* progress */ ) {},
-    function ( failure ) {
-      reject( new Error( `Could not load texture ${ config.glowImage }: ${ failure }` ) );
-    }
-  );
-});
 
 class StarSystem {
   constructor ( data ) {
@@ -87,154 +46,6 @@ class StarSystem {
     this.isMajorTradeHub = false;
 
     this.setValues( data );
-
-    // Generated, internal
-    this._routeObjects = [];
-  }
-
-  buildSceneObject () {
-    // Grouping all our system related objects in here
-    const sceneObject = new THREE.Object3D();
-
-    // To make systems easier to click, we add an invisible sprite to them
-    // (probably also easier for the raycaster) and use that as the object
-    // to interact with rather than the other objects
-    const interactable = new THREE.Sprite( INTERACTABLE_DEBUG_MATERIAL );
-    const interactableSize = Math.min( 5.75, Math.max( 5.5, 6 * this.scale ) );
-    interactable.scale.set( interactableSize, interactableSize, interactableSize );
-    sceneObject.userData.interactable = interactable;
-    sceneObject.add( interactable );
-
-    const scale = this.scale * settings.systemScale;
-
-    // LOD for the stars to make them properly rounded when viewed up close
-    // yet low on geometry at a distance
-    const starLOD = new THREE.LOD();
-    for ( let i = 0; i < STAR_LOD_MESHES.length; i++ ) {
-      const star = new THREE.Mesh( STAR_LOD_MESHES[ i ][ 0 ], System.starMaterial() );
-      star.scale.set( this.scale, this.scale, this.scale );
-      star.updateMatrix();
-      star.matrixAutoUpdate = false;
-      starLOD.addLevel( star, STAR_LOD_MESHES[ i ][ 1 ] );
-    }
-
-    starLOD.scale.set( settings.systemScale, settings.systemScale, settings.systemScale );
-    starLOD.updateMatrix();
-    starLOD.matrixAutoUpdate = false;
-    starLOD.userData.scale = settings.systemScale;
-    starLOD.userData.isSystem = true;
-    sceneObject.userData.starLOD = starLOD;
-    sceneObject.add( starLOD );
-
-    // Glow sprite for the star
-    GLOW_MATERIAL_PROMISE.then( material => {
-      const color = this.color;
-      if ( color.equals( BLACK ) ) {
-        color.copy( UNSET );
-      }
-
-      material = material.clone();
-      material.color = color;
-
-      const glow = new THREE.Sprite( material );
-      glow.scale.set( GLOW_SCALE * scale, GLOW_SCALE * scale, 1.0 );
-      glow.position.set( 0, 0, -0.2 );
-      glow.userData.isGlow = true;
-      glow.userData.scale = this.scale;
-      glow.sortParticles = true;
-      glow.visible = settings.glow;
-      sceneObject.userData.glowSprite = glow;
-      sceneObject.add( glow );
-    });
-
-    //if ( ! UI.fontAwesomeIsReady ) {
-    //  drawSymbols = false;
-    //}
-
-    this.label = new Label({
-      textureManager: renderer.textureManager,
-      text:           this.name,
-      addTo:          sceneObject,
-      fillStyle:      this.factionStyle(),
-      bold:           true,
-    });
-
-    if ( config.quality === 'low' ) {
-      this.label.scale = 0.75;
-      this.label.opacity = 1.0;
-    }
-
-    if ( this.isUnknown() ) {
-      this.label.scale *= 0.5;
-    }
-
-    this.label.createSprite();
-    const labelScale = settings.labelScale * LABEL_SCALE * ( ( this.isUnknown() ) ? 0.5 : 1 );
-    this.label.sprite.scale.set( labelScale * ( this.label.node.width / this.label.node.height ), labelScale, 1 );
-
-    this.label.sprite.userData.position = new THREE.Vector3( 0, - settings.labelOffset, - 0.1 );
-    let spriteOffset = this.label.sprite.userData.position.clone();
-    spriteOffset.applyMatrix4( renderer.cameraRotationMatrix() );
-    this.label.sprite.position.copy( spriteOffset );
-
-    this.label.sprite.userData.isLabel = true;
-
-    //systemLabel ( drawSymbols, sceneObject ) {
-
-    //  //if ( drawSymbols ) {
-    //  //  label.drawSymbols();
-    //  //}
-
-    //  //label.positionSprite( renderer.cameraRotationMatrix() );
-    //  //label.scaleSprite();
-
-    //  return label;
-    //}
-
-    //if ( this.label && this.label.sceneObject ) {
-    //  console.log( `systemLabel for ${ this.name }:`, this.label );
-    //  this.label.sceneObject.userData.isLabel = true;
-    //  this.label.sceneObject.visible = settings.labels;
-    //  sceneObject.add( this.label.sceneObject );
-    //}
-
-    sceneObject.position.copy( this.position );
-    if ( storage && storage.mode === '2d' ) {
-      sceneObject.position.setY( sceneObject.position.y * 0.005 );
-    }
-
-    sceneObject.userData.system = this;
-    sceneObject.userData.scaleY = this.scaleY;
-    return sceneObject;
-  }
-
-  updateSceneObject ( scene ) {
-    for ( let i = 0; i < this.sceneObject.children.length; i++ ) {
-      let object = this.sceneObject.children[i];
-      if ( object.userData.isLabel ) {
-        // FIXME
-        //if ( this.label instanceof Label ) {
-        //  this.label.update( settings.labelIcons );
-        //}
-        const labelScale = settings.labelScale * LABEL_SCALE * ( ( this.isUnknown() ) ? 0.5 : 1 );
-        object.scale.set( labelScale * ( this.label.node.width / this.label.node.height ), labelScale, 1 );
-        object.visible = settings.labels;
-      } else if ( object.userData.isGlow ) {
-        object.visible = settings.glow;
-      }
-    }
-  }
-
-  //setLabelScale ( vector ) {
-  //  for ( let i = 0; i < this.sceneObject.children.length; i++ ) {
-  //    if ( this.sceneObject.children[i].userData.isLabel ) {
-  //      this.sceneObject.children[i].scale.copy( vector );
-  //    }
-  //  }
-  //}
-
-  static starMaterial () {
-    return STAR_MATERIAL;
   }
 
   createInfoLink ( noSymbols, noTarget ) {
@@ -362,33 +173,6 @@ class StarSystem {
       ui.toTab( 'system' );
       ui.updateHeight();
     }
-  }
-
-  // 2d/3d tween callback
-  scaleY ( object, scalar ) {
-    let wantedY = object.userData.system.position.y * scalar;
-    object.userData.system.sceneObject.translateY( wantedY - object.userData.system.sceneObject.position.y );
-    object.userData.system.routeNeedsUpdate();
-    return this;
-  }
-
-  moveTo ( vector ) {
-    this.system.sceneObject.position.copy( vector );
-    this.system.routeNeedsUpdate();
-    return this;
-  }
-
-  translateVector ( vector ) {
-    this.system.sceneObject.add( vector );
-    this.system.routeNeedsUpdate();
-    return this;
-  }
-
-  routeNeedsUpdate () {
-    for ( let j = 0; j < this._routeObjects.length; j++ ) {
-      this._routeObjects[j].geometry.verticesNeedUpdate = true;
-    }
-    return this;
   }
 
   // Returns the jumppoint leading to the given destination
@@ -627,4 +411,3 @@ class StarSystem {
 }
 
 export default StarSystem;
-export { GLOW_SCALE };

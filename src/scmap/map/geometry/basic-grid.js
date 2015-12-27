@@ -2,8 +2,8 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import { allSystems } from './systems';
-import LineSegments from './geometry/line-segments';
+import { allSystems } from '../../systems';
+import LineSegments from './line-segments';
 
 import THREE from 'three';
 

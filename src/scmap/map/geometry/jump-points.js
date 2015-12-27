@@ -2,7 +2,8 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import JumpPoint from '../jump-point';
+import MapGeometry from '../map-geometry';
+import JumpPoint from '../../jump-point';
 import LineSegments from './line-segments';
 
 import THREE from 'three';
@@ -31,11 +32,7 @@ import THREE from 'three';
 //
 //const DEFAULT_MATERIAL = MATERIALS.UNCONF;
 
-class JumpPoints {
-  constructor( allSystems ) {
-    this.allSystems = allSystems;
-  }
-
+class JumpPoints extends MapGeometry {
   get mesh () {
     if ( this._mesh ) {
       return this._mesh;
@@ -51,12 +48,12 @@ class JumpPoints {
         {
           // TODO: Maybe this can be done more efficiently?
           const sourceVec = jumpPoint.source.position.clone().sub( jumpPoint.destination.position );
-          sourceVec.setLength( sourceVec.length() - 3 );
+          sourceVec.setLength( sourceVec.length() - ( 3 * ( jumpPoint.source.scale ) ) );
           sourceVec.add( jumpPoint.destination.position );
 
           // TODO: Maybe this can be done more efficiently?
           const destVec = jumpPoint.destination.position.clone().sub( jumpPoint.source.position );
-          destVec.setLength( destVec.length() - 3 );
+          destVec.setLength( destVec.length() - ( 3 * ( jumpPoint.destination.scale ) ) );
           destVec.add( jumpPoint.source.position );
 
           jumpLines.addColoredLine(
@@ -76,7 +73,18 @@ class JumpPoints {
     });
 
     this._mesh = jumpLines.mesh();
+
+    // Set the 2d/3d tween callback
+    this._mesh.userData.scaleY = JumpPoints.scaleY;
+
+    JumpPoints.scaleY( this._mesh, this.initialScale );
+
     return this._mesh;
+  }
+
+  static scaleY ( mesh, scaleY ) {
+    mesh.scale.y = scaleY;
+    mesh.updateMatrix();
   }
 
   //getMaterial () {

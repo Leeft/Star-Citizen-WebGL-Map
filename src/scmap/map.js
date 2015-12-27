@@ -17,10 +17,14 @@ import SelectedSystemGeometry from './selected-system-geometry';
 import xhrPromise from '../helpers/xhr-promise';
 import { hasLocalStorage, hasSessionStorage } from './functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
-import { buildReferenceGrid } from './basic-grid';
-import Systems from './geometry/systems';
-import JumpPoints from './geometry/jump-points';
 import DisplayState from './map/display-state';
+
+import { buildReferenceGrid } from './map/geometry/basic-grid';
+import SystemsGeometry from './map/geometry/systems';
+import JumpPoints from './map/geometry/jump-points';
+import SystemLabels from './map/geometry/system-labels';
+import Interactables from './map/geometry/interactables';
+import SystemGlow, { GLOW_MATERIAL_PROMISE } from './map/geometry/system-glow';
 
 import THREE from 'three';
 import TWEEN from 'tween.js';
@@ -32,11 +36,8 @@ class Map {
     this.name = `Star Citizen Persistent Universe`;
     this.scene = new THREE.Scene();
 
-    // No editing available for the moment (doesn't work yet)
     this.canEdit = false;
-    //$('#map_ui li.editor').hide();
 
-    this._interactables = [];
     this._route = null; // The main route the user can set
 
     this._selectorObject = this.createSelectorObject( 0x99FF99 );
@@ -47,6 +48,7 @@ class Map {
     this.scene.add( this._mouseOverObject );
 
     this.__currentlySelected = null;
+    this.geometry = {};
 
     const map = this;
 
@@ -104,24 +106,14 @@ class Map {
         }
 
         renderer.controls.throttledEventListener.init( 'change', function () {
-          let rotationMatrix = renderer.cameraRotationMatrix();
-
           if ( $('#debug-camera-is-moving') ) {
             $('#debug-camera-is-moving').text( 'Camera is moving' );
           }
 
           renderer.controls.rememberPosition();
 
-          map.scene.traverse( function ( object ) {
-            if ( ( object instanceof THREE.Sprite ) && object.userData.isLabel )
-            {
-              object.position.copy( object.userData.position.clone().applyMatrix4( rotationMatrix ) );
-            }
-            else if ( object instanceof THREE.LOD )
-            {
-              object.update( renderer.camera );
-            }
-          });
+          map.geometry.systems.refreshLOD( renderer.camera );
+          map.geometry.labels.matchRotation( renderer.cameraRotationMatrix() );
         });
 
         ui.updateHeight();
@@ -140,7 +132,6 @@ class Map {
     });
 
     displayState.onUpdate = function ( value ) {
-      map.route().removeFromScene(); // TODO: find a way to animate
       map.scene.children.forEach( mesh => {
         if ( typeof mesh.userData.scaleY === 'function' ) {
           mesh.userData.scaleY( mesh, value );
@@ -216,7 +207,7 @@ class Map {
     if ( system instanceof StarSystem ) {
       this._selectorObject.visible = true;
       this._selectorObject.userData.systemPosition.copy( system.position );
-      //this._selectorObject.position.copy( system.sceneObject.position );
+      //this._selectorObject.position.copy( system.position );
       this.moveSelectorTo( system );
       this.setSelected( system );
     } else {
@@ -245,18 +236,8 @@ class Map {
     return System.getByName( name );
   }
 
-  interactables () {
-    return this._interactables;
-  }
-
   deselect () {
     return this.__updateSelectorObject();
-  }
-
-  updateSystems () {
-    allSystems.forEach( system => {
-      system.updateSceneObject( this.scene );
-    });
   }
 
   setAllLabelSizes ( vector ) {
@@ -272,20 +253,20 @@ class Map {
 
     if ( ! ( this._selectorObject.visible ) || ! ( this.getSelected() instanceof StarSystem ) ) {
       this._selectorObject.userData.systemPosition.copy( destination.position );
-      this._selectorObject.position.copy( destination.sceneObject.position );
+      this._selectorObject.position.copy( destination.position );
       this._selectorObject.visible = true;
       this.getSelected( destination );
       return;
     }
 
-    newPosition = destination.sceneObject.position.clone();
+    newPosition = destination.position.clone();
     graph = new Dijkstra( allSystems, this.getSelected(), destination );
     graph.buildGraph();
 
     route = graph.routeArray( destination );
     if ( route.length <= 1 ) {
       this._selectorObject.userData.systemPosition.copy( destination.position );
-      this._selectorObject.position.copy( destination.sceneObject.position );
+      this._selectorObject.position.copy( destination.position );
       this._selectorObject.visible = true;
       this.setSelected( destination );
       return;
@@ -303,9 +284,9 @@ class Map {
 
       tween = new TWEEN.Tween( position )
         .to( {
-          x: poi.sceneObject.position.x,
-          y: poi.sceneObject.position.y,
-          z: poi.sceneObject.position.z
+          x: poi.position.x,
+          y: poi.position.y,
+          z: poi.position.z
         }, 800 / ( route.length - 1 ) )
       .easing( TWEEN.Easing.Linear.None )
         .onUpdate( function () {
@@ -328,7 +309,7 @@ class Map {
         tween.easing( TWEEN.Easing.Cubic.Out );
         tween.onComplete( function() {
           map._selectorObject.userData.systemPosition.copy( poi.position );
-          map._selectorObject.position.copy( poi.sceneObject.position );
+          map._selectorObject.position.copy( poi.position );
           map.setSelected( destination );
         } );
       }
@@ -340,39 +321,47 @@ class Map {
     tweens[0].start();
   }
 
-  populate( data ) {
-    let systemCount = 0;
+  getIntersect ( event ) {
+    return this.geometry.interactables.getIntersect( event );
+  }
 
+  populate ( data ) {
     const startTime = new Date().getTime();
 
     SystemList.preprocessSystems( data );
 
-    // First we go through the data to build the basic systems
-    allSystems.forEach( system => {
-      let sceneObject = system.buildSceneObject();
-      this.scene.add( sceneObject );
-      this._interactables.push( sceneObject.userData.interactable );
-      systemCount++;
-      system.sceneObject = sceneObject;
-    });
-
-    // Now we're ready to generate a mesh for the jump points
-    const jumpPoints = new JumpPoints( allSystems );
-    const mesh = jumpPoints.mesh;
-    // Set the 2d/3d tween callback
-    mesh.userData.scaleY = function ( mesh, scaleY ) {
-      mesh.scale.y = scaleY;
-      mesh.updateMatrix();
+    const standardGeometryParameters = {
+      allSystems: allSystems,
+      renderer: renderer,
+      initialScale: this.displayState.currentScale,
     };
-    mesh.scale.y = this.displayState.currentScale;
-    mesh.updateMatrix();
-    this.scene.add( mesh );
+
+    // Generate an object for the star systems
+    this.geometry.systems = new SystemsGeometry( standardGeometryParameters );
+    this.scene.add( this.geometry.systems.mesh );
+
+    // Generate the labels for the star systems
+    this.geometry.labels = new SystemLabels( standardGeometryParameters );
+    this.scene.add( this.geometry.labels.mesh );
+
+    // Generate the proxy sprites for mouse/touch interaction
+    this.geometry.interactables = new Interactables( standardGeometryParameters );
+    this.scene.add( this.geometry.interactables.mesh );
+
+    // Generate an object for the jump points
+    this.geometry.jumpPoints = new JumpPoints( standardGeometryParameters );
+    this.scene.add( this.geometry.jumpPoints.mesh );
+
+    // Glow sprites for the systems
+    GLOW_MATERIAL_PROMISE.then( material => {
+      standardGeometryParameters.material = material;
+      this.geometry.glow = new SystemGlow( standardGeometryParameters );
+      this.scene.add( this.geometry.glow.mesh );
+    });
 
     console.info( `Populating the scene took ${ new Date().getTime() - startTime } msec` );
 
-    $('#debug-systems').html( `${ systemCount } systems loaded` );
-
-    UI.waitForFontAwesome( () => { this.updateSystems(); } );
+    $('#debug-systems').html( `${ allSystems.length } systems loaded` );
   }
 
   pointAtPlane ( theta, radius, y ) {

@@ -110,7 +110,7 @@ class Settings {
 
 
   get labelOffset () {
-    const userOffset = ( ( Number( this.storage['settings.labelOffset'] ) > 0 ) ? Number( this.storage['settings.labelOffset'] ) : Number( config.defaultLabelOffset ) );
+    const userOffset = ( ( Number( this.storage['settings.labelOffset'] ) ) ? Number( this.storage['settings.labelOffset'] ) : Number( config.defaultLabelOffset ) );
     return Math.max(
       Number( config.minLabelOffset ),
       Math.min( userOffset, config.maxLabelOffset )

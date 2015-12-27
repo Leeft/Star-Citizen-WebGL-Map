@@ -3,7 +3,7 @@
   */
 
 import SCMAP from '../scmap';
-import StarSystem, { GLOW_SCALE } from './star-system';
+import StarSystem from './star-system';
 import MapSymbol from './symbol';
 import MapSymbols from './symbols';
 import { allSystems } from './systems';
@@ -235,62 +235,34 @@ class UI {
       }
     });
 
-    let updateLabelSize = function( event, ui ) {
-      let value = ui.value;
-      settings.labelScale = value / 100;
-      settings.storage['settings.labelScale'] = settings.labelScale;
-      map.scene.traverse( function ( object ) {
-        if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
-          object.userData.systemLabel.scaleSprite();
-        }
-      });
+    const updateLabelSize = function( event, slider ) {
+      settings.labelScale = slider.value / 100;
+      map.geometry.labels.refreshScale();
     };
-    // UI width slider / settings handling
     $('#sc-map-interface .sc-map-slider-label-size').slider({
       min: Number( config.minLabelScale ) * 100,
       max: Number( config.maxLabelScale ) * 100,
       value: settings.labelScale * 100,
       change: updateLabelSize,
-      slide: updateLabelSize
+      slide: updateLabelSize,
     });
 
-    let updateLabelOffset = function( event, ui ) {
-      let value = ui.value;
-      settings.labelOffset = value / 100;
-      settings.storage['settings.labelOffset'] = settings.labelOffset;
-      let matrix = renderer.cameraRotationMatrix();
-      map.scene.traverse( function ( object ) {
-        if ( ( object instanceof THREE.Sprite ) && object.userData.systemLabel ) {
-          object.userData.systemLabel.positionSprite( matrix );
-        }
-      });
+    const updateLabelOffset = function( event, slider ) {
+      settings.labelOffset = slider.value / 100;
+      map.geometry.labels.matchRotation( renderer.cameraRotationMatrix() );
     };
-    // Label offset slider
     $('#sc-map-interface .sc-map-slider-label-offset').slider({
       min: Number( config.minLabelOffset ) * 100,
       max: Number( config.maxLabelOffset ) * 100,
       value: settings.labelOffset * 100,
       change: updateLabelOffset,
-      slide: updateLabelOffset
+      slide: updateLabelOffset,
     });
 
-    let updateSystemScale = function( event, ui ) {
-      let value = ui.value;
-      settings.systemScale = value / 100;
-      settings.storage['settings.systemScale'] = settings.systemScale;
-      let matrix = renderer.cameraRotationMatrix();
-      let scale;
-      map.scene.traverse( function ( object ) {
-        if ( object.userData.scale && object.userData.isSystem ) {
-          scale = settings.systemScale;
-          object.scale.set( scale, scale, scale );
-          object.updateMatrix();
-          //   object.userData.systemLabel.positionSprite( matrix );
-        } else if ( object.userData.scale && object.userData.isGlow ) {
-          scale = object.userData.scale * GLOW_SCALE * settings.systemScale;
-          object.scale.set( scale, scale, scale );
-        }
-      });
+    const updateSystemScale = function( event, slider ) {
+      settings.systemScale = slider.value / 100;
+      map.geometry.systems.refreshScale();
+      map.geometry.glow.refreshScale();
     };
     // UI width slider / settings handling
     $('#sc-map-interface .sc-map-slider-system-size').slider({
@@ -345,24 +317,18 @@ class UI {
 
     $('#sc-map-toggle-glow').on( 'change', function() {
       settings.glow = this.checked;
-      map.updateSystems();
-      settings.storage['settings.Glow'] = ( this.checked ) ? '1' : '0';
+      map.geometry.glow.refreshVisibility();
     });
 
     $('#sc-map-toggle-labels').on( 'change', function() {
       settings.labels = this.checked;
-      // FIXME: Not currently functional
-      //$('#sc-map-toggle-label-icons').prop( 'disabled', !settings.labels );
-      map.updateSystems();
-      settings.storage['settings.Labels'] = ( this.checked ) ? '1' : '0';
+      map.geometry.labels.refreshVisibility();
     });
 
     $('#sc-map-toggle-label-icons')
       .prop( 'disabled', !settings.labels )
       .on( 'change', function() {
         settings.labelIcons = this.checked;
-        map.updateSystems();
-        settings.storage['settings.LabelIcons'] = ( this.checked ) ? '1' : '0';
       });
 
     // FIXME: This currently doesn't have any effect
