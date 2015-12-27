@@ -9,8 +9,8 @@ import UI from './ui';
 import settings from './settings';
 import { hasSessionStorage } from '../helpers/functions';
 import { scene, map } from '../starcitizen-webgl-map';
+import JumpRouteGeometry from './map/geometry/jump-route-geometry';
 
-import THREE from 'three';
 import $ from 'jquery';
 
 class Route {
@@ -72,7 +72,7 @@ class Route {
     return graphs;
   }
 
-  splitAt( waypoint ) {
+  splitAt ( waypoint ) {
     const graphs = this.__findGraphs( waypoint );
 
     if ( graphs.length > 1 ) {
@@ -162,7 +162,7 @@ class Route {
     });
   }
 
-  moveWaypoint( waypoint, destination ) {
+  moveWaypoint ( waypoint, destination ) {
     if ( waypoint === destination ) {
       return false;
     }
@@ -459,49 +459,14 @@ class Route {
         return;
       }
 
-      let destination = this.waypoints[ this.waypoints.length - 1 ];
-
       // Build all the parts of the route together in a single geometry group
-      this._routeObject = new THREE.Object3D();
-      this._routeObject.matrixAutoUpdate = false;
-
-      const startColour = new THREE.Color( 0xEEEE66 );
-      const endColour   = new THREE.Color( 0xFF3322 );
-
-      for ( let i = 0, entireRouteLength = entireRoute.length - 1; i < entireRouteLength; i += 1 ) {
-        const from = entireRoute[ i ].system;
-        const to = entireRoute[ i + 1 ].system;
-        const geometry = this.createRouteGeometry( from, to );
-        if ( geometry ) {
-          const material = new THREE.MeshBasicMaterial({ color: startColour.clone().lerp( endColour, this.alphaOfSystem( to ) ) });
-          const mesh = new THREE.Mesh( geometry, material );
-          mesh.position.copy( from.sceneObject.position );
-          mesh.lookAt( to.sceneObject.position );
-          this._routeObject.add( mesh );
-        }
-      }
-
-      if ( typeof this.start.sceneObject === 'object' )
-      {
-        let waypointObject = map.createSelectorObject( startColour );
-        waypointObject.scale.set( 3.8, 3.8, 3.8 );
-        waypointObject.position.copy( this.start.sceneObject.position );
-        waypointObject.visible = true;
-        this._routeObject.add( waypointObject );
-
-        for ( let i = 0, waypointsLength = this.waypoints.length; i < waypointsLength; i += 1 ) {
-          const waypoint = this.waypoints[i];
-          if ( typeof waypoint.sceneObject === 'object' ) {
-            waypointObject = map.createSelectorObject( startColour.clone().lerp( endColour, this.alphaOfSystem( waypoint ) ) );
-            waypointObject.scale.set( 3.8, 3.8, 3.8 );
-            waypointObject.position.copy( waypoint.sceneObject.position );
-            waypointObject.visible = true;
-            this._routeObject.add( waypointObject );
-          }
-        }
-
-        scene.add( this._routeObject );
-      }
+      const routeObject = new JumpRouteGeometry({
+        map: map,
+        route: this,
+        initialScale: map.displayState.currentScale,
+      });
+      this._routeObject = routeObject.mesh;
+      scene.add( routeObject.mesh );
     }
 
     $( UI.Tab('route').id )
@@ -538,16 +503,6 @@ class Route {
         return StarSystem.getById( waypoint );
       });
     }
-  }
-
-  createRouteGeometry ( source, destination ) {
-    if ( !source.sceneObject ) { return; }
-    if ( !destination.sceneObject ) { return; }
-    const distance = source.sceneObject.position.distanceTo( destination.sceneObject.position );
-    const geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
-    geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, distance / 2, 0 ) );
-    geometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
-    return geometry;
   }
 }
 

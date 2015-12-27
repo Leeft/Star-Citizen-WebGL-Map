@@ -141,10 +141,6 @@ class Map {
       });
     };
 
-    displayState.onComplete = () => {
-      this.route().update();
-    };
-
     displayState.onEnter2D = function () {
       $('#sc-map-3d-mode').prop( 'checked', false );
       settings.mode = '2d';
