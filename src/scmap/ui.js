@@ -29,8 +29,6 @@ import slider from 'jquery-ui/ui/slider';
 import jscrollpane from 'jscrollpane';
 import imagesLoaded from 'imagesloaded';
 
-let fontAwesomeIsReady = false;
-
 const sessionStorage = ( hasSessionStorage() ) ? window.sessionStorage : {};
 
 class UI {
@@ -586,40 +584,6 @@ class UI {
     );
 
     return data;
-  }
-
-  static waitForFontAwesome ( callback ) {
-    let retries = 5;
-
-    let checkReady = function() {
-      let canvas, context;
-      retries -= 1;
-      canvas = document.createElement('canvas');
-      canvas.width = 20;
-      canvas.height = 20;
-      context = canvas.getContext('2d');
-      context.fillStyle = 'rgba(0,0,0,1.0)';
-      context.fillRect( 0, 0, 20, 20 );
-      context.font = '16pt FontAwesome';
-      context.textAlign = 'center';
-      context.fillStyle = 'rgba(255,255,255,1.0)';
-      context.fillText( '\uf0c8', 10, 18 );
-      let data = context.getImageData( 2, 10, 1, 1 ).data;
-      if ( data[0] !== 255 && data[1] !== 255 && data[2] !== 255 ) {
-        console.log( 'FontAwesome is not yet available, retrying ...' );
-        if ( retries > 0 ) {
-          setTimeout( checkReady, 200 );
-        }
-      } else {
-        console.info( 'FontAwesome is loaded' );
-        fontAwesomeIsReady = true;
-        if ( typeof callback === 'function' ) {
-          callback();
-        }
-      }
-    };
-
-    checkReady();
   }
 };
 

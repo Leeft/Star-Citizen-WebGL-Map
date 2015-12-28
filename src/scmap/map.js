@@ -17,6 +17,7 @@ import xhrPromise from '../helpers/xhr-promise';
 import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
 import DisplayState from './map/display-state';
+import waitForFontAwesome from '../helpers/wait-for-font-awesome';
 
 import SelectedSystemGeometry from './map/geometry/selector';
 import { buildReferenceGrid } from './map/geometry/basic-grid';
@@ -341,9 +342,11 @@ class Map {
     this.geometry.systems = new SystemsGeometry( standardGeometryParameters );
     this.scene.add( this.geometry.systems.mesh );
 
-    // Generate the labels for the star systems
-    this.geometry.labels = new SystemLabels( standardGeometryParameters );
-    this.scene.add( this.geometry.labels.mesh );
+    waitForFontAwesome().then( () => {
+      // Generate the labels for the star systems
+      this.geometry.labels = new SystemLabels( standardGeometryParameters );
+      this.scene.add( this.geometry.labels.mesh );
+    });
 
     // Generate the proxy sprites for mouse/touch interaction
     this.geometry.interactables = new Interactables( standardGeometryParameters );
