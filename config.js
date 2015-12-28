@@ -26,7 +26,7 @@ System.config({
     "jquery": "github:components/jquery@2.1.4",
     "jquery-ui": "github:components/jqueryui@1.11.4",
     "jscrollpane": "npm:jscrollpane@2.0.22",
-    "leeft/three-sprite-texture-atlas-manager": "github:leeft/three-sprite-texture-atlas-manager@master",
+    "leeft/three-sprite-texture-atlas-manager": "github:leeft/three-sprite-texture-atlas-manager@0.1.3",
     "markdown": "npm:markdown@0.5.0",
     "rsvp": "npm:rsvp@3.1.0",
     "stats.js": "github:mrdoob/stats.js@r14",
