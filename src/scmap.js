@@ -4,12 +4,7 @@
 
 const MAPREVISION = 5;
 
-const LYtoAU = 63241.077;
-const approximateTraveltimePerAU = ( ( 8 * 60 ) + 19 ) * 5; // 8:19 at 1c, but autopilot speed is 0.2c
-
-function travelTimeAU ( distanceAU ) {
-  return( approximateTraveltimePerAU * distanceAU );
-}
+//const LYtoAU = 63241.077;
 
 // constants here
 
@@ -28,10 +23,6 @@ class SCMAP {
 
   get REVISION () {
     return MAPREVISION;
-  }
-
-  travelTimeAU ( distanceAU ) {
-    return travelTimeAU( distanceAU );
   }
 
   usersFaction () {

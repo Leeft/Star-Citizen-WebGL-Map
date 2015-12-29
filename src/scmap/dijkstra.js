@@ -2,7 +2,8 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import SCMAP, { travelTimeAu } from '../scmap';
+import SCMAP from '../scmap';
+import { travelTimeForAU } from '../helpers/functions';
 import StarSystem from './star-system';
 import settings from './settings';
 
@@ -126,16 +127,11 @@ class Dijkstra {
         distance = currentNode.distance + jumpPoint.jumpTime();
 
         if ( currentNode.previous === null ) {
-          distance += SCMAP.travelTimeAU( 0.35 ); // FIXME
-          //distance += SCMAP.travelTimeAU( jumpPoint.entryAU.length() ); // FIXME
-          //console.log( '    Flight time to JP entrance is', SCMAP.travelTimeAU( distAU ), 's' );
+          distance += travelTimeForAU( 0.35 ); // FIXME
         }
         else
         {
-          distance += SCMAP.travelTimeAU( 0.7 );
-          //distAU = currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length();
-          //console.log( '    AU from', currentNode.previous.system.name, 'to', currentNode.system.name, 'is', distAU.toFixed(2) );
-          //console.log( `would add ${ SCMAP.travelTimeAU( currentNode.previous.system.jumpPointTo( currentNode.system ).entryAU.length() ).toFixed( 1 ) }` );
+          distance += travelTimeForAU( 0.7 );
         }
 
         // Get out of "never" nodes asap by increasing the cost massively

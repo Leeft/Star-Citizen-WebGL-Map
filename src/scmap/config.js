@@ -34,6 +34,10 @@ const DEFAULTS = {
 
   debug:                false,
   quality:              'high',
+
+  // takes 8m 19s at 1c, but autopilot speed is only 0.2c
+  // FIXME: this value is probably going to be WAY, WAY off.
+  approximateTraveltimePerAU: ( ( 8 * 60 ) + 19 ) * 5,
 };
 
 class Config {
