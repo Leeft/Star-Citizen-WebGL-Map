@@ -18,6 +18,8 @@ import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 import { ui, renderer, scene } from '../starcitizen-webgl-map';
 import DisplayState from './map/display-state';
 import waitForFontAwesome from '../helpers/wait-for-font-awesome';
+import { Scene, Mesh, MeshBasicMaterial, Vector3 } from './three';
+import { degToRad } from './three/math';
 
 import SelectedSystemGeometry from './map/geometry/selector';
 import { buildReferenceGrid } from './map/geometry/basic-grid';
@@ -27,7 +29,6 @@ import SystemLabels from './map/geometry/system-labels';
 import Interactables from './map/geometry/interactables';
 import SystemGlow, { GLOW_MATERIAL_PROMISE } from './map/geometry/system-glow';
 
-import THREE from 'three';
 import TWEEN from 'tween.js';
 import RSVP from 'rsvp';
 import $ from 'jquery';
@@ -35,7 +36,7 @@ import $ from 'jquery';
 class Map {
   constructor () {
     this.name = `Star Citizen Persistent Universe`;
-    this.scene = new THREE.Scene();
+    this.scene = new Scene();
 
     this._route = null; // The main route the user can set
 
@@ -169,7 +170,7 @@ class Map {
   }
 
   animate () {
-    let rotationY = THREE.Math.degToRad( Date.now() * 0.00025 ) * 300;
+    let rotationY = degToRad( Date.now() * 0.00025 ) * 300;
     this.scene.traverse( function ( object ) {
       if ( object.userData.isSelector ) {
         object.rotation.y = rotationY;
@@ -191,12 +192,12 @@ class Map {
   }
 
   _createSelectorObject ( color ) {
-    let mesh = new THREE.Mesh( SelectedSystemGeometry, new THREE.MeshBasicMaterial({ color: color }) );
+    let mesh = new Mesh( SelectedSystemGeometry, new MeshBasicMaterial({ color: color }) );
     mesh.scale.set( 4.2, 4.2, 4.2 );
     mesh.visible = false;
     mesh.userData.isSelector = true;
     // 2d/3d tween callback
-    mesh.userData.position = new THREE.Vector3( 0, 0, 0 );
+    mesh.userData.position = new Vector3( 0, 0, 0 );
     mesh.userData.scaleY = function ( object, scalar ) {
       object.position.setY( object.userData.position.y * scalar );
     };
@@ -369,7 +370,7 @@ class Map {
   }
 
   pointAtPlane ( theta, radius, y ) {
-    return new THREE.Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
+    return new Vector3( radius * Math.cos( theta ), y, -radius * Math.sin( theta ) );
   }
 }
 

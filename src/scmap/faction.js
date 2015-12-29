@@ -4,16 +4,16 @@
 
 import SCMAP from '../scmap';
 import StarSystem from './star-system';
-import THREE from 'three';
+import { Color } from './three';
 
 class Faction {
   constructor ( data ) {
     this.id = undefined;
     this.name = 'Unclaimed';
     this.isRealFaction = false;
-    this.color = new THREE.Color( 0xFFFFFF );
-    this.planeColor = new THREE.Color( 0xFF0000 );
-    this.lineColor = new THREE.Color( 0xFFFF00 );
+    this.color = new Color( 0xFFFFFF );
+    this.planeColor = new Color( 0xFF0000 );
+    this.lineColor = new Color( 0xFFFF00 );
     this.parentFaction = null;
 
     this.setValues( data );
@@ -22,8 +22,6 @@ class Faction {
     this._claimed = {
       systems: {}
     };
-
-    this._darkMaterial = undefined;
   }
 
   claim ( system ) {
@@ -39,13 +37,6 @@ class Faction {
       throw new Error( `A faction can only test ownership over a system` );
     }
     return this._claimed.systems[ system.uuid ];
-  }
-
-  material () {
-    if ( typeof this._darkMaterial === 'undefined' ) {
-      this._darkMaterial = new THREE.MeshBasicMaterial({ color: this.planeColor, vertexColors: true });
-    }
-    return this._darkMaterial;
   }
 
   isHostileTo ( comparedTo ) {
@@ -84,13 +75,13 @@ class Faction {
       if ( key in this )
       {
         let currentValue = this[ key ];
-        if ( currentValue instanceof THREE.Color ) {
+        if ( currentValue instanceof Color ) {
 
-          if ( newValue instanceof THREE.Color ) {
+          if ( newValue instanceof Color ) {
             this[ key ] = newValue;
           } else {
             newValue = newValue.replace( '0x', '#' );
-            this[ key ] = new THREE.Color( newValue );
+            this[ key ] = new Color( newValue );
           }
           if ( key === 'color' ) {
             this.planeColor = this[ key ].clone().offsetHSL( 0, 0.5, 0 ).multiplyScalar( 0.20 );

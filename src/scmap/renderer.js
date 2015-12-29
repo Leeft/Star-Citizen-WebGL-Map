@@ -6,9 +6,9 @@ import config from './config';
 import settings from './settings';
 import OrbitControls from './orbit-controls';
 import { ui } from '../starcitizen-webgl-map';
+import { PerspectiveCamera, WebGLRenderer, Euler, Matrix4 } from './three';
 
 import TextureManager from 'leeft/three-sprite-texture-atlas-manager';
-import THREE from 'three';
 import TWEEN from 'tween.js';
 import Stats from 'stats.js';
 import $ from 'jquery';
@@ -55,7 +55,7 @@ class Renderer {
 
     this.container = document.getElementById('sc-map-webgl-container');
 
-    this.camera = new THREE.PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
+    this.camera = new PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
     this.camera.position.copy( settings.camera.camera );
     this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
 
@@ -66,7 +66,7 @@ class Renderer {
     this.controls.panSpeed = config.panSpeed;
     this.controls.noRotate = settings.control.rotationLocked;
 
-    this.threeRenderer = new THREE.WebGLRenderer( { antialias: ( config.quality !== 'low' ) } );
+    this.threeRenderer = new WebGLRenderer( { antialias: ( config.quality !== 'low' ) } );
     this.threeRenderer.shadowMap.enabled = false;
 
     if ( config.debug ) {
@@ -131,8 +131,8 @@ class Renderer {
 
 
   cameraRotationMatrix () {
-    let euler = new THREE.Euler( this.camera.userData.phi + Math.PI / 2, this.camera.userData.theta, 0, 'YXZ' );
-    return new THREE.Matrix4().makeRotationFromEuler( euler );
+    let euler = new Euler( this.camera.userData.phi + Math.PI / 2, this.camera.userData.theta, 0, 'YXZ' );
+    return new Matrix4().makeRotationFromEuler( euler );
   }
 
   debugRenderer () {

@@ -12,24 +12,25 @@ import config from './config';
 import settings from './settings';
 import { storage } from './settings';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
+import { Color, Vector3 } from './three';
+import { generateUUID } from './three/math';
 
-import THREE from 'three';
 import markdown from 'markdown';
 
-const UNSET = new THREE.Color( 0x80A0CC );
+const UNSET = new Color( 0x80A0CC );
 
 class StarSystem {
   constructor ( data ) {
     this.id = undefined;
     this.uuid = undefined;
-    this.name = THREE.Math.generateUUID();
+    this.name = generateUUID();
     this.nickname = '';
-    this.position = new THREE.Vector3();
+    this.position = new Vector3();
     this.faction = new Faction();
     this.size = 'medium';
     this.jumpPoints = [];
     this.poi = [];
-    this.color = new THREE.Color( 0xFFFFFF );
+    this.color = new Color( 0xFFFFFF );
     this.planets = 0;
     this.planetaryRotation = [];
     this.import = [];
@@ -341,9 +342,9 @@ class StarSystem {
           this[ key ] = newValue;
         }
 
-        if ( currentValue instanceof THREE.Color ) {
+        if ( currentValue instanceof Color ) {
 
-          if ( newValue instanceof THREE.Color ) {
+          if ( newValue instanceof Color ) {
             this[ key ] = newValue;
           } else {
             newValue = newValue.replace( '0x', '#' );
@@ -351,7 +352,7 @@ class StarSystem {
             if ( /unknown/.test( newValue ) ) {
               this[ key ] = UNSET;
             } else {
-              this[ key ] = new THREE.Color( newValue );
+              this[ key ] = new Color( newValue );
             }
           }
 
@@ -359,13 +360,13 @@ class StarSystem {
 
           this[ key ] = newValue.claim( this );
 
-        } else if ( currentValue instanceof THREE.Vector3 && newValue instanceof THREE.Vector3 ) {
+        } else if ( currentValue instanceof Vector3 && newValue instanceof Vector3 ) {
 
           currentValue.copy( newValue );
 
-        } else if ( currentValue instanceof THREE.Vector3 ) {
+        } else if ( currentValue instanceof Vector3 ) {
 
-          if ( newValue instanceof THREE.Vector3 ) {
+          if ( newValue instanceof Vector3 ) {
             currentValue.copy( newValue );
           } else if ( newValue instanceof Array ) {
             currentValue.fromArray( newValue );

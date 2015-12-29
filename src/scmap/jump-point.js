@@ -3,7 +3,7 @@
 */
 
 import StarSystem from './star-system';
-import THREE from 'three';
+import { Vector3 } from './three'
 
 class JumpPoint {
   constructor( data ) {
@@ -13,14 +13,14 @@ class JumpPoint {
     this.destination = ( data.destination instanceof StarSystem ) ? data.destination : undefined;
     this.drawn = false;
     this.type = ( typeof data.type === 'string' ) ? data.type : 'UNDISC';
-    this.entryAU = new THREE.Vector3();
 
-    if ( ( typeof data.entryAU === 'object' ) && Array.isArray( data.entryAU ) ) {
-      this.entryAU = this.entryAU.fromArray( data.entryAU );
+    this.entryAU = new Vector3();
+    if ( Array.isArray( data.entryAU ) ) {
+      this.entryAU.fromArray( data.entryAU );
     }
 
-    if ( !this.isValid() ) {
-      console.warn( `Invalid route created` );
+    if ( ! this.isValid() ) {
+      console.warn( `Invalid route created`, this );
     } else {
       if ( this.name === undefined || this.name === '' ) {
         this.name = `[${ this.source.name } to ${ this.destination.name }]`;
@@ -29,12 +29,12 @@ class JumpPoint {
   }
 
   length () {
-    if ( !this.isValid() ) { return; }
+    if ( ! this.isValid() ) { return; }
     return this.source.position.distanceTo( this.destination.position );
   }
 
   jumpTime () {
-    if ( !this.isValid() ) { return; }
+    if ( ! this.isValid() ) { return; }
     // TODO FIXME: This is a rough guesstimate on how long it will take
     // to travel a JP, and not based in any facts ... no word from devs
     // on this so far.
@@ -42,7 +42,7 @@ class JumpPoint {
   }
 
   fuelConsumption () {
-    if ( !this.isValid() ) { return; }
+    if ( ! this.isValid() ) { return; }
     // TODO: Devs have stated that JP's don't consume fuel to traverse.
     // If that changes, this needs to be quantified and fixed.
     return 0;
@@ -58,7 +58,11 @@ class JumpPoint {
   }
 
   isValid () {
-    return( this.source instanceof StarSystem && this.destination instanceof StarSystem && this.source !== this.destination );
+    return(
+      ( this.source instanceof StarSystem ) &&
+      ( this.destination instanceof StarSystem ) &&
+      ( this.source !== this.destination )
+    );
   }
 
   isUnconfirmed () {

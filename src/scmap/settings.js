@@ -1,11 +1,9 @@
 /**
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
-import $ from 'jquery';
 import config from './config';
 import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
-
-import THREE from 'three';
+import { Vector3 } from './three';
 
 class Settings {
   constructor () {
@@ -19,8 +17,8 @@ class Settings {
     }
 
     this.camera = {
-      camera: new THREE.Vector3( 0, 80, 100 ),
-      target: new THREE.Vector3( 0, 10, 0 ),
+      camera: new Vector3( 0, 80, 100 ),
+      target: new Vector3( 0, 10, 0 ),
       orientation: {
         theta: 0,
         phi: 0.9616764178488756,
@@ -55,9 +53,9 @@ class Settings {
     // Load configs
 
     this.cameraDefaults = JSON.parse( JSON.stringify( this.camera ) );
-    this.cameraDefaults.camera = new THREE.Vector3();
+    this.cameraDefaults.camera = new Vector3();
     this.cameraDefaults.camera.copy( this.camera.camera );
-    this.cameraDefaults.target = new THREE.Vector3();
+    this.cameraDefaults.target = new Vector3();
     this.cameraDefaults.target.copy( this.camera.target );
 
     this.load( 'camera' );

@@ -7,10 +7,10 @@ import StarSystem from '../star-system';
 import Faction from '../faction';
 import UI from '../ui';
 import { hasSessionStorage } from '../../helpers/functions';
+import { Color } from '../../scmap/three';
 
 import Handlebars from 'handlebars/handlebars.runtime';
 import markdown from 'markdown';
-import THREE from 'three';
 import $ from 'jquery';
 
 let sectionLevel = 1;
@@ -140,7 +140,7 @@ Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {
 
   if ( prev instanceof StarSystem ) {
     $elem = $( '<a></a>' );
-    if ( ( prev.faction instanceof Faction ) && ( prev.faction.color instanceof THREE.Color ) ) {
+    if ( ( prev.faction instanceof Faction ) && ( prev.faction.color instanceof Color ) ) {
       $elem.css( 'color', prev.faction.color.getStyle() );
     }
     $elem.addClass( 'system-link' );
@@ -156,7 +156,7 @@ Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {
 
   if ( next instanceof StarSystem ) {
     $elem = $( '<a></a>' );
-    if ( ( next.faction instanceof Faction ) && ( next.faction.color instanceof THREE.Color ) ) {
+    if ( ( next.faction instanceof Faction ) && ( next.faction.color instanceof Color ) ) {
       $elem.css( 'color', next.faction.color.getStyle() );
     }
     $elem.addClass( 'system-link' );

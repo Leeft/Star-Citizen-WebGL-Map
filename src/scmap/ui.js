@@ -21,7 +21,6 @@ import listingsTemplate from '../template/partial/systems-listing.hbs!';
 import routeListingTemplate from '../template/partial/route-list.hbs!';
 
 import markdown from 'markdown';
-import THREE from 'three';
 import $ from 'jquery';
 
 import tabs from 'jquery-ui/ui/tabs';
@@ -284,36 +283,36 @@ class UI {
         settings.save('renderer');
       });
 
-    $('#sc-map-toggle-antialias')
-      .on( 'change', function() {
-        settings.effect.Antialias = this.checked;
-        settings.save( 'effect' );
-        window.location.reload( false );
-      });
+    //$('#sc-map-toggle-antialias')
+    //  .on( 'change', function() {
+    //    settings.effect.Antialias = this.checked;
+    //    settings.save( 'effect' );
+    //    window.location.reload( false );
+    //  });
 
-    $('#sc-map-toggle-fxaa')
-      .prop( 'disabled', settings.effect.Antialias )
-      .on( 'change', function() {
-        settings.effect.FXAA = this.checked;
-        settings.save( 'effect' );
-        if ( renderer.FXAA ) {
-          renderer.FXAA.enabled = this.checked;
-        }
-      });
+    //$('#sc-map-toggle-fxaa')
+    //  .prop( 'disabled', settings.effect.Antialias )
+    //  .on( 'change', function() {
+    //    settings.effect.FXAA = this.checked;
+    //    settings.save( 'effect' );
+    //    if ( renderer.FXAA ) {
+    //      renderer.FXAA.enabled = this.checked;
+    //    }
+    //  });
 
-    $('#sc-map-toggle-bloom')
-      .prop( 'disabled', settings.effect.Antialias )
-      .on( 'change', function() {
-        settings.effect.Bloom = this.checked;
-        settings.save( 'effect' );
-        if ( renderer.composer ) {
-          for ( let i = 0; i < renderer.composer.passes.length; i++ ) {
-            if ( renderer.composer.passes[i] instanceof THREE.BloomPass ) {
-              renderer.composer.passes[i].enabled = this.checked;
-            }
-          }
-        }
-      });
+    //$('#sc-map-toggle-bloom')
+    //  .prop( 'disabled', settings.effect.Antialias )
+    //  .on( 'change', function() {
+    //    settings.effect.Bloom = this.checked;
+    //    settings.save( 'effect' );
+    //    if ( renderer.composer ) {
+    //      for ( let i = 0; i < renderer.composer.passes.length; i++ ) {
+    //        if ( renderer.composer.passes[i] instanceof THREE.BloomPass ) {
+    //          renderer.composer.passes[i].enabled = this.checked;
+    //        }
+    //      }
+    //    }
+    //  });
 
     $('#sc-map-toggle-glow').on( 'change', function() {
       settings.glow = this.checked;
@@ -332,9 +331,10 @@ class UI {
         map.geometry.labels.refreshIcons();
       });
 
-    // FIXME: This currently doesn't have any effect
-    $('#sc-map-toggle-antialias')
-      .prop( 'disabled', true );
+    // FIXME: These currently don't have any effect
+    $('#sc-map-toggle-antialias').prop( 'disabled', true );
+    $('#sc-map-toggle-fxaa').prop( 'disabled', true );
+    $('#sc-map-toggle-bloom').prop( 'disabled', true );
 
     $('.quick-button.with-checkbox').on( 'click', function ( event ) {
       let $this = $(this);
