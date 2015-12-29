@@ -4,18 +4,13 @@
 
 import SCMAP from '../scmap';
 import Faction from './faction';
-import UI from './ui';
 import JumpPoint from './jump-point';
-import MapSymbol from './symbol';
-import MapSymbols from './symbols';
+import MapSymbols from './ui/symbols';
 import config from './config';
 import settings from './settings';
-import { storage } from './settings';
-import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
+import { map } from '../starcitizen-webgl-map';
 import { Color, Vector3 } from './three';
 import { generateUUID } from './three/math';
-
-import markdown from 'markdown';
 
 const UNSET = new Color( 0x80A0CC );
 
@@ -47,48 +42,6 @@ class StarSystem {
     this.isMajorTradeHub = false;
 
     this.setValues( data );
-  }
-
-  createInfoLink ( noSymbols, noTarget ) {
-    let $line = $( '<a></a>' );
-
-    if ( typeof this.faction !== 'undefined' && typeof this.faction !== 'undefined' ) {
-      $line.css( 'color', this.faction.color.getStyle() );
-    }
-
-    $line.addClass('system-link');
-    $line.attr( 'data-goto', 'system' );
-    $line.attr( 'data-system', this.id );
-    $line.attr( 'href', '#system=' + encodeURIComponent( this.name ) );
-    $line.attr( 'title', 'Show information on ' + this.name );
-    if ( noTarget ) {
-      $line.text( this.name );
-    } else {
-      $line.html( '<i class="fa fa-crosshairs"></i>&nbsp;' + this.name );
-    }
-
-    if ( !noSymbols )
-    {
-      let symbols = this.getIcons();
-      if ( symbols.length )
-      {
-        let $span = $('<span class="icons"></span>');
-        for ( let i = 0; i < symbols.length; i++ ) {
-          $span.append( MapSymbol.getTag( symbols[i] ) );
-        }
-        $line.append( $span );
-      }
-    }
-
-    return $line;
-  }
-
-  symbolsToKey ( symbols ) {
-    let list = [];
-    for ( let i = 0; i < symbols.length; i++ ) {
-      list.push( symbols[i].code );
-    }
-    return list.join( ';' );
   }
 
   getIcons () {
@@ -133,59 +86,6 @@ class StarSystem {
   // TODO: Move this helper to label class
   refreshScale ( scale ) {
     this.label.sprite.scale.set( scale * ( this.label.node.width / this.label.node.height ), scale, 1 );
-  }
-
-  displayInfo ( doNotSwitch ) {
-    let me = this;
-    let previous = null;
-    let next = null;
-    let currentStep = map.route().indexOfCurrentRoute( this );
-
-    if ( typeof currentStep === 'number' )
-    {
-      let currentRoute = map.route().currentRoute();
-
-      if ( currentStep > 0 ) {
-        previous = currentRoute[ currentStep - 1 ].system;
-        if ( ( currentStep > 1 ) && ( previous === currentRoute[ currentStep ].system ) ) {
-          previous = currentRoute[ currentStep - 2 ].system;
-        }
-        previous = previous;
-      }
-
-      if ( currentStep < ( currentRoute.length - 1 ) ) {
-        next = currentRoute[ currentStep + 1 ].system;
-        if ( ( currentStep < ( currentRoute.length - 2 ) ) && ( next === currentRoute[ currentStep ].system ) ) {
-          next = currentRoute[ currentStep + 2 ].system;
-        }
-      }
-    }
-
-    let $element = $( UI.Tab('system').id )
-      .empty()
-      .append( UI.Templates.systemInfo({
-        previous: previous,
-        system: me,
-        next: next
-      }));
-
-    // Set user's notes and bookmarks
-    $element.find('.user-system-ishangar').prop( 'checked', this.hasHangar() ).attr( 'data-system', this.id );
-    $element.find('.user-system-bookmarked').prop( 'checked', this.isBookmarked() ).attr( 'data-system', this.id );
-    $element.find('.user-system-avoid').prop( 'checked', this.isToBeAvoided() ).attr( 'data-system', this.id );
-
-    if ( this.hasComments() ) {
-      $element.find('.user-system-comments').empty().val( this.getComments() );
-      $element.find('.user-system-comments-md').html( $( markdown.toHTML( this.getComments() ) ) );
-    } else {
-      $element.find('.user-system-comments').empty().val('');
-      $element.find('.user-system-comments-md').empty();
-    }
-
-    if ( !doNotSwitch ) {
-      ui.toTab( 'system' );
-      ui.updateHeight();
-    }
   }
 
   // Returns the jumppoint leading to the given destination

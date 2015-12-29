@@ -4,13 +4,15 @@
 
 import SCMAP from '../scmap';
 import StarSystem from './star-system';
-import MapSymbol from './symbol';
-import MapSymbols from './symbols';
+import MapSymbol from './ui/symbol';
+import MapSymbols from './ui/symbols';
 import { allSystems } from './systems';
 import config from './config';
 import settings from './settings';
 import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 import { renderer } from '../starcitizen-webgl-map';
+import RouteUI from './ui/route';
+import { displayInfo, createInfoLink } from './ui/star-system';
 
 // Import the templates
 import helpers from './ui/helpers';
@@ -28,7 +30,24 @@ import slider from 'jquery-ui/ui/slider';
 import jscrollpane from 'jscrollpane';
 import imagesLoaded from 'imagesloaded';
 
+$.fn.outerHtml = function() {
+  return $('<div />').append(this.eq(0).clone()).html();
+};
+
 const sessionStorage = ( hasSessionStorage() ) ? window.sessionStorage : {};
+
+const oldRenderStats = {
+  render: {
+    calls: 0,
+    faces: 0,
+    points: 0,
+    vertices: 0,
+  },
+  memory: {
+    geometries: 0,
+    textures: 0,
+  }
+};
 
 class UI {
   constructor ( map ) {
@@ -45,8 +64,8 @@ class UI {
     }
 
     let icons = [];
-    for ( let icon in MapSymbols ) {
-      icon = MapSymbols[ icon ];
+    for ( let name in MapSymbols ) {
+      const icon = MapSymbols[ name ];
       icons.push( $('<span><i class="fa-li fa ' + icon.cssClass + '"></i>' + icon.description + '</span>' ).css( 'color', icon.color ).outerHtml() );
     }
 
@@ -84,7 +103,7 @@ class UI {
             Bloom: settings.effect.Bloom
           }
         },
-        route: map.route().buildTemplateData()
+        route: RouteUI.templateData( map.route() )
       })
     );
 
@@ -156,16 +175,11 @@ class UI {
         switch ( clicked_on ) {
 
           case 'systems':
-            this.updateSystemsList();
+            UI.updateSystemsList();
             break;
 
           default:
             $('#sc-map-webgl-container').removeClass('edit');
-            //window.editor.enabled = false;
-            //window.controls.requireAlt = false;
-            //if ( clicked_on === '#info' && map.selected() instanceof StarSystem ) {
-            //   map.selected().displayInfo();
-            //}
             break;
         }
 
@@ -179,8 +193,8 @@ class UI {
          * makes the HTML invalid but removes the ugly URL bar */
         $(`#sc-map-interface a[href="#"]`).removeAttr('href');
 
-        this.updateHeight();
-        this.toTabTop();
+        UI.updateHeight();
+        UI.toTabTop();
       }
     });
 
@@ -228,7 +242,7 @@ class UI {
         let value = ui.value;
         $('#sc-map-interface').removeClass( UI.widthClasses.join(' ') ).addClass( UI.widthClasses[ value ] );
         settings.storage.uiWidth = UI.widthClasses[ value ];
-        this.updateHeight();
+        UI.updateHeight();
         renderer.resize();
       }
     });
@@ -356,7 +370,7 @@ class UI {
         delete sessionStorage[ title ];
       }
 
-      ui.updateHeight();
+      UI.updateHeight();
     });
 
     $('#sc-map-interface').on( 'click', 'a[data-toggle-child]', function ( event ) {
@@ -370,14 +384,14 @@ class UI {
         $this.parent().find('> a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
 
-      ui.updateHeight();
+      UI.updateHeight();
     });
 
     $('#sc-map-interface').on( 'click', `a[data-goto="system"]`, function( event ) {
       event.preventDefault();
       let $this = $(this);
       let system = StarSystem.getById( $this.data('system') );
-      system.displayInfo();
+      displayInfo( system );
       renderer.controls.moveTo( system );
     });
 
@@ -401,7 +415,7 @@ class UI {
       let text = $(this).val();
       if ( typeof text === 'string' && text.length > 0 ) {
         system.setComments( text );
-        $('#sc-map-interface .user-system-comments-md').html( $(markdown.toHTML( text )) );
+        $('#sc-map-interface .user-system-comments-md').html( $(markdown.markdown.toHTML( text )) );
       } else {
         system.setComments();
         $('#sc-map-interface .user-system-comments-md').empty();
@@ -451,44 +465,60 @@ class UI {
     });
   }
 
-  toTab ( index ) {
-    let tab = UI.Tab( index );
-    $('#sc-map-interface').tabs( 'option', 'active', tab.index );
-    this.updateHeight();
+  static displayInfoOn ( system, doNotSwitch ) {
+    displayInfo( system, doNotSwitch );
   }
 
-  toTabTop () {
-    if ( this.jScrollPane() ) {
-      this.jScrollPane().scrollToPercentY( 0 );
+  static toTab ( index ) {
+    let tab = UI.Tab( index );
+    $('#sc-map-interface').tabs( 'option', 'active', tab.index );
+    UI.updateHeight();
+  }
+
+  static toTabTop () {
+    if ( UI.jScrollPane() ) {
+      UI.jScrollPane().scrollToPercentY( 0 );
     }
   }
 
-  updateHeight () {
+  static updateHeight () {
     const activeTab = UI.ActiveTab();
 
     if ( activeTab ) {
       const $images = $( activeTab.id + ' img' );
       if ( $images.length ) {
         $( activeTab.id ).imagesLoaded( () => {
-          if ( this.jScrollPane() ) {
-            this.jScrollPane().reinitialise();
+          if ( UI.jScrollPane() ) {
+            UI.jScrollPane().reinitialise();
           }
         });
       } else {
-        if ( this.jScrollPane() ) {
-          this.jScrollPane().reinitialise();
+        if ( UI.jScrollPane() ) {
+          UI.jScrollPane().reinitialise();
         }
       }
     }
   }
 
-  jScrollPane () {
+  static loadedSystems ( number ) {
+    $('#debug-systems').html( `${ number } systems loaded` );
+  }
+
+  static entered2D () {
+    $('#sc-map-3d-mode').prop( 'checked', false );
+  }
+
+  static entered3D () {
+    $('#sc-map-3d-mode').prop( 'checked', true );
+  }
+
+  static jScrollPane () {
     if ( $('#sc-map-interface').data('jsp') ) {
       return $('#sc-map-interface').data('jsp');
     }
   }
 
-  updateSystemsList () {
+  static updateSystemsList () {
     const tab = UI.Tab( 'systems' );
     $( tab.id ).empty().append(
       UI.Templates.listings({ systemGroups: UI.buildDynamicLists() })
@@ -537,7 +567,7 @@ class UI {
     let factions = [];
 
     $( allSystems ).each( function ( i, system ) {
-      let link = system.createInfoLink().outerHtml(); // TODO replace with template
+      let link = createInfoLink( system ).outerHtml(); // TODO replace with template
 
       if ( system.hasHangar() ) { hangars.push( link ); }
       if ( system.isBookmarked() ) { bookmarked.push( link ); }
@@ -580,6 +610,32 @@ class UI {
     );
 
     return data;
+  }
+
+  static debugRenderer ( renderStats ) {
+    const $elem = $('#debug-renderer');
+
+    [ 'calls', 'faces', 'points', 'vertices' ].forEach( property => {
+      if ( renderStats.render[ property ] !== oldRenderStats.render[ property ] ) {
+        $elem.find(`dd.${ property }`).text( renderStats.render[ property ] );
+        oldRenderStats.render[ property ] = renderStats.render[ property ];
+      }
+    });
+
+    [ 'geometries', 'textures' ].forEach( property => {
+      if ( renderStats.memory[ property ] !== oldRenderStats.memory[ property ] ) {
+        $elem.find(`dd.${ property }`).text( renderStats.memory[ property ] );
+        oldRenderStats.memory[ property ] = renderStats.memory[ property ];
+      }
+    });
+  }
+
+  static sidePanelWidth () {
+    return $('#sc-map-interface .sc-map-ui-padding').width();
+  }
+
+  static containerWidth () {
+    return $('#sc-map-interface').width();
   }
 };
 
@@ -626,5 +682,15 @@ UI.Templates = {
   listings: listingsTemplate,
   routeList: routeListingTemplate,
 };
+
+// Workaround for a Chrome (WebKit) issue where the
+// scrollable area can vanish when scrolling it
+if ( /webkit/i.test( navigator.userAgent ) )
+{
+  document.getElementById('sc-map-interface')
+    .addEventListener( 'scroll', function( /* event */ ) {
+      document.getElementById('sc-map-interface').style.width = UI.containerWidth() + 0.1;
+    }, false );
+}
 
 export default UI;

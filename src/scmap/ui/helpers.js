@@ -8,6 +8,7 @@ import Faction from '../faction';
 import UI from '../ui';
 import { hasSessionStorage } from '../../helpers/functions';
 import { Color } from '../../scmap/three';
+import { createInfoLink } from '../ui/star-system';
 
 import Handlebars from 'handlebars/handlebars.runtime';
 import markdown from 'markdown';
@@ -128,7 +129,7 @@ Handlebars.registerHelper( 'systemLink', function( system, options ) {
   if ( ! ( system instanceof StarSystem ) ) {
     return '';
   }
-  return new Handlebars.SafeString( system.createInfoLink( noIcons, noTarget ).outerHtml() );
+  return new Handlebars.SafeString( createInfoLink( system, noIcons, noTarget ).outerHtml() );
 });
 
 Handlebars.registerHelper( 'routeNavLinks', function( prev, next, options ) {

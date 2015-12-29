@@ -15,7 +15,7 @@ import config from './config';
 import settings from './settings';
 import xhrPromise from '../helpers/xhr-promise';
 import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
-import { ui, renderer, scene } from '../starcitizen-webgl-map';
+import { renderer, scene } from '../starcitizen-webgl-map';
 import DisplayState from './map/display-state';
 import waitForFontAwesome from '../helpers/wait-for-font-awesome';
 import { Scene, Mesh, MeshBasicMaterial, Vector3 } from './three';
@@ -31,7 +31,6 @@ import SystemGlow, { GLOW_MATERIAL_PROMISE } from './map/geometry/system-glow';
 
 import TWEEN from 'tween.js';
 import RSVP from 'rsvp';
-import $ from 'jquery';
 
 class Map {
   constructor () {
@@ -93,7 +92,7 @@ class Map {
           console.error( `Failed to create reference grid:`, e );
         };
 
-        ui.updateSystemsList();
+        UI.updateSystemsList();
         renderer.controls.idle();
 
         map.route().restoreFromSession();
@@ -103,22 +102,17 @@ class Map {
           let selectedSystem = StarSystem.getById( settings.storage.selectedSystem );
           if ( selectedSystem instanceof StarSystem ) {
             map.setSelectionTo( selectedSystem );
-            selectedSystem.displayInfo( true );
+            UI.displayInfoOn( selectedSystem, true );
           }
         }
 
         renderer.controls.throttledEventListener.init( 'change', function () {
-          if ( $('#debug-camera-is-moving') ) {
-            $('#debug-camera-is-moving').text( 'Camera is moving' );
-          }
-
           renderer.controls.rememberPosition();
-
           map.geometry.systems.refreshLOD( renderer.camera );
           map.geometry.labels.matchRotation( renderer.cameraRotationMatrix() );
         });
 
-        ui.updateHeight();
+        UI.updateHeight();
       }, failed => {
         console.error( 'Failed to process systems', failed );
       });
@@ -144,12 +138,12 @@ class Map {
     };
 
     displayState.onEnter2D = function () {
-      $('#sc-map-3d-mode').prop( 'checked', false );
+      UI.entered2D();
       settings.mode = '2d';
     };
 
     displayState.onEnter3D = function () {
-      $('#sc-map-3d-mode').prop( 'checked', true );
+      UI.entered3D();
       settings.mode = '3d';
     };
 
@@ -366,7 +360,7 @@ class Map {
 
     console.info( `Populating the scene took ${ new Date().getTime() - startTime } msec` );
 
-    $('#debug-systems').html( `${ allSystems.length } systems loaded` );
+    UI.loadedSystems( allSystems.length );
   }
 
   pointAtPlane ( theta, radius, y ) {

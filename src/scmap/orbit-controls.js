@@ -13,7 +13,8 @@ import SCMAP from '../scmap';
 import StarSystem from './star-system';
 import settings from './settings';
 import config from './config';
-import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
+import UI from './ui';
+import { renderer, scene, map } from '../starcitizen-webgl-map';
 
 import $ from 'jquery';
 import THREE from 'three';
@@ -201,7 +202,7 @@ var OrbitControls = function ( renderer, domElement ) {
                      console.log( `Click at "${ intersect.object.userData.system.name }"` );
                   }
                   map.setSelectionTo( startObject );
-                  startObject.displayInfo( 'doNotSwitch' );
+                  UI.displayInfoOn( startObject, true );
                   this.touchtodrag( event );
                }
                else if ( ! scope.noRotate )
@@ -254,7 +255,7 @@ var OrbitControls = function ( renderer, domElement ) {
                   }
 
                   if ( endObject === startObject ) {
-                     endObject.displayInfo();
+                     UI.displayInfoOn( endObject );
                   }
                   else
                   {
@@ -264,7 +265,7 @@ var OrbitControls = function ( renderer, domElement ) {
                      if ( route.isSet() && startObject !== endObject ) {
                         route.update( endObject );
                         route.storeToSession();
-                        ui.toTab( 'route' );
+                        UI.toTab( 'route' );
                      }
                   }
                }

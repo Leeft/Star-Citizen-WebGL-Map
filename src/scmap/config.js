@@ -2,8 +2,6 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import jQuery from 'jquery';
-
 // These are deliberately strings: code using these numbers must be able
 // to cope with strings as they may come from HTML data attributes.
 const DEFAULTS = {
@@ -40,15 +38,13 @@ const DEFAULTS = {
 
 class Config {
   constructor () {
-    const $element = jQuery('#sc-map-configuration');
-    if ( $element && $element.data() ) {
-      Object.assign( this, DEFAULTS, $element.data() );
+    const element = document.getElementById('sc-map-configuration');
+    if ( element && ( typeof element.dataset === 'object' ) ) {
+      Object.assign( this, DEFAULTS, element.dataset );
     } else {
       Object.assign( this, DEFAULTS );
     }
   }
 }
 
-const config = new Config();
-
-export default config;
+export default new Config();

@@ -5,26 +5,12 @@
 import config from './config';
 import settings from './settings';
 import OrbitControls from './orbit-controls';
-import { ui } from '../starcitizen-webgl-map';
+import UI from './ui';
 import { PerspectiveCamera, WebGLRenderer, Euler, Matrix4 } from './three';
 
 import TextureManager from 'leeft/three-sprite-texture-atlas-manager';
 import TWEEN from 'tween.js';
 import Stats from 'stats.js';
-import $ from 'jquery';
-
-const oldRenderStats = {
-  render: {
-    calls: 0,
-    faces: 0,
-    points: 0,
-    vertices: 0,
-  },
-  memory: {
-    geometries: 0,
-    textures: 0,
-  }
-};
 
 class Renderer {
   constructor ( map ) {
@@ -57,7 +43,7 @@ class Renderer {
 
     this.camera = new PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
     this.camera.position.copy( settings.camera.camera );
-    this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
+    this.camera.setViewOffset( this.width, this.height, -( UI.sidePanelWidth() / 2 ), 0, this.width, this.height );
 
     this.controls = new OrbitControls( this, this.container );
     this.controls.target.copy( settings.camera.target );
@@ -135,31 +121,12 @@ class Renderer {
     return new Matrix4().makeRotationFromEuler( euler );
   }
 
-  debugRenderer () {
-    const $elem = $('#debug-renderer');
-    const renderStats = this.threeRenderer.info;
-
-    [ 'calls', 'faces', 'points', 'vertices' ].forEach( property => {
-      if ( renderStats.render[ property ] !== oldRenderStats.render[ property ] ) {
-        $elem.find(`dd.${ property }`).text( renderStats.render[ property ] );
-        oldRenderStats.render[ property ] = renderStats.render[ property ];
-      }
-    });
-
-    [ 'geometries', 'textures' ].forEach( property => {
-      if ( renderStats.memory[ property ] !== oldRenderStats.memory[ property ] ) {
-        $elem.find(`dd.${ property }`).text( renderStats.memory[ property ] );
-        oldRenderStats.memory[ property ] = renderStats.memory[ property ];
-      }
-    });
-  }
-
   resize () {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
 
     this.camera.aspect = this.width / this.height;
-    this.camera.setViewOffset( this.width, this.height, -( $('#sc-map-interface .sc-map-ui-padding').width() / 2 ), 0, this.width, this.height );
+    this.camera.setViewOffset( this.width, this.height, -( UI.sidePanelWidth() / 2 ), 0, this.width, this.height );
     this.camera.updateProjectionMatrix();
 
     if ( this.FXAA ) {
@@ -172,7 +139,7 @@ class Renderer {
       this.composer.reset();
     }
 
-    ui.updateHeight();
+    UI.updateHeight();
   }
 
   render () {
@@ -182,7 +149,7 @@ class Renderer {
     TWEEN.update();
 
     if ( config.debug ) {
-      this.debugRenderer();
+      UI.debugRenderer( this.threeRenderer.info );
     }
 
     this.stats.update();
