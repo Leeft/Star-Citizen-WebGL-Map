@@ -48,7 +48,7 @@ class UI {
     let icons = [];
     for ( let icon in MapSymbols ) {
       icon = MapSymbols[ icon ];
-      icons.push( $('<span><i class="fa-li fa ' + icon.faClass + '"></i>' + icon.description + '</span>' ).css( 'color', icon.color ).outerHtml() );
+      icons.push( $('<span><i class="fa-li fa ' + icon.cssClass + '"></i>' + icon.description + '</span>' ).css( 'color', icon.color ).outerHtml() );
     }
 
     const ui = this;
@@ -329,16 +329,12 @@ class UI {
       .prop( 'disabled', !settings.labels )
       .on( 'change', function() {
         settings.labelIcons = this.checked;
+        map.geometry.labels.refreshIcons();
       });
 
     // FIXME: This currently doesn't have any effect
     $('#sc-map-toggle-antialias')
       .prop( 'disabled', true );
-
-    // FIXME: This currently doesn't have any effect
-    $('#sc-map-toggle-label-icons')
-      .prop( 'disabled', true );
-
 
     $('.quick-button.with-checkbox').on( 'click', function ( event ) {
       let $this = $(this);
@@ -410,7 +406,7 @@ class UI {
         system.setComments();
         $('#sc-map-interface .user-system-comments-md').empty();
       }
-      system.updateSceneObject( map.scene );
+      system.refreshIcons();
     };
 
     $('#sc-map-interface').on( 'keyup', '.user-system-comments', updateComments );
@@ -423,27 +419,27 @@ class UI {
       system.setComments();
       $('.comment-editing .user-system-comments').empty().val('');
       $('.comment-editing .user-system-comments-md').empty();
-      system.updateSceneObject( map.scene );
+      system.refreshIcons();
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-bookmarked', function() {
       StarSystem.getById( $(this).data('system') )
         .setBookmarkedState( this.checked )
-        .updateSceneObject( map.scene );
+        .refreshIcons();
       settings.save( 'systems' );
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-ishangar', function() {
       StarSystem.getById( $(this).data('system') )
         .setHangarState( this.checked )
-        .updateSceneObject( map.scene );
+        .refreshIcons();
       settings.save( 'systems' );
     });
 
     $('#sc-map-interface').on( 'change', '.user-system-avoid', function() {
       StarSystem.getById( $(this).data('system') )
         .setToBeAvoidedState( this.checked )
-        .updateSceneObject( map.scene );
+        .refreshIcons();
       settings.save( 'systems' );
       map.route().rebuildCurrentRoute();
     });

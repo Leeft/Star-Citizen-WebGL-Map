@@ -91,9 +91,9 @@ Handlebars.registerHelper( 'jQueryUiTab', function( title, name, icon, options )
   return new Handlebars.SafeString( str );
 });
 
-Handlebars.registerHelper( 'bigButton', function( id, faClass, title ) {
+Handlebars.registerHelper( 'bigButton', function( id, cssClass, title ) {
   return new Handlebars.SafeString(
-    `<button class="big-button" id="${ id }"><i class="fa ${ faClass } fa-fw fa-lg"></i>${ title }</button><br>`
+    `<button class="big-button" id="${ id }"><i class="fa ${ cssClass } fa-fw fa-lg"></i>${ title }</button><br>`
   );
 });
 

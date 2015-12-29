@@ -12,7 +12,7 @@ class MapSymbol {
   }
 
   getTag ( icon ) {
-    var $icon = $( `<i title="${ icon.description }" class="fa fa-fw ${ icon.faClass }"></i>` );
+    var $icon = $( `<i title="${ icon.description }" class="fa fa-fw ${ icon.cssClass }"></i>` );
     $icon.css( 'color', icon.color );
     return $icon;
   }

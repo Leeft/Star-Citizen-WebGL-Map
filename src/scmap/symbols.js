@@ -2,97 +2,99 @@
 * @author LiannaEeftinck / https://github.com/Leeft
 */
 
+import IconLabelSymbol from 'leeft/three-sprite-texture-atlas-manager/src/icon-label-symbol';
 import THREE from 'three';
 
 // TODO: Make this data-driven? TODO
 
 const SYMBOLS = {
 
-  DANGER: {
+  DANGER: new IconLabelSymbol({
     code: `\uf071`,
     scale: 0.9,
-    faClass: 'fa-warning',
+    cssClass: 'fa-warning',
     description: 'Danger, hostile faction',
-    color: 'rgba(255,50,50,1.0)'
-  },
+    color: 'rgba(255,50,50,1.0)',
+  }),
 
-  WARNING: {
+  WARNING: new IconLabelSymbol({
     code: `\uf071`,
     scale: 0.9,
-    faClass: 'fa-warning',
+    cssClass: 'fa-warning',
     description: 'Warning, hostile environment',
-    color: 'rgba(255,117,25,1.0)'
-  },
+    color: 'rgba(255,117,25,1.0)',
+  }),
 
-  HANGAR: {
+  HANGAR: new IconLabelSymbol({
     code: `\uf015`,
     scale: 1.15,
-    faClass: 'fa-home',
+    cssClass: 'fa-home',
     description: 'Hangar location',
     color: 'rgba(255,255,255,1.0)',
-    offset: new THREE.Vector2( -0.25, 2 )
-  },
+    offset: new THREE.Vector2( -0.25, -1 ),
+  }),
 
-  INFO: {
+  INFO: new IconLabelSymbol({
     code: `\uf05a`,
     scale: 1.0,
-    faClass: 'fa-info-circle',
+    cssClass: 'fa-info-circle',
     description: 'Information available',
-    color: 'rgba(255, 162, 255, 1.0)'//,
-    //offset: new THREE.Vector2( 0, 2 )
-  },
+    color: 'rgba(255, 162, 255, 1.0)',
+  }),
 
-  TRADE: {
-    code: `\uf0ec`,
-    scale: 0.90,
-    faClass: 'fa-exchange',
+  TRADE: new IconLabelSymbol({
+    code: `\uf291`,
+    scale: 0.9,
+    cssClass: 'fa-shopping-basket',
     description: 'Major trade hub',
     color: 'rgba(255,255,0,1.0)',
-    offset: new THREE.Vector2( 0, -1 )
-  },
+    offset: new THREE.Vector2( 0, -1 ),
+  }),
 
-  //TRADE: {
+  //TRADE: new IconLabelSymbol({
   //   code: `\uf0d1`,
   //   scale: 1.0,
-  //   faClass: 'fa-truck',
+  //   cssClass: 'fa-truck',
   //   description: 'Major trade hub',
   //   color: 'rgba(255,255,0,1.0)',
   //   offset: new THREE.Vector2( -2, -2 )
-  //},
+  //}),
 
-  BANNED: {
+  BANNED: new IconLabelSymbol({
     code: `\uf05e`,
     scale: 1.0,
-    faClass: 'fa-ban',
+    cssClass: 'fa-ban',
     description: 'System off-limits',
-    color: 'rgba(255, 117, 25, 1.0)'
-  },
+    color: 'rgba(255, 117, 25, 1.0)',
+    offset: new THREE.Vector2( 0, -1 ),
+  }),
 
-  AVOID: {
+  AVOID: new IconLabelSymbol({
     code: `\uf00d`,
     scale: 1.2,
-    faClass: 'fa-times',
+    cssClass: 'fa-times',
     description: 'Avoid: do not route here',
-    color: 'rgba(255,50,50,1.0)'
-  },
+    color: 'rgba(255,50,50,1.0)',
+    offset: new THREE.Vector2( 0, -2 ),
+  }),
 
-  COMMENTS: {
+  COMMENTS: new IconLabelSymbol({
     code: `\uf075`,
     scale: 1.0,
-    faClass: 'fa-comment',
+    cssClass: 'fa-comment',
     description: 'Your comments',
     color: 'rgba(106, 187, 207, 1.0)',
-    offset: new THREE.Vector2( 0, -3 )
-  },
+    offset: new THREE.Vector2( 0, -3 ),
+  }),
 
-  BOOKMARK: {
+  BOOKMARK: new IconLabelSymbol({
     code: `\uf02e`,
     scale: 1.05,
-    faClass: 'fa-bookmark',
+    cssClass: 'fa-bookmark',
     description: 'Bookmarked',
     color: 'rgba(102, 193, 0, 1.0)',
-    offset: new THREE.Vector2( -1, 1 )
-  },
+    offset: new THREE.Vector2( -1, -1 ),
+  }),
 
 };
 

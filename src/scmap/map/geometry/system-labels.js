@@ -6,7 +6,7 @@ import MapGeometry from '../map-geometry';
 import settings from '../../settings';
 import config from '../../config';
 
-import Label from 'leeft/three-sprite-texture-atlas-manager/src/label';
+import IconLabel from 'leeft/three-sprite-texture-atlas-manager/src/icon-label';
 import THREE from 'three';
 
 const LABEL_SCALE = 5;
@@ -22,12 +22,14 @@ class SystemLabels extends MapGeometry {
 
     try {
       this.allSystems.forEach( system => {
-        system.label = new Label({
+        const icons = ( settings.labelIcons ) ? system.getIcons() : [];
+
+        system.label = new IconLabel({
           textureManager: this.renderer.textureManager,
           text:           system.name,
-          addTo:          group,
           fillStyle:      system.factionStyle(),
           bold:           true,
+          icons:          icons,
         });
 
         if ( config.quality === 'low' ) {
@@ -39,24 +41,11 @@ class SystemLabels extends MapGeometry {
           system.label.scale *= 0.5;
         }
 
-        system.label.createSprite();
-
         system.label.sprite.position.copy( system.position );
         system.label.sprite.userData.system = system;
         system.label.sprite.userData.isLabel = true;
         system.label.sprite.userData.position = system.position.clone();
-
-        //systemLabel ( drawSymbols, sceneObject ) {
-
-        //  //if ( drawSymbols ) {
-        //  //  label.drawSymbols();
-        //  //}
-
-        //  //label.positionSprite( this.renderer.cameraRotationMatrix() );
-        //  //label.scaleSprite();
-
-        //  return label;
-        //}
+        system.label.redraw();
 
         group.add( system.label.sprite );
       });
@@ -84,6 +73,12 @@ class SystemLabels extends MapGeometry {
     return group;
   }
 
+  refreshIcons () {
+    this.allSystems.forEach( system => {
+      system.refreshIcons();
+    });
+  }
+
   matchRotation ( rotationMatrix ) {
     const vector = new THREE.Vector3( 0, - settings.labelOffset, -0.1 );
     this._mesh.position.copy( vector.applyMatrix4( rotationMatrix ) );
@@ -100,9 +95,7 @@ class SystemLabels extends MapGeometry {
   refreshScale () {
     this._mesh.traverse( function( obj ) {
       if ( obj.userData.system  && obj.userData.isLabel ) {
-        const system = obj.userData.system;
-        const labelScale = settings.labelScale * LABEL_SCALE * ( ( system.isUnknown() ) ? 0.5 : 1 );
-        obj.scale.set( labelScale * ( system.label.node.width / system.label.node.height ), labelScale, 1 );
+        obj.userData.system.refreshScale( obj.userData.system.labelScale );
       }
     });
   }
@@ -117,3 +110,4 @@ class SystemLabels extends MapGeometry {
 }
 
 export default SystemLabels;
+export { LABEL_SCALE };

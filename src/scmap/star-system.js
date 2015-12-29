@@ -12,6 +12,7 @@ import config from './config';
 import settings from './settings';
 import { storage } from './settings';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
+import { LABEL_SCALE } from './map/geometry/system-labels';
 
 import THREE from 'three';
 import markdown from 'markdown';
@@ -68,7 +69,7 @@ class StarSystem {
 
     if ( !noSymbols )
     {
-      let symbols = this.getSymbols();
+      let symbols = this.getIcons();
       if ( symbols.length )
       {
         let $span = $('<span class="icons"></span>');
@@ -91,35 +92,47 @@ class StarSystem {
   }
 
   getIcons () {
-    return this.getSymbols();
+    const myIcons = [];
+
+    //if ( true && ( this.name === 'Sol' || /^Unknown/.test( this.name ) ) ) {
+    //  myIcons.push( MapSymbols.DANGER );
+    //  myIcons.push( MapSymbols.WARNING );
+    //  myIcons.push( MapSymbols.HANGAR );
+    //  myIcons.push( MapSymbols.INFO );
+    //  myIcons.push( MapSymbols.TRADE );
+    //  myIcons.push( MapSymbols.BANNED );
+    //  myIcons.push( MapSymbols.AVOID );
+    //  myIcons.push( MapSymbols.COMMENTS );
+    //  myIcons.push( MapSymbols.BOOKMARK );
+    //  return myIcons;
+    //}
+
+    if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { myIcons.push( MapSymbols.DANGER ); }
+    if ( this.hasWarning )      { myIcons.push( MapSymbols.WARNING ); }
+    if ( this.info.length )     { myIcons.push( MapSymbols.INFO ); }
+    if ( this.isMajorTradeHub ) { myIcons.push( MapSymbols.TRADE ); }
+    if ( this.isOffLimits )     { myIcons.push( MapSymbols.BANNED ); }
+    if ( this.hasHangar() )     { myIcons.push( MapSymbols.HANGAR ); }
+    if ( this.isBookmarked() )  { myIcons.push( MapSymbols.BOOKMARK ); }
+    if ( this.isToBeAvoided() ) { myIcons.push( MapSymbols.AVOID ); }
+    if ( this.hasComments() )   { myIcons.push( MapSymbols.COMMENTS ); }
+
+    return myIcons;
   }
 
-  getSymbols () {
-    let mySymbols = [];
-    if ( false && this.name === 'Sol' ) {
-      mySymbols.push( MapSymbols.DANGER );
-      mySymbols.push( MapSymbols.WARNING );
-      mySymbols.push( MapSymbols.INFO );
-      mySymbols.push( MapSymbols.TRADE );
-      mySymbols.push( MapSymbols.BANNED );
-      mySymbols.push( MapSymbols.HANGAR );
-      mySymbols.push( MapSymbols.BOOKMARK );
-      mySymbols.push( MapSymbols.AVOID );
-      mySymbols.push( MapSymbols.COMMENTS );
-      return mySymbols;
-    }
+  refreshIcons () {
+    this.label.icons = ( settings.labelIcons ) ? this.getIcons() : [];
+    this.label.redraw();
+    this.refreshScale( this.labelScale );
+  }
 
-    if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { mySymbols.push( MapSymbols.DANGER ); }
-    if ( this.hasWarning )      { mySymbols.push( MapSymbols.WARNING ); }
-    if ( this.info.length )     { mySymbols.push( MapSymbols.INFO ); }
-    if ( this.isMajorTradeHub ) { mySymbols.push( MapSymbols.TRADE ); }
-    if ( this.isOffLimits )     { mySymbols.push( MapSymbols.BANNED ); }
-    if ( this.hasHangar() )     { mySymbols.push( MapSymbols.HANGAR ); }
-    if ( this.isBookmarked() )  { mySymbols.push( MapSymbols.BOOKMARK ); }
-    if ( this.isToBeAvoided() ) { mySymbols.push( MapSymbols.AVOID ); }
-    if ( this.hasComments() )   { mySymbols.push( MapSymbols.COMMENTS ); }
+  get labelScale () {
+    return ( settings.labelScale * LABEL_SCALE * ( ( this.isUnknown() ) ? 0.5 : 1 ) );
+  }
 
-    return mySymbols;
+  // TODO: Move this helper to label class
+  refreshScale ( scale ) {
+    this.label.sprite.scale.set( scale * ( this.label.node.width / this.label.node.height ), scale, 1 );
   }
 
   displayInfo ( doNotSwitch ) {
