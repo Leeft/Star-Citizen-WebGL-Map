@@ -35,13 +35,24 @@ class StarSystem {
     this.blackMarket = [];
     this.ueeStrategicValue = undefined;
     this.info = [];
-    this.scale = 1.0;
     this.binary = false;
     this.isOffLimits = false;
     this.hasWarning = false;
     this.isMajorTradeHub = false;
 
     this.setValues( data );
+  }
+
+  get scale () {
+    let scale = 1.0;
+    switch ( this.size ) {
+      case 'dwarf':  scale = 0.90; break;
+      case 'medium': scale = 1.0;  break;
+      case 'large':  scale = 1.15; break;
+      case 'giant':  scale = 1.27; break;
+      case 'binary': scale = 1.4;  this.binary = true; break;
+    }
+    return scale;
   }
 
   getIcons () {
@@ -60,7 +71,7 @@ class StarSystem {
     //  return myIcons;
     //}
 
-    if ( this.faction.isHostileTo( SCMAP.usersFaction() ) ) { myIcons.push( MapSymbols.DANGER ); }
+    if ( this.faction.isHostileTo( settings.usersFaction ) ) { myIcons.push( MapSymbols.DANGER ); }
     if ( this.hasWarning )      { myIcons.push( MapSymbols.WARNING ); }
     if ( this.info.length )     { myIcons.push( MapSymbols.INFO ); }
     if ( this.isMajorTradeHub ) { myIcons.push( MapSymbols.TRADE ); }
@@ -231,17 +242,6 @@ class StarSystem {
       {
         currentValue = this[ key ];
 
-        if ( key == 'size' ) {
-          switch ( newValue ) {
-            case 'dwarf': this.scale = 0.90; break;
-            case 'medium': this.scale = 1.0; break;
-            case 'large': this.scale = 1.15; break;
-            case 'giant': this.scale = 1.27; break;
-            case 'binary': this.scale = 1.4; this.binary = true; break;
-          }
-          this[ key ] = newValue;
-        }
-
         if ( currentValue instanceof Color ) {
 
           if ( newValue instanceof Color ) {
@@ -293,9 +293,8 @@ class StarSystem {
       'uuid': json.uuid,
       'name': json.name,
       'position': json.coords,
-      'scale': json.scale || 1.0,
       'color': json.color,
-      'faction': Faction.getById( json.factionId ),
+      'faction': SCMAP.getFactionById( json.factionId ),
       'isMajorTradeHub': json.isMajorTradeHub,
       'hasWarning': json.hasWarning,
       'isOffLimits': json.isOffLimits,
@@ -303,8 +302,8 @@ class StarSystem {
       'size': json.size,
       'info': json.info,
       'status': json.status,
-      'crimeStatus': SCMAP.data.crime_levels[ json.crimeLevel ],
-      'ueeStrategicValue': SCMAP.data.uee_strategic_values[ '' + json.ueeStrategicValue ],
+      'crimeStatus': SCMAP.getCrimeLevelById( json.crimeLevel ),
+      'ueeStrategicValue': SCMAP.getUEEStrategicValueById( '' + json.ueeStrategicValue ),
       'import': json.import,
       'export': json.export,
       'blackMarket': json.blackMarket,
@@ -314,12 +313,8 @@ class StarSystem {
     });
   }
 
-  static getByName ( name ) {
-    return SCMAP.data.systems[ name ];
-  }
-
   static getById ( id ) {
-    return SCMAP.data.systemsById[ id ];
+    return SCMAP.getStarSystemById( id );
   }
 }
 

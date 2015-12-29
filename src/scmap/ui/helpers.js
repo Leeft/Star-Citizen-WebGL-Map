@@ -105,7 +105,8 @@ Handlebars.registerHelper( 'commoditiesList', function( commodities ) {
 
   return new Handlebars.SafeString(
     $.map( commodities, function( elem, i ) {
-      return ( SCMAP.data.goods[ elem ] ? SCMAP.data.goods[ elem ].name : '' );
+      const commodity = SCMAP.getCommodityById( elem );
+      return ( commodity ) ? commodity.name : '???';
     }).join( ', ' )
   );
 });

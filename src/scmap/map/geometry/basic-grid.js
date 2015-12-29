@@ -2,7 +2,7 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import { allSystems } from '../../systems';
+import SCMAP from '../../../scmap';
 import LineSegments from './line-segments';
 
 import THREE from 'three';
@@ -13,7 +13,7 @@ const BLACK = new THREE.Color( 0x000000 );
 function furthestPOI ( vector ) {
   let furthest = 0, POI;
 
-  allSystems.forEach( system => {
+  SCMAP.allSystems.forEach( system => {
     const xd = vector.x - system.position.x;
     const zd = vector.z - system.position.z;
     const distance = Math.sqrt( xd * xd + zd * zd );
@@ -30,7 +30,7 @@ function closestPOI ( vector ) {
   let closest = Infinity;
   let POI;
 
-  allSystems.forEach( system => {
+  SCMAP.allSystems.forEach( system => {
     const xd = vector.x - system.position.x;
     const zd = vector.z - system.position.z;
     const distance = Math.sqrt( xd * xd + zd * zd );
@@ -65,7 +65,7 @@ function closestFromArray ( vector, systems ) {
 function withinApproxDistance ( vector, distance ) {
   let systems = [];
 
-  allSystems.forEach( system => {
+  SCMAP.allSystems.forEach( system => {
     if ( system.position.x < ( vector.x - distance ) ) { return; }
     if ( system.position.x > ( vector.x + distance ) ) { return; }
     if ( system.position.z < ( vector.z - distance ) ) { return; }
@@ -104,7 +104,7 @@ function buildReferenceGrid () {
 
   // First we compute rough outer bounds based on all the systems on the map
   // (plus a bit extra because we want to fade to black as well)
-  allSystems.forEach( system => {
+  SCMAP.allSystems.forEach( system => {
     if ( system.position.x < minX ) { minX = system.position.x - (  6 * 10 ); }
     if ( system.position.x > maxX ) { maxX = system.position.x + (  8 * 10 ); }
     if ( system.position.z < minZ ) { minZ = system.position.z - (  6 * 10 ); }

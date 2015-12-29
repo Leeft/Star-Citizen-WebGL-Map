@@ -2,8 +2,8 @@
   * @author Lianna Eeftinck / https://github.com/Leeft
   */
 
+import SCMAP from './../scmap';
 import StarSystem from './star-system';
-import { allSystems } from './systems';
 import Dijkstra from './dijkstra';
 import { hasSessionStorage } from '../helpers/functions';
 import { scene, map } from '../starcitizen-webgl-map';
@@ -91,7 +91,7 @@ class Route {
     {
       if ( this._graphs[i] === graph ) {
         // insert new graph at wp, starting at wp, ending at oldEnd
-        this._graphs.splice( i + 1, 0, new Dijkstra( allSystems, waypoint, oldEnd ) );
+        this._graphs.splice( i + 1, 0, new Dijkstra( SCMAP.allSystems, waypoint, oldEnd ) );
 
         for ( let j = 0; j < this.waypoints.length; j += 1 ) {
           if ( this.waypoints[j] === oldEnd ) {
@@ -247,7 +247,7 @@ class Route {
           this._graphs[i].start = start;
           this._graphs[i].end   = end;
         } else {
-          graph = new Dijkstra( allSystems, start, end );
+          graph = new Dijkstra( SCMAP.allSystems, start, end );
         }
 
         graph.buildGraph( 'time', true );

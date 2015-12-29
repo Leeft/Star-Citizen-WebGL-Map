@@ -6,23 +6,32 @@ import SCMAP from '../scmap';
 import StarSystem from './star-system';
 import { Color } from './three';
 
+const DEFAULTS = {
+  id: undefined,
+  name: 'Unclaimed',
+  isRealFaction: false,
+  color: new Color( 0xFFFFFF ),
+  parentFaction: null,
+};
+
 class Faction {
   constructor ( data ) {
-    this.id = undefined;
-    this.name = 'Unclaimed';
-    this.isRealFaction = false;
-    this.color = new Color( 0xFFFFFF );
-    this.planeColor = new Color( 0xFF0000 );
-    this.lineColor = new Color( 0xFFFF00 );
-    this.parentFaction = null;
-
-    this.setValues( data );
+    Object.assign( this, DEFAULTS, data );
 
     // Internals
     this._claimed = {
       systems: {}
     };
   }
+
+  get planeColor () {
+    return this.color.clone().offsetHSL( 0, 0.5, 0 ).multiplyScalar( 0.20 );
+  }
+
+  get lineColor () {
+    return this.color.clone().offsetHSL( 0, 0.05, -0.05 );
+  }
+
 
   claim ( system ) {
     if ( ! system instanceof StarSystem ) {
@@ -43,100 +52,13 @@ class Faction {
     if ( !( comparedTo instanceof Faction ) ) {
       throw new Error( `Can only compare to other factions` );
     }
-    // TODO: more data in database, more logic here
+    // FIXME: more data in database, more logic here
     // rather than lots of hardcoding
     if ( comparedTo.name === 'Vanduul' ) {
       return ( this.name !== 'Vanduul' );
     } else {
       return ( this.name === 'Vanduul' );
     }
-  }
-
-  getValue ( key ) {
-    if ( key === undefined ) {
-      return;
-    }
-    return this[ key ];
-  }
-
-  setValues ( values ) {
-    if ( values === undefined ) {
-      return;
-    }
-
-    for ( let key in values ) {
-
-      let newValue = values[ key ];
-      if ( newValue === undefined ) {
-        console.log( `Faction: "${ key }" parameter is undefined for "${ this.name }"` );
-        continue;
-      }
-
-      if ( key in this )
-      {
-        let currentValue = this[ key ];
-        if ( currentValue instanceof Color ) {
-
-          if ( newValue instanceof Color ) {
-            this[ key ] = newValue;
-          } else {
-            newValue = newValue.replace( '0x', '#' );
-            this[ key ] = new Color( newValue );
-          }
-          if ( key === 'color' ) {
-            this.planeColor = this[ key ].clone().offsetHSL( 0, 0.5, 0 ).multiplyScalar( 0.20 );
-            this.lineColor = this[ key ].clone().offsetHSL( 0, 0.05, -0.05 );
-          }
-
-        } else {
-          this[ key ] = newValue;
-        }
-      }
-    }
-  }
-
-  static preprocessFactions ( data ) {
-    SCMAP.data.factions = [];
-    SCMAP.data.factionsByName = {};
-
-    for ( let factionId in data ) {
-
-      if ( data.hasOwnProperty( factionId ) ) {
-
-        let faction = data[ factionId ];
-
-        if ( ! ( faction instanceof Faction ) ) {
-          faction = new Faction({
-            id: factionId,
-            name: faction.name,
-            color: faction.color,
-            isRealFaction: faction.isRealFaction,
-            parentFaction: null // FIXME
-          });
-        }
-
-        SCMAP.data.factions[ factionId ]          = faction;
-        SCMAP.data.factionsByName[ faction.id ]   = faction;
-        SCMAP.data.factionsByName[ faction.name ] = faction;
-
-      }
-    }
-  }
-
-  static getById ( id ) {
-    let faction = SCMAP.data.factions[ id ];
-    if ( ! ( faction instanceof Faction ) ) {
-      faction = SCMAP.data.factionsByName.Unclaimed;
-    }
-    return faction;
-  }
-
-  static getByName ( name ) {
-    let faction = SCMAP.data.factionsByName[ name ];
-    if ( ! ( faction instanceof Faction ) ) {
-      faction = SCMAP.data.factionsByName.Unclaimed;
-    }
-    return faction;
   }
 }
 

@@ -6,7 +6,6 @@ import SCMAP from '../scmap';
 import StarSystem from './star-system';
 import MapSymbol from './ui/symbol';
 import MapSymbols from './ui/symbols';
-import { allSystems } from './systems';
 import config from './config';
 import settings from './settings';
 import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
@@ -553,20 +552,20 @@ class UI {
     let withComments = [];
     let byFaction = [];
     let everything = [];
-    let factionsById = {};
     let data = [];
 
+    const factionsById = {};
     for ( let factionId in SCMAP.data.factions ) {
-      let faction = SCMAP.data.factions[factionId];
+      const faction = SCMAP.data.factions[ factionId ];
       factionsById[ faction.id ] = {
         faction: faction.name,
-        items: []
+        items: [],
       };
     }
 
     let factions = [];
 
-    $( allSystems ).each( function ( i, system ) {
+    SCMAP.allSystems.forEach( system => {
       let link = createInfoLink( system ).outerHtml(); // TODO replace with template
 
       if ( system.hasHangar() ) { hangars.push( link ); }

@@ -1,6 +1,7 @@
 /**
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
+import SCMAP from '../scmap';
 import config from './config';
 import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 import { Vector3 } from './three';
@@ -157,6 +158,11 @@ class Settings {
 
   set labelIcons ( value ) {
     this.storage['settings.LabelIcons'] = ( value ) ? '1' : '0';
+  }
+
+
+  get usersFaction () {
+    return SCMAP.getFactionById( 'UEE' );
   }
 
 

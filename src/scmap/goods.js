@@ -2,15 +2,15 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import SCMAP from '../scmap';
+const DEFAULTS = {
+  id: undefined,
+  name: 'Unknown',
+  blackMarket: false,
+};
 
 class Goods {
   constructor( data ) {
-    this.id = undefined;
-    this.name = 'Unknown';
-    this.blackMarket = false;
-
-    this.setValues( data );
+    Object.assign( this, DEFAULTS, data );
 
     // Internals
     this._trade = {
@@ -18,71 +18,6 @@ class Goods {
       exporting: [],
       blackMarket: []
     };
-  }
-
-  getValue ( key ) {
-    if ( key === undefined ) {
-      return;
-    }
-    let value = this[ key ];
-    return value;
-  }
-
-  setValues ( values ) {
-    if ( values === undefined ) {
-      return;
-    }
-
-    for ( let key in values ) {
-
-      let newValue = values[ key ];
-      if ( newValue === undefined ) {
-        console.log( `Goods: "${ key }" parameter is undefined for "${ this.name }"` );
-        continue;
-      }
-
-      if ( key in this )
-      {
-        let currentValue = this[ key ];
-        this[ key ] = newValue;
-      }
-
-    }
-  }
-
-  static preprocessGoods ( data ) {
-    SCMAP.data.goods = [];
-    SCMAP.data.goodsByName = {};
-
-    for ( let goodsId in data ) {
-
-      if ( data.hasOwnProperty( goodsId ) ) {
-
-        let goods = data[ goodsId ];
-
-        if ( goods instanceof Goods ) {
-          SCMAP.data.goodsByName[ goods.name ] = goods;
-          continue;
-        }
-
-        goods = new Goods({
-          id: goodsId,
-          name: goods.name,
-          blackMarket: goods.blackMarket
-        });
-
-        SCMAP.data.goods[ goodsId ] = goods;
-        SCMAP.data.goodsByName[ goods.name ] = goods;
-      }
-    }
-  }
-
-  static getById ( id ) {
-    return SCMAP.data.goods[ id ];
-  }
-
-  static getByName ( name ) {
-    return SCMAP.data.goodsByName[ name ];
   }
 }
 

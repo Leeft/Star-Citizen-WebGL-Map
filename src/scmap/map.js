@@ -4,8 +4,6 @@
 
 import SCMAP from '../scmap';
 import StarSystem from './star-system';
-import SystemList from './systems';
-import { allSystems } from './systems';
 import Goods from './goods';
 import Faction from './faction';
 import Dijkstra from './dijkstra';
@@ -67,11 +65,11 @@ class Map {
       getGoods,
     ]).then( function( promises ) {
 
-      getStrategicValues.then( strategic_values => { SCMAP.data.uee_strategic_values = JSON.parse( strategic_values ) } );
-      getCrimeLevels.then( crimeLevels => { SCMAP.data.crime_levels = JSON.parse( crimeLevels ) } );
+      getStrategicValues.then( strategic_values => { SCMAP.importUEEStrategicValues( JSON.parse( strategic_values ) ) } );
+      getCrimeLevels.then( crimeLevels => { SCMAP.importCrimeLevels( JSON.parse( crimeLevels ) ) } );
 
-      getFactions.then( factions => { Faction.preprocessFactions( JSON.parse( factions ) ) } );
-      getGoods.then( goods => { Goods.preprocessGoods( JSON.parse( goods ) ) } );
+      getFactions.then( factions => { SCMAP.importFactions( JSON.parse( factions ) ) } );
+      getGoods.then( goods => { SCMAP.importCommodities( JSON.parse( goods ) ) } );
 
       getSystems.then( systems => {
         try {
@@ -226,16 +224,12 @@ class Map {
     return this.__updateSelectorObject( system );
   }
 
-  getSystemByName ( name ) {
-    return System.getByName( name );
-  }
-
   deselect () {
     return this.__updateSelectorObject();
   }
 
   setAllLabelSizes ( vector ) {
-    allSystems.forEach( system => {
+    SCMAP.allSystems.forEach( system => {
       system.setLabelScale( vector );
     });
   }
@@ -255,7 +249,7 @@ class Map {
     }
 
     newPosition = destination.position.clone();
-    graph = new Dijkstra( allSystems, this.getSelected(), destination );
+    graph = new Dijkstra( SCMAP.allSystems, this.getSelected(), destination );
     graph.buildGraph();
 
     route = graph.routeArray( destination );
@@ -325,10 +319,10 @@ class Map {
   populate ( data ) {
     const startTime = new Date().getTime();
 
-    SystemList.preprocessSystems( data );
+    SCMAP.importStarSystems( data );
 
     const standardGeometryParameters = {
-      allSystems: allSystems,
+      allSystems: SCMAP.allSystems,
       renderer: renderer,
       initialScale: this.displayState.currentScale,
     };
@@ -360,7 +354,7 @@ class Map {
 
     console.info( `Populating the scene took ${ new Date().getTime() - startTime } msec` );
 
-    UI.loadedSystems( allSystems.length );
+    UI.loadedSystems( SCMAP.allSystems.length );
   }
 
   pointAtPlane ( theta, radius, y ) {

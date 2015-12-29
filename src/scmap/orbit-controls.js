@@ -9,12 +9,11 @@
  */
 /*global THREE, console */
 
-import SCMAP from '../scmap';
 import StarSystem from './star-system';
 import settings from './settings';
 import config from './config';
 import UI from './ui';
-import { renderer, scene, map } from '../starcitizen-webgl-map';
+import { renderer, map } from '../starcitizen-webgl-map';
 
 import $ from 'jquery';
 import THREE from 'three';

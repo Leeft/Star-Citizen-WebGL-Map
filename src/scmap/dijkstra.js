@@ -2,7 +2,6 @@
 * @author Lianna Eeftinck / https://github.com/Leeft
 */
 
-import SCMAP from '../scmap';
 import { travelTimeForAU } from '../helpers/functions';
 import StarSystem from './star-system';
 import settings from './settings';
@@ -105,8 +104,8 @@ class Dijkstra {
         {
           // Don't go into "hostile" nodes, unless we already are in one
           if ( settings.route.avoidHostile &&
-            ! currentNode.system.faction.isHostileTo( SCMAP.usersFaction() ) &&
-            otherNode.system.faction.isHostileTo( SCMAP.usersFaction() )
+            ! currentNode.system.faction.isHostileTo( settings.usersFaction ) &&
+            otherNode.system.faction.isHostileTo( settings.usersFaction )
           ) {
             continue;
           }
@@ -135,7 +134,7 @@ class Dijkstra {
         }
 
         // Get out of "never" nodes asap by increasing the cost massively
-        if ( settings.route.avoidHostile && otherNode.system.faction.isHostileTo( SCMAP.usersFaction() ) ) {
+        if ( settings.route.avoidHostile && otherNode.system.faction.isHostileTo( settings.usersFaction ) ) {
           distance *= 15;
         }
 
