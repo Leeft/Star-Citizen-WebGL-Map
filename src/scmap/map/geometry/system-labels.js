@@ -9,8 +9,6 @@ import config from '../../config';
 import IconLabel from 'leeft/three-sprite-texture-atlas-manager/src/icon-label';
 import THREE from 'three';
 
-const LABEL_SCALE = 5;
-
 class SystemLabels extends MapGeometry {
   get mesh () {
     if ( this._mesh ) {
@@ -110,4 +108,3 @@ class SystemLabels extends MapGeometry {
 }
 
 export default SystemLabels;
-export { LABEL_SCALE };

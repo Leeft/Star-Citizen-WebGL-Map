@@ -23,9 +23,12 @@ const DEFAULTS = {
   defaultSystemScale:   '1.0',
   maxSystemScale:       '1.50',
 
+
+  // These should've been named *LabelUserScale
   minLabelScale:        '0.4',
   defaultLabelScale:    '1.0',
   maxLabelScale:        '2.0',
+  labelScale:           5, // sprite labels are multiplied by this for the actual scene
 
   minLabelOffset:       '-6.5',
   defaultLabelOffset:   '5.0',

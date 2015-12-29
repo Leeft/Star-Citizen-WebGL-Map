@@ -12,7 +12,6 @@ import config from './config';
 import settings from './settings';
 import { storage } from './settings';
 import { ui, renderer, scene, map } from '../starcitizen-webgl-map';
-import { LABEL_SCALE } from './map/geometry/system-labels';
 
 import THREE from 'three';
 import markdown from 'markdown';
@@ -127,7 +126,7 @@ class StarSystem {
   }
 
   get labelScale () {
-    return ( settings.labelScale * LABEL_SCALE * ( ( this.isUnknown() ) ? 0.5 : 1 ) );
+    return ( settings.labelScale * config.labelScale * ( ( this.isUnknown() ) ? 0.5 : 1 ) );
   }
 
   // TODO: Move this helper to label class
