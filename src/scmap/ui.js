@@ -28,7 +28,6 @@ import tabs from 'jquery-ui/ui/tabs';
 import slider from 'jquery-ui/ui/slider';
 import jqueryMousewheel from 'jquery-mousewheel';
 import jscrollpane from 'jscrollpane';
-import imagesLoaded from 'imagesloaded';
 import resizeListener from 'element-resize-detector';
 
 $.fn.outerHtml = function() {

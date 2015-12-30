@@ -22,7 +22,6 @@ System.config({
     "font-awesome": "npm:font-awesome@4.5.0",
     "handlebars": "github:components/handlebars.js@4.0.5",
     "hbs": "github:davis/plugin-hbs@1.2.1",
-    "imagesloaded": "npm:imagesloaded@3.2.0",
     "javascript-state-machine": "npm:javascript-state-machine@2.3.5",
     "jquery": "github:components/jquery@2.1.4",
     "jquery-mousewheel": "npm:jquery-mousewheel@3.1.12",
@@ -104,13 +103,6 @@ System.config({
     "npm:font-awesome@4.5.0": {
       "css": "github:systemjs/plugin-css@0.1.20"
     },
-    "npm:imagesloaded@3.2.0": {
-      "buffer": "github:jspm/nodelibs-buffer@0.1.0",
-      "eventie": "npm:eventie@1.0.6",
-      "fs": "github:jspm/nodelibs-fs@0.1.2",
-      "process": "github:jspm/nodelibs-process@0.1.2",
-      "wolfy87-eventemitter": "npm:wolfy87-eventemitter@4.3.0"
-    },
     "npm:inherits@2.0.1": {
       "util": "github:jspm/nodelibs-util@0.1.0"
     },
@@ -168,9 +160,6 @@ System.config({
     "npm:util@0.10.3": {
       "inherits": "npm:inherits@2.0.1",
       "process": "github:jspm/nodelibs-process@0.1.2"
-    },
-    "npm:wolfy87-eventemitter@4.3.0": {
-      "fs": "github:jspm/nodelibs-fs@0.1.2"
     }
   }
 });
