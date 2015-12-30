@@ -82,6 +82,7 @@
       "imagesloaded": "npm:imagesloaded@^3.2.0",
       "javascript-state-machine": "npm:javascript-state-machine@^2.3.5",
       "jquery": "github:components/jquery@^2.1.4",
+      "jquery-mousewheel": "npm:jquery-mousewheel@3.1.12",
       "jquery-ui": "github:components/jqueryui@^1.11.4",
       "jscrollpane": "npm:jscrollpane@^2.0.22",
       "leeft/three-sprite-texture-atlas-manager": "github:leeft/three-sprite-texture-atlas-manager@0.1.3",

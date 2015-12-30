@@ -26,6 +26,7 @@ import $ from 'jquery';
 
 import tabs from 'jquery-ui/ui/tabs';
 import slider from 'jquery-ui/ui/slider';
+import jqueryMousewheel from 'jquery-mousewheel';
 import jscrollpane from 'jscrollpane';
 import imagesLoaded from 'imagesloaded';
 import resizeListener from 'element-resize-detector';
@@ -452,10 +453,14 @@ class UI {
       map.route().rebuildCurrentRoute();
     });
 
+    // Init the mousewheel plugin ("import" alone doesn't cut it)
+    jqueryMousewheel( $ );
+
     /* jScrollPane */
     $('#sc-map-interface').jScrollPane({
       showArrows: false,
-      horizontalGutter: 6
+      horizontalGutter: 6,
+      mouseWheelSpeed: 4,
     });
 
     this.oldWidth = 0;
