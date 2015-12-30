@@ -91,7 +91,6 @@ function displayInfo ( system, doNotSwitch ) {
 
   if ( !doNotSwitch ) {
     UI.toTab( 'system' );
-    UI.updateHeight();
   }
 }
 

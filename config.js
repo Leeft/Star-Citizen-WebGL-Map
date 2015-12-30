@@ -17,6 +17,7 @@ System.config({
     "babel": "npm:babel-core@5.8.34",
     "babel-runtime": "npm:babel-runtime@5.8.34",
     "core-js": "npm:core-js@1.2.6",
+    "element-resize-detector": "npm:element-resize-detector@1.0.3",
     "es6-promise": "npm:es6-promise@3.0.2",
     "font-awesome": "npm:font-awesome@4.5.0",
     "handlebars": "github:components/handlebars.js@4.0.5",
@@ -72,6 +73,9 @@ System.config({
     "npm:babel-runtime@5.8.34": {
       "process": "github:jspm/nodelibs-process@0.1.2"
     },
+    "npm:batch-processor@0.2.2": {
+      "process": "github:jspm/nodelibs-process@0.1.2"
+    },
     "npm:buffer@3.5.5": {
       "base64-js": "npm:base64-js@0.0.8",
       "child_process": "github:jspm/nodelibs-child_process@0.1.0",
@@ -88,6 +92,10 @@ System.config({
     },
     "npm:core-util-is@1.0.2": {
       "buffer": "github:jspm/nodelibs-buffer@0.1.0"
+    },
+    "npm:element-resize-detector@1.0.3": {
+      "batch-processor": "npm:batch-processor@0.2.2",
+      "process": "github:jspm/nodelibs-process@0.1.2"
     },
     "npm:es6-promise@3.0.2": {
       "process": "github:jspm/nodelibs-process@0.1.2"

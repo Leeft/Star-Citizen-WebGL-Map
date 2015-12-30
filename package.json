@@ -74,6 +74,7 @@
   },
   "jspm": {
     "dependencies": {
+      "element-resize-detector": "npm:element-resize-detector@^1.0.3",
       "es6-promise": "npm:es6-promise@^3.0.2",
       "font-awesome": "npm:font-awesome@^4.5.0",
       "handlebars": "github:components/handlebars.js@^4.0.5",

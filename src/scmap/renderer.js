@@ -139,7 +139,7 @@ class Renderer {
       this.composer.reset();
     }
 
-    UI.updateHeight();
+    UI.jScrollPane().reinitialise();
   }
 
   render () {

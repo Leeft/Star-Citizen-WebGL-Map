@@ -110,7 +110,6 @@ class Map {
           map.geometry.labels.matchRotation( renderer.cameraRotationMatrix() );
         });
 
-        UI.updateHeight();
       }, failed => {
         console.error( 'Failed to process systems', failed );
       });

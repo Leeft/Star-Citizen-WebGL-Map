@@ -28,6 +28,7 @@ import tabs from 'jquery-ui/ui/tabs';
 import slider from 'jquery-ui/ui/slider';
 import jscrollpane from 'jscrollpane';
 import imagesLoaded from 'imagesloaded';
+import resizeListener from 'element-resize-detector';
 
 $.fn.outerHtml = function() {
   return $('<div />').append(this.eq(0).clone()).html();
@@ -192,7 +193,6 @@ class UI {
          * makes the HTML invalid but removes the ugly URL bar */
         $(`#sc-map-interface a[href="#"]`).removeAttr('href');
 
-        UI.updateHeight();
         UI.toTabTop();
       }
     });
@@ -225,7 +225,6 @@ class UI {
     });
 
     // UI width slider / settings handling
-    //
     settings.storage.uiWidth = UI.widthClasses[ UI.widthClassToIndex( settings.storage.uiWidth ) ];
     $('#sc-map-interface')
       .removeClass( UI.widthClasses.join(' ') )
@@ -241,8 +240,8 @@ class UI {
         let value = ui.value;
         $('#sc-map-interface').removeClass( UI.widthClasses.join(' ') ).addClass( UI.widthClasses[ value ] );
         settings.storage.uiWidth = UI.widthClasses[ value ];
-        UI.updateHeight();
         renderer.resize();
+        UI.jScrollPane().reinitialise();
       }
     });
 
@@ -368,8 +367,6 @@ class UI {
         $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
         delete sessionStorage[ title ];
       }
-
-      UI.updateHeight();
     });
 
     $('#sc-map-interface').on( 'click', 'a[data-toggle-child]', function ( event ) {
@@ -382,8 +379,6 @@ class UI {
       } else {
         $this.parent().find('> a > i').addClass('fa-caret-right').removeClass('fa-caret-down');
       }
-
-      UI.updateHeight();
     });
 
     $('#sc-map-interface').on( 'click', `a[data-goto="system"]`, function( event ) {
@@ -462,6 +457,19 @@ class UI {
       showArrows: false,
       horizontalGutter: 6
     });
+
+    this.oldWidth = 0;
+    this.oldHeight = 0;
+
+    resizeListener().listenTo( $('#sc-map-interface .sc-map-ui-padding')[ 0 ], element => {
+      const width = $(element).width();
+      const height = $(element).height();
+      if ( width !== this.oldWidth || height !== this.oldHeight ) {
+        UI.jScrollPane().reinitialise();
+        this.oldWidth = width;
+        this.oldHeight = height;
+      }
+    });
   }
 
   static displayInfoOn ( system, doNotSwitch ) {
@@ -471,32 +479,10 @@ class UI {
   static toTab ( index ) {
     let tab = UI.Tab( index );
     $('#sc-map-interface').tabs( 'option', 'active', tab.index );
-    UI.updateHeight();
   }
 
   static toTabTop () {
-    if ( UI.jScrollPane() ) {
-      UI.jScrollPane().scrollToPercentY( 0 );
-    }
-  }
-
-  static updateHeight () {
-    const activeTab = UI.ActiveTab();
-
-    if ( activeTab ) {
-      const $images = $( activeTab.id + ' img' );
-      if ( $images.length ) {
-        $( activeTab.id ).imagesLoaded( () => {
-          if ( UI.jScrollPane() ) {
-            UI.jScrollPane().reinitialise();
-          }
-        });
-      } else {
-        if ( UI.jScrollPane() ) {
-          UI.jScrollPane().reinitialise();
-        }
-      }
-    }
+    UI.jScrollPane().scrollToPercentY( 0 );
   }
 
   static loadedSystems ( number ) {
