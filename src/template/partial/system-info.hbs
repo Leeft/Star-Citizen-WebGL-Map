@@ -1,0 +1,84 @@
+{{#if system}}
+  <h1 class="systemname {{#unless previous}}{{#unless next}}padleft{{/unless}}{{/unless}}" style="color: {{ colourGetStyle system.faction.color }}">
+    {{routeNavLinks previous next}}
+    {{system.name}}
+  </h1>
+
+  {{#if system.nickname}}
+    <h2 class="nickname quote padleft" style="color: {{ colourGetStyle system.faction.color }}">{{system.nickname}}</h2>
+  {{/if}}
+
+  <article>
+    {{#uiSection 'Basic info' 1 }}
+      <dl class="wide basic-system">
+        <dt class="faction">Faction</dt>
+        <dd class="faction">{{ system.faction.name }}</dd>
+
+        <!-- <dt class="planets">Planets</dt>
+        <dd class="planets">TODO</dd> -->
+
+        <!-- <dt class="rotation">Planetary rotation</dt>
+        <dd class="rotation">TODO</dd> -->
+
+        <dt class="import">Import</dt>
+        <dd class="import">{{{ commoditiesList system.import }}}</dd>
+
+        <dt class="export">Export</dt>
+        <dd class="export">{{{ commoditiesList system.export }}}</dd>
+
+        <dt class="blackMarket">Black market</dt>
+        <dd class="blackMarket">{{{ commoditiesList system.blackMarket }}}</dd>
+
+{{! TODO: warning, offlimits, tradehub }}
+
+        <dt class="crime">Crime status</dt>
+        <dd class="crime crime_{{ system.crimeStatus.name }}">{{ system.crimeStatus.name }}</dd>
+
+        <dt class="strategic">UEE strategic value</dt>
+        <dd class="strategic strategic_value_{{ system.ueeStrategicValue.color }}">{{ system.ueeStrategicValue.color }}</dd>
+      </dl>
+    {{/uiSection }}
+  </article>
+
+  <article>
+    {{#uiSection 'Comments and settings' 0 }}
+
+      {{checkboxButton "sc-map-hangar-location" "My hangar location"      icon="fa-home"     class="user-system-ishangar"   data-system=system.id }}
+      {{checkboxButton "sc-map-bookmark"        "Bookmarked"              icon="fa-bookmark" class="user-system-bookmarked" data-system=system.id }}
+      {{checkboxButton "sc-map-avoid-system"    "Avoid: don't route here" icon="fa-times"    class="user-system-avoid"      data-system=system.id }}
+
+      <div class="comment-editing">
+        {{#uiSection 'Edit your comments' 0 class='user ui-section' }}
+          <div class="user wide">
+            <label for="user-comments-{{ system.id }}">Your comments (<a href="https://daringfireball.net/projects/markdown/basics" target="_new">markdown syntax</a>):
+            </label><a href="#" class="remove-system-comments" title="Remove" data-system="{{ system.id }}" class="pull-right text-danger"><i class="fa fa-fw fa-lg fa-times"></i></a>
+            <textarea id="user-comments-{{ system.id }}" data-system="{{ system.id}}" class="user-system-comments"></textarea>
+          </div>
+        {{/uiSection }}
+
+        <p class="ui-section user-system-comments-md"></p>
+      </div>
+
+    {{/uiSection }}
+  </article>
+
+  {{#each system.info}}
+    <article>
+      {{#uiSection 'Background info' 1 }}
+        <div class="system-blurb-body" data-source="{{ this.source }}">
+          {{markdown this.blob}}
+        </div>
+        {{#if this.source}}
+          <p class="system-blurb-source"><a href="{{ this.source }}" target="_new">(source)</a></p>
+        {{/if}}
+      {{/uiSection }}
+    </article>
+  {{/each}}
+
+{{else}}
+
+  <div>
+    <p class="padleft impossible large ui-section">No system selected</p>
+  </div>
+
+{{/if}}

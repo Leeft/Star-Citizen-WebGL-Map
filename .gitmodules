@@ -1,4 +1,0 @@
-[submodule "three.js"]
-	path = js/three.js
-	url = https://github.com/mrdoob/three.js.git
-	branch = master

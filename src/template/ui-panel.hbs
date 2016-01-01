@@ -1,0 +1,36 @@
+{{! Main UI template, used to set up the tabs and the static info }}
+<div class="sc-map-ui-padding">
+  <ul class="menubar"></ul>
+
+  {{#jQueryUiTab 'Usage' 'usage' 'fa-home'}}
+    {{>templateMainInstructions}}
+    {{>templateMainShortcuts}}
+    {{>templateMainIconLegend}}
+    {{>templateMainQuickFunctions}}
+  {{/jQueryUiTab}}
+
+  {{#jQueryUiTab 'Systems' 'systems' 'fa-list'}}
+    {{! Populated dynamically and on-demand }}
+  {{/jQueryUiTab}}
+
+  {{#jQueryUiTab 'Selected system information' 'system' 'fa-info-circle'}}
+    {{! Populated dynamically and on-demand }}
+    {{>templateSystemInfo}}
+  {{/jQueryUiTab}}
+
+  {{#jQueryUiTab 'Plan a route' 'route' 'fa-paper-plane'}}
+    {{>templateRouteList}}
+  {{/jQueryUiTab}}
+
+  {{#jQueryUiTab 'Settings' 'settings' 'fa-wrench'}}
+    {{>templateSettings}}
+  {{/jQueryUiTab}}
+
+  {{#jQueryUiTab 'Debug information' 'debug' 'fa-bug'}}
+    {{>templateDebugInformation}}
+  {{/jQueryUiTab}}
+
+  {{#jQueryUiTab 'About this map' 'about' 'fa-comment'}}
+    {{>templateAbout}}
+  {{/jQueryUiTab}}
+</div>

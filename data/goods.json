@@ -1,0 +1,282 @@
+[
+  {
+    "blackMarket": true,
+    "id": 1,
+    "name": "Slaves"
+  },
+  {
+    "blackMarket": true,
+    "id": 10,
+    "name": "Luxury Goods"
+  },
+  {
+    "blackMarket": true,
+    "id": 11,
+    "name": "Kidnapping"
+  },
+  {
+    "blackMarket": true,
+    "id": 12,
+    "name": "Theft"
+  },
+  {
+    "blackMarket": false,
+    "id": 13,
+    "name": "Energy Supplies"
+  },
+  {
+    "blackMarket": false,
+    "id": 14,
+    "name": "GeoEngineering Products"
+  },
+  {
+    "blackMarket": true,
+    "id": 15,
+    "name": "Stims"
+  },
+  {
+    "blackMarket": true,
+    "id": 16,
+    "name": "Artwork"
+  },
+  {
+    "blackMarket": false,
+    "id": 17,
+    "name": "Research"
+  },
+  {
+    "blackMarket": false,
+    "id": 18,
+    "name": "Electronics"
+  },
+  {
+    "blackMarket": false,
+    "id": 19,
+    "name": "Computer Tech"
+  },
+  {
+    "blackMarket": true,
+    "id": 2,
+    "name": "Narcotics"
+  },
+  {
+    "blackMarket": true,
+    "id": 20,
+    "name": "Weapons"
+  },
+  {
+    "blackMarket": false,
+    "id": 21,
+    "name": "Raw Materials"
+  },
+  {
+    "blackMarket": false,
+    "id": 22,
+    "name": "Heavy Metals"
+  },
+  {
+    "blackMarket": false,
+    "id": 23,
+    "name": "Oxygen"
+  },
+  {
+    "blackMarket": false,
+    "id": 24,
+    "name": "Reactors"
+  },
+  {
+    "blackMarket": false,
+    "id": 25,
+    "name": "Salvage"
+  },
+  {
+    "blackMarket": false,
+    "id": 26,
+    "name": "Refuse"
+  },
+  {
+    "blackMarket": false,
+    "id": 27,
+    "name": "Crystals"
+  },
+  {
+    "blackMarket": false,
+    "id": 28,
+    "name": "Graphite"
+  },
+  {
+    "blackMarket": false,
+    "id": 29,
+    "name": "Processed Goods"
+  },
+  {
+    "blackMarket": true,
+    "id": 3,
+    "name": "Mercenaries"
+  },
+  {
+    "blackMarket": false,
+    "id": 30,
+    "name": "Textiles"
+  },
+  {
+    "blackMarket": true,
+    "id": 31,
+    "name": "Biological Goods"
+  },
+  {
+    "blackMarket": false,
+    "id": 32,
+    "name": "Antimatter"
+  },
+  {
+    "blackMarket": false,
+    "id": 33,
+    "name": "Criminals"
+  },
+  {
+    "blackMarket": true,
+    "id": 34,
+    "name": "Poisons"
+  },
+  {
+    "blackMarket": true,
+    "id": 35,
+    "name": "Medical Supplies"
+  },
+  {
+    "blackMarket": false,
+    "id": 36,
+    "name": "Printed Material"
+  },
+  {
+    "blackMarket": false,
+    "id": 37,
+    "name": "Copper"
+  },
+  {
+    "blackMarket": true,
+    "id": 38,
+    "name": "Gemstones"
+  },
+  {
+    "blackMarket": true,
+    "id": 39,
+    "name": "Atomics"
+  },
+  {
+    "blackMarket": false,
+    "id": 4,
+    "name": "Elements"
+  },
+  {
+    "blackMarket": false,
+    "id": 40,
+    "name": "Fuel"
+  },
+  {
+    "blackMarket": false,
+    "id": 41,
+    "name": "Mechanical Goods"
+  },
+  {
+    "blackMarket": false,
+    "id": 42,
+    "name": "Crude Oil"
+  },
+  {
+    "blackMarket": false,
+    "id": 43,
+    "name": "Water"
+  },
+  {
+    "blackMarket": true,
+    "id": 44,
+    "name": "Oso Meat"
+  },
+  {
+    "blackMarket": false,
+    "id": 45,
+    "name": "Fertilizer"
+  },
+  {
+    "blackMarket": false,
+    "id": 46,
+    "name": "Heavy Machinery"
+  },
+  {
+    "blackMarket": false,
+    "id": 47,
+    "name": "Rare Metals"
+  },
+  {
+    "blackMarket": false,
+    "id": 48,
+    "name": "Research Equipment"
+  },
+  {
+    "blackMarket": true,
+    "id": 49,
+    "name": "Chemicals"
+  },
+  {
+    "blackMarket": false,
+    "id": 5,
+    "name": "Minerals"
+  },
+  {
+    "blackMarket": false,
+    "id": 50,
+    "name": "Black Glass"
+  },
+  {
+    "blackMarket": false,
+    "id": 51,
+    "name": "Gray Oil"
+  },
+  {
+    "blackMarket": true,
+    "id": 52,
+    "name": "Animals"
+  },
+  {
+    "blackMarket": false,
+    "id": 53,
+    "name": "Industrial Machinery"
+  },
+  {
+    "blackMarket": true,
+    "id": 54,
+    "name": "Gambling"
+  },
+  {
+    "blackMarket": false,
+    "id": 55,
+    "name": "Human Cultural Goods"
+  },
+  {
+    "blackMarket": false,
+    "id": 56,
+    "name": "Spare Parts"
+  },
+  {
+    "blackMarket": true,
+    "id": 6,
+    "name": "Pleasure Bots"
+  },
+  {
+    "blackMarket": false,
+    "id": 7,
+    "name": "Silica"
+  },
+  {
+    "blackMarket": false,
+    "id": 8,
+    "name": "Food"
+  },
+  {
+    "blackMarket": false,
+    "id": 9,
+    "name": "Labor"
+  }
+]

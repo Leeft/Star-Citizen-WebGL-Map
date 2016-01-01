@@ -1,0 +1,57 @@
+{{#uiSection 'Routing options' 0 class="no-pad-top" }}
+  {{checkboxOption "sc-map-avoid-hostile" route.settings.avoidHostile "Don't enter hostile territory" "But do try to get out of it quickly."}}
+  {{checkboxOption "sc-map-avoid-unknown-jumppoints" route.settings.avoidUnknownJumppoints "Avoid unconfirmed jumppoints" "Any jumppoint not yet confirmed, or not yet mapped - those with dashed lines."}}
+  {{checkboxOption "sc-map-avoid-off-limits" route.settings.avoidOffLimits "Avoid 'off limits' systems" "Note though that not all of the system marked as such is necessarily off-limits."}}
+{{/uiSection }}
+
+{{#uiSection 'How this works' 0 }}
+  <p>Click and drag from system to system to calculate a route between these two systems, which then becomes your current route. You can have only one active route, so you must delete the current route to create a new one, or modify your existing route as desired.</p>
+
+  <p>Use the options section above to configure the global routing options, or set the 'avoid' flag on a system to change the routing through that system only. Note that all route options are advisory, the user has the final say ... as an example: if you set the destination just into hostile territory then turning on the option to avoid hostile systems will not be effective.</p>
+
+  <p>The route will always be the shortest number of jumps possible with the given settings, as using a jump is always faster than traveling in a system from jumppoint to jumppoint, and using jumppoints has been stated to not require fuel.</p>
+
+  <p>Once a route is set, you can drag any of its waypoints elsewhere.  Dragging will create a new waypoint as needed. Existing waypoints on the route can be removed again with the <i class="fa fa-times"></i> symbol in the route list below.</p>
+
+  <p>On a final note: the given estimate times are extremely rough indications based on available information (very little at this time). As we learn more about the in-system and jumppoint traveling I will do my best to refine the calculation accordingly.</p>
+{{/uiSection }}
+
+{{#uiSection 'Calculated route' 1 }}
+  {{#unless route.status}}
+    <table class="routelist">
+      <caption>
+        Route from {{ systemLink route.from noIcons=1 noTarget=1 }} to {{ systemLink route.to noIcons=1 noTarget=1 }}
+        along <strong class="route-count">{{ minusOne route.waypoints.length }}</strong> jump points:
+      </caption>
+      <tbody>
+        {{#each route.waypoints}}
+          <tr>
+            <th class="count muted">{{ plusOne @index }}</th>
+            <td class="control muted">
+                {{#if action}}
+                  {{{action}}}<i class="fa fa-fw fa-lg {{ iconClass }}" title="{{ iconTitle }}"></i></a>
+                {{else}}
+                  <i class="fa fa-fw fa-lg {{ iconClass }}" title="{{ iconTitle }}"></i>
+                {{/if}}
+            </td>
+            <td class="system">{{ systemLink system noIcons=0 noTarget=0 }}</td>
+            <td class="duration muted small">{{ durationHMM this.duration }}</td>
+          </tr>
+        {{/each}}
+      </tbody>
+      <tfoot>
+        <tr>
+          <th class="count">&nbsp;</th>
+          <th class="control">&nbsp;</th>
+          <th class="system">&nbsp;</th>
+          <th class="duration small">&plusmn;{{ durationHMM route.totalDuration }}</th>
+        </tr>
+      </tfoot>
+    </table>
+    <p>
+      <button class="delete-route"><i class="fa fa-fw fa-trash-o"></i>Delete route</button>
+    </p>
+  {{else}}
+    <p class="{{ status.class }}">{{ route.status.text }}</p>
+  {{/unless}}
+{{/uiSection }}

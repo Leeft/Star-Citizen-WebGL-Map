@@ -1,3 +1,9 @@
+[![Travis build status](http://img.shields.io/travis/Leeft/starcitizen-webgl-map.svg?style=flat)](https://travis-ci.org/Leeft/starcitizen-webgl-map)
+[![Code Climate](https://codeclimate.com/github/Leeft/starcitizen-webgl-map/badges/gpa.svg)](https://codeclimate.com/github/Leeft/starcitizen-webgl-map)
+[![Test Coverage](https://codeclimate.com/github/Leeft/starcitizen-webgl-map/badges/coverage.svg)](https://codeclimate.com/github/Leeft/starcitizen-webgl-map)
+[![Dependency Status](https://david-dm.org/Leeft/starcitizen-webgl-map.svg)](https://david-dm.org/Leeft/starcitizen-webgl-map)
+[![devDependency Status](https://david-dm.org/Leeft/starcitizen-webgl-map/dev-status.svg)](https://david-dm.org/Leeft/starcitizen-webgl-map#info=devDependencies)
+
 # Star-Citizen-WebGL-Map
 
 A WebGL version of the (reverse engineered) universe map for the upcoming game
@@ -46,9 +52,9 @@ will be available through any API's Cloud Imperium Games might be creating for u
 * Revealing new jump points as they've been explored and published widely
 * ...
 
-I will probably *not* implement anything like the planets view in the video, the
-amount of work involved with that would be tremendous. And leaving it out of my map
-leaves some use for the in-game map feature as well. ;)
+I will probably *not* implement anything like the planets view in the ARK star map,
+the amount of work involved with that would be tremendous. And leaving it out of my
+map leaves some use for the ARK map as well. ;)
 
 The map itself is mostly complete, and it is still static data as the database
 used to generate the map data is also a work in progress. The XZ coordinates of
@@ -61,26 +67,26 @@ If you want to discuss anything related to this map, please go to
 
 # Building the map code and customising
 
-Since you're looking at the source code, you may be interested in this. You'll need:
+Since you're looking at the project page, you may be interested in this. You'll need:
 
-* [node.js](http://nodejs.org/): if not yet installed (on Linux), maybe give
-[nvm](https://github.com/creationix/nvm) a try to manage your Node setup ...
-otherwise use whatever package installation system your OS provides, or install
-from its source code.
-* Install Grunt: `npm install -g grunt-cli`
-* Install Bower: `npm install -g bower`
-* Install the map and dev environment dependencies: run both `bower install` and `npm install`
-from this directory.
-* Compile the code and bundle the libraries: run `grunt`; use `grunt watch` to monitor
-the files for changes and recompile as needed.
+* [node.js](http://nodejs.org/): On Linux I highly recommend using
+[nvm](https://github.com/creationix/nvm) to manage your Node setup. You should not
+ever use `root` to install global node-cli commands, and with nvm you don't need to.
+* Install Gulp globally: `npm install -g gulp`
+* Install JSPM globally: `npm install -g jspm`
+* Install the map and dev environment dependencies: run both `npm install` and `jspm install`
+from the project directory.
+* Compile and bundle the code: run `gulp build`
 
-Once built, the file `index.html` and the files in `css/`, `images/` and `build/`
-should be all you need.
+Once built, the file `index.html` and the files in `css/`, `images/`, `data/` and `build/`
+should be all that you need.
 
-At this time some customisation is certainly possible by modifying the templates
-in `index.html`, but the code needs lots more work to make it easy to plug parts
-of the code in to another website and render a custom map without rewriting much
-of it.
+`index-dev.html` can be used for development; this page loads all the files in `src/`
+individually through JSPM, so this is not nearly as efficient as `index.html`.
+
+At this time some customisation is certainly possible by modifying the templates,
+but the code needs lots more work to make it easy to plug parts of the code in to
+another website and render a custom map without rewriting much of it.
 
 ## License
 
@@ -88,4 +94,4 @@ of it.
 
 ## Credits
 
-August 2014 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari).
+August 2014 - December 2015 by [Daughter of Sol (Shiari)](https://forums.robertsspaceindustries.com/profile/51803/Shiari).

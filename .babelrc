@@ -1,0 +1,5 @@
+{
+  "blacklist": ["useStrict"],
+  "compact": true,
+  "loose": ["es6.modules"],
+}

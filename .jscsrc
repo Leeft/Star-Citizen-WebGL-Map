@@ -1,0 +1,13 @@
+{
+  "maximumLineLength": null,
+  "disallowSpacesInsideParentheses": false,
+  "validateIndentation": 2,
+  "requireSpaceBeforeBinaryOperators": true,
+  "requireSpaceBeforeBlockStatements": true,
+  "requireSpaceBeforeComma": false,
+  "requireSpaceBeforeKeywords": true,
+  "requireSpaceBeforeObjectValues": true,
+  "disallowSpaceBeforePostfixUnaryOperators": true,
+  "disallowNewlineBeforeBlockStatements": false,
+  "esnext": true
+}

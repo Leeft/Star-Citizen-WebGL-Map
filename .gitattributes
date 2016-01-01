@@ -1,2 +1,5 @@
-*.min.js -text
-*.min.css -text
+build/starcitizen-webgl-map.js -text -merge -diff
+*.min.js -text -merge -diff
+*.min.css -text -merge -diff
+*.js.map -text -merge -diff
+css/sc.css binary

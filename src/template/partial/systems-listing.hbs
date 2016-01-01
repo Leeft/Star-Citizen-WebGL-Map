@@ -1,0 +1,24 @@
+{{tabHeader 'Systems'}}
+{{#each systemGroups}}
+  {{#if items}}
+    {{#uiSection title 0}}
+    <ul class="nostyle">
+      {{#each items}}
+        <li>{{{this}}}</li>
+      {{/each}}
+    </ul>
+    {{/uiSection}}
+  {{else}}
+    {{#uiSection title 0}}
+    {{#each factions}}
+      {{#uiSection faction 0}}
+      <ul class="nostyle">
+        {{#each items}}
+          <li>{{{this}}}</li>
+        {{/each}}
+      </ul>
+      {{/uiSection}}
+    {{/each}}
+    {{/uiSection}}
+  {{/if}}
+{{/each}}
