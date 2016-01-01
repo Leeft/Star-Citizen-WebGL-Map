@@ -104,12 +104,6 @@ class Map {
           }
         }
 
-        renderer.controls.throttledEventListener.init( 'change', function () {
-          renderer.controls.rememberPosition();
-          map.geometry.systems.refreshLOD( renderer.camera );
-          map.geometry.labels.matchRotation( renderer.cameraRotationMatrix() );
-        });
-
       }, failed => {
         console.error( 'Failed to process systems', failed );
       });
@@ -145,6 +139,7 @@ class Map {
     };
 
     this.displayState = displayState;
+
     if ( config.debug ) {
       console.info( 'DisplayState is', displayState );
     }
@@ -313,6 +308,12 @@ class Map {
 
   getIntersect ( event ) {
     return this.geometry.interactables.getIntersect( event );
+  }
+
+  syncCamera () {
+    renderer.controls.rememberPosition();
+    this.geometry.systems.refreshLOD( renderer.camera );
+    this.geometry.labels.matchRotation( renderer.cameraRotationMatrix() );
   }
 
   populate ( data ) {

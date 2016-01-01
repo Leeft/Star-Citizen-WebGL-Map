@@ -13,7 +13,7 @@ const DEFAULTS = {
 
   glowImage:            'images/glow.png',
 
-  rotateSpeed:          '0.4',
+  rotateSpeed:          '0.1',
   zoomSpeed:            '1.0',
   panSpeed:             '0.6',
 

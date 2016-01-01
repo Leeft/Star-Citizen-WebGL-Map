@@ -56,7 +56,16 @@ class Interactables extends MapGeometry {
   }
 
   getIntersect ( event ) {
-    const vector = new THREE.Vector3( (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5 );
+    let x, y;
+    if ( ( event.touches ) && ( event.touches.length > 0 ) ) {
+      x = event.touches[ 0 ].pageX;
+      y = event.touches[ 0 ].pageY;
+    } else {
+      x = event.clientX;
+      y = event.clientY;
+    }
+
+    const vector = new THREE.Vector3( ( x / window.innerWidth ) * 2 - 1, -( y / window.innerHeight ) * 2 + 1, 0.5 );
     vector.unproject( this.renderer.controls.object );
 
     const raycaster = new THREE.Raycaster(

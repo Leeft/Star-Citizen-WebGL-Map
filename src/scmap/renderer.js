@@ -7,6 +7,7 @@ import settings from './settings';
 import OrbitControls from './orbit-controls';
 import UI from './ui';
 import { PerspectiveCamera, WebGLRenderer, Euler, Matrix4 } from './three';
+import { degToRad } from './three/math';
 
 import TextureManager from 'leeft/three-sprite-texture-atlas-manager';
 import TWEEN from 'tween.js';
@@ -45,18 +46,26 @@ class Renderer {
     this.camera.position.copy( settings.camera.camera );
     this.camera.setViewOffset( this.width, this.height, -( UI.sidePanelWidth() / 2 ), 0, this.width, this.height );
 
-    this.controls = new OrbitControls( this, this.container );
+    this.controls = new OrbitControls( this );
     this.controls.target.copy( settings.camera.target );
     this.controls.rotateSpeed = config.rotateSpeed;
     this.controls.zoomSpeed = config.zoomSpeed;
     this.controls.panSpeed = config.panSpeed;
-    this.controls.noRotate = settings.control.rotationLocked;
+    this.controls.enableRotate = ! settings.control.rotationLocked;
+    this.controls.enableDamping = true;
+    this.controls.damingFactor = 0.5;
+    this.controls.minPolarAngle = 0;
+    this.controls.maxPolarAngle = degToRad( 85 );
+    this.controls.minDistance = 20;
+    this.controls.maxDistance = 800;
+    this.controls.keyPanSpeed = 40;
 
     this.threeRenderer = new WebGLRenderer( { antialias: ( config.quality !== 'low' ) } );
     this.threeRenderer.shadowMap.enabled = false;
 
     if ( config.debug ) {
-      console.info( `The renderer is`, this.threeRenderer );
+      console.info( `SCMAP renderer:`, this );
+      console.info( `THREE renderer:`, this.threeRenderer );
     }
 
     if ( ! settings.effect.Antialias ) {
@@ -117,7 +126,7 @@ class Renderer {
 
 
   cameraRotationMatrix () {
-    let euler = new Euler( this.camera.userData.phi + Math.PI / 2, this.camera.userData.theta, 0, 'YXZ' );
+    let euler = new Euler( this.controls.getPolarAngle() + Math.PI / 2, this.controls.getAzimuthalAngle(), 0, 'YXZ' );
     return new Matrix4().makeRotationFromEuler( euler );
   }
 

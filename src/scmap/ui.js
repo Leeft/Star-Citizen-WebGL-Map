@@ -124,7 +124,7 @@ class UI {
     $('#sc-map-lock-rotation')
       .prop( 'checked', settings.control.rotationLocked )
       .on( 'change', function() {
-        renderer.controls.noRotate = this.checked;
+        renderer.controls.enableRotate = ! this.checked;
         settings.storage['control.rotationLocked'] = ( this.checked ) ? '1' : '0';
         settings.save('control');
       });
@@ -151,7 +151,7 @@ class UI {
     });
 
     $('#sc-map-top2D').on( 'click', function () {
-      renderer.controls.noRotate = true;
+      renderer.controls.enableRotate = false;
       $('#sc-map-lock-rotation').prop( 'checked', true );
       map.displayState.to2d();
       renderer.controls.rotateTo( 0, 0, 180 );
@@ -491,6 +491,26 @@ class UI {
 
   static loadedSystems ( number ) {
     $('#debug-systems').html( `${ number } systems loaded` );
+  }
+
+  static rotationLocked () {
+    $('#sc-map-lock-rotation').prop( 'checked', true );
+  }
+
+  static rotationUnlocked () {
+    $('#sc-map-lock-rotation').prop( 'checked', false );
+  }
+
+  static rotationLockToggle () {
+    $('#sc-map-lock-rotation').click();
+  }
+
+  static startHoverOverStarSystem () {
+    $('#sc-map-webgl-container canvas').addClass('mouseover');
+  }
+
+  static endHoverOverStarSystem () {
+    $('#sc-map-webgl-container canvas').removeClass('mouseover');
   }
 
   static entered2D () {
