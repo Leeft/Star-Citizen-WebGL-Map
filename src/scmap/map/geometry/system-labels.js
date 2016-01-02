@@ -78,7 +78,7 @@ class SystemLabels extends MapGeometry {
   }
 
   matchRotation ( rotationMatrix ) {
-    const vector = new THREE.Vector3( 0, - settings.labelOffset, -0.1 );
+    const vector = new THREE.Vector3( 0, - ( settings.labelOffset * config.renderScale ), -0.1 );
     this._mesh.position.copy( vector.applyMatrix4( rotationMatrix ) );
   }
 

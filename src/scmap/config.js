@@ -20,20 +20,22 @@ const DEFAULTS = {
   minSystemScale:       '0.5',
   defaultSystemScale:   '1.0',
   maxSystemScale:       '1.50',
-
+  systemScale:          0.5, // system geometry is multiplied by this for the actual scene
 
   // These should've been named *LabelUserScale
   minLabelScale:        '0.4',
   defaultLabelScale:    '1.0',
   maxLabelScale:        '2.0',
-  labelScale:           5, // sprite labels are multiplied by this for the actual scene
+  labelScale:           2.5, // sprite labels are multiplied by this for the actual scene
 
   minLabelOffset:       '-6.5',
-  defaultLabelOffset:   '5.0',
+  defaultLabelOffset:   '4.0',
   maxLabelOffset:       '7.5',
 
   debug:                false,
   quality:              'high',
+
+  renderScale:          0.5, // to grow or shrink
 
   // takes 8m 19s at 1c, but autopilot speed is only 0.2c
   // FIXME: this value is probably going to be WAY, WAY off.

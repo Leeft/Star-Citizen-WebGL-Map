@@ -19,6 +19,7 @@ class StarSystem {
     this.id = undefined;
     this.uuid = undefined;
     this.name = generateUUID();
+    this.description = '';
     this.nickname = '';
     this.position = new Vector3();
     this.faction = new Faction();
@@ -30,7 +31,7 @@ class StarSystem {
     this.planetaryRotation = [];
     this.import = [];
     this.export = [];
-    this.status = 'unknown';
+    this.status = 'Unknown';
     this.crimeStatus = '';
     this.blackMarket = [];
     this.ueeStrategicValue = undefined;
@@ -113,7 +114,7 @@ class StarSystem {
   }
 
   isUnknown () {
-    return ( this.status === 'unknown' ) ? true : false;
+    return ( this.status === 'Unknown' ) ? true : false;
   }
 
   setBookmarkedState ( state ) {
@@ -200,15 +201,23 @@ class StarSystem {
       }
 
       destination = StarSystem.getById( jumpPoint.destinationSystemId );
+      if ( destination === this ) {
+        destination = StarSystem.getById( jumpPoint.sourceSystemId );
+      }
 
       if ( destination instanceof StarSystem ) {
         jumpPoint = new JumpPoint({
+          id: jumpPoint.jumpPointId,
+          direction: jumpPoint.direction,
           source: this,
           destination: destination,
           name: jumpPoint.name,
+          size: jumpPoint.size,
+          status: jumpPoint.status,
           type: jumpPoint.type,
-          entryAU: jumpPoint.coordsAu
+          entryAU: jumpPoint.coordsAu,
         });
+
         if ( cleanup ) {
           jumpPoints.push( jumpPoint );
         } else {
@@ -247,9 +256,9 @@ class StarSystem {
           if ( newValue instanceof Color ) {
             this[ key ] = newValue;
           } else {
-            newValue = newValue.replace( '0x', '#' );
+            newValue = newValue.replace( '0x', '#' ).toLowerCase();
             this[ '_' + key ] = newValue;
-            if ( /unknown/.test( newValue ) ) {
+            if ( /unknown/i.test( newValue ) ) {
               this[ key ] = UNSET;
             } else {
               this[ key ] = new Color( newValue );
@@ -289,12 +298,13 @@ class StarSystem {
     }
 
     return new StarSystem({
-      'id': json.systemId,
+      'id': json.id,
       'uuid': json.uuid,
       'name': json.name,
-      'position': json.coords,
-      'color': json.color,
-      'faction': SCMAP.getFactionById( json.factionId ),
+      'description': json.description,
+      'position': json.coordinates,
+      'color': ( json.color === 'Unknown' ) ? UNSET : new Color( json.color.toLowerCase() ),
+      'faction': SCMAP.getFactionById( json.faction ),
       'isMajorTradeHub': json.isMajorTradeHub,
       'hasWarning': json.hasWarning,
       'isOffLimits': json.isOffLimits,
@@ -304,9 +314,9 @@ class StarSystem {
       'status': json.status,
       'crimeStatus': SCMAP.getCrimeLevelById( json.crimeLevel ),
       'ueeStrategicValue': SCMAP.getUEEStrategicValueById( '' + json.ueeStrategicValue ),
-      'import': json.import,
-      'export': json.export,
-      'blackMarket': json.blackMarket,
+      'import': json.importing,
+      'export': json.exporting,
+      'blackMarket': json.blackMarkets,
       'planets': [], // TODO
       'planetaryRotation': [], // TODO
       'jumpPoints': json.jumpPoints,

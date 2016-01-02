@@ -8,7 +8,7 @@ import config from '../../config';
 
 import THREE from 'three';
 
-const GLOW_SCALE = 7.5;
+const GLOW_SCALE = 3.75;
 const BLACK = new THREE.Color( 'black' );
 const UNSET = new THREE.Color( 0x80A0CC );
 
@@ -55,7 +55,7 @@ class SystemGlow extends MapGeometry {
         material.color = color;
 
         const glow = new THREE.Sprite( material );
-        glow.position.set( system.position.x, system.position.y, system.position.z - 0.2 );
+        glow.position.set( system.position.x, system.position.y, system.position.z );
         glow.userData.isGlow = true;
         glow.userData.system = system;
         glow.userData.y = system.position.y;

@@ -263,9 +263,9 @@ class Route {
       }
 
       this._graphs = newGraphs;
-      if ( newGraphs.length > 0 ) {
-        console.log( `Synced and built ${ newGraphs.length } graphs` );
-      }
+      //if ( newGraphs.length > 0 ) {
+      //  console.log( `Synced and built ${ newGraphs.length } graphs` );
+      //}
     }
     catch ( e )
     {
@@ -336,7 +336,7 @@ class Route {
       if ( graph.rebuildGraph() ) {
         let destination = graph.destination();
         if ( destination ) {
-          console.log( `Have existing destination, updating route` );
+          //console.log( `Have existing destination, updating route` );
           this.update( destination );
         }
       }

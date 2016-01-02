@@ -75,17 +75,18 @@ class SCMAP {
   importFactions ( json ) {
     const factions = [];
 
-    json.forEach( data => {
+    for ( let factionId in json ) {
+      const data = json[ factionId ];
       const faction = new Faction({
         id: data.id,
         name: data.name,
-        color: new Color( data.color.replace( '0x', '#' ) ),
-        isRealFaction: data.isRealFaction,
-        parentFaction: data.parentFactionId,
+        color: new Color( data.color ),
+        isRealFaction: data.isActualFaction,
+        parentFaction: data.parentFaction,
       });
       this.data.factions[ data.id ] = faction;
       factions.push( faction );
-    });
+    }
 
     factions.forEach( faction => {
       if ( faction.parentFaction ) {
@@ -103,13 +104,14 @@ class SCMAP {
   }
 
   importCommodities ( json ) {
-    json.forEach( data => {
+    for ( let commodityId in json ) {
+      const data = json[ commodityId ];
       this.data.commodities[ data.id ] = new Goods({
         id: data.id,
         name: data.name,
         blackMarket: data.blackMarket,
       });
-    });
+    }
   }
 
   getCommodityById ( id ) {

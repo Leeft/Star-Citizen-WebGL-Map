@@ -62,11 +62,17 @@
     {{/uiSection }}
   </article>
 
+  {{#uiSection 'Description' 1 }}
+    <div class="system-description">
+      {{system.description}}
+    </div>
+  {{/uiSection }}
+
   {{#each system.info}}
     <article>
       {{#uiSection 'Background info' 1 }}
         <div class="system-blurb-body" data-source="{{ this.source }}">
-          {{markdown this.blob}}
+          {{markdown this.article}}
         </div>
         {{#if this.source}}
           <p class="system-blurb-source"><a href="{{ this.source }}" target="_new">(source)</a></p>

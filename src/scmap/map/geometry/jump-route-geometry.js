@@ -57,7 +57,7 @@ class JumpRouteGeometry {
       if ( this.route.start instanceof StarSystem )
       {
         const startIndicator = this.map._createSelectorObject( startColour );
-        startIndicator.scale.set( 3.8, 3.8, 3.8 );
+        startIndicator.scale.set( 3.8 * config.renderScale, 3.8 * config.renderScale, 3.8 * config.renderScale );
         startIndicator.position.copy( this.route.start.position );
         startIndicator.visible = true;
         group.add( startIndicator );
@@ -71,7 +71,7 @@ class JumpRouteGeometry {
             const waypointIndicator = this.map._createSelectorObject(
               startColour.clone().lerp( endColour, this.route.alphaOfSystem( waypoint ) )
             );
-            waypointIndicator.scale.set( 3.8, 3.8, 3.8 );
+            waypointIndicator.scale.set( 3.8 * config.renderScale, 3.8 * config.renderScale, 3.8 * config.renderScale );
             waypointIndicator.position.copy( waypoint.position );
             waypointIndicator.visible = true;
             group.add( waypointIndicator );
@@ -93,7 +93,7 @@ class JumpRouteGeometry {
 
   static createSegmentGeometry ( source, destination ) {
     const distance = source.distanceTo( destination );
-    const geometry = new THREE.CylinderGeometry( 0.6, 0.6, distance, 8, 1, true );
+    const geometry = new THREE.CylinderGeometry( 0.6 * config.renderScale, 0.6 * config.renderScale, distance, 8, 1, true );
     geometry.applyMatrix( new THREE.Matrix4().makeTranslation( 0, distance / 2, 0 ) );
     geometry.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
     return geometry;

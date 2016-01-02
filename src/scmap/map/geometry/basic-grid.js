@@ -4,10 +4,11 @@
 
 import SCMAP from '../../../scmap';
 import LineSegments from './line-segments';
+import config from '../../config';
 
 import THREE from 'three';
 
-const SEGMENT_SIZE = 10;
+const SEGMENT_SIZE = 10 * config.renderScale;
 const BLACK = new THREE.Color( 0x000000 );
 
 function furthestPOI ( vector ) {

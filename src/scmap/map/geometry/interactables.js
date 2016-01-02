@@ -3,6 +3,7 @@
 */
 
 import MapGeometry from '../map-geometry';
+import config from '../../config';
 import THREE from 'three';
 
 // Change to SpriteMaterial to visualise
@@ -32,7 +33,7 @@ class Interactables extends MapGeometry {
         const interactable = new THREE.Sprite( INTERACTABLE_DEBUG_MATERIAL );
         const interactableSize = Math.min( 6.5, Math.max( 5.5, 7 * system.scale ) );
         interactable.position.copy( system.position );
-        interactable.scale.set( interactableSize, interactableSize, interactableSize );
+        interactable.scale.set( interactableSize * config.renderScale, interactableSize * config.renderScale, interactableSize * config.renderScale );
         interactable.userData.system = system;
         interactable.userData.isInteractable = true;
         interactable.userData.position = system.position.clone();

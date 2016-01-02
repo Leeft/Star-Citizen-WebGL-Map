@@ -44,7 +44,7 @@ class Map {
     this.scene.add( this.geometry.selectedSystem );
 
     this.geometry.mouseOverObject = this._createSelectorObject( 0x8844FF );
-    this.geometry.mouseOverObject.scale.set( 4.0, 4.0, 4.0 );
+    this.geometry.mouseOverObject.scale.set( 4.0 * config.renderScale, 4.0 * config.renderScale, 4.0 * config.renderScale );
     this.scene.add( this.geometry.mouseOverObject );
 
     this.__currentlySelected = null;
@@ -179,7 +179,7 @@ class Map {
 
   _createSelectorObject ( color ) {
     let mesh = new Mesh( SelectedSystemGeometry, new MeshBasicMaterial({ color: color }) );
-    mesh.scale.set( 4.2, 4.2, 4.2 );
+    mesh.scale.set( 4.2 * config.renderScale, 4.2 * config.renderScale, 4.2 * config.renderScale );
     mesh.visible = false;
     mesh.userData.isSelector = true;
     // 2d/3d tween callback

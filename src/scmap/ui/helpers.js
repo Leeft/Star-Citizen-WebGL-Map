@@ -112,7 +112,7 @@ Handlebars.registerHelper( 'commoditiesList', function( commodities ) {
 });
 
 Handlebars.registerHelper( 'markdown', function( markdownText ) {
-  return new Handlebars.SafeString( markdown.markdown.toHTML( markdownText ) );
+  return new Handlebars.SafeString( markdown.markdown.toHTML( markdownText || '' ) );
 });
 
 Handlebars.registerHelper( 'colourGetStyle', function( colour ) {

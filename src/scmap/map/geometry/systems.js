@@ -43,7 +43,7 @@ class SystemsGeometry extends MapGeometry {
 
         for ( let i = 0; i < STAR_LOD_MESHES.length; i++ ) {
           const star = new THREE.Mesh( STAR_LOD_MESHES[ i ][ 0 ], material );
-          star.scale.set( system.scale, system.scale, system.scale );
+          star.scale.set( system.scale * config.renderScale, system.scale * config.renderScale, system.scale * config.renderScale );
           star.updateMatrix();
           star.matrixAutoUpdate = false;
           starLOD.addLevel( star, STAR_LOD_MESHES[ i ][ 1 ] );

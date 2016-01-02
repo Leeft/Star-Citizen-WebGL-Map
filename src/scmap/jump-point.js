@@ -7,12 +7,15 @@ import { Vector3 } from './three'
 
 class JumpPoint {
   constructor( data ) {
-    this.id = data.jumpPointId;
+    //this.id = data.jumpPointId;
     this.name = ( typeof data.name === 'string' && data.name.length > 1 ) ? data.name : undefined;
     this.source = ( data.source instanceof StarSystem ) ? data.source : undefined;
     this.destination = ( data.destination instanceof StarSystem ) ? data.destination : undefined;
     this.drawn = false;
     this.type = ( typeof data.type === 'string' ) ? data.type : 'UNDISC';
+    this.size = ( typeof data.size === 'string' ) ? data.size : 'S';
+    this.status = ( typeof data.status === 'string' ) ? data.status : 'P';
+    this.direction = ( typeof data.direction === 'string' ) ? data.direction : 'S';
 
     this.entryAU = new Vector3();
     if ( Array.isArray( data.entryAU ) ) {

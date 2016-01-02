@@ -5,6 +5,7 @@
 import MapGeometry from '../map-geometry';
 import JumpPoint from '../../jump-point';
 import LineSegments from './line-segments';
+import config from '../../config';
 
 import THREE from 'three';
 
@@ -48,12 +49,12 @@ class JumpPoints extends MapGeometry {
         {
           // TODO: Maybe this can be done more efficiently?
           const sourceVec = jumpPoint.source.position.clone().sub( jumpPoint.destination.position );
-          sourceVec.setLength( sourceVec.length() - ( 3 * ( jumpPoint.source.scale ) ) );
+          sourceVec.setLength( sourceVec.length() - ( 3 * config.renderScale * jumpPoint.source.scale ) );
           sourceVec.add( jumpPoint.destination.position );
 
           // TODO: Maybe this can be done more efficiently?
           const destVec = jumpPoint.destination.position.clone().sub( jumpPoint.source.position );
-          destVec.setLength( destVec.length() - ( 3 * ( jumpPoint.destination.scale ) ) );
+          destVec.setLength( destVec.length() - ( 3 * config.renderScale * jumpPoint.destination.scale ) );
           destVec.add( jumpPoint.source.position );
 
           jumpLines.addColoredLine(
