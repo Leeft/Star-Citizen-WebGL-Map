@@ -74,12 +74,12 @@ class UI {
     $('#sc-map-interface').empty().append(
       UI.Templates.mapUI({
         instructions: [
-          `Left-click and release to select a system.`,
-          `Left-click and drag from system to system to map a route between them.`,
-          `Left-click and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.`,
-          `Left-click and drag on the map to rotate the camera around the center of the map.`,
-          `Mousewheel to zoom in and out, middle-click and drag can also be used.`,
-          `Right-click to pan the camera around the map.`
+          `Left-click (or tap) and release to select a system.`,
+          `Left-click (or tap) and drag from system to system to map a route between them.`,
+          `Left-click (or tap) and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.`,
+          `Left-click (or tap) and drag on the background of the map to rotate the camera around the current center.`,
+          `Mousewheel (or two-finger swipe) to zoom in and out; middle-click and drag can also be used.`,
+          `Right-click (or three-finger swipe) to pan the camera around the map.`
         ],
         shortcuts: [
           { key: `R`,   description: `Reset camera orientation` },
