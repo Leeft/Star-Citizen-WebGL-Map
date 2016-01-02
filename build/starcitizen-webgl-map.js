@@ -1158,7 +1158,7 @@ $__System.register('a', ['3', '6', '7', '8', '9', 'b'], function (_export) {
 
               if (this.route.start instanceof StarSystem) {
                 var startIndicator = this.map._createSelectorObject(startColour);
-                startIndicator.scale.set(3.8, 3.8, 3.8);
+                startIndicator.scale.set(3.8 * config.renderScale, 3.8 * config.renderScale, 3.8 * config.renderScale);
                 startIndicator.position.copy(this.route.start.position);
                 startIndicator.visible = true;
                 group.add(startIndicator);
@@ -1168,7 +1168,7 @@ $__System.register('a', ['3', '6', '7', '8', '9', 'b'], function (_export) {
 
                   if (waypoint instanceof StarSystem) {
                     var waypointIndicator = this.map._createSelectorObject(startColour.clone().lerp(endColour, this.route.alphaOfSystem(waypoint)));
-                    waypointIndicator.scale.set(3.8, 3.8, 3.8);
+                    waypointIndicator.scale.set(3.8 * config.renderScale, 3.8 * config.renderScale, 3.8 * config.renderScale);
                     waypointIndicator.position.copy(waypoint.position);
                     waypointIndicator.visible = true;
                     group.add(waypointIndicator);
@@ -1190,7 +1190,7 @@ $__System.register('a', ['3', '6', '7', '8', '9', 'b'], function (_export) {
           key: 'createSegmentGeometry',
           value: function createSegmentGeometry(source, destination) {
             var distance = source.distanceTo(destination);
-            var geometry = new THREE.CylinderGeometry(0.6, 0.6, distance, 8, 1, true);
+            var geometry = new THREE.CylinderGeometry(0.6 * config.renderScale, 0.6 * config.renderScale, distance, 8, 1, true);
             geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0, distance / 2, 0));
             geometry.applyMatrix(new THREE.Matrix4().makeRotationX(THREE.Math.degToRad(90)));
             return geometry;
@@ -1527,9 +1527,9 @@ $__System.register('c', ['1', '4', '5', '6', '8', '9', 'f', 'd', 'a', 'e'], func
               }
 
               this._graphs = newGraphs;
-              if (newGraphs.length > 0) {
-                console.log('Synced and built ' + newGraphs.length + ' graphs');
-              }
+              //if ( newGraphs.length > 0 ) {
+              //  console.log( `Synced and built ${ newGraphs.length } graphs` );
+              //}
             } catch (e) {
               this._error = e;
               if (!(e instanceof RouteSegmentFailed)) {
@@ -1607,7 +1607,7 @@ $__System.register('c', ['1', '4', '5', '6', '8', '9', 'f', 'd', 'a', 'e'], func
               if (graph.rebuildGraph()) {
                 var destination = graph.destination();
                 if (destination) {
-                  console.log('Have existing destination, updating route');
+                  //console.log( `Have existing destination, updating route` );
                   _this5.update(destination);
                 }
               }
@@ -1983,8 +1983,8 @@ $__System.register('16', ['3'], function (_export) {
     }
   };
 });
-$__System.register('17', ['1', '3', '18', 'f'], function (_export) {
-  var SCMAP, THREE, LineSegments, _slicedToArray, SEGMENT_SIZE, BLACK;
+$__System.register('17', ['1', '3', '18', 'f', 'b'], function (_export) {
+  var SCMAP, THREE, LineSegments, _slicedToArray, config, SEGMENT_SIZE, BLACK;
 
   function furthestPOI(vector) {
     var furthest = 0,
@@ -2235,6 +2235,8 @@ $__System.register('17', ['1', '3', '18', 'f'], function (_export) {
       LineSegments = _2['default'];
     }, function (_f) {
       _slicedToArray = _f['default'];
+    }, function (_b) {
+      config = _b['default'];
     }],
     execute: function () {
       /**
@@ -2243,7 +2245,7 @@ $__System.register('17', ['1', '3', '18', 'f'], function (_export) {
 
       'use strict';
 
-      SEGMENT_SIZE = 10;
+      SEGMENT_SIZE = 10 * config.renderScale;
       BLACK = new THREE.Color(0x000000);
 
       _export('buildReferenceGrid', buildReferenceGrid);
@@ -2335,7 +2337,7 @@ $__System.register('19', ['3', '7', '8', '9', '1b', '1c', '1a', 'b'], function (
 
                 for (var i = 0; i < STAR_LOD_MESHES.length; i++) {
                   var star = new THREE.Mesh(STAR_LOD_MESHES[i][0], material);
-                  star.scale.set(system.scale, system.scale, system.scale);
+                  star.scale.set(system.scale * config.renderScale, system.scale * config.renderScale, system.scale * config.renderScale);
                   star.updateMatrix();
                   star.matrixAutoUpdate = false;
                   starLOD.addLevel(star, STAR_LOD_MESHES[i][1]);
@@ -2403,12 +2405,15 @@ $__System.register('1d', ['6', '8', '9', '1e'], function (_export) {
         function JumpPoint(data) {
           _classCallCheck(this, JumpPoint);
 
-          this.id = data.jumpPointId;
+          //this.id = data.jumpPointId;
           this.name = typeof data.name === 'string' && data.name.length > 1 ? data.name : undefined;
           this.source = data.source instanceof StarSystem ? data.source : undefined;
           this.destination = data.destination instanceof StarSystem ? data.destination : undefined;
           this.drawn = false;
           this.type = typeof data.type === 'string' ? data.type : 'UNDISC';
+          this.size = typeof data.size === 'string' ? data.size : 'S';
+          this.status = typeof data.status === 'string' ? data.status : 'P';
+          this.direction = typeof data.direction === 'string' ? data.direction : 'S';
 
           this.entryAU = new Vector3();
           if (Array.isArray(data.entryAU)) {
@@ -2594,8 +2599,8 @@ $__System.register('18', ['3', '8', '9'], function (_export) {
     }
   };
 });
-$__System.register('1f', ['3', '8', '9', '18', '1b', '1c', '1a', '1d'], function (_export) {
-  var THREE, _createClass, _classCallCheck, LineSegments, _get, _inherits, MapGeometry, JumpPoint, JumpPoints;
+$__System.register('1f', ['3', '8', '9', '18', '1b', '1c', '1a', '1d', 'b'], function (_export) {
+  var THREE, _createClass, _classCallCheck, LineSegments, _get, _inherits, MapGeometry, JumpPoint, config, JumpPoints;
 
   return {
     setters: [function (_4) {
@@ -2614,6 +2619,8 @@ $__System.register('1f', ['3', '8', '9', '18', '1b', '1c', '1a', '1d'], function
       MapGeometry = _a['default'];
     }, function (_d) {
       JumpPoint = _d['default'];
+    }, function (_b2) {
+      config = _b2['default'];
     }],
     execute: function () {
       /**
@@ -2671,12 +2678,12 @@ $__System.register('1f', ['3', '8', '9', '18', '1b', '1c', '1a', '1d'], function
                 if (!jumpPoint.drawn) {
                   // TODO: Maybe this can be done more efficiently?
                   var sourceVec = jumpPoint.source.position.clone().sub(jumpPoint.destination.position);
-                  sourceVec.setLength(sourceVec.length() - 3 * jumpPoint.source.scale);
+                  sourceVec.setLength(sourceVec.length() - 3 * config.renderScale * jumpPoint.source.scale);
                   sourceVec.add(jumpPoint.destination.position);
 
                   // TODO: Maybe this can be done more efficiently?
                   var destVec = jumpPoint.destination.position.clone().sub(jumpPoint.source.position);
-                  destVec.setLength(destVec.length() - 3 * jumpPoint.destination.scale);
+                  destVec.setLength(destVec.length() - 3 * config.renderScale * jumpPoint.destination.scale);
                   destVec.add(jumpPoint.source.position);
 
                   jumpLines.addColoredLine(sourceVec, jumpPoint.source.faction.lineColor, destVec, jumpPoint.destination.faction.lineColor);
@@ -4273,7 +4280,7 @@ $__System.register('36', ['3', '7', '8', '9', '35', '1b', '1c', '1a', 'b'], func
         }, {
           key: 'matchRotation',
           value: function matchRotation(rotationMatrix) {
-            var vector = new THREE.Vector3(0, -settings.labelOffset, -0.1);
+            var vector = new THREE.Vector3(0, -(settings.labelOffset * config.renderScale), -0.1);
             this._mesh.position.copy(vector.applyMatrix4(rotationMatrix));
           }
         }, {
@@ -4376,8 +4383,8 @@ $__System.register('36', ['3', '7', '8', '9', '35', '1b', '1c', '1a', 'b'], func
     }
   };
 });
-$__System.register('37', ['3', '8', '9', '1b', '1c', '1a'], function (_export) {
-  var THREE, _createClass, _classCallCheck, _get, _inherits, MapGeometry, INTERACTABLE_DEBUG_MATERIAL, Interactables;
+$__System.register('37', ['3', '8', '9', '1b', '1c', '1a', 'b'], function (_export) {
+  var THREE, _createClass, _classCallCheck, _get, _inherits, MapGeometry, config, INTERACTABLE_DEBUG_MATERIAL, Interactables;
 
   return {
     setters: [function (_3) {
@@ -4392,6 +4399,8 @@ $__System.register('37', ['3', '8', '9', '1b', '1c', '1a'], function (_export) {
       _inherits = _c['default'];
     }, function (_a) {
       MapGeometry = _a['default'];
+    }, function (_b2) {
+      config = _b2['default'];
     }],
     execute: function () {
       /**
@@ -4458,7 +4467,7 @@ $__System.register('37', ['3', '8', '9', '1b', '1c', '1a'], function (_export) {
                 var interactable = new THREE.Sprite(INTERACTABLE_DEBUG_MATERIAL);
                 var interactableSize = Math.min(6.5, Math.max(5.5, 7 * system.scale));
                 interactable.position.copy(system.position);
-                interactable.scale.set(interactableSize, interactableSize, interactableSize);
+                interactable.scale.set(interactableSize * config.renderScale, interactableSize * config.renderScale, interactableSize * config.renderScale);
                 interactable.userData.system = system;
                 interactable.userData.isInteractable = true;
                 interactable.userData.position = system.position.clone();
@@ -5757,7 +5766,7 @@ $__System.register('66', ['3', '7', '8', '9', '32', '1b', '1c', '1a', 'b'], func
 
       'use strict';
 
-      GLOW_SCALE = 7.5;
+      GLOW_SCALE = 3.75;
       BLACK = new THREE.Color('black');
       UNSET = new THREE.Color(0x80A0CC);
       GLOW_MATERIAL_PROMISE = new _Promise(function (resolve, reject) {
@@ -5827,7 +5836,7 @@ $__System.register('66', ['3', '7', '8', '9', '32', '1b', '1c', '1a', 'b'], func
                 material.color = color;
 
                 var glow = new THREE.Sprite(material);
-                glow.position.set(system.position.x, system.position.y, system.position.z - 0.2);
+                glow.position.set(system.position.x, system.position.y, system.position.z);
                 glow.userData.isGlow = true;
                 glow.userData.system = system;
                 glow.userData.y = system.position.y;
@@ -6977,7 +6986,7 @@ $__System.register('68', ['1', '4', '5', '6', '7', '8', '9', '10', '11', '12', '
           this.scene.add(this.geometry.selectedSystem);
 
           this.geometry.mouseOverObject = this._createSelectorObject(0x8844FF);
-          this.geometry.mouseOverObject.scale.set(4.0, 4.0, 4.0);
+          this.geometry.mouseOverObject.scale.set(4.0 * config.renderScale, 4.0 * config.renderScale, 4.0 * config.renderScale);
           this.scene.add(this.geometry.mouseOverObject);
 
           this.__currentlySelected = null;
@@ -7121,7 +7130,7 @@ $__System.register('68', ['1', '4', '5', '6', '7', '8', '9', '10', '11', '12', '
           key: '_createSelectorObject',
           value: function _createSelectorObject(color) {
             var mesh = new Mesh(SelectedSystemGeometry, new MeshBasicMaterial({ color: color }));
-            mesh.scale.set(4.2, 4.2, 4.2);
+            mesh.scale.set(4.2 * config.renderScale, 4.2 * config.renderScale, 4.2 * config.renderScale);
             mesh.visible = false;
             mesh.userData.isSelector = true;
             // 2d/3d tween callback
@@ -9526,12 +9535,12 @@ $__System.register('7', ['1', '5', '8', '9', 'b', '1e'], function (_export) {
           }
 
           this.camera = {
-            camera: new Vector3(0, 80, 100),
-            target: new Vector3(0, 10, 0),
+            camera: new Vector3(0, 80 * config.renderScale, 100 * config.renderScale),
+            target: new Vector3(0, 10 * config.renderScale, 0),
             orientation: {
               theta: 0,
               phi: 0.9616764178488756,
-              radius: 122.2
+              radius: 122.2 * config.renderScale
             }
           };
 
@@ -10163,7 +10172,7 @@ $__System.register('89', ['1', '5', '6', '83', '87', '88', '6a', '6b', '1e', '8a
       });
 
       Handlebars.registerHelper('markdown', function (markdownText) {
-        return new Handlebars.SafeString(markdown.markdown.toHTML(markdownText));
+        return new Handlebars.SafeString(markdown.markdown.toHTML(markdownText || ''));
       });
 
       Handlebars.registerHelper('colourGetStyle', function (colour) {
@@ -10310,7 +10319,7 @@ $__System.registerDynamic("8b", ["8a"], true, function($__require, exports, modu
         "name": "tabHeader",
         "hash": {},
         "data": data
-      })) + "\n\n<p class=\"ui-section\">\n  A 3D (and 2D) interactive galaxy map of the space sim adventure game <a href=\"https://robertsspaceindustries.com/about-the-game\" target=\"_blank\">Star Citizen</a> (currently being developed).\n</p>\n\n<p class=\"ui-section\">\n  Map data was kindly provided for use by me by <a href=\"https://forums.robertsspaceindustries.com/profile/149083/Zuur\" target=\"_blank\">Zuur</a>, see <a href=\"http://mobiglas.com/StarMap/\" target=\"_blank\">the MobiGlas Star Map</a> for his original map.\n</p>\n\n<p class=\"ui-section\">\n  Created by <a href=\"https://forums.robertsspaceindustries.com/profile/51803/Shiari\" title=\"My profile on the Roberts Space Industries forums\" target=\"_blank\">Daughter of Sol</a> (@Shiari on the RSI forums) using <a href=\"http://get.webgl.org/\">WebGL</a> and is announced and discussed in <a href=\"https://forums.robertsspaceindustries.com/discussion/54931/browser-based-3d-system-map-wip\" target=\"_blank\">my forum thread</a>.\n</p>\n\n<p class=\"ui-section\">\n  The sourcecode which drives this map is available under the MIT license on its <a href=\"https://github.com/Leeft/Star-Citizen-WebGL-Map\" target=\"_blank\">GitHub project page</a>, and aside from my own code uses among other libraries the freely available <a href=\"http://threejs.org/\" target=\"_blank\">three.js</a>, <a href=\"http://jquery.com/\" target=\"_blank\">jQuery</a> and <a href=\"http://jqueryui.com/\" target=\"_blank\">jQuery UI</a>.\n</p>\n\n<p class=\"ui-section\">\n  The icons are from the awesome <a href=\"http://fontawesome.io/\" target=\"_blank\">Font Awesome</a> by Dave Gandy.\n</p>\n";
+      })) + "\n\n<p class=\"ui-section\">\n  A 3D (and 2D) interactive galaxy map of the space sim adventure game <a href=\"https://robertsspaceindustries.com/about-the-game\" target=\"_blank\">Star Citizen</a> (currently being developed).\n</p>\n\n<p class=\"ui-section\">\n  Created by <a href=\"https://forums.robertsspaceindustries.com/profile/51803/Shiari\" title=\"My profile on the Roberts Space Industries forums\" target=\"_blank\">Daughter of Sol</a> (@Shiari on the RSI forums) using <a href=\"http://get.webgl.org/\">WebGL</a> and is announced and discussed in <a href=\"https://forums.robertsspaceindustries.com/discussion/54931/browser-based-3d-system-map-wip\" target=\"_blank\">my forum thread</a>.\n</p>\n\n<p class=\"ui-section\">\n  Map data was originally kindly provided for use by me by <a href=\"https://forums.robertsspaceindustries.com/profile/149083/Zuur\" target=\"_blank\">Zuur</a>, see <a href=\"http://mobiglas.com/StarMap/\" target=\"_blank\">the MobiGlas Star Map</a> for his original map. It's now also updated with some of the data from the <a href=\"https://robertsspaceindustries.com/starmap\" target=\"ark-map\">ARK star map</a>.\n</p>\n\n<p class=\"ui-section\">\n  The sourcecode which drives this map is available under the MIT license on its <a href=\"https://github.com/Leeft/Star-Citizen-WebGL-Map\" target=\"_blank\">GitHub project page</a>.\n</p>\n";
     },
     "useData": true
   });
@@ -10798,10 +10807,16 @@ $__System.registerDynamic("94", ["8a"], true, function($__require, exports, modu
         "fn": container.program(9, data, 0),
         "inverse": container.noop,
         "data": data
-      })) != null ? stack1 : "") + "  </article>\n\n" + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {}, ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.info : stack1), {
-        "name": "each",
+      })) != null ? stack1 : "") + "  </article>\n\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Description", 1, {
+        "name": "uiSection",
         "hash": {},
         "fn": container.program(12, data, 0),
+        "inverse": container.noop,
+        "data": data
+      })) != null ? stack1 : "") + "\n" + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {}, ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.info : stack1), {
+        "name": "each",
+        "hash": {},
+        "fn": container.program(14, data, 0),
         "inverse": container.noop,
         "data": data
       })) != null ? stack1 : "") + "\n";
@@ -10883,32 +10898,36 @@ $__System.registerDynamic("94", ["8a"], true, function($__require, exports, modu
     },
     "12": function(container, depth0, helpers, partials, data) {
       var stack1;
+      return "    <div class=\"system-description\">\n      " + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.description : stack1), depth0)) + "\n    </div>\n";
+    },
+    "14": function(container, depth0, helpers, partials, data) {
+      var stack1;
       return "    <article>\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Background info", 1, {
         "name": "uiSection",
         "hash": {},
-        "fn": container.program(13, data, 0),
+        "fn": container.program(15, data, 0),
         "inverse": container.noop,
         "data": data
       })) != null ? stack1 : "") + "    </article>\n";
     },
-    "13": function(container, depth0, helpers, partials, data) {
+    "15": function(container, depth0, helpers, partials, data) {
       var stack1;
-      return "        <div class=\"system-blurb-body\" data-source=\"" + container.escapeExpression(container.lambda((depth0 != null ? depth0.source : depth0), depth0)) + "\">\n          " + container.escapeExpression((helpers.markdown || (depth0 && depth0.markdown) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, (depth0 != null ? depth0.blob : depth0), {
+      return "        <div class=\"system-blurb-body\" data-source=\"" + container.escapeExpression(container.lambda((depth0 != null ? depth0.source : depth0), depth0)) + "\">\n          " + container.escapeExpression((helpers.markdown || (depth0 && depth0.markdown) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, (depth0 != null ? depth0.article : depth0), {
         "name": "markdown",
         "hash": {},
         "data": data
       })) + "\n        </div>\n" + ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {}, (depth0 != null ? depth0.source : depth0), {
         "name": "if",
         "hash": {},
-        "fn": container.program(14, data, 0),
+        "fn": container.program(16, data, 0),
         "inverse": container.noop,
         "data": data
       })) != null ? stack1 : "");
     },
-    "14": function(container, depth0, helpers, partials, data) {
+    "16": function(container, depth0, helpers, partials, data) {
       return "          <p class=\"system-blurb-source\"><a href=\"" + container.escapeExpression(container.lambda((depth0 != null ? depth0.source : depth0), depth0)) + "\" target=\"_new\">(source)</a></p>\n";
     },
-    "16": function(container, depth0, helpers, partials, data) {
+    "18": function(container, depth0, helpers, partials, data) {
       return "\n  <div>\n    <p class=\"padleft impossible large ui-section\">No system selected</p>\n  </div>\n\n";
     },
     "compiler": [7, ">= 4.0.0"],
@@ -10918,7 +10937,7 @@ $__System.registerDynamic("94", ["8a"], true, function($__require, exports, modu
         "name": "if",
         "hash": {},
         "fn": container.program(1, data, 0),
-        "inverse": container.program(16, data, 0),
+        "inverse": container.program(18, data, 0),
         "data": data
       })) != null ? stack1 : "");
     },
@@ -18076,7 +18095,7 @@ $__System.register('6b', ['1', '5', '6', '7', '8', '9', '82', '83', '86', '87', 
           var ui = this;
 
           $('#sc-map-interface').empty().append(UI.Templates.mapUI({
-            instructions: ['Left-click and release to select a system.', 'Left-click and drag from system to system to map a route between them.', 'Left-click and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.', 'Left-click and drag on the map to rotate the camera around the center of the map.', 'Mousewheel to zoom in and out, middle-click and drag can also be used.', 'Right-click to pan the camera around the map.'],
+            instructions: ['Left-click (or tap) and release to select a system.', 'Left-click (or tap) and drag from system to system to map a route between them.', 'Left-click (or tap) and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.', 'Left-click (or tap) and drag on the background of the map to rotate the camera around the current center.', 'Mousewheel (or two-finger swipe) to zoom in and out; middle-click and drag can also be used.', 'Right-click (or three-finger swipe) to pan the camera around the map.'],
             shortcuts: [{ key: 'R', description: 'Reset camera orientation' }, { key: 'C', description: 'Camera to center (Sol)' }, { key: 'T', description: 'Top-down camera' }, { key: 'L', description: 'Lock/unlock camera rotation' }, { key: '2', description: 'Switch to 2D mode' }, { key: '3', description: 'Switch to 3D mode' }, { key: 'Esc', description: 'Deselect target' }],
             icons: icons,
             systemGroups: UI.buildDynamicLists(),
@@ -26008,6 +26027,7 @@ $__System.register('6', ['1', '7', '8', '9', '82', '6a', '1d', 'b', 'd', '1e', '
           this.id = undefined;
           this.uuid = undefined;
           this.name = generateUUID();
+          this.description = '';
           this.nickname = '';
           this.position = new Vector3();
           this.faction = new Faction();
@@ -26019,7 +26039,7 @@ $__System.register('6', ['1', '7', '8', '9', '82', '6a', '1d', 'b', 'd', '1e', '
           this.planetaryRotation = [];
           this['import'] = [];
           this['export'] = [];
-          this.status = 'unknown';
+          this.status = 'Unknown';
           this.crimeStatus = '';
           this.blackMarket = [];
           this.ueeStrategicValue = undefined;
@@ -26113,7 +26133,7 @@ $__System.register('6', ['1', '7', '8', '9', '82', '6a', '1d', 'b', 'd', '1e', '
         }, {
           key: 'isUnknown',
           value: function isUnknown() {
-            return this.status === 'unknown' ? true : false;
+            return this.status === 'Unknown' ? true : false;
           }
         }, {
           key: 'setBookmarkedState',
@@ -26216,15 +26236,23 @@ $__System.register('6', ['1', '7', '8', '9', '82', '6a', '1d', 'b', 'd', '1e', '
               }
 
               destination = StarSystem.getById(jumpPoint.destinationSystemId);
+              if (destination === this) {
+                destination = StarSystem.getById(jumpPoint.sourceSystemId);
+              }
 
               if (destination instanceof StarSystem) {
                 jumpPoint = new JumpPoint({
+                  id: jumpPoint.jumpPointId,
+                  direction: jumpPoint.direction,
                   source: this,
                   destination: destination,
                   name: jumpPoint.name,
+                  size: jumpPoint.size,
+                  status: jumpPoint.status,
                   type: jumpPoint.type,
                   entryAU: jumpPoint.coordsAu
                 });
+
                 if (cleanup) {
                   jumpPoints.push(jumpPoint);
                 } else {
@@ -26266,9 +26294,9 @@ $__System.register('6', ['1', '7', '8', '9', '82', '6a', '1d', 'b', 'd', '1e', '
                   if (newValue instanceof Color) {
                     this[key] = newValue;
                   } else {
-                    newValue = newValue.replace('0x', '#');
+                    newValue = newValue.replace('0x', '#').toLowerCase();
                     this['_' + key] = newValue;
-                    if (/unknown/.test(newValue)) {
+                    if (/unknown/i.test(newValue)) {
                       this[key] = UNSET;
                     } else {
                       this[key] = new Color(newValue);
@@ -26327,12 +26355,13 @@ $__System.register('6', ['1', '7', '8', '9', '82', '6a', '1d', 'b', 'd', '1e', '
             }
 
             return new StarSystem({
-              'id': json.systemId,
+              'id': json.id,
               'uuid': json.uuid,
               'name': json.name,
-              'position': json.coords,
-              'color': json.color,
-              'faction': SCMAP.getFactionById(json.factionId),
+              'description': json.description,
+              'position': json.coordinates,
+              'color': json.color === 'Unknown' ? UNSET : new Color(json.color.toLowerCase()),
+              'faction': SCMAP.getFactionById(json.faction),
               'isMajorTradeHub': json.isMajorTradeHub,
               'hasWarning': json.hasWarning,
               'isOffLimits': json.isOffLimits,
@@ -26342,9 +26371,9 @@ $__System.register('6', ['1', '7', '8', '9', '82', '6a', '1d', 'b', 'd', '1e', '
               'status': json.status,
               'crimeStatus': SCMAP.getCrimeLevelById(json.crimeLevel),
               'ueeStrategicValue': SCMAP.getUEEStrategicValueById('' + json.ueeStrategicValue),
-              'import': json['import'],
-              'export': json['export'],
-              'blackMarket': json.blackMarket,
+              'import': json.importing,
+              'export': json.exporting,
+              'blackMarket': json.blackMarkets,
               'planets': [], // TODO
               'planetaryRotation': [], // TODO
               'jumpPoints': json.jumpPoints
@@ -46466,19 +46495,22 @@ $__System.register('b', ['9', '34'], function (_export) {
         minSystemScale: '0.5',
         defaultSystemScale: '1.0',
         maxSystemScale: '1.50',
+        systemScale: 0.5, // system geometry is multiplied by this for the actual scene
 
         // These should've been named *LabelUserScale
         minLabelScale: '0.4',
         defaultLabelScale: '1.0',
         maxLabelScale: '2.0',
-        labelScale: 5, // sprite labels are multiplied by this for the actual scene
+        labelScale: 2.5, // sprite labels are multiplied by this for the actual scene
 
         minLabelOffset: '-6.5',
-        defaultLabelOffset: '5.0',
+        defaultLabelOffset: '4.0',
         maxLabelOffset: '7.5',
 
         debug: false,
         quality: 'high',
+
+        renderScale: 0.5, // to grow or shrink
 
         // takes 8m 19s at 1c, but autopilot speed is only 0.2c
         // FIXME: this value is probably going to be WAY, WAY off.
@@ -46645,17 +46677,18 @@ $__System.register('1', ['5', '6', '8', '9', '69', '1e', '6a'], function (_expor
 
             var factions = [];
 
-            json.forEach(function (data) {
+            for (var factionId in json) {
+              var data = json[factionId];
               var faction = new Faction({
                 id: data.id,
                 name: data.name,
-                color: new Color(data.color.replace('0x', '#')),
-                isRealFaction: data.isRealFaction,
-                parentFaction: data.parentFactionId
+                color: new Color(data.color),
+                isRealFaction: data.isActualFaction,
+                parentFaction: data.parentFaction
               });
-              _this.data.factions[data.id] = faction;
+              this.data.factions[data.id] = faction;
               factions.push(faction);
-            });
+            }
 
             factions.forEach(function (faction) {
               if (faction.parentFaction) {
@@ -46675,15 +46708,14 @@ $__System.register('1', ['5', '6', '8', '9', '69', '1e', '6a'], function (_expor
         }, {
           key: 'importCommodities',
           value: function importCommodities(json) {
-            var _this2 = this;
-
-            json.forEach(function (data) {
-              _this2.data.commodities[data.id] = new Goods({
+            for (var commodityId in json) {
+              var data = json[commodityId];
+              this.data.commodities[data.id] = new Goods({
                 id: data.id,
                 name: data.name,
                 blackMarket: data.blackMarket
               });
-            });
+            }
           }
         }, {
           key: 'getCommodityById',
