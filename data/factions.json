@@ -1,51 +1,166 @@
-[
-  {
-    "color" : "#FFED9B",
-    "id" : "BANU",
-    "isRealFaction" : true,
-    "name" : "Banu",
-    "parentFactionId" : null
-  },
-  {
-    "color" : "#E67100",
-    "id" : "KRTK",
-    "isRealFaction" : true,
-    "name" : "Kr'thak",
-    "parentFactionId" : null
-  },
-  {
-    "color" : "#D1A4D0",
-    "id" : "SUEE",
-    "isRealFaction" : false,
-    "name" : "Sub-UEE",
-    "parentFactionId" : null
-  },
-  {
-    "color" : "#666666",
-    "id" : "UCLM",
-    "isRealFaction" : false,
-    "name" : "Unclaimed",
-    "parentFactionId" : null
-  },
-  {
-    "color" : "#90ABD9",
-    "id" : "UEE",
-    "isRealFaction" : true,
-    "name" : "United Empire of Earth",
-    "parentFactionId" : null
-  },
-  {
-    "color" : "#F9B29C",
-    "id" : "VAND",
-    "isRealFaction" : true,
-    "name" : "Vanduul",
-    "parentFactionId" : null
-  },
-  {
-    "color" : "#A4D49C",
-    "id" : "XIAN",
-    "isRealFaction" : true,
-    "name" : "Xi'An",
-    "parentFactionId" : null
-  }
-]
+{
+   "BANU" : {
+      "color" : "#FFED9B",
+      "id" : "BANU",
+      "isActualFaction" : true,
+      "name" : "Banu",
+      "parentFaction" : null,
+      "systems" : [
+         1,
+         20,
+         29,
+         31,
+         45,
+         92,
+         102
+      ]
+   },
+   "DEV" : {
+      "color" : "#CA922D",
+      "id" : "DEV",
+      "isActualFaction" : false,
+      "name" : "Developing",
+      "parentFaction" : null,
+      "systems" : [
+         4,
+         58,
+         90,
+         91,
+         97,
+         101
+      ]
+   },
+   "KRTK" : {
+      "color" : "#E67100",
+      "id" : "KRTK",
+      "isActualFaction" : true,
+      "name" : "Kr'thak",
+      "parentFaction" : null,
+      "systems" : [
+         105
+      ]
+   },
+   "SUEE" : {
+      "color" : "#D1A4D0",
+      "id" : "SUEE",
+      "isActualFaction" : false,
+      "name" : "Sub-UEE",
+      "parentFaction" : "UEE",
+      "systems" : []
+   },
+   "UCLM" : {
+      "color" : "#666666",
+      "id" : "UCLM",
+      "isActualFaction" : false,
+      "name" : "Unclaimed",
+      "parentFaction" : null,
+      "systems" : [
+         8,
+         13,
+         28,
+         36,
+         61,
+         79,
+         85,
+         86,
+         87,
+         89,
+         94,
+         98
+      ]
+   },
+   "UEE" : {
+      "color" : "#90ABD9",
+      "id" : "UEE",
+      "isActualFaction" : true,
+      "name" : "United Empire of Earth",
+      "parentFaction" : null,
+      "systems" : [
+         2,
+         5,
+         6,
+         7,
+         10,
+         11,
+         12,
+         14,
+         15,
+         16,
+         18,
+         19,
+         21,
+         23,
+         24,
+         25,
+         26,
+         30,
+         33,
+         34,
+         37,
+         38,
+         40,
+         41,
+         48,
+         59,
+         60,
+         62,
+         80,
+         81,
+         82,
+         83,
+         84,
+         93,
+         95,
+         96,
+         107,
+         108
+      ]
+   },
+   "VAND" : {
+      "color" : "#F9B29C",
+      "id" : "VAND",
+      "isActualFaction" : true,
+      "name" : "Vanduul",
+      "parentFaction" : null,
+      "systems" : [
+         3,
+         27,
+         32,
+         35,
+         39,
+         42,
+         43,
+         44,
+         47,
+         50,
+         51,
+         55,
+         56,
+         57,
+         99,
+         104
+      ]
+   },
+   "XIAN" : {
+      "color" : "#A4D49C",
+      "id" : "XIAN",
+      "isActualFaction" : true,
+      "name" : "Xi'An",
+      "parentFaction" : null,
+      "systems" : [
+         9,
+         17,
+         22,
+         46,
+         49,
+         52,
+         53,
+         54,
+         88,
+         100,
+         103,
+         106
+      ]
+   }
+}
+

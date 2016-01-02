@@ -1,282 +1,679 @@
-[
-  {
-    "blackMarket": true,
-    "id": 1,
-    "name": "Slaves"
-  },
-  {
-    "blackMarket": true,
-    "id": 10,
-    "name": "Luxury Goods"
-  },
-  {
-    "blackMarket": true,
-    "id": 11,
-    "name": "Kidnapping"
-  },
-  {
-    "blackMarket": true,
-    "id": 12,
-    "name": "Theft"
-  },
-  {
-    "blackMarket": false,
-    "id": 13,
-    "name": "Energy Supplies"
-  },
-  {
-    "blackMarket": false,
-    "id": 14,
-    "name": "GeoEngineering Products"
-  },
-  {
-    "blackMarket": true,
-    "id": 15,
-    "name": "Stims"
-  },
-  {
-    "blackMarket": true,
-    "id": 16,
-    "name": "Artwork"
-  },
-  {
-    "blackMarket": false,
-    "id": 17,
-    "name": "Research"
-  },
-  {
-    "blackMarket": false,
-    "id": 18,
-    "name": "Electronics"
-  },
-  {
-    "blackMarket": false,
-    "id": 19,
-    "name": "Computer Tech"
-  },
-  {
-    "blackMarket": true,
-    "id": 2,
-    "name": "Narcotics"
-  },
-  {
-    "blackMarket": true,
-    "id": 20,
-    "name": "Weapons"
-  },
-  {
-    "blackMarket": false,
-    "id": 21,
-    "name": "Raw Materials"
-  },
-  {
-    "blackMarket": false,
-    "id": 22,
-    "name": "Heavy Metals"
-  },
-  {
-    "blackMarket": false,
-    "id": 23,
-    "name": "Oxygen"
-  },
-  {
-    "blackMarket": false,
-    "id": 24,
-    "name": "Reactors"
-  },
-  {
-    "blackMarket": false,
-    "id": 25,
-    "name": "Salvage"
-  },
-  {
-    "blackMarket": false,
-    "id": 26,
-    "name": "Refuse"
-  },
-  {
-    "blackMarket": false,
-    "id": 27,
-    "name": "Crystals"
-  },
-  {
-    "blackMarket": false,
-    "id": 28,
-    "name": "Graphite"
-  },
-  {
-    "blackMarket": false,
-    "id": 29,
-    "name": "Processed Goods"
-  },
-  {
-    "blackMarket": true,
-    "id": 3,
-    "name": "Mercenaries"
-  },
-  {
-    "blackMarket": false,
-    "id": 30,
-    "name": "Textiles"
-  },
-  {
-    "blackMarket": true,
-    "id": 31,
-    "name": "Biological Goods"
-  },
-  {
-    "blackMarket": false,
-    "id": 32,
-    "name": "Antimatter"
-  },
-  {
-    "blackMarket": false,
-    "id": 33,
-    "name": "Criminals"
-  },
-  {
-    "blackMarket": true,
-    "id": 34,
-    "name": "Poisons"
-  },
-  {
-    "blackMarket": true,
-    "id": 35,
-    "name": "Medical Supplies"
-  },
-  {
-    "blackMarket": false,
-    "id": 36,
-    "name": "Printed Material"
-  },
-  {
-    "blackMarket": false,
-    "id": 37,
-    "name": "Copper"
-  },
-  {
-    "blackMarket": true,
-    "id": 38,
-    "name": "Gemstones"
-  },
-  {
-    "blackMarket": true,
-    "id": 39,
-    "name": "Atomics"
-  },
-  {
-    "blackMarket": false,
-    "id": 4,
-    "name": "Elements"
-  },
-  {
-    "blackMarket": false,
-    "id": 40,
-    "name": "Fuel"
-  },
-  {
-    "blackMarket": false,
-    "id": 41,
-    "name": "Mechanical Goods"
-  },
-  {
-    "blackMarket": false,
-    "id": 42,
-    "name": "Crude Oil"
-  },
-  {
-    "blackMarket": false,
-    "id": 43,
-    "name": "Water"
-  },
-  {
-    "blackMarket": true,
-    "id": 44,
-    "name": "Oso Meat"
-  },
-  {
-    "blackMarket": false,
-    "id": 45,
-    "name": "Fertilizer"
-  },
-  {
-    "blackMarket": false,
-    "id": 46,
-    "name": "Heavy Machinery"
-  },
-  {
-    "blackMarket": false,
-    "id": 47,
-    "name": "Rare Metals"
-  },
-  {
-    "blackMarket": false,
-    "id": 48,
-    "name": "Research Equipment"
-  },
-  {
-    "blackMarket": true,
-    "id": 49,
-    "name": "Chemicals"
-  },
-  {
-    "blackMarket": false,
-    "id": 5,
-    "name": "Minerals"
-  },
-  {
-    "blackMarket": false,
-    "id": 50,
-    "name": "Black Glass"
-  },
-  {
-    "blackMarket": false,
-    "id": 51,
-    "name": "Gray Oil"
-  },
-  {
-    "blackMarket": true,
-    "id": 52,
-    "name": "Animals"
-  },
-  {
-    "blackMarket": false,
-    "id": 53,
-    "name": "Industrial Machinery"
-  },
-  {
-    "blackMarket": true,
-    "id": 54,
-    "name": "Gambling"
-  },
-  {
-    "blackMarket": false,
-    "id": 55,
-    "name": "Human Cultural Goods"
-  },
-  {
-    "blackMarket": false,
-    "id": 56,
-    "name": "Spare Parts"
-  },
-  {
-    "blackMarket": true,
-    "id": 6,
-    "name": "Pleasure Bots"
-  },
-  {
-    "blackMarket": false,
-    "id": 7,
-    "name": "Silica"
-  },
-  {
-    "blackMarket": false,
-    "id": 8,
-    "name": "Food"
-  },
-  {
-    "blackMarket": false,
-    "id": 9,
-    "name": "Labor"
-  }
-]
+{
+   "1" : {
+      "blackMarkets" : [
+         1,
+         14,
+         24
+      ],
+      "exporting" : [],
+      "id" : 1,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Slaves"
+   },
+   "10" : {
+      "blackMarkets" : [
+         12
+      ],
+      "exporting" : [],
+      "id" : 10,
+      "importing" : [
+         3,
+         23,
+         32,
+         40
+      ],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Luxury Goods"
+   },
+   "11" : {
+      "blackMarkets" : [
+         6
+      ],
+      "exporting" : [],
+      "id" : 11,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Kidnapping"
+   },
+   "12" : {
+      "blackMarkets" : [
+         7
+      ],
+      "exporting" : [],
+      "id" : 12,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Theft"
+   },
+   "13" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 13,
+      "importing" : [
+         4
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Energy Supplies"
+   },
+   "14" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 14,
+      "importing" : [
+         6
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "GeoEngineering Products"
+   },
+   "15" : {
+      "blackMarkets" : [
+         8
+      ],
+      "exporting" : [],
+      "id" : 15,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Stims"
+   },
+   "16" : {
+      "blackMarkets" : [
+         9
+      ],
+      "exporting" : [],
+      "id" : 16,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Artwork"
+   },
+   "17" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         6
+      ],
+      "id" : 17,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Research"
+   },
+   "18" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         8
+      ],
+      "id" : 18,
+      "importing" : [
+         7,
+         25
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Electronics"
+   },
+   "19" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         7
+      ],
+      "id" : 19,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Computer Tech"
+   },
+   "2" : {
+      "blackMarkets" : [
+         2,
+         4,
+         13,
+         15,
+         21,
+         23,
+         31,
+         33
+      ],
+      "exporting" : [],
+      "id" : 2,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Narcotics"
+   },
+   "20" : {
+      "blackMarkets" : [
+         10,
+         11,
+         19,
+         27,
+         30
+      ],
+      "exporting" : [
+         9,
+         17,
+         29
+      ],
+      "id" : 20,
+      "importing" : [
+         42
+      ],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Weapons"
+   },
+   "21" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 21,
+      "importing" : [
+         10,
+         14
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Raw Materials"
+   },
+   "22" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         10,
+         14
+      ],
+      "id" : 22,
+      "importing" : [
+         29,
+         36
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Heavy Metals"
+   },
+   "23" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 23,
+      "importing" : [
+         11,
+         22,
+         30
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Oxygen"
+   },
+   "24" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 24,
+      "importing" : [
+         12
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Reactors"
+   },
+   "25" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         11
+      ],
+      "id" : 25,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Salvage"
+   },
+   "26" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 26,
+      "importing" : [
+         13
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Refuse"
+   },
+   "27" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         12
+      ],
+      "id" : 27,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Crystals"
+   },
+   "28" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         13
+      ],
+      "id" : 28,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Graphite"
+   },
+   "29" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         15
+      ],
+      "id" : 29,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Processed Goods"
+   },
+   "3" : {
+      "blackMarkets" : [
+         3
+      ],
+      "exporting" : [],
+      "id" : 3,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Mercenaries"
+   },
+   "30" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         16
+      ],
+      "id" : 30,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Textiles"
+   },
+   "31" : {
+      "blackMarkets" : [
+         16,
+         17
+      ],
+      "exporting" : [],
+      "id" : 31,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Biological Goods"
+   },
+   "32" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         18
+      ],
+      "id" : 32,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Antimatter"
+   },
+   "33" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 33,
+      "importing" : [
+         15
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Criminals"
+   },
+   "34" : {
+      "blackMarkets" : [
+         18
+      ],
+      "exporting" : [],
+      "id" : 34,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Poisons"
+   },
+   "35" : {
+      "blackMarkets" : [
+         26
+      ],
+      "exporting" : [
+         19
+      ],
+      "id" : 35,
+      "importing" : [
+         20,
+         26
+      ],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Medical Supplies"
+   },
+   "36" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         20
+      ],
+      "id" : 36,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Printed Material"
+   },
+   "37" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 37,
+      "importing" : [
+         17
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Copper"
+   },
+   "38" : {
+      "blackMarkets" : [
+         20
+      ],
+      "exporting" : [],
+      "id" : 38,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Gemstones"
+   },
+   "39" : {
+      "blackMarkets" : [
+         22
+      ],
+      "exporting" : [],
+      "id" : 39,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Atomics"
+   },
+   "4" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         1,
+         4
+      ],
+      "id" : 4,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Elements"
+   },
+   "40" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         21
+      ],
+      "id" : 40,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Fuel"
+   },
+   "41" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 41,
+      "importing" : [
+         24
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Mechanical Goods"
+   },
+   "42" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         22
+      ],
+      "id" : 42,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Crude Oil"
+   },
+   "43" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         24
+      ],
+      "id" : 43,
+      "importing" : [
+         31
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Water"
+   },
+   "44" : {
+      "blackMarkets" : [
+         25
+      ],
+      "exporting" : [],
+      "id" : 44,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Oso Meat"
+   },
+   "45" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         28
+      ],
+      "id" : 45,
+      "importing" : [
+         27
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Fertilizer"
+   },
+   "46" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 46,
+      "importing" : [
+         28
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Heavy Machinery"
+   },
+   "47" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         25
+      ],
+      "id" : 47,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Rare Metals"
+   },
+   "48" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 48,
+      "importing" : [
+         33
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Research Equipment"
+   },
+   "49" : {
+      "blackMarkets" : [
+         28
+      ],
+      "exporting" : [],
+      "id" : 49,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Chemicals"
+   },
+   "5" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         2
+      ],
+      "id" : 5,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Minerals"
+   },
+   "50" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         26
+      ],
+      "id" : 50,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Black Glass"
+   },
+   "51" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         27
+      ],
+      "id" : 51,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Gray Oil"
+   },
+   "52" : {
+      "blackMarkets" : [
+         29
+      ],
+      "exporting" : [],
+      "id" : 52,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Animals"
+   },
+   "53" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 53,
+      "importing" : [
+         37
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Industrial Machinery"
+   },
+   "54" : {
+      "blackMarkets" : [
+         32,
+         34
+      ],
+      "exporting" : [],
+      "id" : 54,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Gambling"
+   },
+   "55" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 55,
+      "importing" : [
+         38,
+         39
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Human Cultural Goods"
+   },
+   "56" : {
+      "blackMarkets" : [],
+      "exporting" : [],
+      "id" : 56,
+      "importing" : [
+         41
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Spare Parts"
+   },
+   "6" : {
+      "blackMarkets" : [
+         5
+      ],
+      "exporting" : [],
+      "id" : 6,
+      "importing" : [],
+      "isBlackMarket" : 1,
+      "markdown" : "",
+      "name" : "Pleasure Bots"
+   },
+   "7" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         3
+      ],
+      "id" : 7,
+      "importing" : [],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Silica"
+   },
+   "8" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         23
+      ],
+      "id" : 8,
+      "importing" : [
+         1,
+         5,
+         8,
+         16,
+         18,
+         19,
+         21,
+         34,
+         35
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Food"
+   },
+   "9" : {
+      "blackMarkets" : [],
+      "exporting" : [
+         5
+      ],
+      "id" : 9,
+      "importing" : [
+         2,
+         9
+      ],
+      "isBlackMarket" : 0,
+      "markdown" : "",
+      "name" : "Labor"
+   }
+}
+
