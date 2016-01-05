@@ -12,6 +12,7 @@ import { hasLocalStorage, hasSessionStorage } from '../helpers/functions';
 import { renderer } from '../starcitizen-webgl-map';
 import RouteUI from './ui/route';
 import { displayInfo, createInfoLink } from './ui/star-system';
+import toggleFullScreen from '../helpers/toggle-full-screen';
 
 // Import the templates
 import helpers from './ui/helpers';
@@ -155,6 +156,10 @@ class UI {
       $('#sc-map-lock-rotation').prop( 'checked', true );
       map.displayState.to2d();
       renderer.controls.rotateTo( 0, 0, 180 );
+    });
+
+    $('#sc-map-toggleFullScreen').on( 'click', function () {
+      toggleFullScreen();
     });
 
     let tabIndex = 0;

@@ -4,6 +4,7 @@
 import StarSystem from './star-system';
 import settings from './settings';
 import UI from './ui';
+import toggleFullScreen from '../helpers/toggle-full-screen';
 
 import THREE from 'three';
 import TWEEN from 'tween.js';
@@ -656,6 +657,10 @@ THREE.OrbitControls = function ( object, domElement ) {
 
       case scope.keys.T: // Top view
         scope.rotateTo( 0, 0, 200 );
+        break;
+
+      case scope.keys.ENTER: // Full screen
+        toggleFullScreen();
         break;
 
       case scope.keys['2']: // 2D mode
@@ -1430,7 +1435,8 @@ class OrbitControls extends THREE.OrbitControls {
         3: 51,
         L: 76,
         SPACE: 32,
-        TAB: 9
+        TAB: 9,
+        ENTER: 13,
     };
 
     this.targetTween = undefined;
