@@ -370,7 +370,7 @@ class UI {
         sessionStorage[ title ] = '1';
       } else {
         $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
-        delete sessionStorage[ title ];
+        sessionStorage[ title ] = '0';
       }
     });
 

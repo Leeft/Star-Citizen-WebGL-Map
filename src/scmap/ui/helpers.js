@@ -25,13 +25,14 @@ Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
   let hidden = 'style="display: none;"';
   let attrs = [], str;
   let oldLevel = sectionLevel++;
+  let safeTitle = 'panel' + title.replace( /[^\w]/g, '' );
 
   if ( hasSessionStorage() ) {
     storage = window.sessionStorage;
   }
 
-  if ( title in storage ) {
-    opened = ( storage[ title ] == '1' ) ? true : false;
+  if ( typeof storage[ safeTitle ] === 'string' ) {
+    opened = ( storage[ safeTitle ] === '1' ) ? true : false;
   }
 
   if ( opened ) {
@@ -43,7 +44,7 @@ Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
     attrs.push( prop + '="' + options.hash[prop] + '"' );
   }
 
-  str = '<h' + oldLevel + '><a href="#" data-title="' + UI.htmlEscape( title ) +
+  str = '<h' + oldLevel + '><a href="#" data-title="' + UI.htmlEscape( safeTitle ) +
     '" data-toggle-next="next" ' + attrs.join(' ') + '><i class="fa fa-fw fa-lg ' + icon + '">' +
     '</i>' + title + '</a></h' + oldLevel + `>\n` + '         <div class="ui-section" ' + hidden + '>';
 

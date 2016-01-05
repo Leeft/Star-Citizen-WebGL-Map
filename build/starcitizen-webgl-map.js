@@ -10140,13 +10140,14 @@ $__System.register('8a', ['1', '5', '6', '84', '88', '89', '6a', '6b', '1e', '8b
         var attrs = [],
             str = undefined;
         var oldLevel = sectionLevel++;
+        var safeTitle = 'panel' + title.replace(/[^\w]/g, '');
 
         if (hasSessionStorage()) {
           storage = window.sessionStorage;
         }
 
-        if (title in storage) {
-          opened = storage[title] == '1' ? true : false;
+        if (typeof storage[safeTitle] === 'string') {
+          opened = storage[safeTitle] === '1' ? true : false;
         }
 
         if (opened) {
@@ -10158,7 +10159,7 @@ $__System.register('8a', ['1', '5', '6', '84', '88', '89', '6a', '6b', '1e', '8b
           attrs.push(prop + '="' + options.hash[prop] + '"');
         }
 
-        str = '<h' + oldLevel + '><a href="#" data-title="' + UI.htmlEscape(title) + '" data-toggle-next="next" ' + attrs.join(' ') + '><i class="fa fa-fw fa-lg ' + icon + '">' + '</i>' + title + '</a></h' + oldLevel + '>\n' + '         <div class="ui-section" ' + hidden + '>';
+        str = '<h' + oldLevel + '><a href="#" data-title="' + UI.htmlEscape(safeTitle) + '" data-toggle-next="next" ' + attrs.join(' ') + '><i class="fa fa-fw fa-lg ' + icon + '">' + '</i>' + title + '</a></h' + oldLevel + '>\n' + '         <div class="ui-section" ' + hidden + '>';
 
         if ('fn' in options) {
           str += options.fn(this);
@@ -18409,7 +18410,7 @@ $__System.register('6b', ['1', '5', '6', '7', '8', '9', '83', '84', '87', '88', 
               sessionStorage[title] = '1';
             } else {
               $this.parent().find('> a > i').first().addClass('fa-caret-right').removeClass('fa-caret-down');
-              delete sessionStorage[title];
+              sessionStorage[title] = '0';
             }
           });
 
