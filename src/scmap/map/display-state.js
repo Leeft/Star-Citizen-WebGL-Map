@@ -5,7 +5,7 @@
 import TWEEN from 'tween.js';
 import StateMachine from 'javascript-state-machine';
 
-const MIN = 0.01; // 0 causes issues for three.js scaling
+const MIN = 0.001; // 0 causes issues for three.js scaling
 const MAX = 1.0;
 
 class DisplayState {
