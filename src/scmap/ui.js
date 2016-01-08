@@ -245,7 +245,6 @@ class UI {
         let value = ui.value;
         $('#sc-map-interface').removeClass( UI.widthClasses.join(' ') ).addClass( UI.widthClasses[ value ] );
         settings.storage.uiWidth = UI.widthClasses[ value ];
-        renderer.resize();
         UI.jScrollPane().reinitialise();
       }
     });
@@ -470,11 +469,14 @@ class UI {
     this.oldWidth = 0;
     this.oldHeight = 0;
 
+    renderer.resize();
+
     resizeListener().listenTo( $('#sc-map-interface .sc-map-ui-padding')[ 0 ], element => {
       const width = $(element).width();
       const height = $(element).height();
       if ( width !== this.oldWidth || height !== this.oldHeight ) {
         UI.jScrollPane().reinitialise();
+        renderer.resize();
         this.oldWidth = width;
         this.oldHeight = height;
       }
