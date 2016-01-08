@@ -30,6 +30,11 @@ import SystemGlow, { GLOW_MATERIAL_PROMISE } from './map/geometry/system-glow';
 import TWEEN from 'tween.js';
 import RSVP from 'rsvp';
 
+function scaleSelector( mesh, scaleY ) {
+  mesh.scale.y = scaleY * 4.0 * config.renderScale;
+  mesh.position.setY( scaleY * mesh.userData.position.y );
+}
+
 class Map {
   constructor () {
     this.name = `Star Citizen Persistent Universe`;
@@ -41,10 +46,14 @@ class Map {
     this.displayState = this.buildDisplayState();
 
     this.geometry.selectedSystem = this._createSelectorObject( 0x99FF99 );
+    this.geometry.selectedSystem.userData.scaleY = scaleSelector;
+    scaleSelector( this.geometry.selectedSystem, this.displayState.currentScale );
     this.scene.add( this.geometry.selectedSystem );
 
     this.geometry.mouseOverObject = this._createSelectorObject( 0x8844FF );
     this.geometry.mouseOverObject.scale.set( 4.0 * config.renderScale, 4.0 * config.renderScale, 4.0 * config.renderScale );
+    this.geometry.mouseOverObject.userData.scaleY = scaleSelector;
+    scaleSelector( this.geometry.mouseOverObject, this.displayState.currentScale );
     this.scene.add( this.geometry.mouseOverObject );
 
     this.__currentlySelected = null;
