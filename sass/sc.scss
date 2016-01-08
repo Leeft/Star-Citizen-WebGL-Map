@@ -409,7 +409,7 @@ display: none;
   }
 
 
-  table.routelist {
+  table.routelist, table.jumps {
 
     margin-bottom: 0.3em;
     width: 100%;
@@ -432,6 +432,13 @@ display: none;
       text-align: right;
     }
 
+    .distance {
+      text-align: right;
+    }
+
+    .size {
+      text-align: center;
+    }
   }
 
   .muted {

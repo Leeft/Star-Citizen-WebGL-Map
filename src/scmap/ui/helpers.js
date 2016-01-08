@@ -19,6 +19,14 @@ let tabCounter = 0;
 
 let storage = {};
 
+Handlebars.registerHelper( 'distanceLY', function( distance ) {
+  if ( ! distance ) {
+    return new Handlebars.SafeString('');
+  }
+
+  return new Handlebars.SafeString( `${ distance.toFixed(1) } ly` );
+});
+
 Handlebars.registerHelper( 'uiSection', function( title, shouldOpen, options ) {
   let opened = ( shouldOpen ) ? true : false;
   let icon = 'fa-caret-right';

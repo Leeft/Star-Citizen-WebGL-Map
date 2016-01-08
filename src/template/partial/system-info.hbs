@@ -36,7 +36,24 @@
 
         <dt class="strategic">UEE strategic value</dt>
         <dd class="strategic strategic_value_{{ system.ueeStrategicValue.color }}">{{ system.ueeStrategicValue.color }}</dd>
+
       </dl>
+    {{/uiSection }}
+  </article>
+
+  <article>
+    {{#uiSection 'Jump points' 1 }}
+      <table class="jumps">
+        <tbody>
+        {{#each system.jumpPoints}}
+          <tr>
+            <th class="system">{{systemLink this.destination noIcons=1 noTarget=1}}</th>
+            <td class="size">{{this.size}}</td>
+            <td class="distance">{{distanceLY this.distanceInLY}}</td>
+          </tr>
+        {{/each}}
+        </tbody>
+      </table>
     {{/uiSection }}
   </article>
 

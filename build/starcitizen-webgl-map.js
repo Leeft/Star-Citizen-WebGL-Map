@@ -2483,6 +2483,14 @@ $__System.register('1d', ['6', '8', '9', '1e'], function (_export) {
           value: function setDrawn() {
             this.drawn = true;
           }
+        }, {
+          key: 'distanceInLY',
+          get: function get() {
+            if (!this.isValid()) {
+              return;
+            }
+            return this.source.position.distanceTo(this.destination.position);
+          }
         }]);
 
         return JumpPoint;
@@ -10133,6 +10141,14 @@ $__System.register('8a', ['1', '5', '6', '84', '88', '89', '6a', '6b', '1e', '8b
       tabCounter = 0;
       storage = {};
 
+      Handlebars.registerHelper('distanceLY', function (distance) {
+        if (!distance) {
+          return new Handlebars.SafeString('');
+        }
+
+        return new Handlebars.SafeString(distance.toFixed(1) + ' ly');
+      });
+
       Handlebars.registerHelper('uiSection', function (title, shouldOpen, options) {
         var opened = shouldOpen ? true : false;
         var icon = 'fa-caret-right';
@@ -10850,22 +10866,28 @@ $__System.registerDynamic("95", ["8b"], true, function($__require, exports, modu
         "fn": container.program(7, data, 0),
         "inverse": container.noop,
         "data": data
-      })) != null ? stack1 : "") + "  </article>\n\n  <article>\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Comments and settings", 0, {
+      })) != null ? stack1 : "") + "  </article>\n\n  <article>\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Jump points", 1, {
         "name": "uiSection",
         "hash": {},
         "fn": container.program(9, data, 0),
         "inverse": container.noop,
         "data": data
-      })) != null ? stack1 : "") + "  </article>\n\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Description", 1, {
+      })) != null ? stack1 : "") + "  </article>\n\n  <article>\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Comments and settings", 0, {
         "name": "uiSection",
         "hash": {},
         "fn": container.program(12, data, 0),
         "inverse": container.noop,
         "data": data
+      })) != null ? stack1 : "") + "  </article>\n\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Description", 1, {
+        "name": "uiSection",
+        "hash": {},
+        "fn": container.program(15, data, 0),
+        "inverse": container.noop,
+        "data": data
       })) != null ? stack1 : "") + "\n" + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {}, ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.info : stack1), {
         "name": "each",
         "hash": {},
-        "fn": container.program(14, data, 0),
+        "fn": container.program(17, data, 0),
         "inverse": container.noop,
         "data": data
       })) != null ? stack1 : "") + "\n";
@@ -10905,9 +10927,33 @@ $__System.registerDynamic("95", ["8b"], true, function($__require, exports, modu
         "name": "commoditiesList",
         "hash": {},
         "data": data
-      })) != null ? stack1 : "") + "</dd>\n\n\n        <dt class=\"crime\">Crime status</dt>\n        <dd class=\"crime crime_" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.crimeStatus : stack1)) != null ? stack1.name : stack1), depth0)) + "\">" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.crimeStatus : stack1)) != null ? stack1.name : stack1), depth0)) + "</dd>\n\n        <dt class=\"strategic\">UEE strategic value</dt>\n        <dd class=\"strategic strategic_value_" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.ueeStrategicValue : stack1)) != null ? stack1.color : stack1), depth0)) + "\">" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.ueeStrategicValue : stack1)) != null ? stack1.color : stack1), depth0)) + "</dd>\n      </dl>\n";
+      })) != null ? stack1 : "") + "</dd>\n\n\n        <dt class=\"crime\">Crime status</dt>\n        <dd class=\"crime crime_" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.crimeStatus : stack1)) != null ? stack1.name : stack1), depth0)) + "\">" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.crimeStatus : stack1)) != null ? stack1.name : stack1), depth0)) + "</dd>\n\n        <dt class=\"strategic\">UEE strategic value</dt>\n        <dd class=\"strategic strategic_value_" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.ueeStrategicValue : stack1)) != null ? stack1.color : stack1), depth0)) + "\">" + container.escapeExpression(container.lambda(((stack1 = ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.ueeStrategicValue : stack1)) != null ? stack1.color : stack1), depth0)) + "</dd>\n\n      </dl>\n";
     },
     "9": function(container, depth0, helpers, partials, data) {
+      var stack1;
+      return "      <table class=\"jumps\">\n        <tbody>\n" + ((stack1 = helpers.each.call(depth0 != null ? depth0 : {}, ((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.jumpPoints : stack1), {
+        "name": "each",
+        "hash": {},
+        "fn": container.program(10, data, 0),
+        "inverse": container.noop,
+        "data": data
+      })) != null ? stack1 : "") + "        </tbody>\n      </table>\n";
+    },
+    "10": function(container, depth0, helpers, partials, data) {
+      return "          <tr>\n            <th class=\"system\">" + container.escapeExpression((helpers.systemLink || (depth0 && depth0.systemLink) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, (depth0 != null ? depth0.destination : depth0), {
+        "name": "systemLink",
+        "hash": {
+          "noTarget": 1,
+          "noIcons": 1
+        },
+        "data": data
+      })) + "</th>\n            <td class=\"size\">" + container.escapeExpression(container.lambda((depth0 != null ? depth0.size : depth0), depth0)) + "</td>\n            <td class=\"distance\">" + container.escapeExpression((helpers.distanceLY || (depth0 && depth0.distanceLY) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, (depth0 != null ? depth0.distanceInLY : depth0), {
+        "name": "distanceLY",
+        "hash": {},
+        "data": data
+      })) + "</td>\n          </tr>\n";
+    },
+    "12": function(container, depth0, helpers, partials, data) {
       var stack1;
       return "\n      " + container.escapeExpression((helpers.checkboxButton || (depth0 && depth0.checkboxButton) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "sc-map-hangar-location", "My hangar location", {
         "name": "checkboxButton",
@@ -10936,30 +10982,30 @@ $__System.registerDynamic("95", ["8b"], true, function($__require, exports, modu
       })) + "\n\n      <div class=\"comment-editing\">\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Edit your comments", 0, {
         "name": "uiSection",
         "hash": {"class": "user ui-section"},
-        "fn": container.program(10, data, 0),
+        "fn": container.program(13, data, 0),
         "inverse": container.noop,
         "data": data
       })) != null ? stack1 : "") + "\n        <p class=\"ui-section user-system-comments-md\"></p>\n      </div>\n\n";
     },
-    "10": function(container, depth0, helpers, partials, data) {
+    "13": function(container, depth0, helpers, partials, data) {
       var stack1;
       return "          <div class=\"user wide\">\n            <label for=\"user-comments-" + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.id : stack1), depth0)) + "\">Your comments (<a href=\"https://daringfireball.net/projects/markdown/basics\" target=\"_new\">markdown syntax</a>):\n            </label><a href=\"#\" class=\"remove-system-comments\" title=\"Remove\" data-system=\"" + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.id : stack1), depth0)) + "\" class=\"pull-right text-danger\"><i class=\"fa fa-fw fa-lg fa-times\"></i></a>\n            <textarea id=\"user-comments-" + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.id : stack1), depth0)) + "\" data-system=\"" + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.id : stack1), depth0)) + "\" class=\"user-system-comments\"></textarea>\n          </div>\n";
     },
-    "12": function(container, depth0, helpers, partials, data) {
+    "15": function(container, depth0, helpers, partials, data) {
       var stack1;
       return "    <div class=\"system-description\">\n      " + container.escapeExpression(container.lambda(((stack1 = (depth0 != null ? depth0.system : depth0)) != null ? stack1.description : stack1), depth0)) + "\n    </div>\n";
     },
-    "14": function(container, depth0, helpers, partials, data) {
+    "17": function(container, depth0, helpers, partials, data) {
       var stack1;
       return "    <article>\n" + ((stack1 = (helpers.uiSection || (depth0 && depth0.uiSection) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, "Background info", 1, {
         "name": "uiSection",
         "hash": {},
-        "fn": container.program(15, data, 0),
+        "fn": container.program(18, data, 0),
         "inverse": container.noop,
         "data": data
       })) != null ? stack1 : "") + "    </article>\n";
     },
-    "15": function(container, depth0, helpers, partials, data) {
+    "18": function(container, depth0, helpers, partials, data) {
       var stack1;
       return "        <div class=\"system-blurb-body\" data-source=\"" + container.escapeExpression(container.lambda((depth0 != null ? depth0.source : depth0), depth0)) + "\">\n          " + container.escapeExpression((helpers.markdown || (depth0 && depth0.markdown) || helpers.helperMissing).call(depth0 != null ? depth0 : {}, (depth0 != null ? depth0.article : depth0), {
         "name": "markdown",
@@ -10968,15 +11014,15 @@ $__System.registerDynamic("95", ["8b"], true, function($__require, exports, modu
       })) + "\n        </div>\n" + ((stack1 = helpers["if"].call(depth0 != null ? depth0 : {}, (depth0 != null ? depth0.source : depth0), {
         "name": "if",
         "hash": {},
-        "fn": container.program(16, data, 0),
+        "fn": container.program(19, data, 0),
         "inverse": container.noop,
         "data": data
       })) != null ? stack1 : "");
     },
-    "16": function(container, depth0, helpers, partials, data) {
+    "19": function(container, depth0, helpers, partials, data) {
       return "          <p class=\"system-blurb-source\"><a href=\"" + container.escapeExpression(container.lambda((depth0 != null ? depth0.source : depth0), depth0)) + "\" target=\"_new\">(source)</a></p>\n";
     },
-    "18": function(container, depth0, helpers, partials, data) {
+    "21": function(container, depth0, helpers, partials, data) {
       return "\n  <div>\n    <p class=\"padleft impossible large ui-section\">No system selected</p>\n  </div>\n\n";
     },
     "compiler": [7, ">= 4.0.0"],
@@ -10986,7 +11032,7 @@ $__System.registerDynamic("95", ["8b"], true, function($__require, exports, modu
         "name": "if",
         "hash": {},
         "fn": container.program(1, data, 0),
-        "inverse": container.program(18, data, 0),
+        "inverse": container.program(21, data, 0),
         "data": data
       })) != null ? stack1 : "");
     },

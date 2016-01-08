@@ -31,6 +31,11 @@ class JumpPoint {
     }
   }
 
+  get distanceInLY () {
+    if ( ! this.isValid() ) { return; }
+    return this.source.position.distanceTo( this.destination.position );
+  }
+
   length () {
     if ( ! this.isValid() ) { return; }
     return this.source.position.distanceTo( this.destination.position );
