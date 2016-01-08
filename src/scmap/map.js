@@ -84,7 +84,7 @@ class Map {
           const grid = buildReferenceGrid();
           grid.name = 'referenceGrid';
           map.scene.add( grid );
-          grid.position.y = -0.5;
+          grid.position.y = -0.05;
           grid.updateMatrix();
         } catch( e ) {
           console.error( `Failed to create reference grid:`, e );
