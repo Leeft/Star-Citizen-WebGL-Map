@@ -268,6 +268,8 @@ THREE.OrbitControls = function ( object, domElement ) {
   var STATE = { NONE : - 1, ROTATE : 0, DOLLY : 1, PAN : 2, TOUCH_ROTATE : 3, TOUCH_DOLLY : 4, TOUCH_PAN : 5 };
 
   STATE.DRAGROUTE = 6; // Leeft addition
+  STATE.PAN_XY = 7; // Leeft addition
+  STATE.TOUCH_PAN_XY = 8; // Leeft addition
 
   var state = STATE.NONE;
 
@@ -360,6 +362,8 @@ THREE.OrbitControls = function ( object, domElement ) {
   //
   // Leeft addition: pan across grid rather than x/y screen coordinates
   //
+  const orgPanUp = panUp;
+
   panUp = () => {
 
     return ( distance ) => {
@@ -394,7 +398,13 @@ THREE.OrbitControls = function ( object, domElement ) {
 
         // we actually don't use screenWidth, since perspective camera is fixed to screen height
         panLeft( 2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix );
-        panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
+        // Leeft modifications start
+        if ( state === STATE.PAN_XY || state === STATE.TOUCH_PAN_XY ) {
+          orgPanUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
+        } else {
+          panUp( 2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix );
+        }
+        // Leeft modifications end
 
       } else if ( scope.object instanceof THREE.OrthographicCamera ) {
 
@@ -682,7 +692,9 @@ THREE.OrbitControls = function ( object, domElement ) {
         break;
 
       case scope.keys.L: // Lock/unlock rotation
-        UI.rotationLockToggle();
+        if ( ! event.ctrlKey ) {
+          UI.rotationLockToggle();
+        }
         break;
 
       //
@@ -827,9 +839,9 @@ THREE.OrbitControls = function ( object, domElement ) {
 
     // makes sure the destination is at the same xz plane
     if ( destination instanceof StarSystem ) {
-      destinationVector = destination.position.clone().setY( this.target.y );
+      destinationVector = destination.position.clone();
     } else if ( destination instanceof THREE.Vector3 ) {
-      destinationVector = destination.clone().setY( this.target.y );
+      destinationVector = destination.clone();
     } else {
       return;
     }
@@ -864,7 +876,7 @@ THREE.OrbitControls = function ( object, domElement ) {
   // assumes mapMode for now
   this.goTo = ( vector ) => {
     // make sure the given vector is at the same xz plane
-    vector = vector.clone().setY( this.target.y );
+    vector = vector.clone();
     vector.sub( this.target );
     panOffset.add( vector );
   };
@@ -1026,7 +1038,13 @@ THREE.OrbitControls = function ( object, domElement ) {
 
       handleMouseDownPan( event );
 
-      state = STATE.PAN;
+      // Leeft additions and modification
+      if ( event.altKey ) {
+        state = STATE.PAN_XY;
+      } else {
+        state = STATE.PAN;
+      }
+      // End Leeft additions and modification
 
     }
 
@@ -1069,6 +1087,12 @@ THREE.OrbitControls = function ( object, domElement ) {
       handleMouseMovePan( event );
 
     // Leeft addition
+
+    } else if ( state === STATE.PAN_XY ) {
+
+      if ( scope.enablePan === false ) return;
+
+      handleMouseMovePan( event );
 
     } else if ( state === STATE.DRAGROUTE ) {
 
@@ -1174,6 +1198,20 @@ THREE.OrbitControls = function ( object, domElement ) {
 
         break;
 
+      // Leeft
+
+      case 4: // four-fingered touch: pan
+
+        if ( scope.enablePan === false ) return;
+
+        handleTouchStartPan( event );
+
+        state = STATE.TOUCH_PAN_XY;
+
+        break;
+
+      // End leeft
+
       default:
 
         state = STATE.NONE;
@@ -1239,6 +1277,19 @@ THREE.OrbitControls = function ( object, domElement ) {
         handleTouchMovePan( event );
 
         break;
+
+      // Leeft
+
+      case 4: // four-fingered touch: pan
+
+        if ( scope.enablePan === false ) return;
+        if ( state !== STATE.TOUCH_PAN_XY ) return; // is this needed?...
+
+        handleTouchMovePan( event );
+
+        break;
+
+      // End leeft
 
       default:
 

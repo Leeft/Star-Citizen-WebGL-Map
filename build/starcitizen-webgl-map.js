@@ -1751,7 +1751,7 @@ $__System.register('12', ['8', '9', '13', '14'], function (_export) {
 
       'use strict';
 
-      MIN = 0.01;
+      MIN = 0.001;
       // 0 causes issues for three.js scaling
       MAX = 1.0;
 
@@ -6909,6 +6909,11 @@ $__System.registerDynamic("11", ["67"], true, function($__require, exports, modu
 $__System.register('68', ['1', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '15', '16', '17', '19', '36', '37', '66', '69', '6a', 'c', '6b', 'b', 'd', '1e', '6c', '1f'], function (_export) {
   var SCMAP, Dijkstra, hasLocalStorage, hasSessionStorage, StarSystem, settings, _createClass, _classCallCheck, xhrPromise, RSVP, DisplayState, TWEEN, waitForFontAwesome, SelectedSystemGeometry, buildReferenceGrid, SystemsGeometry, SystemLabels, Interactables, SystemGlow, GLOW_MATERIAL_PROMISE, Goods, Faction, Route, UI, config, renderer, scene, Scene, Mesh, MeshBasicMaterial, Vector3, degToRad, JumpPoints, Map;
 
+  function scaleSelector(mesh, scaleY) {
+    mesh.scale.y = scaleY * 4.0 * config.renderScale;
+    mesh.position.setY(scaleY * mesh.userData.position.y);
+  }
+
   return {
     setters: [function (_3) {
       SCMAP = _3['default'];
@@ -6991,10 +6996,14 @@ $__System.register('68', ['1', '4', '5', '6', '7', '8', '9', '10', '11', '12', '
           this.displayState = this.buildDisplayState();
 
           this.geometry.selectedSystem = this._createSelectorObject(0x99FF99);
+          this.geometry.selectedSystem.userData.scaleY = scaleSelector;
+          scaleSelector(this.geometry.selectedSystem, this.displayState.currentScale);
           this.scene.add(this.geometry.selectedSystem);
 
           this.geometry.mouseOverObject = this._createSelectorObject(0x8844FF);
           this.geometry.mouseOverObject.scale.set(4.0 * config.renderScale, 4.0 * config.renderScale, 4.0 * config.renderScale);
+          this.geometry.mouseOverObject.userData.scaleY = scaleSelector;
+          scaleSelector(this.geometry.mouseOverObject, this.displayState.currentScale);
           this.scene.add(this.geometry.mouseOverObject);
 
           this.__currentlySelected = null;
@@ -7036,7 +7045,7 @@ $__System.register('68', ['1', '4', '5', '6', '7', '8', '9', '10', '11', '12', '
                 var grid = buildReferenceGrid();
                 grid.name = 'referenceGrid';
                 map.scene.add(grid);
-                grid.position.y = -0.5;
+                grid.position.y = -0.05;
                 grid.updateMatrix();
               } catch (e) {
                 console.error('Failed to create reference grid:', e);
@@ -8169,6 +8178,8 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
         var STATE = { NONE: -1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DOLLY: 4, TOUCH_PAN: 5 };
 
         STATE.DRAGROUTE = 6; // Leeft addition
+        STATE.PAN_XY = 7; // Leeft addition
+        STATE.TOUCH_PAN_XY = 8; // Leeft addition
 
         var state = STATE.NONE;
 
@@ -8253,6 +8264,8 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
         //
         // Leeft addition: pan across grid rather than x/y screen coordinates
         //
+        var orgPanUp = panUp;
+
         panUp = (function () {
 
           return function (distance) {
@@ -8286,18 +8299,24 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
 
               // we actually don't use screenWidth, since perspective camera is fixed to screen height
               panLeft(2 * deltaX * targetDistance / element.clientHeight, scope.object.matrix);
-              panUp(2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix);
+              // Leeft modifications start
+              if (state === STATE.PAN_XY || state === STATE.TOUCH_PAN_XY) {
+                orgPanUp(2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix);
+              } else {
+                panUp(2 * deltaY * targetDistance / element.clientHeight, scope.object.matrix);
+              }
+              // Leeft modifications end
             } else if (scope.object instanceof THREE.OrthographicCamera) {
 
-              // orthographic
-              panLeft(deltaX * (scope.object.right - scope.object.left) / element.clientWidth, scope.object.matrix);
-              panUp(deltaY * (scope.object.top - scope.object.bottom) / element.clientHeight, scope.object.matrix);
-            } else {
+                // orthographic
+                panLeft(deltaX * (scope.object.right - scope.object.left) / element.clientWidth, scope.object.matrix);
+                panUp(deltaY * (scope.object.top - scope.object.bottom) / element.clientHeight, scope.object.matrix);
+              } else {
 
-              // camera neither orthographic nor perspective
-              console.warn('WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.');
-              scope.enablePan = false;
-            }
+                // camera neither orthographic nor perspective
+                console.warn('WARNING: OrbitControls.js encountered an unknown camera type - pan disabled.');
+                scope.enablePan = false;
+              }
           };
         })();
 
@@ -8551,7 +8570,9 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
 
             case scope.keys.L:
               // Lock/unlock rotation
-              UI.rotationLockToggle();
+              if (!event.ctrlKey) {
+                UI.rotationLockToggle();
+              }
               break;
 
             //
@@ -8685,9 +8706,9 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
 
           // makes sure the destination is at the same xz plane
           if (destination instanceof StarSystem) {
-            destinationVector = destination.position.clone().setY(_this.target.y);
+            destinationVector = destination.position.clone();
           } else if (destination instanceof THREE.Vector3) {
-            destinationVector = destination.clone().setY(_this.target.y);
+            destinationVector = destination.clone();
           } else {
             return;
           }
@@ -8719,7 +8740,7 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
         // assumes mapMode for now
         this.goTo = function (vector) {
           // make sure the given vector is at the same xz plane
-          vector = vector.clone().setY(_this.target.y);
+          vector = vector.clone();
           vector.sub(_this.target);
           panOffset.add(vector);
         };
@@ -8869,7 +8890,13 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
 
               handleMouseDownPan(event);
 
-              state = STATE.PAN;
+              // Leeft additions and modification
+              if (event.altKey) {
+                state = STATE.PAN_XY;
+              } else {
+                state = STATE.PAN;
+              }
+              // End Leeft additions and modification
             }
 
           if (state !== STATE.NONE) {
@@ -8907,7 +8934,12 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
             handleMouseMovePan(event);
 
             // Leeft addition
-          } else if (state === STATE.DRAGROUTE) {
+          } else if (state === STATE.PAN_XY) {
+
+              if (scope.enablePan === false) return;
+
+              handleMouseMovePan(event);
+            } else if (state === STATE.DRAGROUTE) {
 
               if (scope.enableRouting === false) return;
 
@@ -9006,6 +9038,21 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
 
               break;
 
+            // Leeft
+
+            case 4:
+              // four-fingered touch: pan
+
+              if (scope.enablePan === false) return;
+
+              handleTouchStartPan(event);
+
+              state = STATE.TOUCH_PAN_XY;
+
+              break;
+
+            // End leeft
+
             default:
 
               state = STATE.NONE;
@@ -9070,6 +9117,20 @@ $__System.register('7d', ['3', '6', '7', '9', '13', '14', '75', '78', '1b', '1c'
               handleTouchMovePan(event);
 
               break;
+
+            // Leeft
+
+            case 4:
+              // four-fingered touch: pan
+
+              if (scope.enablePan === false) return;
+              if (state !== STATE.TOUCH_PAN_XY) return; // is this needed?...
+
+              handleTouchMovePan(event);
+
+              break;
+
+            // End leeft
 
             default:
 
@@ -9551,8 +9612,8 @@ $__System.register('7', ['1', '5', '8', '9', 'b', '1e'], function (_export) {
           }
 
           this.camera = {
-            camera: new Vector3(0, 80 * config.renderScale, 100 * config.renderScale),
-            target: new Vector3(0, 10 * config.renderScale, 0),
+            camera: new Vector3(0, 70 * config.renderScale, 100 * config.renderScale),
+            target: new Vector3(0, 0 * config.renderScale, 0),
             orientation: {
               theta: 0,
               phi: 0.9616764178488756,
@@ -18191,8 +18252,8 @@ $__System.register('6b', ['1', '5', '6', '7', '8', '9', '83', '84', '87', '88', 
           var ui = this;
 
           $('#sc-map-interface').empty().append(UI.Templates.mapUI({
-            instructions: ['Left-click (or tap) and release to select a system.', 'Left-click (or tap) and drag from system to system to map a route between them.', 'Left-click (or tap) and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.', 'Left-click (or tap) and drag on the background of the map to rotate the camera around the current center.', 'Mousewheel (or two-finger swipe) to zoom in and out; middle-click and drag can also be used.', 'Right-click (or three-finger swipe) to pan the camera around the map.'],
-            shortcuts: [{ key: 'R', description: 'Reset camera orientation' }, { key: 'C', description: 'Camera to center (Sol)' }, { key: 'T', description: 'Top-down camera' }, { key: 'L', description: 'Lock/unlock camera rotation' }, { key: '2', description: 'Switch to 2D mode' }, { key: '3', description: 'Switch to 3D mode' }, { key: 'Esc', description: 'Deselect target' }],
+            instructions: ['Left-click (or tap) and release to select a system.', 'Left-click (or tap) and drag from system to system to map a route between them.', 'Left-click (or tap) and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.', 'Left-click (or tap) and drag on the background of the map to rotate the camera around the current center.', 'Mousewheel (or two-finger pinch) to zoom in and out; middle-click and drag can also be used.', 'Right-click (or three-finger swipe) to pan the camera along the map.', 'Right-click plus alt (or four-finger swipe) to pan the camera up and down.'],
+            shortcuts: [{ key: 'R', description: 'Reset camera angle (virtual north)' }, { key: 'C', description: 'Camera to center (Sol)' }, { key: 'T', description: 'Top-down camera' }, { key: 'L', description: 'Lock/unlock camera rotation' }, { key: '2', description: 'Switch to 2D mode' }, { key: '3', description: 'Switch to 3D mode' }, { key: 'Esc', description: 'Deselect target' }],
             icons: icons,
             systemGroups: UI.buildDynamicLists(),
             system: selectedSystem,
@@ -18335,7 +18396,6 @@ $__System.register('6b', ['1', '5', '6', '7', '8', '9', '83', '84', '87', '88', 
               var value = ui.value;
               $('#sc-map-interface').removeClass(UI.widthClasses.join(' ')).addClass(UI.widthClasses[value]);
               settings.storage.uiWidth = UI.widthClasses[value];
-              renderer.resize();
               UI.jScrollPane().reinitialise();
             }
           });
@@ -18550,11 +18610,14 @@ $__System.register('6b', ['1', '5', '6', '7', '8', '9', '83', '84', '87', '88', 
           this.oldWidth = 0;
           this.oldHeight = 0;
 
+          renderer.resize();
+
           resizeListener().listenTo($('#sc-map-interface .sc-map-ui-padding')[0], function (element) {
             var width = $(element).width();
             var height = $(element).height();
             if (width !== _this.oldWidth || height !== _this.oldHeight) {
               UI.jScrollPane().reinitialise();
+              renderer.resize();
               _this.oldWidth = width;
               _this.oldHeight = height;
             }
@@ -18736,11 +18799,6 @@ $__System.register('6b', ['1', '5', '6', '7', '8', '9', '83', '84', '87', '88', 
                 oldRenderStats.memory[property] = renderStats.memory[property];
               }
             });
-          }
-        }, {
-          key: 'sidePanelWidth',
-          value: function sidePanelWidth() {
-            return $('#sc-map-interface .sc-map-ui-padding').width();
           }
         }, {
           key: 'containerWidth',
@@ -19933,7 +19991,7 @@ $__System.register('c1', ['7', '8', '9', '13', 'b', '7d', '6b', '1e', '6c', 'bd'
 
           this.camera = new PerspectiveCamera(45, this.width / this.height, 10, 1600);
           this.camera.position.copy(settings.camera.camera);
-          this.camera.setViewOffset(this.width, this.height, -(UI.sidePanelWidth() / 2), 0, this.width, this.height);
+          this.camera.setViewOffset(this.width, this.height, -(UI.containerWidth() / 2), 0, this.width, this.height);
 
           this.controls = new OrbitControls(this);
           this.controls.target.copy(settings.camera.target);
@@ -20012,7 +20070,7 @@ $__System.register('c1', ['7', '8', '9', '13', 'b', '7d', '6b', '1e', '6c', 'bd'
             this.height = window.innerHeight;
 
             this.camera.aspect = this.width / this.height;
-            this.camera.setViewOffset(this.width, this.height, -(UI.sidePanelWidth() / 2), 0, this.width, this.height);
+            this.camera.setViewOffset(this.width, this.height, -(UI.containerWidth() / 2), 0, this.width, this.height);
             this.camera.updateProjectionMatrix();
 
             if (this.FXAA) {

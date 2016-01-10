@@ -18,8 +18,8 @@ class Settings {
     }
 
     this.camera = {
-      camera: new Vector3( 0, 80 * config.renderScale, 100 * config.renderScale ),
-      target: new Vector3( 0, 10 * config.renderScale, 0 ),
+      camera: new Vector3( 0, 70 * config.renderScale, 100 * config.renderScale ),
+      target: new Vector3( 0, 0 * config.renderScale, 0 ),
       orientation: {
         theta: 0,
         phi: 0.9616764178488756,

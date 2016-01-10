@@ -79,11 +79,12 @@ class UI {
           `Left-click (or tap) and drag from system to system to map a route between them.`,
           `Left-click (or tap) and drag any waypoint on the route to move it. It moves an existing waypoint or creates new waypoints as needed.`,
           `Left-click (or tap) and drag on the background of the map to rotate the camera around the current center.`,
-          `Mousewheel (or two-finger swipe) to zoom in and out; middle-click and drag can also be used.`,
-          `Right-click (or three-finger swipe) to pan the camera around the map.`
+          `Mousewheel (or two-finger pinch) to zoom in and out; middle-click and drag can also be used.`,
+          `Right-click (or three-finger swipe) to pan the camera along the map.`,
+          `Right-click plus alt (or four-finger swipe) to pan the camera up and down.`,
         ],
         shortcuts: [
-          { key: `R`,   description: `Reset camera orientation` },
+          { key: `R`,   description: `Reset camera angle (virtual north)` },
           { key: `C`,   description: `Camera to center (Sol)` },
           { key: `T`,   description: `Top-down camera` },
           { key: `L`,   description: `Lock/unlock camera rotation` },
