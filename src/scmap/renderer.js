@@ -44,7 +44,7 @@ class Renderer {
 
     this.camera = new PerspectiveCamera( 45, this.width / this.height, 10, 1600 );
     this.camera.position.copy( settings.camera.camera );
-    this.camera.setViewOffset( this.width, this.height, -( UI.sidePanelWidth() / 2 ), 0, this.width, this.height );
+    this.camera.setViewOffset( this.width, this.height, -( UI.containerWidth() / 2 ), 0, this.width, this.height );
 
     this.controls = new OrbitControls( this );
     this.controls.target.copy( settings.camera.target );
@@ -135,7 +135,7 @@ class Renderer {
     this.height = window.innerHeight;
 
     this.camera.aspect = this.width / this.height;
-    this.camera.setViewOffset( this.width, this.height, -( UI.sidePanelWidth() / 2 ), 0, this.width, this.height );
+    this.camera.setViewOffset( this.width, this.height, -( UI.containerWidth() / 2 ), 0, this.width, this.height );
     this.camera.updateProjectionMatrix();
 
     if ( this.FXAA ) {

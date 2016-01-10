@@ -646,10 +646,6 @@ class UI {
     });
   }
 
-  static sidePanelWidth () {
-    return $('#sc-map-interface .sc-map-ui-padding').width();
-  }
-
   static containerWidth () {
     return $('#sc-map-interface').width();
   }
