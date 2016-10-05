@@ -68,7 +68,7 @@
         {{#uiSection 'Edit your comments' 0 class='user ui-section' }}
           <div class="user wide">
             <label for="user-comments-{{ system.id }}">Your comments (<a href="https://daringfireball.net/projects/markdown/basics" target="_new">markdown syntax</a>):
-            </label><a href="#" class="remove-system-comments" title="Remove" data-system="{{ system.id }}" class="pull-right text-danger"><i class="fa fa-fw fa-lg fa-times"></i></a>
+            </label><a href="#" class="remove-system-comments pull-right text-danger" title="Remove" data-system="{{ system.id }}"><i class="fa fa-fw fa-lg fa-times"></i></a>
             <textarea id="user-comments-{{ system.id }}" data-system="{{ system.id}}" class="user-system-comments"></textarea>
           </div>
         {{/uiSection }}
